@@ -1,0 +1,13 @@
+ABOUT
+
+Pandas is an open source Python library providing high-performance data structures 
+and data analysis tools. Tkinter is the standard GUI toolkit for python. The pandastable
+library provides a GUI frontend to the pandas DataFrame class. It is intended for the
+following uses:
+-for developers who want to include a table in their application that can store and process
+large amounts of data
+-for non-programmers who are not familiar with Python or the pandas API and want to use
+the included table viewer application to manipulate/view their data
+-it may also be useful for programmers who want to get an interactive look at their dataframes
+A sample application using these classes is included in the distribution.
+
