@@ -58,6 +58,7 @@ class TableModel(object):
         df = np.round(df, 3)
         cats = ['foo','bar','sel']
         df['label'] = [cats[i] for i in np.random.randint(0,3,200)]
+        #df['Z'] = -5 + 3*X-0.5*Y+np.random.randn(np.shape(X)[0], np.shape(X)[1])
         return df
 
     def initialiseFields(self):
