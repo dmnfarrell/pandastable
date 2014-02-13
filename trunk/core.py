@@ -1873,9 +1873,9 @@ class Table(Canvas):
         """Check the OS we are in"""
         ostyp=''
         var_s=['OSTYPE','OS']
-        for var in var_s:
+        '''for var in var_s:
             if var in os.environ:
-                ostyp=string.lower(os.environ[var])
+                ostyp = string.lower(os.environ[var])'''
 
         ostyp=ostyp.lower()
         if ostyp.find('windows')!=-1:
@@ -1890,7 +1890,7 @@ class Table(Canvas):
                 info=os.uname()
             except:
                 pass
-            ostyp=info[0].lower()
+            #ostyp=info[0].lower()
             if ostyp.find('darwin')!=-1:
                 ostyp='mac'
         return ostyp
