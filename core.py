@@ -21,7 +21,7 @@
 
 from tkinter import *
 from tkinter.ttk import *
-from tkinter import filedialog, messagebox, simpledialog
+#from tkinter import filedialog, messagebox, simpledialog
 import tkinter.font
 import math, time
 import os, types
@@ -29,6 +29,7 @@ import string, copy
 import platform
 from data import TableModel
 from prefs import Preferences
+import images
 from plotting import MPLoptions, PlotFrame
 import pylab as plt
 import pandas as pd
@@ -202,8 +203,8 @@ class Table(Canvas):
         self.parentframe.rowconfigure(1,weight=1)
         self.parentframe.columnconfigure(1,weight=1)
 
-        self.tablecolheader.grid(row=0,column=1,rowspan=1,sticky='news',pady=0,ipady=0)
-        self.tablerowheader.grid(row=1,column=0,rowspan=1,sticky='news',pady=0,ipady=0)
+        self.tablecolheader.grid(row=0,column=1,rowspan=1,sticky='news')
+        self.tablerowheader.grid(row=1,column=0,rowspan=1,sticky='news')
         self.grid(row=1,column=1,rowspan=1,sticky='news',pady=0,ipady=0)
 
         self.adjustColumnWidths()
@@ -211,6 +212,9 @@ class Table(Canvas):
         self.parentframe.bind("<Configure>", self.redrawVisible)
         self.tablecolheader.xview("moveto", 0)
         self.xview("moveto", 0)
+
+        self.toolbar = ToolBar(self.parentframe, self)
+        self.toolbar.grid(row=0,column=3,rowspan=2,sticky='ns')
         return
 
     def getVisibleRegion(self):
@@ -420,7 +424,7 @@ class Table(Canvas):
         """Add new rows"""
 
         if num == None:
-            num = tkSimpleDialog.askinteger("Now many rows?",
+            num = simpledialog.askinteger("Now many rows?",
                                             "Number of rows:",initialvalue=1,
                                              parent=self.parentframe)
         if not num:
@@ -448,7 +452,7 @@ class Table(Canvas):
 
         if newname != None:
             if newname in self.getModel().columnNames:
-                tkMessageBox.showwarning("Name exists",
+                messagebox.showwarning("Name exists",
                                          "Name already exists!",
                                          parent=self.parentframe)
             else:
@@ -460,8 +464,8 @@ class Table(Canvas):
     def deleteRow(self):
         """Delete a row"""
         if len(self.multiplerowlist)>1:
-            n = tkMessageBox.askyesno("Delete",
-                                      "Delete Selected Records?",
+            n = messagebox.askyesno("Delete",
+                                      "Delete selected rows?",
                                       parent=self.parentframe)
             if n == True:
                 rows = self.multiplerowlist
@@ -470,8 +474,8 @@ class Table(Canvas):
                 self.clearSelected()
                 self.redrawTable()
         else:
-            n = tkMessageBox.askyesno("Delete",
-                                      "Delete This Record?",
+            n = messagebox.askyesno("Delete",
+                                      "Delete this row?",
                                       parent=self.parentframe)
             if n:
                 row = self.getSelectedRow()
@@ -483,7 +487,7 @@ class Table(Canvas):
 
     def deleteColumn(self):
         """Delete currently selected column"""
-        n =  tkMessageBox.askyesno("Delete",
+        n =  messagebox.askyesno("Delete",
                                    "Delete This Column?",
                                    parent=self.parentframe)
         if n:
@@ -495,7 +499,7 @@ class Table(Canvas):
 
     def deleteCells(self, rows, cols):
         """Clear the cell contents"""
-        n =  tkMessageBox.askyesno("Clear Confirm",
+        n =  messagebox.askyesno("Clear Confirm",
                                    "Clear this data?",
                                    parent=self.parentframe)
         if not n:
@@ -517,7 +521,7 @@ class Table(Canvas):
     def autoAddColumns(self, numcols=None):
         """Automatically add x number of cols"""
         if numcols == None:
-            numcols = tkSimpleDialog.askinteger("Auto add rows.",
+            numcols = simpledialog.askinteger("Auto add rows.",
                                                 "How many empty columns?",
                                                 parent=self.parentframe)
         self.model.auto_AddColumns(numcols)
@@ -528,7 +532,7 @@ class Table(Canvas):
     def findValue(self, searchstring=None, findagain=None):
         """Return the row/col for the input value"""
         if searchstring == None:
-            searchstring = tkSimpleDialog.askstring("Search table.",
+            searchstring = simpledialog.askstring("Search table.",
                                                "Enter search value",
                                                parent=self.parentframe)
         found=0
@@ -833,7 +837,7 @@ class Table(Canvas):
         self.startrow = rowclicked
         self.endrow = rowclicked
         self.startcol = colclicked
-        self.endcol = colclicked
+        self.endcol = colclicked        
         #reset multiple selection list
         self.multiplerowlist=[]
         self.multiplerowlist.append(rowclicked)
@@ -843,8 +847,7 @@ class Table(Canvas):
             self.drawSelectedRect(self.currentrow, self.currentcol)
             self.drawSelectedRow()
             self.tablerowheader.drawSelectedRows(rowclicked)
-            coltype = self.model.getColumnType(colclicked)
-
+            self.tablecolheader.delete('rect')     
             #self.drawCellEntry(rowclicked, colclicked)
         return
 
@@ -863,8 +866,7 @@ class Table(Canvas):
                 self.multiplerowlist.remove(rowclicked)
             self.drawMultipleRows(self.multiplerowlist)
             if colclicked not in self.multiplecollist:
-                self.multiplecollist.append(colclicked)
-            #print self.multiplecollist
+                self.multiplecollist.append(colclicked)   
             self.drawMultipleCells()
         return
 
@@ -953,9 +955,9 @@ class Table(Canvas):
             self.currentcol  = self.currentcol -1
         self.drawSelectedRect(self.currentrow, self.currentcol)
         coltype = self.model.getColumnType(self.currentcol)
-        if coltype == 'text' or coltype == 'number':
-            self.delete('entry')
-            self.drawCellEntry(self.currentrow, self.currentcol)
+        #if coltype == 'text' or coltype == 'number':
+        #    self.delete('entry')
+        #    self.drawCellEntry(self.currentrow, self.currentcol)
         return
 
     def handle_double_click(self, event):
@@ -1009,7 +1011,7 @@ class Table(Canvas):
 
     def gotonextCell(self, event):
         """Move highlighted cell to next cell in row or a new col"""
-        #print 'next'
+
         if hasattr(self, 'cellentry'):
             self.cellentry.destroy()
         self.currentcol=self.currentcol+1
@@ -1078,7 +1080,6 @@ class Table(Canvas):
         return coldata
 
     # --- Some cell specific actions here ---
-
 
     def popupMenu(self, event, rows=None, cols=None, outside=None):
         """Add left and right click behaviour for canvas, should not have to override
@@ -1288,10 +1289,9 @@ class Table(Canvas):
         #bg = self.selectedcolor
         if color == None:
             color = 'gray25'
-        w=3
+        w=2
         x1,y1,x2,y2 = self.getCellCoords(row,col)
-        rect = self.create_rectangle(x1+w/2,y1+w/2,x2-w/2,y2-w/2,
-                                  #fill=bg,
+        rect = self.create_rectangle(x1+w/2+1,y1+w/2+1,x2-w/2,y2-w/2,                         
                                   outline=color,
                                   width=w,
                                   tag='currentrect')
@@ -1326,36 +1326,33 @@ class Table(Canvas):
 
         if self.editable == False:
             return
-        h=self.rowheight
+        h = self.rowheight
         model = self.model
         text = self.model.getValueAt(row, col)
         x1,y1,x2,y2 = self.getCellCoords(row,col)
-        w=x2-x1
-        #Draw an entry window
+        w=x2-x1  
         txtvar = StringVar()
         txtvar.set(text)
+
         def callback(e):
             value = txtvar.get()
             model.setValueAt(value,row,col)        
-            self.drawText(row, col, value, color, align=self.align)
+            self.drawText(row, col, value, align=self.align)
             if e.keysym=='Return':
-                self.delete('entry')
-                #self.drawRect(row, col)
+                self.delete('entry')                
                 #self.gotonextCell(e)
             return
 
-        self.cellentry=Entry(self.parentframe,width=20,
-                        textvariable=txtvar,
-                        bg=self.entrybackgr,
-                        relief=FLAT,
+        self.cellentry = Entry(self.parentframe,width=20,
+                        textvariable=txtvar,                        
                         takefocus=1,
                         font=self.thefont)
         self.cellentry.icursor(END)
         self.cellentry.bind('<Return>', callback)
-        self.cellentry.bind('<KeyRelease>', callback)
+        #self.cellentry.bind('<KeyRelease>', callback)
         self.cellentry.focus_set()
-        self.entrywin=self.create_window(x1+self.inset,y1+self.inset,
-                                width=w-self.inset*2,height=h-self.inset*2,
+        self.entrywin = self.create_window(x1,y1,
+                                width=w,height=h,
                                 window=self.cellentry,anchor='nw',
                                 tag='entry')
 
@@ -1921,6 +1918,7 @@ class ColumnHeader(Canvas):
             self.bind('<B1-Motion>', self.handle_mouse_drag)
             self.bind('<Motion>', self.handle_mouse_move)
             self.bind('<Shift-Button-1>', self.handle_left_shift_click)
+            self.bind('<Control-Button-1>', self.handle_left_ctrl_click)
             if self.table.ostyp=='mac':
                 #For mac we bind Shift, left-click to right click
                 self.bind("<Button-2>", self.handle_right_click)
@@ -1937,6 +1935,7 @@ class ColumnHeader(Canvas):
         self.configure(scrollregion=(0,0, self.table.tablewidth+self.table.x_start, self.height))
         self.delete('gridline','text')
         self.delete('rect')
+        self.delete('dragrect')
         self.atdivider = None
 
         h=self.height
@@ -1944,7 +1943,7 @@ class ColumnHeader(Canvas):
         if cols == 0:
             return
         for col in self.table.visiblecols:
-            colname  = self.model.df.columns[col]            
+            colname  = self.model.df.columns[col]
             if colname in self.model.columnwidths:
                 w = self.model.columnwidths[colname]
             else:
@@ -1952,9 +1951,9 @@ class ColumnHeader(Canvas):
             x = self.table.col_positions[col]
 
             if len(colname) > w/10:
-                colname = colname[0:int(w/12)]+'.'
+                colname = colname[0:int(w/10)]+'.'
             line = self.create_line(x, 0, x, h, tag=('gridline', 'vertline'),
-                                 fill='white', width=2)
+                                 fill='white', width=1)
             self.create_text(x+w/2,h/2,
                                 text=colname,
                                 fill='white',
@@ -1984,7 +1983,7 @@ class ColumnHeader(Canvas):
         #also draw a copy of the rect to be dragged
         self.draggedcol = None
         self.drawRect(self.table.currentcol, tag='dragrect',
-                        color='red', outline='white')
+                        color='lightblue', outline='white')
         if hasattr(self, 'rightmenu'):
             self.rightmenu.destroy()
         #finally, draw the selected col on the table        
@@ -2094,8 +2093,22 @@ class ColumnHeader(Canvas):
             self.table.multiplecollist = list(range(colclicked, currcol+1))
         else:
             return
+        for c in self.table.multiplecollist:
+            self.drawRect(c, delete=0)
+            self.table.drawSelectedCol(c, delete=0)
+        return
 
-        #print self.table.multiplecollist
+    def handle_left_ctrl_click(self, event):
+        """Handle ctrl clicks - for multiple column selections"""
+
+        currcol = self.table.currentcol
+        colclicked = self.table.get_col_clicked(event)
+        multicollist = self.table.multiplecollist
+        if 0 <= colclicked < self.table.cols:
+            if colclicked not in multicollist:
+                multicollist.append(colclicked)
+            else:
+                multicollist.remove(colclicked)
         for c in self.table.multiplecollist:
             self.drawRect(c, delete=0)
             self.table.drawSelectedCol(c, delete=0)
@@ -2109,7 +2122,7 @@ class ColumnHeader(Canvas):
         popupmenu = Menu(self, tearoff = 0)
         def popupFocusOut(event):
             popupmenu.unpost()
-        popupmenu.add_command(label="Rename Column", command=self.relabel_Column)
+        popupmenu.add_command(label="Rename Column", command=self.renameColumn)
         popupmenu.add_command(label="Sort by "+ colname, command=lambda : self.table.sortTable(currcol))
         popupmenu.add_command(label="Sort by "+ colname +' (descending)',
             command=lambda : self.table.sortTable(currcol,ascending=0))
@@ -2122,15 +2135,17 @@ class ColumnHeader(Canvas):
         popupmenu.post(event.x_root, event.y_root)
         return popupmenu
 
-    def relabel_Column(self):
-        col=self.table.currentcol
-        ans = tkSimpleDialog.askstring("New column name?", "Enter new name:")
-        if ans !=None:
-            if ans == '':
-                tkMessageBox.showwarning("Error", "Name should not be blank.")
+    def renameColumn(self):
+        col = self.table.currentcol
+        new = simpledialog.askstring("New column name?", "Enter new name:")
+        if new !=None:
+            if new == '':
+                messagebox.showwarning("Error", "Name should not be blank.")
                 return
             else:
-                self.model.relabel_Column(col, ans)
+                #self.model.renameColumn(col, ans)
+                df = self.model.df
+                df.rename(columns={df.columns[col]: new}, inplace=True)                
                 self.redraw()
         return
 
@@ -2147,7 +2162,6 @@ class ColumnHeader(Canvas):
         hfac2=0.4
         x_start=self.table.x_start
         x1,y1,x2,y2 = self.table.getCellCoords(0,col)
-
         self.create_polygon(x2-3,h/4, x2-10,h/2, x2-3,h*3/4, tag='resizesymbol',
             fill='white', outline='gray', width=wdth)
         self.create_polygon(x2+2,h/4, x2+10,h/2, x2+2,h*3/4, tag='resizesymbol',
@@ -2164,13 +2178,12 @@ class ColumnHeader(Canvas):
             outline='gray25'
         if delete == 1:
             self.delete(tag)
-        w=2
+        w=1
         x1,y1,x2,y2 = self.table.getCellCoords(0,col)
         rect = self.create_rectangle(x1,y1-w,x2,self.height,
                                   fill=color,
                                   outline=outline,
-                                  width=w,
-                                  stipple='gray50',
+                                  width=w,                                  
                                   tag=tag)
         self.lower(tag)
         return
@@ -2358,4 +2371,36 @@ class AutoScrollbar(Scrollbar):
     def place(self, **kw):
         raise TclError("cannot use place with this widget")
 
+class ToolBar(Frame):
+    """Uses the parent instance to provide the functions"""
+    def __init__(self, parent=None, parentapp=None):
+
+        Frame.__init__(self, parent, width=600, height=40)
+        self.parentframe = parent
+        self.parentapp = parentapp
+        img = images.open_proj()
+        self.add_button('Open Project', self.parentapp.load, img)
+        img = images.save_proj()
+        self.add_button('Save Project', self.parentapp.save, img)
+        img = images.add_row()
+        self.add_button('Add record', self.parentapp.addRow, img)
+        img = images.add_col()
+        self.add_button('Add col', self.parentapp.addColumn, img)
+        img = images.del_row()
+        self.add_button('Delete record', self.parentapp.deleteRow, img)
+        img = images.del_col()
+        self.add_button('Delete col', self.parentapp.deleteColumn, img)
+        img = images.plot()
+        self.add_button('Plot', self.parentapp.plotSelected, img)
+        return
+
+    def add_button(self, name, callback, img=None):
+        if img==None:
+            b = Button(self, text=name, command=callback)
+        else:
+            b = Button(self, text=name, command=callback,                           
+                             image=img)
+        b.image = img
+        b.pack(side=TOP)
+        return
 

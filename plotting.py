@@ -26,7 +26,7 @@ from tkinter.ttk import *
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-from matplotlib.lines import Line2D
+from mpl_toolkits.mplot3d import Axes3D
 #import matplotlib.animation as animation
 import tkinter.font
 
@@ -47,8 +47,8 @@ class PlotFrame(Frame):
         self.nb = Notebook(self.main)
         self.nb.pack(side=TOP,fill=BOTH)
         self.mplopts = MPLoptions()
-        w = self.mplopts.showDialog(self.nb, callback=self.redraw)
-        self.nb.add(w, text='options')        
+        w1 = self.mplopts.showDialog(self.nb, callback=self.redraw)
+        self.nb.add(w1, text='plot options')      
         #self.anim = animator(self.nb, plotframe=self)
         #self.nb.add(self.anim, text='animation')
         return
@@ -69,43 +69,48 @@ class PlotFrame(Frame):
         return
 
     def redraw(self):
-        """Redraw the current axis"""
+        """Draw method for current data. There is some messy code here
+           to interpret some of the plot types so that the kwds can be
+           passed for each plot kind. This could be changed later."""
 
         if not hasattr(self, 'data'):
-            return
+            return    
+        omitkwds = {'line':['stacked','s'],
+                    'scatter':['stacked'],
+                    'bar':['marker','linestyle','s'],
+                    'barh':['marker','linestyle','s'],
+                    'heatmap':[], 'density':['stacked','s'], 'boxplot':[],
+                    '3d':[]
+                    }
         data = self.data
         kwds = self.mplopts.kwds
-        ignore = ['font','fontsize']
+        kind = kwds['kind']
+        ignore = omitkwds[kind]
+        ignore.extend(['font','fontsize'])
         for i in ignore:
             if i in kwds:
                 del kwds[i]
         if len(data.columns)==1:
             kwds['subplots']=0
-        kind = kwds['kind']
+      
+        self.fig.clear()
+        self.ax = ax = self.fig.add_subplot(111)
+        #self.ax.clear()
+        ax = self.ax
+        if kind == 'bar':
+            if len(data) > 50:
+                self.ax.get_xaxis().set_visible(False)
         if kind == 'scatter':
             kwds['x'] = data.columns[0]
             kwds['y'] = data.columns[1]
             if kwds['marker'] == '':
                 kwds['marker'] = 'o'
-        elif kind == 'bar' or kind == 'barh':
-            if 'marker' in kwds:
-                del kwds['marker']
-            if 'linestyle' in kwds:
-                del kwds['linestyle']
-
-        if kind != 'scatter':
-            if 's' in kwds:
-                del kwds['s']
-       
-        self.ax.clear()
-        ax = self.ax
-        if kind == 'boxplot':         
-            data.boxplot(ax=ax)
+            print (data.columns)
+        if kind == 'boxplot':
+            data.boxplot(ax=ax)           
         elif kind == 'histogram': 
             data.hist(ax=ax) 
         elif kind == 'heatmap':
-            self.fig.clear()
-            self.ax = ax = self.fig.add_subplot(111)
             hm = ax.pcolor(data, cmap=kwds['colormap'])
             self.fig.colorbar(hm, ax=ax)
             #ax.set_yticks(np.arange(0.5, len(data.index), 1), data.index)
@@ -162,7 +167,8 @@ class animator(Frame):
         return line,
 
 class MPLoptions(object):
-    """Class to provide a gui for matplotlib options handling"""
+    """Class to provide a dialog for matplotlib options and returning
+        the selected prefs"""
 
     colormaps = sorted(m for m in plt.cm.datad if not m.endswith("_r"))
     markers = ['','o','.','^','v','>','<','s','+','x','p','d','h','*']
@@ -177,17 +183,18 @@ class MPLoptions(object):
   
         fonts = self.getFonts()
         opts = self.opts = {'font':{'type':'combobox','default':'Arial','items':fonts},
-                'fontsize':{'type':'scale','default':12,'range':(5,50),'label':'font size'},
+                'fontsize':{'type':'scale','default':12,'range':(5,40),'interval':1,'label':'font size'},
                 'marker':{'type':'combobox','default':'','items':self.markers},
                 'linestyle':{'type':'combobox','default':'-','items':self.linestyles},
-                's':{'type':'scale','default':30,'range':(5,500),'label':'marker size'},
+                's':{'type':'scale','default':30,'range':(5,500),'interval':10,'label':'marker size'},
                 'grid':{'type':'checkbutton','default':0,'label':'show grid'},
                 #'logx':{'type':'checkbutton','default':0,'label':'log x-axis'},
                 #'logy':{'type':'checkbutton','default':0,'label':'log y-axis'},
                 'legend':{'type':'checkbutton','default':1,'label':'legend'},
                 'kind':{'type':'combobox','default':'line','items':self.kinds,'label':'kind'},
-                'linewidth':{'type':'scale','default':1.5,'range':(0,10),'label':'line width'},
-                'alpha':{'type':'scale','default':0.7,'range':(0,1),'label':'alpha'},
+                'stacked':{'type':'checkbutton','default':0,'label':'stacked bar'},
+                'linewidth':{'type':'scale','default':1,'range':(0,5),'interval':0.5,'label':'line width'},
+                'alpha':{'type':'scale','default':0.7,'range':(0,1),'interval':0.1,'label':'alpha'},
                 'title':{'type':'entry','default':''},
                 'subplots':{'type':'checkbutton','default':0,'label':'multiple subplots'},
                 'colormap':{'type':'combobox','default':'jet','items':self.colormaps}
@@ -224,19 +231,20 @@ class MPLoptions(object):
         return
 
     def showDialog(self, parent, callback=None):
-        """Auto create tk vars for options"""
+        """Auto create tk vars, widgets for corresponding options and
+           and return the frame"""
         
         opts = self.opts
         tkvars = self.tkvars
         dialog = Frame(parent)
         self.callback = callback
 
-        grps = {'styles':['font','colormap','alpha','grid'],
+        grps = {'styles':['font','colormap','alpha','grid','legend'],
                 'sizes':['fontsize','s','linewidth'],
-                'format':['kind','marker','linestyle','legend','subplots'],
+                'format':['kind','marker','linestyle','stacked','subplots'],
                 'general':['title']}
         c=0
-        for g in ['format','sizes','styles','general']:            
+        for g in ['format','sizes','styles','general']:
             frame = LabelFrame(dialog, text=g)
             frame.grid(row=0,column=c,sticky='news')
             row=0; col=0
@@ -259,7 +267,7 @@ class MPLoptions(object):
                     w = tkinter.Scale(frame,label=opt['label'],
                              from_=fr,to=to,
                              orient='horizontal',
-                             resolution=(to-fr)/30,
+                             resolution=opt['interval'],
                              variable=tkvars[i])
                 if w != None:                    
                     w.pack(fill=BOTH,expand=1)
