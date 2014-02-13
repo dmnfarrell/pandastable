@@ -1212,12 +1212,8 @@ class Table(Canvas):
             self.pf = PlotFrame(parent)
         return self.pf 
 
-    def plotSelected(self):
-        """Plot the selected data in the associated plotframe"""
-
-        if not hasattr(self, 'pf'):
-            self.pf = PlotFrame()
-
+    def getPlotData(self):
+        """Plot data from selection"""
         df = self.model.df
         rows = self.multiplerowlist
         if len(rows)<=1:
@@ -1229,9 +1225,27 @@ class Table(Canvas):
         #if data.dtypes[0] == 'object':
         #    data.set_index(data.columns[0], inplace=True)
         data = data.convert_objects(convert_numeric='force')
-     
+        return data
+
+    def plotSelected(self):
+        """Plot the selected data in the associated plotframe"""
+
+        if not hasattr(self, 'pf'):
+            self.pf = PlotFrame()
+
+        data = self.getPlotData()     
         self.pf.data = data
-        self.pf.redraw()
+        self.pf.plot2D()
+        return
+
+    def plot3D(self):
+
+        if not hasattr(self, 'pf'):
+            self.pf = PlotFrame()
+
+        data = self.getPlotData() 
+        self.pf.data = data
+        self.pf.plot3D()    
         return
 
     #--- Drawing stuff ---
@@ -2392,6 +2406,7 @@ class ToolBar(Frame):
         self.add_button('Delete col', self.parentapp.deleteColumn, img)
         img = images.plot()
         self.add_button('Plot', self.parentapp.plotSelected, img)
+        #self.add_button('Plot', self.parentapp.plot3D, img)
         return
 
     def add_button(self, name, callback, img=None):

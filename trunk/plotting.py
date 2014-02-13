@@ -47,7 +47,7 @@ class PlotFrame(Frame):
         self.nb = Notebook(self.main)
         self.nb.pack(side=TOP,fill=BOTH)
         self.mplopts = MPLoptions()
-        w1 = self.mplopts.showDialog(self.nb, callback=self.redraw)
+        w1 = self.mplopts.showDialog(self.nb, callback=self.plot2D)
         self.nb.add(w1, text='plot options')      
         #self.anim = animator(self.nb, plotframe=self)
         #self.nb.add(self.anim, text='animation')
@@ -68,7 +68,7 @@ class PlotFrame(Frame):
         self.canvas = canvas
         return
 
-    def redraw(self):
+    def plot2D(self):
         """Draw method for current data. There is some messy code here
            to interpret some of the plot types so that the kwds can be
            passed for each plot kind. This could be changed later."""
@@ -79,6 +79,7 @@ class PlotFrame(Frame):
                     'scatter':['stacked'],
                     'bar':['marker','linestyle','s'],
                     'barh':['marker','linestyle','s'],
+                    'histogram':[],
                     'heatmap':[], 'density':['stacked','s'], 'boxplot':[],
                     '3d':[]
                     }
@@ -119,8 +120,29 @@ class PlotFrame(Frame):
         else:
             data.plot(ax=ax, **kwds)
         self.canvas.draw()
-        return 
+        return
 
+    def plot3D(self):
+        if not hasattr(self, 'data'):
+            return 
+        kwds = self.mplopts.kwds
+        data = self.data
+        self.fig.clear() 
+        ax = self.ax = Axes3D(self.fig)
+        X = data.values   
+        if len(X[0])<3:
+            zs=0
+        else:
+            zs=X[:,2]
+        ax.scatter(X[:,0], X[:,1], zs, cmap=kwds['colormap'])
+        '''i=0
+        for c in data.columns:
+            h = data[c]
+            ax.bar(data.index, h, zs=i, zdir='y')
+            i+=1'''
+        self.canvas.draw()
+        return
+        
 class animator(Frame):
     
     def __init__(self, parent, plotframe):
