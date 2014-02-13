@@ -112,10 +112,10 @@ class TableModel(object):
         print(df.columns)
         return
 
-    def addRow(self, key=None, **kwargs):
+    def addRow(self, rowindex):
         """Add a row"""
-
-        return key
+        self.df.loc[rowindex] = pd.Series()
+        return
 
     def deleteRow(self, rowindex=None, update=True):
         """Delete a row"""
@@ -129,9 +129,11 @@ class TableModel(object):
         df.drop(df.index[rowlist],inplace=True)
         return
 
-    def addColumn(self, colname=None, coltype=None):
+    def addColumn(self, colname=None, dtype=None):
         """Add a column"""
-
+        x = pd.Series(dtype=dtype)
+        self.df[colname] = x
+        #print (self.df)
         return
 
     def deleteColumn(self, colindex):
@@ -145,6 +147,10 @@ class TableModel(object):
         """Remove all cols or list provided"""
         for c in cols:
             self.deleteColumn(c)
+        return
+
+    def deleteCells(self, rows, cols):
+        self.df.iloc[rows,cols] = np.nan
         return
 
     def groupby(self, cols):
@@ -225,32 +231,8 @@ class TableModel(object):
     def setValueAt(self, value, rowindex, colindex):
         """Changed the dictionary when cell is updated by user"""
 
-        self.df[colindex,rowindex] = value
+        self.df.iloc[rowindex,colindex] = value
         return
-
-    def getRecColNames(self, rowIndex, ColIndex):
-        """Returns the rec and col name as a tuple"""
-        recname = self.getRecName(rowIndex)
-        colname = self.getColumnName(ColIndex)
-        return (recname, colname)
-
-    def getRecAtRow(self, recname, colname, offset=1, dim='y'):
-        """Get the record name at a specified offset in the current
-           table from the record given, by using the current sort order"""
-        thisrow = self.getRecordIndex(recname)
-        thiscol = self.getColumnIndex(colname)
-        #table goto next row
-        if dim == 'y':
-            nrow = thisrow + offset
-            ncol = thiscol
-        else:
-            nrow = thisrow
-            ncol = thiscol + offset
-
-        newrecname, newcolname = self.getRecColNames(nrow, ncol)
-        print('recname, colname', recname, colname)
-        print('thisrow, col', thisrow, thiscol)
-        return newrecname, newcolname
 
     def __repr__(self):
         return 'Table Model with %s rows' %len(self.df)

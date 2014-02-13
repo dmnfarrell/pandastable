@@ -25,9 +25,9 @@ from tkinter.ttk import *
 from tkinter import filedialog, messagebox, simpledialog
 import matplotlib
 matplotlib.use('TkAgg')
+import pandas as pd
 import re, os, platform
 import time
-import pickle
 from core import Table
 from data import TableModel
 from prefs import Preferences
@@ -35,7 +35,7 @@ import images
 
 class TablesApp(Frame):
     """Tables app"""
-    def __init__(self,parent=None,data=None,datafile=None):
+    def __init__(self,parent=None, data=None, projfile=None):
         "Initialize the application."
 
         self.parent=parent
@@ -51,21 +51,21 @@ class TablesApp(Frame):
         if not hasattr(self,'defaultsavedir'):
             self.defaultsavedir = os.getcwd()
 
-        self.preferences=Preferences('TablesApp',{'check_for_update':1})
+        self.preferences = Preferences('TablesApp',{'check_for_update':1})
         self.loadprefs()
         self.style = Style()
         available_themes = self.style.theme_names()
         self.style.theme_use('clam')
 
-        self.main.title('Pandas Table Viewer')
+        self.main.title('Pandas DataFrame Viewer')
         self.createMenuBar()
         self.setupGUI()
 
         if data != None:
             self.data = data
             self.new_project(data)
-        elif datafile != None:
-            self.openProject(datafile)
+        elif projfile != None:
+            self.openProject(projfile)
         else:
             self.newProject()
         
@@ -96,20 +96,6 @@ class TablesApp(Frame):
             self.m.forget(self.sidepane)
             self.sidepane.destroy()
         return
-
-    def addChildFrame(self, cframe, width=200):
-        """Create a child frame in sidepane """
-                    
-        #self.sidepane.add(cframe, text=name)
-        cframe.pack()
-        self.__dict__[name] = cframe
-        #bind frame close
-        def func(evt):
-            if hasattr(self, name):
-                del self.__dict__[name]
-   
-        cframe.bind("<Destroy>", func)
-        return cframe
 
     def createMenuBar(self):
         """Create the menu bar for the application. """
@@ -183,8 +169,7 @@ class TablesApp(Frame):
 
     def loadprefs(self):
         """Setup default prefs file if any of the keys are not present"""
-        defaultprefs = {'textsize':14,
-                         'windowwidth': 800 ,'windowheight':600}
+        defaultprefs = {'windowwidth': 800 ,'windowheight':600}
         for prop in list(defaultprefs.keys()):
             try:
                 self.preferences.get(prop)
@@ -196,87 +181,86 @@ class TablesApp(Frame):
     def newProject(self, data=None):
         """Create a new project"""
 
-        #if hasattr(self,'currenttable'):
-            #self.notebook.destroy()
-            #self.currenttable.destroy()
         for n in self.notebook.tabs():
             self.notebook.forget(n)
         self.sheets = {}
-        if data !=None:
-            for s in list(data.keys()):
-                sdata = data[s]          
-                self.addSheet(s ,sdata)                
+        if data != None:
+            for s in sorted(data.keys()):
+                self.addSheet(s ,data[s])
         else:
-            #do the table adding stuff for the initial sheet
-            self.addSheet('sheet1')
-     
+            self.addSheet('sheet1')     
         return
 
     def openProject(self, filename=None):
         if filename == None:
             filename = filedialog.askopenfilename(defaultextension='.tbleprj"',
                                                       initialdir=os.getcwd(),
-                                                      filetypes=[("Pickle file","*.tbleprj"),
+                                                      filetypes=[("msgpack","*.dfv"),
                                                                  ("All files","*.*")],
                                                       parent=self.main)
         if os.path.isfile(filename):
-            fd = open(filename)
-            data = pickle.load(fd)
-            fd.close()
-        self.new_project(data)
-        self.filename=filename
+            data = pd.read_msgpack(filename)        
+        self.newProject(data)
+        self.filename = filename
         return
 
     def saveProject(self):
-        if not hasattr(self, 'filename'):
-            self.save_as_project()
-        elif self.filename == None:
-            self.save_as_project()
+        if not hasattr(self, 'filename') or self.filename == None:
+            self.saveasProject()
         else:
-            self.do_save_project(self.filename)
-
+            self.doSaveProject(self.filename)
         return
 
     def saveasProject(self):
         """Save as a new filename"""
         filename = filedialog.asksaveasfilename(parent=self.main,
-                                                defaultextension='.mpk',
+                                                defaultextension='.dfv',
                                                 initialdir=self.defaultsavedir,
-                                                filetypes=[("msgpk","*.mpk"),
+                                                filetypes=[("msgpack","*.dfv"),
                                                            ("All files","*.*")])
         if not filename:
-            print('Returning')
             return
         self.filename=filename
-        self.do_save_project(self.filename)
+        self.doSaveProject(self.filename)
+        return
+
+    def doSaveProject(self, filename):
+        data={}       
+        for s in self.sheets:
+            df = self.sheets[s].model.df
+            data[s] = df
+        pd.to_msgpack(filename, data)
         return
 
     def closeProject(self):
-        if hasattr(self,'currenttable'):         
-            self.currenttable.destroy()
+        for n in self.notebook.tabs():
+            self.notebook.forget(n)
+        self.filename = None
         return
 
-    def addSheet(self, sheetname=None):
+    def addSheet(self, sheetname=None, df=None):
         """Add a new sheet"""
-        def checksheet_name(name):
+
+        def checkName(name):
             if name == '':
                 messagebox.showwarning("Whoops", "Name should not be blank.")
                 return 0
             if name in self.sheets:
                 messagebox.showwarning("Name exists", "Sheet name already exists!")
                 return 0
+
         noshts = len(self.notebook.tabs())
         if sheetname == None:
             sheetname = simpledialog.askstring("New sheet name?", "Enter sheet name:",
                                                 initialvalue='sheet'+str(noshts+1))
-        checksheet_name(sheetname)        
+        checkName(sheetname)        
         #Create the table
         main = PanedWindow(orient=HORIZONTAL)
         self.notebook.add(main, text=sheetname)
         f1 = Frame(main)
         main.add(f1)
         #f1.pack(side=LEFT)
-        table = Table(f1)
+        table = Table(f1, dataframe=df)
         table.loadPrefs(self.preferences)
         table.createTableFrame()    
         f2 = Frame(main)
@@ -327,42 +311,6 @@ class TablesApp(Frame):
             pass
         return
 
-    def addRow(self):
-        """Add a new row"""
-        self.currenttable.addRow()
-        self.saved = 0
-        return
-
-    def deleteRow(self):
-        """Delete currently selected row"""
-        self.currenttable.deleteRow()
-        self.saved = 0
-        return
-
-    def addColumn(self):
-        """Add a new column"""
-        self.currenttable.addColumn()
-        self.saved = 0
-        return
-
-    def deleteColumn(self):
-        """Delete currently selected column in table"""
-        self.currenttable.delete_Column()
-        self.saved = 0
-        return
-
-    def autoAddRows(self):
-        """Auto add x rows"""
-        self.currenttable.autoAdd_Rows()
-        self.saved = 0
-        return
-
-    def autoAddColumns(self):
-        """Auto add x rows"""
-        self.currenttable.autoAdd_Columns()
-        self.saved = 0
-        return
-
     def findValue(self):
         self.currenttable.findValue()
         return
@@ -381,21 +329,19 @@ class TablesApp(Frame):
 
         return
 
-    def plot(self, event=None):
-        self.currenttable.plotSelected()
-        return
-
     def about_Tables(self):
         self.ab_win=Toplevel()
-        self.ab_win.geometry('+100+350')
+        self.ab_win.geometry('+200+350')
         self.ab_win.title('About')
 
         logo = images.tableapp_logo()
         label = Label(self.ab_win,image=logo)
         label.image = logo
-        label.grid(row=0,column=0,sticky='news',padx=4,pady=4)
+        #label.grid(row=0,column=0,sticky='news',padx=4,pady=4)
+        style = Style()
+        style.configure("BW.TLabel", font='arial 12 bold')
 
-        text=['Table Viewer for Pandas',
+        text=['DataFrame Viewer for pandastable library',
                 'Copyright (C) Damien Farrell 2014-', 
                 'This program is free software; you can redistribute it and/or',
                 'modify it under the terms of the GNU General Public License',
@@ -403,7 +349,7 @@ class TablesApp(Frame):
                 'of the License, or (at your option) any later version.']
         row=1
         for line in text:
-            tmp=Label(self.ab_win,text=line)
+            tmp = Label(self.ab_win, text=line, style="BW.TLabel")
             tmp.grid(row=row,column=0,sticky='news',padx=4)
             row=row+1
         return
@@ -411,7 +357,7 @@ class TablesApp(Frame):
     def online_documentation(self,event=None):
         """Open the online documentation"""
         import webbrowser
-        link='http://sourceforge.net/projects/tkintertable/'
+        link='http://sourceforge.net/projects/pandastable/'
         webbrowser.open(link,autoraise=1)
         return
 
@@ -424,13 +370,13 @@ def main():
     import sys, os
     from optparse import OptionParser
     parser = OptionParser()
-    parser.add_option("-f", "--file", dest="tablefile",
-                        help="Open a table file", metavar="FILE")
+    parser.add_option("-f", "--file", dest="projfile",
+                        help="Open a dataframe viewer project file", metavar="FILE")
     opts, remainder = parser.parse_args()
-    if opts.tablefile != None:
-        app=TablesApp(datafile=opts.tablefile)
+    if opts.projfile != None:
+        app = TablesApp(projfile=opts.projfile)
     else:
-        app=TablesApp()
+        app = TablesApp()
     app.mainloop()
     return
 
