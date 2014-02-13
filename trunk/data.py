@@ -221,21 +221,10 @@ class TableModel(object):
              return ''
          return value
 
-    def setValueAt(self, value, rowIndex, columnIndex):
+    def setValueAt(self, value, rowindex, colindex):
         """Changed the dictionary when cell is updated by user"""
-        name = self.getRecName(rowIndex)
-        colname = self.getColumnName(columnIndex)
-        coltype = self.columntypes[colname]
-        if coltype == 'number':
-            try:
-                if value == '': #need this to allow deletion of values
-                    self.data[name][colname] = ''
-                else:
-                    self.data[name][colname] = float(value)
-            except:
-                pass
-        else:
-            self.data[name][colname] = value
+
+        self.df[colindex,rowindex] = value
         return
 
     def getRecColNames(self, rowIndex, ColIndex):

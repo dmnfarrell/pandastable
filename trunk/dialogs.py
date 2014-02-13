@@ -22,7 +22,7 @@
 from tkinter import *
 from tkinter.ttk import *
 import types
-from tkinter import filedialog, messagebox, simpledialog
+#from tkinter import filedialog, messagebox, simpledialog
 
 class MultipleValDialog(simpledialog.Dialog):
     """Simple dialog to get multiple values"""

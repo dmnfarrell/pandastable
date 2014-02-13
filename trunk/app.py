@@ -59,9 +59,6 @@ class TablesApp(Frame):
 
         self.main.title('Pandas Table Viewer')
         self.createMenuBar()
-        self.apptoolBar = ToolBar(self.main, self)
-        self.apptoolBar.pack(fill=BOTH, expand=NO)
-
         self.setupGUI()
 
         if data != None:
@@ -121,23 +118,12 @@ class TablesApp(Frame):
                         '02Open':{'cmd':self.openProject},
                         '03Close':{'cmd':self.closeProject},
                         '04Save':{'cmd':self.saveProject},
-                        '05Save As':{'cmd':self.saveasProject},
-                        '06Preferences..':{'cmd':self.showPrefsDialog},
+                        '05Save As':{'cmd':self.saveasProject},          
                         '08Quit':{'cmd':self.quit}}
         if self.parent:
             self.proj_menu['08Return to Database']={'cmd':self.return_data}
         self.proj_menu=self.createPulldown(self.menu,self.proj_menu)
         self.menu.add_cascade(label='Project',menu=self.proj_menu['var'])
-
-        self.records_menu={'01Add Row':{'cmd':self.addRow},
-                         '02Delete Row':{'cmd':self.deleteRow},
-                         '03Add Column':{'cmd':self.addColumn},
-                         '04Delete Column':{'cmd':self.deleteColumn},
-                         '05Auto Add Rows':{'cmd':self.autoAddRows},
-                         '06Auto Add Columns':{'cmd':self.autoAddColumns},
-                         }
-        self.records_menu=self.createPulldown(self.menu,self.records_menu)
-        self.menu.add_cascade(label='Records',menu=self.records_menu['var'])
 
         self.sheet_menu={'01Add Sheet':{'cmd':self.addSheet},
                          '02Remove Sheet':{'cmd':self.deleteSheet},
@@ -166,7 +152,7 @@ class TablesApp(Frame):
         """Calculate optimal geometry from screen size"""
         ws = self.main.winfo_screenwidth()
         hs = self.main.winfo_screenheight()
-        self.w=w=ws/1.4; h=700
+        self.w=w=ws/1.4; h=hs*0.7
         x = (ws/2)-(w/2); y = (hs/2)-(h/2)
         g = '%dx%d+%d+%d' % (w,h,x,y)
         return g
@@ -207,20 +193,18 @@ class TablesApp(Frame):
 
         return
 
-    def showPrefsDialog(self):
-        fr = self.createChildFrame(name='Table Prefs', sidepane=True)
-        self.prefswindow = self.currenttable.showtablePrefs()
-        return
-
     def newProject(self, data=None):
-        """Create a new table, with model and add the frame"""
-        if hasattr(self,'currenttable'):
-            self.notebook.destroy()
-            self.currenttable.destroy()
+        """Create a new project"""
+
+        #if hasattr(self,'currenttable'):
+            #self.notebook.destroy()
+            #self.currenttable.destroy()
+        for n in self.notebook.tabs():
+            self.notebook.forget(n)
         self.sheets = {}
         if data !=None:
             for s in list(data.keys()):
-                sdata = data[s]                
+                sdata = data[s]          
                 self.addSheet(s ,sdata)                
         else:
             #do the table adding stuff for the initial sheet
@@ -296,7 +280,7 @@ class TablesApp(Frame):
         table.loadPrefs(self.preferences)
         table.createTableFrame()    
         f2 = Frame(main)
-        main.add(f2)            
+        main.add(f2, weight=3)            
         pf = table.showPlotFrame(f2)
 
         #add the table to the sheet dict
@@ -433,46 +417,7 @@ class TablesApp(Frame):
 
     def quit(self):
         self.main.destroy()
-
         return
-
-class ToolBar(Frame):
-    """Uses the parent instance to provide the functions"""
-    def __init__(self, parent=None, parentapp=None):
-        Frame.__init__(self, parent, width=600, height=40)
-        self.parentframe = parent
-        self.parentapp = parentapp
-        #add buttons
-        img = images.new_proj()
-        self.add_button('New Project', self.parentapp.newProject, img)
-        img = images.open_proj()
-        self.add_button('Open Project', self.parentapp.openProject, img)
-        img = images.save_proj()
-        self.add_button('Save Project', self.parentapp.saveProject, img)
-        img = images.add_row()
-        self.add_button('Add record', self.parentapp.addRow, img)
-        img = images.add_col()
-        self.add_button('Add col', self.parentapp.addColumn, img)
-        img = images.del_row()
-        self.add_button('Delete record', self.parentapp.deleteRow, img)
-        img = images.del_col()
-        self.add_button('Delete col', self.parentapp.deleteColumn, img)
-        img = images.plot()
-        self.add_button('Plot', self.parentapp.plot, img)
-
-        return
-
-    def add_button(self, name, callback, img=None):
-        if img==None:
-            b = Button(self, text=name, command=callback)
-        else:
-            b = Button(self, text=name, command=callback,                           
-                             image=img)
-        b.image = img
-        b.pack(side=LEFT)
-        return
-
-# Main function, run when invoked as a stand-alone Python program.
 
 def main():
     "Run the application"
