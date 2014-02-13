@@ -37,8 +37,9 @@ import pandas as pd
 class Table(Canvas):
     """A tkinter class for providing table functionality"""
 
-    def __init__(self, parent=None, model=None, width=None, height=None,
-                     rows=10, cols=5, **kwargs):
+    def __init__(self, parent=None, model=None, dataframe=None, 
+                    width=None, height=None,
+                    rows=10, cols=5, **kwargs):
         Canvas.__init__(self, parent, bg='white',
                          width=width, height=height,
                          relief=GROOVE,
@@ -71,10 +72,12 @@ class Table(Canvas):
         for key in kwargs:
             self.__dict__[key] = kwargs[key]
 
-        if model == None:
-            self.model = TableModel(rows=rows,columns=cols)
-        else:
+        if dataframe is not None:
+            self.model = TableModel(dataframe=dataframe)
+        elif model != None:
             self.model = model
+        else:
+            self.model = TableModel(rows=rows,columns=cols)           
 
         self.rows = self.model.getRowCount()
         self.cols = self.model.getColumnCount()
@@ -412,10 +415,11 @@ class Table(Canvas):
         self.redrawVisible()
         return
 
-    def addRow(self, key=None, **kwargs):
+    def addRow(self):
         """Add new row"""
 
-        key = self.model.addRow(key, **kwargs)
+        row = self.getSelectedRow()
+        key = self.model.addRow(row)
         self.redrawTable()
         self.setSelectedRow(self.model.getRecordIndex(key))
         return
@@ -437,26 +441,27 @@ class Table(Canvas):
     def addColumn(self, newname=None):
         """Add a new column"""
         if newname == None:
-            from Dialogs import MultipleValDialog
-            coltypes = self.getModel().getDefaultTypes()
+            from dialogs import MultipleValDialog
+            coltypes = ['object','float64']
+
             d = MultipleValDialog(title='New Column',
                                     initialvalues=(coltypes, ''),
                                     labels=('Column Type','Name'),
                                     types=('list','string'),
-                                    parent=self.parentframe)
+                                    parent = self.parentframe)
             if d.result == None:
                 return
             else:
-                coltype = d.results[0]
+                dtype = d.results[0]
                 newname = d.results[1]
 
         if newname != None:
-            if newname in self.getModel().columnNames:
+            if newname in self.model.df.columns:
                 messagebox.showwarning("Name exists",
-                                         "Name already exists!",
-                                         parent=self.parentframe)
+                                        "Name already exists!",
+                                        parent=self.parentframe)
             else:
-                self.model.addColumn(newname)
+                self.model.addColumn(newname, dtype)
                 self.parentframe.configure(width=self.width)
                 self.redrawTable()
         return
@@ -504,11 +509,8 @@ class Table(Canvas):
                                    parent=self.parentframe)
         if not n:
             return
-        for col in cols:
-            for row in rows:
-                #absrow = self.get_AbsoluteRow(row)
-                self.model.deleteCellRecord(row, col)
-                self.redrawCell(row,col)
+        self.model.deleteCells(rows, cols)
+        self.redrawTable()    
         return
 
     def clearData(self, evt=None):
@@ -2407,6 +2409,9 @@ class ToolBar(Frame):
         img = images.plot()
         self.add_button('Plot', self.parentapp.plotSelected, img)
         #self.add_button('Plot', self.parentapp.plot3D, img)
+        img = images.plotprefs()
+        self.add_button('Plot', self.parentapp.plotSelected, img)
+        
         return
 
     def add_button(self, name, callback, img=None):
