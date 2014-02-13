@@ -337,7 +337,7 @@ class TablesApp(Frame):
         logo = images.tableapp_logo()
         label = Label(self.ab_win,image=logo)
         label.image = logo
-        #label.grid(row=0,column=0,sticky='news',padx=4,pady=4)
+        label.grid(row=0,column=0,sticky='news',padx=4,pady=4)
         style = Style()
         style.configure("BW.TLabel", font='arial 12 bold')
 
