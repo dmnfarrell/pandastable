@@ -33,7 +33,7 @@ from data import TableModel
 from prefs import Preferences
 import images
 
-class TablesApp(Frame):
+class ViewerApp(Frame):
     """Tables app"""
     def __init__(self,parent=None, data=None, projfile=None):
         "Initialize the application."
@@ -51,11 +51,12 @@ class TablesApp(Frame):
         if not hasattr(self,'defaultsavedir'):
             self.defaultsavedir = os.getcwd()
 
-        self.preferences = Preferences('TablesApp',{'check_for_update':1})
+        self.preferences = Preferences('ViewerApp',{'check_for_update':1})
         self.loadprefs()
         self.style = Style()
-        available_themes = self.style.theme_names()
-        self.style.theme_use('clam')
+        available_themes = self.style.theme_names()        
+        self.style.theme_use('clam') 
+        self.style.configure("TButton", padding=2, relief="raised")
 
         self.main.title('Pandas DataFrame Viewer')
         self.createMenuBar()
@@ -74,12 +75,10 @@ class TablesApp(Frame):
 
     def setupGUI(self):
         
-        #self.nb.pack(fill=BOTH, expand=1)
         self.m = PanedWindow(self.main, orient=HORIZONTAL)
         self.m.pack(fill=BOTH,expand=1)
         self.nb = Notebook(self.main)       
-        self.m.add(self.nb)
-        #self.createSidePane()        
+        self.m.add(self.nb)       
         self.setGeometry()
         return
 
@@ -118,13 +117,6 @@ class TablesApp(Frame):
                          }
         self.sheet_menu=self.createPulldown(self.menu,self.sheet_menu)
         self.menu.add_cascade(label='Sheet',menu=self.sheet_menu['var'])
-
-        self.IO_menu={'01Import from csv file':{'cmd':self.doImport},
-                      '02Export to csv file':{'cmd':self.doExport},
-                      }
-
-        self.IO_menu=self.createPulldown(self.menu,self.IO_menu)
-        self.menu.add_cascade(label='Import/Export',menu=self.IO_menu['var'])
 
         self.help_menu={'01Online Help':{'cmd':self.online_documentation},
                         '02About':{'cmd':self.about}}
@@ -193,10 +185,10 @@ class TablesApp(Frame):
     def openProject(self, filename=None):
         if filename == None:
             filename = filedialog.askopenfilename(defaultextension='.tbleprj"',
-                                                      initialdir=os.getcwd(),
-                                                      filetypes=[("msgpack","*.dfv"),
-                                                                 ("All files","*.*")],
-                                                      parent=self.main)
+                                                    initialdir=os.getcwd(),
+                                                    filetypes=[("msgpack","*.dfv"),
+                                                               ("All files","*.*")],
+                                                    parent=self.main)
         if os.path.isfile(filename):
             data = pd.read_msgpack(filename)        
         self.newProject(data)
@@ -261,7 +253,6 @@ class TablesApp(Frame):
         self.nb.add(main, text=sheetname)
         f1 = Frame(main)
         main.add(f1)
-        #f1.pack(side=LEFT)
         table = Table(f1, dataframe=df)
         table.loadPrefs(self.preferences)
         table.createTableFrame()    
@@ -309,43 +300,29 @@ class TablesApp(Frame):
             pass
         return
 
-    def doImport(self):
-        importer = TableImporter()
-  
-        #just use the dialog to load and import the file
-        #importdialog = importer.import_Dialog(self.main)
-        self.main.wait_window(importdialog)
-        model = TableModel()
-        model.importDict(importer.data)
-        return
-
-    def doExport(self):
-
-        return
-
     def about(self):
-        self.ab_win=Toplevel()
-        self.ab_win.geometry('+200+350')
-        self.ab_win.title('About')
-
+        abwin = Toplevel()
+        abwin.geometry('+200+350')
+        abwin.title('About')      
+        abwin.transient()
         logo = images.tableapp_logo()
-        label = Label(self.ab_win,image=logo)
+        label = Label(abwin,image=logo,anchor=CENTER)
         label.image = logo
-        label.grid(row=0,column=0,sticky='news',padx=4,pady=4)
+        label.grid(row=0,column=0,sticky='ew',padx=4,pady=4)
         style = Style()
-        style.configure("BW.TLabel", font='arial 12 bold')
+        style.configure("BW.TLabel", font='arial 11 bold')
 
-        text=['DataFrame Viewer for pandastable library',
-                'Copyright (C) Damien Farrell 2014-', 
-                'This program is free software; you can redistribute it and/or',
-                'modify it under the terms of the GNU General Public License',
-                'as published by the Free Software Foundation; either version 3',
-                'of the License, or (at your option) any later version.']
+        text='DataFrame Viewer for pandastable library\n'\
+                +'Copyright (C) Damien Farrell 2014-\n'\
+                +'This program is free software; you can redistribute it and/or\n'\
+                +'modify it under the terms of the GNU General Public License\n'\
+                +'as published by the Free Software Foundation; either version 3\n'\
+                +'of the License, or (at your option) any later version.'
         row=1
-        for line in text:
-            tmp = Label(self.ab_win, text=line, style="BW.TLabel")
-            tmp.grid(row=row,column=0,sticky='news',padx=4)
-            row=row+1
+        #for line in text:
+        tmp = Label(abwin, text=text, style="BW.TLabel")
+        tmp.grid(row=row,column=0,sticky='news',padx=4)
+        
         return
 
     def online_documentation(self,event=None):
@@ -368,9 +345,9 @@ def main():
                         help="Open a dataframe viewer project file", metavar="FILE")
     opts, remainder = parser.parse_args()
     if opts.projfile != None:
-        app = TablesApp(projfile=opts.projfile)
+        app = ViewerApp(projfile=opts.projfile)
     else:
-        app = TablesApp()
+        app = ViewerApp()
     app.mainloop()
     return
 

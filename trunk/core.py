@@ -217,7 +217,7 @@ class Table(Canvas):
         self.xview("moveto", 0)
 
         self.toolbar = ToolBar(self.parentframe, self)
-        self.toolbar.grid(row=0,column=3,rowspan=2,sticky='ns')
+        self.toolbar.grid(row=0,column=3,rowspan=2,sticky='news')
         return
 
     def getVisibleRegion(self):
@@ -2395,26 +2395,26 @@ class ToolBar(Frame):
         self.parentframe = parent
         self.parentapp = parentapp
         img = images.open_proj()
-        self.add_button('Open Project', self.parentapp.load, img)
+        self.addButton('Open Project', self.parentapp.load, img)
         img = images.save_proj()
-        self.add_button('Save Project', self.parentapp.save, img)
+        self.addButton('Save Project', self.parentapp.save, img)
         img = images.add_row()
-        self.add_button('Add record', self.parentapp.addRow, img)
+        self.addButton('Add record', self.parentapp.addRow, img)
         img = images.add_col()
-        self.add_button('Add col', self.parentapp.addColumn, img)
+        self.addButton('Add col', self.parentapp.addColumn, img)
         img = images.del_row()
-        self.add_button('Delete record', self.parentapp.deleteRow, img)
+        self.addButton('Delete record', self.parentapp.deleteRow, img)
         img = images.del_col()
-        self.add_button('Delete col', self.parentapp.deleteColumn, img)
+        self.addButton('Delete col', self.parentapp.deleteColumn, img)
         img = images.plot()
-        self.add_button('Plot', self.parentapp.plotSelected, img)
-        #self.add_button('Plot', self.parentapp.plot3D, img)
+        self.addButton('Plot', self.parentapp.plotSelected, img)
+        #self.addButton('Plot', self.parentapp.plot3D, img)
         img = images.plotprefs()
-        self.add_button('Plot', self.parentapp.plotSelected, img)
+        self.addButton('Plot', self.parentapp.plotSelected, img)
         
         return
 
-    def add_button(self, name, callback, img=None):
+    def addButton(self, name, callback, img=None):
         if img==None:
             b = Button(self, text=name, command=callback)
         else:
