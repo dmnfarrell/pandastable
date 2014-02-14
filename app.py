@@ -74,11 +74,11 @@ class TablesApp(Frame):
 
     def setupGUI(self):
         
-        #self.notebook.pack(fill=BOTH, expand=1)
+        #self.nb.pack(fill=BOTH, expand=1)
         self.m = PanedWindow(self.main, orient=HORIZONTAL)
         self.m.pack(fill=BOTH,expand=1)
-        self.notebook = Notebook(self.main)
-        self.m.add(self.notebook)
+        self.nb = Notebook(self.main)       
+        self.m.add(self.nb)
         #self.createSidePane()        
         self.setGeometry()
         return
@@ -127,7 +127,7 @@ class TablesApp(Frame):
         self.menu.add_cascade(label='Import/Export',menu=self.IO_menu['var'])
 
         self.help_menu={'01Online Help':{'cmd':self.online_documentation},
-                        '02About':{'cmd':self.about_Tables}}
+                        '02About':{'cmd':self.about}}
         self.help_menu=self.createPulldown(self.menu,self.help_menu)
         self.menu.add_cascade(label='Help',menu=self.help_menu['var'])
 
@@ -181,9 +181,8 @@ class TablesApp(Frame):
     def newProject(self, data=None):
         """Create a new project"""
 
-        for n in self.notebook.tabs():
-            self.notebook.forget(n)
-        self.sheets = {}
+        for n in self.nb.tabs():
+            self.nb.forget(n)
         if data != None:
             for s in sorted(data.keys()):
                 self.addSheet(s ,data[s])
@@ -225,38 +224,41 @@ class TablesApp(Frame):
         return
 
     def doSaveProject(self, filename):
-        data={}       
-        for s in self.sheets:
-            df = self.sheets[s].model.df
-            data[s] = df
+
+        data={}
+        for i in self.nb.tabs():
+            name = self.nb.tab(i, "text")                        
+            df = i.model.df
+            data[name] = df
         pd.to_msgpack(filename, data)
         return
 
     def closeProject(self):
-        for n in self.notebook.tabs():
-            self.notebook.forget(n)
+        for n in self.nb.tabs():
+            self.nb.forget(n)
         self.filename = None
         return
 
     def addSheet(self, sheetname=None, df=None):
         """Add a new sheet"""
 
+        names = [self.nb.tab(i, "text") for i in self.nb.tabs()]
         def checkName(name):
             if name == '':
                 messagebox.showwarning("Whoops", "Name should not be blank.")
                 return 0
-            if name in self.sheets:
+            if name in names:
                 messagebox.showwarning("Name exists", "Sheet name already exists!")
                 return 0
 
-        noshts = len(self.notebook.tabs())
+        noshts = len(self.nb.tabs())
         if sheetname == None:
             sheetname = simpledialog.askstring("New sheet name?", "Enter sheet name:",
                                                 initialvalue='sheet'+str(noshts+1))
         checkName(sheetname)        
         #Create the table
         main = PanedWindow(orient=HORIZONTAL)
-        self.notebook.add(main, text=sheetname)
+        self.nb.add(main, text=sheetname)
         f1 = Frame(main)
         main.add(f1)
         #f1.pack(side=LEFT)
@@ -266,9 +268,6 @@ class TablesApp(Frame):
         f2 = Frame(main)
         main.add(f2, weight=3)            
         pf = table.showPlotFrame(f2)
-
-        #add the table to the sheet dict
-        self.sheets[sheetname] = table
         self.saved = 0
         self.currenttable = table        
    
@@ -276,43 +275,38 @@ class TablesApp(Frame):
 
     def deleteSheet(self):
         """Delete a sheet"""
-        s = self.notebook.getcurselection()
-        self.notebook.delete(s)
-        del self.sheets[s]
+        s = self.nb.index(self.nb.select())
+        self.nb.forget(s)
+        print (self.nb.tabs())
         return
 
     def copySheet(self, newname=None):
         """Copy a sheet"""
-        newdata = self.currenttable.getModel().getData().copy()
-        if newname==None:
-            self.add_Sheet(None, newdata)
+        newdata = self.currenttable.model.df
+        if newname == None:
+            self.addSheet(None, newdata)
         else:
-            self.add_Sheet(newname, newdata)
+            self.addSheet(newname, newdata)
         return
 
     def renameSheet(self):
         """Rename a sheet"""
-        s = self.notebook.getcurselection()
+        s = self.nb.tab(self.nb.select(), 'text')
         newname = simpledialog.askstring("New sheet name?", 
                                           "Enter new sheet name:",
                                           initialvalue=s)
         if newname == None:
             return
-        self.copy_Sheet(newname)
-        self.delete_Sheet()
+        self.copySheet(newname)
+        self.deleteSheet()
         return
 
     def setcurrenttable(self, event):
         """Set the currenttable so that menu items work with visible sheet"""
-        try:
-            s = self.notebook.getcurselection()
-            self.currenttable = self.sheets[s]
+        try:            
+            self.currenttable = self.nb.index(self.nb.select())
         except:
             pass
-        return
-
-    def findValue(self):
-        self.currenttable.findValue()
         return
 
     def doImport(self):
@@ -329,7 +323,7 @@ class TablesApp(Frame):
 
         return
 
-    def about_Tables(self):
+    def about(self):
         self.ab_win=Toplevel()
         self.ab_win.geometry('+200+350')
         self.ab_win.title('About')
