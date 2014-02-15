@@ -44,12 +44,13 @@ class TableModel(object):
         if not dataframe is None:
             self.df = dataframe           
         else:            
-            #colnames = list(string.ascii_lowercase[:columns])
-            #self.df = pd.DataFrame(index=range(rows),columns=colnames)
-            self.df = self.getSampleData()    
+            colnames = list(string.ascii_lowercase[:columns])
+            self.df = pd.DataFrame(index=range(rows),columns=colnames)
+            #self.df = self.getSampleData()
         self.reclist = self.df.index # not needed now?
         return
 
+    @classmethod
     def getSampleData(self, rows=200):
         """Generate sample data"""
         colnames = list(string.ascii_lowercase[:10])
