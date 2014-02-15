@@ -116,7 +116,8 @@ class ViewerApp(Frame):
         self.menu.add_cascade(label='Sheet',menu=self.sheet_menu['var'])
 
         self.help_menu={'01Online Help':{'cmd':self.online_documentation},
-                        '02About':{'cmd':self.about}}
+                        '02Load sample data':{'cmd':self.sampleData},
+                        '03About':{'cmd':self.about}}
         self.help_menu=self.createPulldown(self.menu,self.help_menu)
         self.menu.add_cascade(label='Help',menu=self.help_menu['var'])
 
@@ -278,6 +279,12 @@ class ViewerApp(Frame):
             return
         self.copySheet(newname)
         self.deleteSheet()
+        return
+
+    def sampleData(self):
+        """Load sample table"""
+        df = TableModel.getSampleData()
+        self.addSheet(sheetname='sample', df=df)
         return
 
     def about(self):

@@ -39,7 +39,7 @@ class Table(Canvas):
 
     def __init__(self, parent=None, model=None, dataframe=None, 
                     width=None, height=None,
-                    rows=10, cols=5, **kwargs):
+                    rows=50, cols=10, **kwargs):
         Canvas.__init__(self, parent, bg='white',
                          width=width, height=height,
                          relief=GROOVE,
@@ -301,18 +301,23 @@ class Table(Canvas):
         self.delete('fillrect')
         bgcolor = self.cellbackgr
         df = self.model.df
-        #print (df.iloc[self.visiblerows,self.visiblecols])
+        '''vdf = df.iloc[self.visiblerows,self.visiblecols]
+        r=0        
+        for idx,row in vdf.iterrows():          
+            for c,val in enumerate(row):
+                print (c)
+                self.drawText(r, c, val, align)
+            r+=1'''
         for row in self.visiblerows:
-            cols = df.iloc[row,self.visiblecols].fillna('')
-            for col in self.visiblecols:               
-                text = cols[col]              
+            cols = df.iloc[row,:].fillna('')
+            for col in self.visiblecols: 
+                text = cols[col]
                 self.drawText(row, col, text, align)
 
         self.tablecolheader.redraw()
         self.tablerowheader.redraw(align=self.align)        
         self.drawSelectedRow()
         self.drawSelectedRect(self.currentrow, self.currentcol)
-
         if len(self.multiplerowlist)>1:
             self.tablerowheader.drawSelectedRows(self.multiplerowlist)
             self.drawMultipleRows(self.multiplerowlist)
