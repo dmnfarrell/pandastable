@@ -45,21 +45,23 @@ class PlotFrame(Frame):
             self.master = self.main
             self.main.title('Plot Viewer')
         self.addFigure(self.main)
-        self.nb = Notebook(self.main)
-        self.nb.pack(side=TOP,fill=BOTH)
-        self.mplopts = MPLoptions()
-        w1 = self.mplopts.showDialog(self.nb)
-        self.nb.add(w1, text='plot options')      
-        #self.anim = animator(self.nb, plotframe=self)
-        #self.nb.add(self.anim, text='animation')
-        def close():
-            self.nb.destroy()        
+        def hide():
+            if hidevar.get():
+                self.nb.pack_forget()
+            else:
+                self.nb.pack(side=TOP,fill=BOTH)
         bf = Frame(self.main)
         bf.pack(side=TOP,fill=BOTH)
         b = Button(bf, text="Apply", command=self.applyPlotoptions)
         b.pack(side=LEFT,fill=X,expand=1)
-        c = Checkbutton(bf,text='Hide Options', command=close)
+        hidevar = IntVar()
+        c = Checkbutton(bf,text='Hide Options', command=hide, variable=hidevar)
         c.pack(side=LEFT,fill=X,expand=1)
+        self.nb = Notebook(self.main)
+        self.nb.pack(side=TOP,fill=BOTH)
+        self.mplopts = MPLoptions()
+        w1 = self.mplopts.showDialog(self.nb)
+        self.nb.add(w1, text='plot options', sticky='news')
         return
 
     def applyPlotoptions(self):
@@ -135,6 +137,8 @@ class PlotFrame(Frame):
         self.fig.suptitle(kwds['title'])  
         self.ax.set_xlabel(kwds['xlabel'])
         self.ax.set_ylabel(kwds['ylabel'])
+        self.ax.xaxis.set_visible(kwds['showxlabels'])
+        self.ax.yaxis.set_visible(kwds['showylabels'])
         #self.fig.tight_layout()
         self.canvas.draw()
         return
@@ -150,7 +154,7 @@ class PlotFrame(Frame):
             kwds['marker'] = 'o' 
         for i in range(1,plots):
             x = df[cols[0]]
-            y = df[cols[i]]       
+            y = df[cols[i]]
             c = cmap(float(i)/(plots))
             if kwds['marker'] in ['x','+']:
                 ec=c
@@ -257,7 +261,7 @@ class MPLoptions(object):
         self.groups = {'styles':['font','colormap','alpha','grid','legend'],
                 'sizes':['fontsize','s','linewidth'],
                 'formats':['kind','marker','linestyle','stacked','subplots'],
-                'axes':['use_index','sharey','logx','logy','rot'],
+                'axes':['showxlabels','showylabels','use_index','sharey','logx','logy','rot'],
                 'labels':['title','xlabel','ylabel']}
         opts = self.opts = {'font':{'type':'combobox','default':'Arial','items':fonts},
                 'fontsize':{'type':'scale','default':12,'range':(5,40),'interval':1,'label':'font size'},
@@ -269,6 +273,8 @@ class MPLoptions(object):
                 'logy':{'type':'checkbutton','default':0,'label':'log y'},
                 'rot':{'type':'entry','default':0},
                 'use_index':{'type':'checkbutton','default':1,'label':'use index'},
+                'showxlabels':{'type':'checkbutton','default':1,'label':'x tick labels'},
+                'showylabels':{'type':'checkbutton','default':1,'label':'y tick labels'},
                 'sharey':{'type':'checkbutton','default':0,'label':'share y'},
                 'legend':{'type':'checkbutton','default':1,'label':'legend'},
                 'kind':{'type':'combobox','default':'line','items':self.kinds,'label':'kind'},

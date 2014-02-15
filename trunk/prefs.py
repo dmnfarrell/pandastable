@@ -15,14 +15,14 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 """
+import os, sys
+import pickle
 
 class Preferences:
 
-    def __init__(self,program,defaults):
-        #
-        # Find and load the preferences file
-        #
-        import os
+    def __init__(self,program,defaults):        
+        """Find and load the preferences file"""        
+     
         filename='.'+program+'_preferences'
         dirs=self.get_dirs()
         self.noprefs = False
@@ -40,7 +40,7 @@ class Preferences:
                 raise
         except:            
             # If we didn't find a file then set to default and save            
-            print('Did not find preferences!!!')
+            #print('Did not find preferences!!!')
             self.prefs=defaults.copy()
 	        #print(dirs)
             self.pref_file=os.path.join(dirs[0],filename)
@@ -86,12 +86,10 @@ class Preferences:
     def get_dirs(self):
 
         dirs=[]
-        keys=['HOME','HOMEPATH','HOMEDRIVE']
-        import os, sys
+        keys=['HOME','HOMEPATH','HOMEDRIVE']    
         for key in keys:
             if key in os.environ:
-                dirs.append(os.environ[key])
-        #
+                dirs.append(os.environ[key])        
         if 'HOMEPATH' in os.environ:
               
             dirs.append(os.environ['HOMEPATH'])
@@ -110,8 +108,7 @@ class Preferences:
     def load_prefs(self,filename):
 
         self.pref_file=filename
-        print(("loading prefs from ",self.pref_file))
-        import pickle
+        #print(("loading prefs from ",self.pref_file))        
         try:
             fd=open(filename)
             self.prefs=pickle.load(fd)
@@ -123,8 +120,7 @@ class Preferences:
             fd.close()
         return
 
-    def save_prefs(self):
-        import pickle
+    def save_prefs(self): 
         try:
             fd=open(self.pref_file,'wb')
         except:

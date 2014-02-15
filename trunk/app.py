@@ -34,7 +34,7 @@ from prefs import Preferences
 import images
 
 class ViewerApp(Frame):
-    """Tables app"""
+    """pandastable viewer app"""
     def __init__(self,parent=None, data=None, projfile=None):
         "Initialize the application."
 
@@ -51,13 +51,10 @@ class ViewerApp(Frame):
         if not hasattr(self,'defaultsavedir'):
             self.defaultsavedir = os.getcwd()
 
-        self.preferences = Preferences('ViewerApp',{'check_for_update':1})
-        self.loadprefs()
         self.style = Style()
         available_themes = self.style.theme_names()        
         self.style.theme_use('clam') 
         self.style.configure("TButton", padding=2, relief="raised")
-
         self.main.title('Pandas DataFrame Viewer')
         self.createMenuBar()
         self.setupGUI()
@@ -159,20 +156,10 @@ class ViewerApp(Frame):
         dict['var']=var
         return dict
 
-    def loadprefs(self):
-        """Setup default prefs file if any of the keys are not present"""
-        defaultprefs = {'windowwidth': 800 ,'windowheight':600}
-        for prop in list(defaultprefs.keys()):
-            try:
-                self.preferences.get(prop)
-            except:
-                self.preferences.set(prop, defaultprefs[prop])
-
-        return
-
     def newProject(self, data=None):
         """Create a new project"""
 
+        self.sheets={}
         for n in self.nb.tabs():
             self.nb.forget(n)
         if data != None:
@@ -216,12 +203,11 @@ class ViewerApp(Frame):
         return
 
     def doSaveProject(self, filename):
-
+        """Save sheets as dict in msgpack"""
         data={}
-        for i in self.nb.tabs():
-            name = self.nb.tab(i, "text")                        
-            df = i.model.df
-            data[name] = df
+        for i in self.sheets:           
+            data[i] = self.sheets[i].model.df
+           
         pd.to_msgpack(filename, data)
         return
 
@@ -253,22 +239,24 @@ class ViewerApp(Frame):
         self.nb.add(main, text=sheetname)
         f1 = Frame(main)
         main.add(f1)
-        table = Table(f1, dataframe=df)
-        table.loadPrefs(self.preferences)
+        table = Table(f1, dataframe=df)    
         table.createTableFrame()    
         f2 = Frame(main)
         main.add(f2, weight=3)            
         pf = table.showPlotFrame(f2)
         self.saved = 0
-        self.currenttable = table        
+        self.currenttable = table
+        self.sheets[sheetname] = table
    
         return sheetname
 
     def deleteSheet(self):
         """Delete a sheet"""
+        
         s = self.nb.index(self.nb.select())
+        name = self.nb.tab(s, 'text')
         self.nb.forget(s)
-        print (self.nb.tabs())
+        del self.sheets[name]
         return
 
     def copySheet(self, newname=None):
@@ -292,15 +280,8 @@ class ViewerApp(Frame):
         self.deleteSheet()
         return
 
-    def setcurrenttable(self, event):
-        """Set the currenttable so that menu items work with visible sheet"""
-        try:            
-            self.currenttable = self.nb.index(self.nb.select())
-        except:
-            pass
-        return
-
     def about(self):
+        """About dialog"""
         abwin = Toplevel()
         abwin.geometry('+200+350')
         abwin.title('About')      
