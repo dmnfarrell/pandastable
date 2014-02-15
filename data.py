@@ -107,8 +107,12 @@ class TableModel(object):
         return
 
     def addRow(self, rowindex):
-        """Add a row"""
-        self.df.loc[rowindex] = pd.Series()
+        """Inserts a row at the required index by append/concat"""
+        df = self.df       
+        a, b = df[:rowindex], df[rowindex:]
+        a=a.append(pd.Series(), ignore_index=1)
+        self.df = pd.concat([a,b])
+        #self.df.loc[rowindex] = pd.Series()
         return
 
     def deleteRow(self, rowindex=None, update=True):
@@ -147,21 +151,17 @@ class TableModel(object):
         self.df.iloc[rows,cols] = np.nan
         return
 
+    def setindex(self, colindex):
+        df = self.df
+        colnames = df.columns[colindex]
+        df.set_index(colnames, inplace=True)        
+        return
+
     def groupby(self, cols):
         df = self.df
         colnames = df.columns[cols]
         grps = df.groupby(colnames)
         return grps
-
-    def autoAddRows(self, numrows=None):
-        """Automatically add x number of records"""
-
-        return keys
-
-    def autoAddColumns(self, numcols=None):
-        """Automatically add x number of cols"""
-
-        return
 
     def getColumnType(self, columnIndex):
         """Get the column type"""
@@ -224,7 +224,8 @@ class TableModel(object):
 
     def setValueAt(self, value, rowindex, colindex):
         """Changed the dictionary when cell is updated by user"""
-
+        if value == '':
+            value = 'Nan'
         self.df.iloc[rowindex,colindex] = value
         return
 
