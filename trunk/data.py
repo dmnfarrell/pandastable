@@ -53,7 +53,7 @@ class TableModel(object):
 
     def getSampleData(self):
         """Generate sample data"""
-        colnames = list(string.ascii_lowercase[:10])
+        colnames = list(string.ascii_lowercase[:10])        
         df = pd.DataFrame(np.random.randn(200, 10), columns=colnames)
         df = np.round(df, 3)
         cats = ['foo','bar','sel']
@@ -96,10 +96,6 @@ class TableModel(object):
         record = self.df.ix[name]
         return record
 
-    def getRecordIndex(self, recname):
-        
-        return rowIndex
-
     def moveColumn(self, oldindex, newindex):
         """Changes the order of columns"""
 
@@ -108,8 +104,7 @@ class TableModel(object):
         name = cols[oldindex]
         del cols[oldindex]
         cols.insert(newindex, name)
-        self.df = df[cols]
-        print(df.columns)
+        self.df = df[cols]   
         return
 
     def addRow(self, rowindex):
