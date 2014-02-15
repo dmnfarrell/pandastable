@@ -303,7 +303,7 @@ class Table(Canvas):
         df = self.model.df
         #print (df.iloc[self.visiblerows,self.visiblecols])
         for row in self.visiblerows:
-            cols = df.iloc[row,self.visiblecols]
+            cols = df.iloc[row,self.visiblecols].fillna('')
             for col in self.visiblecols:               
                 text = cols[col]              
                 self.drawText(row, col, text, align)
@@ -2133,7 +2133,7 @@ class ColumnHeader(Canvas):
         popupmenu.add_command(label="Sort by "+ colname, command=lambda : self.table.sortTable(currcol))
         popupmenu.add_command(label="Sort by "+ colname +' (descending)',
             command=lambda : self.table.sortTable(currcol,ascending=0))
-        popupmenu.add_command(label="Group by "+ colname, command=lambda : self.table.groupby(currcol))
+        #popupmenu.add_command(label="Group by "+ colname, command=lambda : self.table.groupby(currcol))
         popupmenu.add_command(label="Delete This Column", command=self.table.deleteColumn)
 
         popupmenu.bind("<FocusOut>", popupFocusOut)
@@ -2401,8 +2401,7 @@ class ToolBar(Frame):
         self.addButton('Plot', self.parentapp.plotSelected, img)
         #self.addButton('Plot', self.parentapp.plot3D, img)
         img = images.plotprefs()
-        self.addButton('Plot', self.parentapp.plotSelected, img)
-        
+        #self.addButton('Plot', self.parentapp.plotSelected, img)        
         return
 
     def addButton(self, name, callback, img=None):

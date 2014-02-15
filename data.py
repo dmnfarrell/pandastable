@@ -46,19 +46,18 @@ class TableModel(object):
         else:            
             #colnames = list(string.ascii_lowercase[:columns])
             #self.df = pd.DataFrame(index=range(rows),columns=colnames)
-            self.df = self.getSampleData()
-    
+            self.df = self.getSampleData()    
         self.reclist = self.df.index # not needed now?
         return
 
-    def getSampleData(self):
+    def getSampleData(self, rows=200):
         """Generate sample data"""
-        colnames = list(string.ascii_lowercase[:10])        
-        df = pd.DataFrame(np.random.randn(200, 10), columns=colnames)
+        colnames = list(string.ascii_lowercase[:10])
+        n = np.array([np.random.normal(i,.5,10) for i in np.random.normal(2,1,rows)])     
+        df = pd.DataFrame(n, columns=colnames)
         df = np.round(df, 3)
         cats = ['foo','bar','sel']
-        df['label'] = [cats[i] for i in np.random.randint(0,3,200)]
-        #df['Z'] = -5 + 3*X-0.5*Y+np.random.randn(np.shape(X)[0], np.shape(X)[1])
+        df['label'] = [cats[i] for i in np.random.randint(0,3,rows)]        
         return df
 
     def initialiseFields(self):
