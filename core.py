@@ -37,7 +37,7 @@ import pandas as pd
 class Table(Canvas):
     """A tkinter class for providing table functionality"""
 
-    def __init__(self, parent=None, model=None, dataframe=None, 
+    def __init__(self, parent=None, model=None, dataframe=None,
                     width=None, height=None,
                     rows=50, cols=10, **kwargs):
         Canvas.__init__(self, parent, bg='white',
@@ -59,7 +59,7 @@ class Table(Canvas):
         self.reverseorder = 0
         self.startrow = self.endrow = None
         self.startcol = self.endcol = None
-        self.allrows = False 
+        self.allrows = False
         self.multiplerowlist=[]
         self.multiplecollist=[]
         self.col_positions=[]
@@ -77,7 +77,7 @@ class Table(Canvas):
         elif model != None:
             self.model = model
         else:
-            self.model = TableModel(rows=rows,columns=cols)           
+            self.model = TableModel(rows=rows,columns=cols)
 
         self.rows = self.model.getRowCount()
         self.cols = self.model.getColumnCount()
@@ -269,7 +269,7 @@ class Table(Canvas):
     def redrawVisible(self, event=None, callback=None):
         """Redraw the visible portion of the canvas"""
 
-        model = self.model        
+        model = self.model
         self.rows = len(self.model.df.index)
         self.cols = len(self.model.df.columns)
         if self.cols == 0 or self.rows == 0:
@@ -302,20 +302,20 @@ class Table(Canvas):
         bgcolor = self.cellbackgr
         df = self.model.df
         '''vdf = df.iloc[self.visiblerows,self.visiblecols]
-        r=0        
-        for idx,row in vdf.iterrows():          
+        r=0
+        for idx,row in vdf.iterrows():
             for c,val in enumerate(row):
                 print (c)
                 self.drawText(r, c, val, align)
             r+=1'''
         for row in self.visiblerows:
             cols = df.iloc[row,:].fillna('')
-            for col in self.visiblecols: 
+            for col in self.visiblecols:
                 text = cols[col]
                 self.drawText(row, col, text, align)
 
         self.tablecolheader.redraw()
-        self.tablerowheader.redraw(align=self.align)        
+        self.tablerowheader.redraw(align=self.align)
         self.drawSelectedRow()
         self.drawSelectedRect(self.currentrow, self.currentcol)
         if len(self.multiplerowlist)>1:
@@ -396,7 +396,7 @@ class Table(Canvas):
         return
 
     def groupby(self, colindex):
-        grps = self.model.groupby(colindex)        
+        grps = self.model.groupby(colindex)
         for i,g in grps:
             print(g)
         return
@@ -427,7 +427,7 @@ class Table(Canvas):
 
         row = self.getSelectedRow()
         key = self.model.addRow(row)
-        self.redrawTable()      
+        self.redrawTable()
         return
 
     def addRows(self, num=None):
@@ -516,7 +516,7 @@ class Table(Canvas):
         if not n:
             return
         self.model.deleteCells(rows, cols)
-        self.redrawTable()    
+        self.redrawTable()
         return
 
     def clearData(self, evt=None):
@@ -688,7 +688,7 @@ class Table(Canvas):
             if x > colpos and x <= nextpos:
                 #print 'x=', x, 'colpos', colpos, self.col_positions.index(colpos)
                 return self.col_positions.index(colpos)
-            else:               
+            else:
                 pass
         #return colc
 
@@ -845,7 +845,7 @@ class Table(Canvas):
         self.startrow = rowclicked
         self.endrow = rowclicked
         self.startcol = colclicked
-        self.endcol = colclicked        
+        self.endcol = colclicked
         #reset multiple selection list
         self.multiplerowlist=[]
         self.multiplerowlist.append(rowclicked)
@@ -855,7 +855,7 @@ class Table(Canvas):
             self.drawSelectedRect(self.currentrow, self.currentcol)
             self.drawSelectedRow()
             self.tablerowheader.drawSelectedRows(rowclicked)
-            self.tablecolheader.delete('rect')     
+            self.tablecolheader.delete('rect')
             #self.drawCellEntry(rowclicked, colclicked)
         return
 
@@ -874,7 +874,7 @@ class Table(Canvas):
                 self.multiplerowlist.remove(rowclicked)
             self.drawMultipleRows(self.multiplerowlist)
             if colclicked not in self.multiplecollist:
-                self.multiplecollist.append(colclicked)   
+                self.multiplecollist.append(colclicked)
             self.drawMultipleCells()
         return
 
@@ -923,7 +923,7 @@ class Table(Canvas):
             self.multiplerowlist.append(self.currentrow)
             if len(self.multiplecollist) >= 1:
                 self.drawMultipleCells()
-            self.delete('multiplesel')       
+            self.delete('multiplesel')
         return
 
     def handle_arrow_keys(self, event):
@@ -1103,13 +1103,13 @@ class Table(Canvas):
                         "Import file":self.doImport,
                         "Export file": self.doExport,
                         "Plot Selected" : self.plotSelected,
-                        "Show plot window" : self.showPlotFrame,                  
+                        "Show plot window" : self.showPlotFrame,
                         "Preferences" : self.showtablePrefs}
 
         main = ["Copy", "Paste", "Fill Down","Fill Right",
                 "Clear Data", "Add Row(s)" , "Delete Row(s)"]
         general = ["Select All", "Auto Fit Columns", "Filter Records", "Preferences"]
-        
+
         filecommands = ['New','Load','Save','Import file','Export file']
         plotcommands = ['Plot Selected',"Show plot window"]
 
@@ -1211,7 +1211,7 @@ class Table(Canvas):
     def showPlotFrame(self, parent=None):
         if not hasattr(self, 'pf'):
             self.pf = PlotFrame(parent)
-        return self.pf 
+        return self.pf
 
     def getPlotData(self):
         """Plot data from selection"""
@@ -1234,7 +1234,7 @@ class Table(Canvas):
         if not hasattr(self, 'pf'):
             self.pf = PlotFrame()
 
-        data = self.getPlotData()     
+        data = self.getPlotData()
         self.pf.data = data
         self.pf.plot2D()
         return
@@ -1244,9 +1244,9 @@ class Table(Canvas):
         if not hasattr(self, 'pf'):
             self.pf = PlotFrame()
 
-        data = self.getPlotData() 
+        data = self.getPlotData()
         self.pf.data = data
-        self.pf.plot3D()    
+        self.pf.plot3D()
         return
 
     #--- Drawing stuff ---
@@ -1306,7 +1306,7 @@ class Table(Canvas):
             color = 'gray25'
         w=2
         x1,y1,x2,y2 = self.getCellCoords(row,col)
-        rect = self.create_rectangle(x1+w/2+1,y1+w/2+1,x2-w/2,y2-w/2,                         
+        rect = self.create_rectangle(x1+w/2+1,y1+w/2+1,x2-w/2,y2-w/2,
                                   outline=color,
                                   width=w,
                                   tag='currentrect')
@@ -1345,21 +1345,21 @@ class Table(Canvas):
         model = self.model
         text = self.model.getValueAt(row, col)
         x1,y1,x2,y2 = self.getCellCoords(row,col)
-        w=x2-x1  
+        w=x2-x1
         txtvar = StringVar()
         txtvar.set(text)
 
         def callback(e):
             value = txtvar.get()
-            model.setValueAt(value,row,col)        
+            model.setValueAt(value,row,col)
             self.drawText(row, col, value, align=self.align)
             if e.keysym=='Return':
-                self.delete('entry')                
+                self.delete('entry')
                 #self.gotonextCell(e)
             return
 
         self.cellentry = Entry(self.parentframe,width=20,
-                        textvariable=txtvar,                        
+                        textvariable=txtvar,
                         takefocus=1,
                         font=self.thefont)
         self.cellentry.icursor(END)
@@ -1461,7 +1461,7 @@ class Table(Canvas):
         x1,y1,x2,y2 = self.getCellCoords(0,col)
         y2 = self.rows * self.rowheight
         rect = self.create_rectangle(x1+w/2,y1+w/2,x2,y2+w/2,
-                                     width=w,fill='#F8E0E6',outline='',                                     
+                                     width=w,fill='#F8E0E6',outline='',
                                      tag='colrect')
         self.lower('colrect')
         self.lower('rowrect')
@@ -1493,7 +1493,7 @@ class Table(Canvas):
         x1,y1,a,b = self.getCellCoords(rows[0],cols[0])
         c,d,x2,y2 = self.getCellCoords(rows[len(rows)-1],cols[len(cols)-1])
         rect = self.create_rectangle(x1+w/2,y1+w/2,x2,y2,
-                             outline=self.boxoutlinecolor, width=w,                    
+                             outline=self.boxoutlinecolor, width=w,
                              tag='multicellrect')
 
         return
@@ -1616,7 +1616,7 @@ class Table(Canvas):
 
         #fonts
         fts = self.getFonts()
-        Label(frame2,text='font').grid(row=row,column=0)           
+        Label(frame2,text='font').grid(row=row,column=0)
         fb = Combobox(frame2, values=fts,
                        textvariable=self.fontvar)
         #currfont = self.prefs.get('celltextfont')
@@ -1633,8 +1633,8 @@ class Table(Canvas):
 
         #cell alignment
         lbl=Label(frame2,text='Alignment:')
-        lbl.grid(row=row,column=0,padx=3,pady=2)       
-        
+        lbl.grid(row=row,column=0,padx=3,pady=2)
+
         alignments=['center','w','e']
         alignentry_button = Combobox(frame2, values=alignments,
                               textvariable=self.cellalignvar)
@@ -1646,18 +1646,18 @@ class Table(Canvas):
         style.configure("cb.TButton", background=self.cellbackgr)
         cellbackgrbutton = Button(frame2, text='table background',style="cb.TButton",
                                   command=self.setcellbackgr)
- 
+
         cellbackgrbutton.grid(row=row,column=0,columnspan=2, sticky='news')
         row=row+1
         style = Style()
         style.configure("gc.TButton", background=self.grid_color)
-        grid_colorbutton = Button(frame2, text='grid color', style="gc.TButton", 
+        grid_colorbutton = Button(frame2, text='grid color', style="gc.TButton",
                                 command=self.setgrid_color)
         grid_colorbutton.grid(row=row,column=0,columnspan=2, sticky='news')
         row=row+1
         style = Style()
         style.configure("rhc.TButton", background=self.rowselectedcolor)
-        rowselectedcolorbutton = Button(frame2, text='row highlight color', style="rhc.TButton", 
+        rowselectedcolorbutton = Button(frame2, text='row highlight color', style="rhc.TButton",
                                 command=self.setrowselectedcolor)
         rowselectedcolorbutton.grid(row=row,column=0,columnspan=2, sticky='news')
         row=row+1
@@ -1863,10 +1863,10 @@ class Table(Canvas):
                                                       filetypes=[("csv","*.csv"),
                                                                  ("txt","*.txt"),
                                                         ("All files","*.*")])
-        if filename:            
-            df = pd.read_csv(filename)           
+        if filename:
+            df = pd.read_csv(filename)
             model = TableModel(dataframe=df)
-            self.updateModel(model)          
+            self.updateModel(model)
             self.redrawTable()
         return
 
@@ -1945,7 +1945,7 @@ class ColumnHeader(Canvas):
 
     def redraw(self):
         """Redraw column header"""
-        cols = self.model.getColumnCount()        
+        cols = self.model.getColumnCount()
         self.tablewidth=self.table.tablewidth
         self.configure(scrollregion=(0,0, self.table.tablewidth+self.table.x_start, self.height))
         self.delete('gridline','text')
@@ -2001,7 +2001,7 @@ class ColumnHeader(Canvas):
                         color='lightblue', outline='white')
         if hasattr(self, 'rightmenu'):
             self.rightmenu.destroy()
-        #finally, draw the selected col on the table        
+        #finally, draw the selected col on the table
         self.table.drawSelectedCol()
         return
 
@@ -2161,7 +2161,7 @@ class ColumnHeader(Canvas):
             else:
                 #self.model.renameColumn(col, ans)
                 df = self.model.df
-                df.rename(columns={df.columns[col]: new}, inplace=True)                
+                df.rename(columns={df.columns[col]: new}, inplace=True)
                 self.redraw()
         return
 
@@ -2199,7 +2199,7 @@ class ColumnHeader(Canvas):
         rect = self.create_rectangle(x1,y1-w,x2,self.height,
                                   fill=color,
                                   outline=outline,
-                                  width=w,                                  
+                                  width=w,
                                   tag=tag)
         self.lower(tag)
         return
@@ -2339,7 +2339,7 @@ class RowHeader(Canvas):
     def drawSelectedRows(self, rows=None):
         """Draw selected rows, accepts a list or integer"""
 
-        self.delete('rect')        
+        self.delete('rect')
         if type(rows) is not list:
             rowlist=[]
             rowlist.append(rows)
@@ -2410,14 +2410,14 @@ class ToolBar(Frame):
         self.addButton('Plot', self.parentapp.plotSelected, img)
         #self.addButton('Plot', self.parentapp.plot3D, img)
         img = images.plotprefs()
-        #self.addButton('Plot', self.parentapp.plotSelected, img)        
+        #self.addButton('Plot', self.parentapp.plotSelected, img)
         return
 
     def addButton(self, name, callback, img=None):
         if img==None:
             b = Button(self, text=name, command=callback)
         else:
-            b = Button(self, text=name, command=callback,                           
+            b = Button(self, text=name, command=callback,
                              image=img)
         b.image = img
         b.pack(side=TOP)

@@ -42,8 +42,8 @@ class TableModel(object):
     def setup(self, dataframe, rows=50, columns=10):
         """Create table model"""
         if not dataframe is None:
-            self.df = dataframe           
-        else:            
+            self.df = dataframe
+        else:
             colnames = list(string.ascii_lowercase[:columns])
             self.df = pd.DataFrame(index=range(rows),columns=colnames)
             #self.df = self.getSampleData()
@@ -54,11 +54,11 @@ class TableModel(object):
     def getSampleData(self, rows=200):
         """Generate sample data"""
         colnames = list(string.ascii_lowercase[:10])
-        n = np.array([np.random.normal(i,.5,10) for i in np.random.normal(2,1,rows)])     
+        n = np.array([np.random.normal(i,.5,10) for i in np.random.normal(2,1,rows)])
         df = pd.DataFrame(n, columns=colnames)
         df = np.round(df, 3)
         cats = ['foo','bar','sel']
-        df['label'] = [cats[i] for i in np.random.randint(0,3,rows)]        
+        df['label'] = [cats[i] for i in np.random.randint(0,3,rows)]
         return df
 
     def initialiseFields(self):
@@ -104,12 +104,12 @@ class TableModel(object):
         name = cols[oldindex]
         del cols[oldindex]
         cols.insert(newindex, name)
-        self.df = df[cols]   
+        self.df = df[cols]
         return
 
     def addRow(self, rowindex):
         """Inserts a row at the required index by append/concat"""
-        df = self.df       
+        df = self.df
         a, b = df[:rowindex], df[rowindex:]
         a=a.append(pd.Series(), ignore_index=1)
         self.df = pd.concat([a,b])
@@ -155,7 +155,7 @@ class TableModel(object):
     def setindex(self, colindex):
         df = self.df
         colnames = df.columns[colindex]
-        df.set_index(colnames, inplace=True)        
+        df.set_index(colnames, inplace=True)
         return
 
     def groupby(self, cols):

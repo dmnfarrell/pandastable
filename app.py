@@ -52,8 +52,8 @@ class ViewerApp(Frame):
             self.defaultsavedir = os.getcwd()
 
         self.style = Style()
-        available_themes = self.style.theme_names()        
-        self.style.theme_use('clam') 
+        available_themes = self.style.theme_names()
+        self.style.theme_use('clam')
         self.style.configure("TButton", padding=2, relief="raised")
         self.main.title('Pandas DataFrame Viewer')
         self.createMenuBar()
@@ -66,23 +66,23 @@ class ViewerApp(Frame):
             self.openProject(projfile)
         else:
             self.newProject()
-        
+
         self.main.protocol('WM_DELETE_WINDOW',self.quit)
         return
 
     def setupGUI(self):
-        
+
         self.m = PanedWindow(self.main, orient=HORIZONTAL)
         self.m.pack(fill=BOTH,expand=1)
-        self.nb = Notebook(self.main)       
-        self.m.add(self.nb)       
+        self.nb = Notebook(self.main)
+        self.m.add(self.nb)
         self.setGeometry()
         return
 
     def createSidePane(self, width=200):
         """Side panel for various dialogs is tabbed notebook"""
-        self.closeSidePane() 
-        self.sidepane = Frame(self.m)  
+        self.closeSidePane()
+        self.sidepane = Frame(self.m)
         self.m.add(self.sidepane, weight=3)
         return self.sidepane
 
@@ -100,7 +100,7 @@ class ViewerApp(Frame):
                         '02Open':{'cmd':self.openProject},
                         '03Close':{'cmd':self.closeProject},
                         '04Save':{'cmd':self.saveProject},
-                        '05Save As':{'cmd':self.saveasProject},          
+                        '05Save As':{'cmd':self.saveasProject},
                         '08Quit':{'cmd':self.quit}}
         if self.parent:
             self.proj_menu['08Return to Database']={'cmd':self.return_data}
@@ -167,7 +167,7 @@ class ViewerApp(Frame):
             for s in sorted(data.keys()):
                 self.addSheet(s ,data[s])
         else:
-            self.addSheet('sheet1')     
+            self.addSheet('sheet1')
         return
 
     def openProject(self, filename=None):
@@ -178,7 +178,7 @@ class ViewerApp(Frame):
                                                                ("All files","*.*")],
                                                     parent=self.main)
         if os.path.isfile(filename):
-            data = pd.read_msgpack(filename)        
+            data = pd.read_msgpack(filename)
         self.newProject(data)
         self.filename = filename
         return
@@ -206,9 +206,9 @@ class ViewerApp(Frame):
     def doSaveProject(self, filename):
         """Save sheets as dict in msgpack"""
         data={}
-        for i in self.sheets:           
+        for i in self.sheets:
             data[i] = self.sheets[i].model.df
-           
+
         pd.to_msgpack(filename, data)
         return
 
@@ -234,26 +234,25 @@ class ViewerApp(Frame):
         if sheetname == None:
             sheetname = simpledialog.askstring("New sheet name?", "Enter sheet name:",
                                                 initialvalue='sheet'+str(noshts+1))
-        checkName(sheetname)        
+        checkName(sheetname)
         #Create the table
         main = PanedWindow(orient=HORIZONTAL)
         self.nb.add(main, text=sheetname)
         f1 = Frame(main)
         main.add(f1)
-        table = Table(f1, dataframe=df)    
-        table.createTableFrame()    
+        table = Table(f1, dataframe=df)
+        table.createTableFrame()
         f2 = Frame(main)
-        main.add(f2, weight=3)            
+        main.add(f2, weight=3)
         pf = table.showPlotFrame(f2)
         self.saved = 0
         self.currenttable = table
         self.sheets[sheetname] = table
-   
         return sheetname
 
     def deleteSheet(self):
         """Delete a sheet"""
-        
+
         s = self.nb.index(self.nb.select())
         name = self.nb.tab(s, 'text')
         self.nb.forget(s)
@@ -272,7 +271,7 @@ class ViewerApp(Frame):
     def renameSheet(self):
         """Rename a sheet"""
         s = self.nb.tab(self.nb.select(), 'text')
-        newname = simpledialog.askstring("New sheet name?", 
+        newname = simpledialog.askstring("New sheet name?",
                                           "Enter new sheet name:",
                                           initialvalue=s)
         if newname == None:
@@ -291,7 +290,7 @@ class ViewerApp(Frame):
         """About dialog"""
         abwin = Toplevel()
         abwin.geometry('+200+350')
-        abwin.title('About')      
+        abwin.title('About')
         abwin.transient()
         logo = images.tableapp_logo()
         label = Label(abwin,image=logo,anchor=CENTER)
@@ -310,7 +309,7 @@ class ViewerApp(Frame):
         #for line in text:
         tmp = Label(abwin, text=text, style="BW.TLabel")
         tmp.grid(row=row,column=0,sticky='news',padx=4)
-        
+
         return
 
     def online_documentation(self,event=None):

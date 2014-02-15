@@ -36,7 +36,7 @@ class PlotFrame(Frame):
 
     def __init__(self,parent=None):
 
-        self.parent=parent         
+        self.parent=parent
         if self.parent != None:
             Frame.__init__(self, parent)
             self.main = self.master
@@ -91,28 +91,28 @@ class PlotFrame(Frame):
 
         if not hasattr(self, 'data'):
             return
-        valid = {'line': ['alpha', 'colormap', 'grid', 'legend', 'linestyle', 
-                          'linewidth', 'marker', 'subplots', 'rot', 'logx', 'logy', 
+        valid = {'line': ['alpha', 'colormap', 'grid', 'legend', 'linestyle',
+                          'linewidth', 'marker', 'subplots', 'rot', 'logx', 'logy',
                            'sharey', 'use_index', 'kind'],
                     'scatter': ['alpha', 'grid', 'linewidth', 'marker', 's', 'legend', 'colormap'],
                     'bar': ['alpha', 'colormap', 'grid', 'legend', 'linewidth', 'subplots',
                             'sharey', 'stacked', 'rot', 'kind'],
                     'barh': ['alpha', 'colormap', 'grid', 'legend', 'linewidth', 'subplots',
-                            'stacked', 'rot', 'kind'], 
+                            'stacked', 'rot', 'kind'],
                     'histogram': ['alpha', 'linewidth', 'grid'],
-                    'heatmap': ['colormap','rot'], 
-                    'density': ['alpha', 'colormap', 'grid', 'legend', 'linestyle', 
-                                 'linewidth', 'marker', 'subplots', 'rot', 'kind'], 
-                    'boxplot': ['alpha', 'linewidth', 'rot', 'grid'],                   
+                    'heatmap': ['colormap','rot'],
+                    'density': ['alpha', 'colormap', 'grid', 'legend', 'linestyle',
+                                 'linewidth', 'marker', 'subplots', 'rot', 'kind'],
+                    'boxplot': ['alpha', 'linewidth', 'rot', 'grid'],
                     'scatter_matrix':['alpha', 'linewidth', 'marker', 'grid', 's'],
                     }
 
         data = self.data
         kwds = self.mplopts.kwds
         kind = kwds['kind']
-        #valid kwd args for this plot type 
-        kwdargs = dict((k, kwds[k]) for k in valid[kind])  
-  
+        #valid kwd args for this plot type
+        kwdargs = dict((k, kwds[k]) for k in valid[kind])
+
         if len(data.columns)==1:
             kwdargs['subplots'] = 0
         self.fig.clear()
@@ -123,9 +123,9 @@ class PlotFrame(Frame):
         if kind == 'scatter':
             self.scatter(data, ax, kwdargs)
         elif kind == 'boxplot':
-            data.boxplot(ax=ax)           
-        elif kind == 'histogram': 
-            data.hist(ax=ax, **kwdargs)            
+            data.boxplot(ax=ax)
+        elif kind == 'histogram':
+            data.hist(ax=ax, **kwdargs)
         elif kind == 'heatmap':
             self.heatmap(data, ax, kwdargs)
         elif kind == 'pie':
@@ -134,7 +134,7 @@ class PlotFrame(Frame):
             pd.scatter_matrix(data, ax=ax, **kwdargs)
         else:
             data.plot(ax=ax, **kwdargs)
-        self.fig.suptitle(kwds['title'])  
+        self.fig.suptitle(kwds['title'])
         self.ax.set_xlabel(kwds['xlabel'])
         self.ax.set_ylabel(kwds['ylabel'])
         self.ax.xaxis.set_visible(kwds['showxlabels'])
@@ -145,13 +145,13 @@ class PlotFrame(Frame):
 
     def scatter(self, df, ax, kwds):
         """A more custom scatter plot"""
-        if len(df.columns)<2: 
+        if len(df.columns)<2:
             return
         cols = df.columns
         plots = len(cols)
         cmap = plt.cm.get_cmap(kwds['colormap'])
         if kwds['marker'] == '':
-            kwds['marker'] = 'o' 
+            kwds['marker'] = 'o'
         for i in range(1,plots):
             x = df[cols[0]]
             y = df[cols[i]]
@@ -159,7 +159,7 @@ class PlotFrame(Frame):
             if kwds['marker'] in ['x','+']:
                 ec=c
             else:
-                ec='black' 
+                ec='black'
             ax.scatter(x, y, marker=kwds['marker'], alpha=kwds['alpha'],
                        s=kwds['s'], color=c, edgecolor=ec)
         if kwds['grid'] == 1:
@@ -171,7 +171,7 @@ class PlotFrame(Frame):
     def heatmap(self, df, ax, kwds):
         """Plot heatmap"""
         hm = ax.pcolor(df, cmap=kwds['colormap'])
-        self.fig.colorbar(hm, ax=ax)        
+        self.fig.colorbar(hm, ax=ax)
         ax.set_xticks(np.arange(0.5, len(df.columns)))
         ax.set_yticks(np.arange(0.5, len(df.index)))
         ax.set_xticklabels(df.columns, minor=False)
@@ -180,12 +180,12 @@ class PlotFrame(Frame):
 
     def plot3D(self):
         if not hasattr(self, 'data'):
-            return 
+            return
         kwds = self.mplopts.kwds
         data = self.data
-        self.fig.clear() 
+        self.fig.clear()
         ax = self.ax = Axes3D(self.fig)
-        X = data.values   
+        X = data.values
         if len(X[0])<3:
             zs=0
         else:
@@ -198,9 +198,9 @@ class PlotFrame(Frame):
             i+=1'''
         self.canvas.draw()
         return
-        
+
 class animator(Frame):
-    
+
     def __init__(self, parent, plotframe):
         Frame.__init__(self, parent)
         self.main = Frame(self)
@@ -209,7 +209,7 @@ class animator(Frame):
         self.doGUI()
         return
 
-    def doGUI(self):            
+    def doGUI(self):
         b = Button(self.main, text='animate', command=self.animate)
         b.pack(side=TOP)
         l = Label(self.main, text='arse')
@@ -225,7 +225,7 @@ class animator(Frame):
         data = self.plotframe.data
         ax = self.plotframe.ax
         ax.clear()
-        x = np.arange(0, 2*np.pi, 0.01)   
+        x = np.arange(0, 2*np.pi, 0.01)
         line, = ax.plot(x, np.sin(x))
         ani = animation.FuncAnimation(fig, run, np.arange(1, 200),
                             blit=True, interval=10,
@@ -251,12 +251,12 @@ class MPLoptions(object):
     colormaps = sorted(m for m in plt.cm.datad if not m.endswith("_r"))
     markers = ['','o','.','^','v','>','<','s','+','x','p','d','h','*']
     linestyles = ['-','--','-.',':','steps']
-    kinds = ['line', 'scatter', 'bar', 'barh', 'boxplot', 'histogram', 
+    kinds = ['line', 'scatter', 'bar', 'barh', 'boxplot', 'histogram',
              'heatmap', 'scatter_matrix', 'density']
-    
+
     def __init__(self):
         """Setup variables"""
-  
+
         fonts = self.getFonts()
         self.groups = {'styles':['font','colormap','alpha','grid','legend'],
                 'sizes':['fontsize','s','linewidth'],
@@ -286,9 +286,9 @@ class MPLoptions(object):
                 'ylabel':{'type':'entry','default':'','width':25},
                 'subplots':{'type':'checkbutton','default':0,'label':'multiple subplots'},
                 'colormap':{'type':'combobox','default':'jet','items':self.colormaps}
-                }   
+                }
         self.tkvars = {}
-        for i in opts:            
+        for i in opts:
             t = opts[i]['type']
             if t in ['entry','combobox']:
                 var = StringVar()
@@ -305,15 +305,15 @@ class MPLoptions(object):
     def applyOptions(self):
         """Set the options"""
 
-        kwds = {}        
+        kwds = {}
         for i in self.opts:
-            kwds[i] = self.tkvars[i].get()        
-        self.kwds = kwds        
-        plt.rc("font", family=kwds['font'], size=kwds['fontsize'])   
+            kwds[i] = self.tkvars[i].get()
+        self.kwds = kwds
+        plt.rc("font", family=kwds['font'], size=kwds['fontsize'])
         return
 
     def apply(self):
-        self.applyOptions()       
+        self.applyOptions()
         if self.callback != None:
             self.callback()
         return
@@ -321,7 +321,7 @@ class MPLoptions(object):
     def showDialog(self, parent, callback=None):
         """Auto create tk vars, widgets for corresponding options and
            and return the frame"""
-        
+
         opts = self.opts
         tkvars = self.tkvars
         dialog = Frame(parent)
@@ -334,21 +334,21 @@ class MPLoptions(object):
             row=0; col=0
             for i in self.groups[g]:
                 w=None
-                opt = opts[i]               
+                opt = opts[i]
                 if opt['type'] == 'entry':
                     if 'width' in opt:
                         w=opt['width']
                     else:
-                        w=8         
+                        w=8
                     Label(frame,text=i).pack()
-                    w = Entry(frame,textvariable=tkvars[i], width=w)                               
-                elif opt['type'] == 'checkbutton': 
+                    w = Entry(frame,textvariable=tkvars[i], width=w)
+                elif opt['type'] == 'checkbutton':
                     w = Checkbutton(frame,text=opt['label'],
-                             variable=tkvars[i])       
+                             variable=tkvars[i])
                 elif opt['type'] == 'combobox':
-                    Label(frame,text=i).pack()           
+                    Label(frame,text=i).pack()
                     w = Combobox(frame, values=opt['items'],
-                             textvariable=tkvars[i],width=15)                    
+                             textvariable=tkvars[i],width=15)
                     w.set(opt['default'])
                 elif opt['type'] == 'scale':
                     fr,to=opt['range']
@@ -357,10 +357,10 @@ class MPLoptions(object):
                              orient='horizontal',
                              resolution=opt['interval'],
                              variable=tkvars[i])
-                if w != None:                    
+                if w != None:
                     w.pack(fill=BOTH,expand=1)
                 row+=1
-            c+=1            
+            c+=1
 
         return dialog
 
