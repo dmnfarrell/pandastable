@@ -391,10 +391,14 @@ class Table(Canvas):
         return
 
     def groupby(self, colindex):
-        grps = self.model.groupby(colindex)
-        print(grps)
+        grps = self.model.groupby(colindex)        
         for i,g in grps:
             print(g)
+        return
+
+    def setindex(self, colindex):
+        self.model.setindex(colindex)
+        self.redrawTable()
         return
 
     def set_xviews(self,*args):
@@ -414,12 +418,11 @@ class Table(Canvas):
         return
 
     def addRow(self):
-        """Add new row"""
+        """Insert a new row"""
 
         row = self.getSelectedRow()
         key = self.model.addRow(row)
-        self.redrawTable()
-        #self.setSelectedRow(self.model.getRecordIndex(key))
+        self.redrawTable()      
         return
 
     def addRows(self, num=None):
@@ -1683,9 +1686,9 @@ class Table(Canvas):
         defaultprefs = {'horizlines':self.horizlines, 'vertlines':self.vertlines,
                         'alternaterows':self.alternaterows,
                         'rowheight':self.rowheight,
-                        'cellwidth':120,
+                        'cellwidth':100,
                         'autoresizecols': 0,
-                        'align': 'center',
+                        'align': 'w',
                         'celltextsize':11, 'celltextfont':'Arial',
                         'cellbackgr': self.cellbackgr, 'grid_color': self.grid_color,
                         'linewidth' : self.linewidth,
@@ -2134,6 +2137,7 @@ class ColumnHeader(Canvas):
         popupmenu.add_command(label="Sort by "+ colname +' (descending)',
             command=lambda : self.table.sortTable(currcol,ascending=0))
         #popupmenu.add_command(label="Group by "+ colname, command=lambda : self.table.groupby(currcol))
+        popupmenu.add_command(label="Set %s as Index" %colname, command=lambda : self.table.setindex(currcol))
         popupmenu.add_command(label="Delete This Column", command=self.table.deleteColumn)
 
         popupmenu.bind("<FocusOut>", popupFocusOut)

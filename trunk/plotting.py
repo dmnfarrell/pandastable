@@ -85,9 +85,9 @@ class PlotFrame(Frame):
         return
 
     def plot2D(self):
-        """Draw method for current data. There is some messy code here
-           to make sure only the valid plot options are passed for each plot kind.
-           Probably a better way to do this"""
+        """Draw method for current data. Relies on pandas plot functionality
+           if possible. There is some messy code here to make sure only the valid
+           plot options are passed for each plot kind."""
 
         if not hasattr(self, 'data'):
             return
@@ -281,9 +281,9 @@ class MPLoptions(object):
                 'stacked':{'type':'checkbutton','default':0,'label':'stacked bar'},
                 'linewidth':{'type':'scale','default':1,'range':(0,5),'interval':0.5,'label':'line width'},
                 'alpha':{'type':'scale','default':0.7,'range':(0,1),'interval':0.1,'label':'alpha'},
-                'title':{'type':'entry','default':'','width':15},
-                'xlabel':{'type':'entry','default':'','width':15},
-                'ylabel':{'type':'entry','default':'','width':15},
+                'title':{'type':'entry','default':'','width':25},
+                'xlabel':{'type':'entry','default':'','width':25},
+                'ylabel':{'type':'entry','default':'','width':25},
                 'subplots':{'type':'checkbutton','default':0,'label':'multiple subplots'},
                 'colormap':{'type':'combobox','default':'jet','items':self.colormaps}
                 }   
