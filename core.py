@@ -308,10 +308,8 @@ class Table(Canvas):
                 text = cols[col]              
                 self.drawText(row, col, text, align)
 
-        #self.drawSelectedCol()
         self.tablecolheader.redraw()
-        self.tablerowheader.redraw(align=self.align)
-        #self.setSelectedRow(self.currentrow)
+        self.tablerowheader.redraw(align=self.align)        
         self.drawSelectedRow()
         self.drawSelectedRect(self.currentrow, self.currentcol)
 
@@ -421,7 +419,7 @@ class Table(Canvas):
         row = self.getSelectedRow()
         key = self.model.addRow(row)
         self.redrawTable()
-        self.setSelectedRow(self.model.getRecordIndex(key))
+        #self.setSelectedRow(self.model.getRecordIndex(key))
         return
 
     def addRows(self, num=None):
@@ -776,13 +774,13 @@ class Table(Canvas):
         return
 
     def clearSelected(self):
+        """Clear selections"""
         self.delete('rect')
         self.delete('entry')
         self.delete('tooltip')
         self.delete('searchrect')
         self.delete('colrect')
         self.delete('multicellrect')
-
         return
 
     def gotoprevRow(self):
@@ -1002,13 +1000,6 @@ class Table(Canvas):
 
     def handle_motion(self, event):
         """Handle mouse motion on table"""
-        #self.delete('tooltip')
-        '''row = self.get_row_clicked(event)
-        col = self.get_col_clicked(event)
-        if row == None or col == None:
-            return
-        if 0 <= row < self.rows and 0 <= col < self.cols:
-            self.drawTooltip(row, col)'''
         return
 
     def gotonextCell(self, event):
