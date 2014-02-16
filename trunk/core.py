@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-    Implements the core PandasTable class.
+    Implements the core pandastable classes.
     Created Jan 2014
     Copyright (C) Damien Farrell
 
@@ -21,18 +21,18 @@
 
 from tkinter import *
 from tkinter.ttk import *
-#from tkinter import filedialog, messagebox, simpledialog
+from tkinter import filedialog, messagebox, simpledialog
 import tkinter.font
 import math, time
 import os, types
 import string, copy
 import platform
-from data import TableModel
-from prefs import Preferences
-import images
-from plotting import MPLoptions, PlotFrame
 import pylab as plt
 import pandas as pd
+from pandastable.data import TableModel
+from pandastable.plotting import MPLoptions, PlotFrame
+from pandastable.prefs import Preferences
+from pandastable import images
 
 class Table(Canvas):
     """A tkinter class for providing table functionality"""
@@ -187,7 +187,7 @@ class Table(Canvas):
         self.model = model
         return
 
-    def createTableFrame(self, callback=None):
+    def show(self, callback=None):
         """Adds column header and scrollbars and combines them with
            the current table adding all to the master frame provided in constructor.
            Table is then redrawn."""
@@ -211,7 +211,7 @@ class Table(Canvas):
         self.grid(row=1,column=1,rowspan=1,sticky='news',pady=0,ipady=0)
 
         self.adjustColumnWidths()
-        self.redrawTable(callback=callback)
+        self.redraw(callback=callback)
         self.parentframe.bind("<Configure>", self.redrawVisible)
         self.tablecolheader.xview("moveto", 0)
         self.xview("moveto", 0)
@@ -324,7 +324,7 @@ class Table(Canvas):
             self.drawMultipleCells()
         return
 
-    def redrawTable(self, event=None, callback=None):
+    def redraw(self, event=None, callback=None):
         self.redrawVisible(event, callback)
         return
 
@@ -364,7 +364,7 @@ class Table(Canvas):
         """Automatically set nice column widths and draw"""
 
         self.adjustColumnWidths()
-        self.redrawTable()
+        self.redraw()
         return
 
     def setColPositions(self):
@@ -392,7 +392,7 @@ class Table(Canvas):
         df = self.model.df
         colname = df.columns[columnIndex]
         df.sort(colname, inplace=True, ascending=ascending)
-        self.redrawTable()
+        self.redraw()
         return
 
     def groupby(self, colindex):
@@ -403,7 +403,7 @@ class Table(Canvas):
 
     def setindex(self, colindex):
         self.model.setindex(colindex)
-        self.redrawTable()
+        self.redraw()
         return
 
     def set_xviews(self,*args):
@@ -427,7 +427,7 @@ class Table(Canvas):
 
         row = self.getSelectedRow()
         key = self.model.addRow(row)
-        self.redrawTable()
+        self.redraw()
         return
 
     def addRows(self, num=None):
@@ -440,7 +440,7 @@ class Table(Canvas):
         if not num:
             return
         keys = self.model.autoAddRows(num)
-        self.redrawTable()
+        self.redraw()
         self.setSelectedRow(self.model.getRecordIndex(keys[0]))
         return
 
@@ -469,7 +469,7 @@ class Table(Canvas):
             else:
                 self.model.addColumn(newname, dtype)
                 self.parentframe.configure(width=self.width)
-                self.redrawTable()
+                self.redraw()
         return
 
     def deleteRow(self):
@@ -483,7 +483,7 @@ class Table(Canvas):
                 self.model.deleteRows(rows)
                 self.setSelectedRow(0)
                 self.clearSelected()
-                self.redrawTable()
+                self.redraw()
         else:
             n = messagebox.askyesno("Delete",
                                       "Delete this row?",
@@ -493,7 +493,7 @@ class Table(Canvas):
                 self.model.deleteRow(row)
                 self.setSelectedRow(row-1)
                 self.clearSelected()
-                self.redrawTable()
+                self.redraw()
         return
 
     def deleteColumn(self):
@@ -505,7 +505,7 @@ class Table(Canvas):
             col = self.getSelectedColumn()
             self.model.deleteColumn(col)
             self.currentcol = self.currentcol - 1
-            self.redrawTable()
+            self.redraw()
         return
 
     def deleteCells(self, rows, cols):
@@ -516,7 +516,7 @@ class Table(Canvas):
         if not n:
             return
         self.model.deleteCells(rows, cols)
-        self.redrawTable()
+        self.redraw()
         return
 
     def clearData(self, evt=None):
@@ -534,7 +534,7 @@ class Table(Canvas):
                                                 parent=self.parentframe)
         self.model.auto_AddColumns(numcols)
         self.parentframe.configure(width=self.width)
-        self.redrawTable()
+        self.redraw()
         return
 
     def findValue(self, searchstring=None, findagain=None):
@@ -580,7 +580,7 @@ class Table(Canvas):
     def showAll(self):
         self.model.filteredrecs = None
         self.filtered = False
-        self.redrawTable()
+        self.redraw()
         return
 
     def doFilter(self, event=None):
@@ -595,7 +595,7 @@ class Table(Canvas):
         #create a list of filtered recs
         self.model.filteredrecs = names
         self.filtered = True
-        self.redrawTable()
+        self.redraw()
         return
 
     def createFilteringBar(self, parent=None, fields=None):
@@ -633,7 +633,7 @@ class Table(Canvas):
         colname = self.model.getColumnName(col)
         self.model.columnwidths[colname] = width
         self.setColPositions()
-        self.redrawTable()
+        self.redraw()
         self.drawSelectedCol(self.currentcol)
         return
 
@@ -1053,7 +1053,7 @@ class Table(Canvas):
         row = rows[0]; col = cols[0]
         val = self.clipboard
         self.model.setValueAt(val, row, col)
-        self.redrawTable()
+        self.redraw()
         return
 
     def copyColumns(self):
@@ -1077,7 +1077,7 @@ class Table(Canvas):
                 if r >= self.rows:
                     break
                 M.setValueAt(val, r, col)
-        self.redrawTable()
+        self.redraw()
         return coldata
 
     # --- Some cell specific actions here ---
@@ -1171,7 +1171,7 @@ class Table(Canvas):
         #remove first element as we don't want to overwrite it
         rowlist.remove(rowlist[0])
 
-        self.redrawTable()
+        self.redraw()
         return
 
     def fillAcross(self, collist, rowlist):
@@ -1180,7 +1180,7 @@ class Table(Canvas):
         frstcol = collist[0]
         collist.remove(frstcol)
 
-        self.redrawTable()
+        self.redraw()
         return
 
     def getSelectionValues(self):
@@ -1774,7 +1774,7 @@ class Table(Canvas):
     def applyPrefs(self):
         """Apply prefs to the table by redrawing"""
         self.savePrefs()
-        self.redrawTable()
+        self.redraw()
         return
 
     def show_progressbar(self,message=None):
@@ -1807,7 +1807,7 @@ class Table(Canvas):
         self.tablewidth = (self.cellwidth)*self.cols
         self.tablecolheader = ColumnHeader(self.parentframe, self)
         self.tablerowheader = RowHeader(self.parentframe, self)
-        self.createTableFrame()
+        self.show()
         return
 
     def new(self):
@@ -1840,7 +1840,7 @@ class Table(Canvas):
             return
         if filename:
             self.model.load(filename)
-            self.redrawTable()
+            self.redraw()
         return
 
     def save(self, filename=None):
@@ -1867,7 +1867,7 @@ class Table(Canvas):
             df = pd.read_csv(filename)
             model = TableModel(dataframe=df)
             self.updateModel(model)
-            self.redrawTable()
+            self.redraw()
         return
 
     def doExport(self, filename=None):
@@ -2027,7 +2027,7 @@ class ColumnHeader(Canvas):
         if self.draggedcol != None and self.table.currentcol != self.draggedcol:
             self.model.moveColumn(self.table.currentcol, self.draggedcol)
             self.table.setSelectedCol(self.draggedcol)
-            self.table.redrawTable()
+            self.table.redraw()
             self.table.drawSelectedCol(self.table.currentcol)
             self.drawRect(self.table.currentcol)
         return
