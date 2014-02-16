@@ -28,10 +28,10 @@ matplotlib.use('TkAgg')
 import pandas as pd
 import re, os, platform
 import time
-from core import Table
-from data import TableModel
-from prefs import Preferences
-import images
+from pandastable.core import Table
+from pandastable.data import TableModel
+from pandastable.prefs import Preferences
+import pandastable.images
 
 class ViewerApp(Frame):
     """pandastable viewer app"""
@@ -244,7 +244,7 @@ class ViewerApp(Frame):
         table.show()
         f2 = Frame(main)
         main.add(f2, weight=3)
-        pf = table.showPlotFrame(f2)
+        pf = table.showPlotViewer(f2)
         self.saved = 0
         self.currenttable = table
         self.sheets[sheetname] = table

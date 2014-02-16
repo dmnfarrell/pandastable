@@ -30,7 +30,7 @@ import platform
 import pylab as plt
 import pandas as pd
 from pandastable.data import TableModel
-from pandastable.plotting import MPLoptions, PlotFrame
+from pandastable.plotting import MPLoptions, PlotViewer
 from pandastable.prefs import Preferences
 from pandastable import images
 
@@ -1102,8 +1102,7 @@ class Table(Canvas):
                         "Save": self.save,
                         "Import file":self.doImport,
                         "Export file": self.doExport,
-                        "Plot Selected" : self.plotSelected,
-                        "Show plot window" : self.showPlotFrame,
+                        "Plot Selected" : self.plotSelected,                        
                         "Preferences" : self.showtablePrefs}
 
         main = ["Copy", "Paste", "Fill Down","Fill Right",
@@ -1111,7 +1110,7 @@ class Table(Canvas):
         general = ["Select All", "Auto Fit Columns", "Filter Records", "Preferences"]
 
         filecommands = ['New','Load','Save','Import file','Export file']
-        plotcommands = ['Plot Selected',"Show plot window"]
+        plotcommands = ['Plot Selected']
 
         def createSubMenu(parent, label, commands):
             menu = Menu(parent, tearoff = 0)
@@ -1208,9 +1207,9 @@ class Table(Canvas):
             lists.append(x)
         return lists
 
-    def showPlotFrame(self, parent=None):
+    def showPlotViewer(self, parent=None):  
         if not hasattr(self, 'pf'):
-            self.pf = PlotFrame(parent)
+            self.pf = PlotViewer(parent) 
         return self.pf
 
     def getPlotData(self):
@@ -1229,11 +1228,13 @@ class Table(Canvas):
         return data
 
     def plotSelected(self):
-        """Plot the selected data in the associated plotframe"""
-
+        """Plot the selected data in the associated plotviewer"""
+        
         if not hasattr(self, 'pf'):
-            self.pf = PlotFrame()
-
+            self.pf = PlotViewer()
+        else:
+            if type(self.pf.main) is tkinter.Toplevel:
+                self.pf.main.deiconify() 
         data = self.getPlotData()
         self.pf.data = data
         self.pf.plot2D()
@@ -1242,7 +1243,7 @@ class Table(Canvas):
     def plot3D(self):
 
         if not hasattr(self, 'pf'):
-            self.pf = PlotFrame()
+            self.pf = PlotViewer()
 
         data = self.getPlotData()
         self.pf.data = data

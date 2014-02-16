@@ -31,7 +31,7 @@ from mpl_toolkits.mplot3d import Axes3D
 #import matplotlib.animation as animation
 import tkinter.font
 
-class PlotFrame(Frame):
+class PlotViewer(Frame):
     """Provides a frame for figure canvas and MPL settings"""
 
     def __init__(self,parent=None):
@@ -44,6 +44,7 @@ class PlotFrame(Frame):
             self.main = Toplevel()
             self.master = self.main
             self.main.title('Plot Viewer')
+            self.main.protocol("WM_DELETE_WINDOW", self.quit)
         self.addFigure(self.main)
         def hide():
             if hidevar.get():
@@ -61,7 +62,7 @@ class PlotFrame(Frame):
         self.nb.pack(side=TOP,fill=BOTH)
         self.mplopts = MPLoptions()
         w1 = self.mplopts.showDialog(self.nb)
-        self.nb.add(w1, text='plot options', sticky='news')
+        self.nb.add(w1, text='plot options', sticky='news')        
         return
 
     def applyPlotoptions(self):
@@ -197,6 +198,10 @@ class PlotFrame(Frame):
             ax.bar(data.index, h, zs=i, zdir='y')
             i+=1'''
         self.canvas.draw()
+        return
+
+    def quit(self):
+        self.main.withdraw()        
         return
 
 class animator(Frame):
