@@ -1,0 +1,13 @@
+=======
+CHANGES
+=======
+
+------
+0.0.1
+------
+
+Ported old tkintertable code to Python3
+Removed old extraneous TableModel code
+Added PlotFrame class
+Re-did table viewer application
+No longer using Pmw widgets
