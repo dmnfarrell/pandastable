@@ -241,7 +241,7 @@ class ViewerApp(Frame):
         f1 = Frame(main)
         main.add(f1)
         table = Table(f1, dataframe=df)
-        table.createTableFrame()
+        table.show()
         f2 = Frame(main)
         main.add(f2, weight=3)
         pf = table.showPlotFrame(f2)
