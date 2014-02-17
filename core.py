@@ -1080,6 +1080,18 @@ class Table(Canvas):
         self.redraw()
         return coldata
 
+    def transpose(self):
+        """Transpose table"""
+        self.model.transpose()
+        self.updateModel(self.model)
+        self.redraw()
+        return
+
+    def tableFromSelection(self):
+        """Create a new table from the selected cells"""
+
+        return
+
     # --- Some cell specific actions here ---
 
     def popupMenu(self, event, rows=None, cols=None, outside=None):
@@ -1103,7 +1115,7 @@ class Table(Canvas):
                         "Import file":self.doImport,
                         "Export file": self.doExport,
                         "Plot Selected" : self.plotSelected,                        
-                        "Preferences" : self.showtablePrefs}
+                        "Preferences" : self.showPrefs}
 
         main = ["Copy", "Paste", "Fill Down","Fill Right",
                 "Clear Data", "Add Row(s)" , "Delete Row(s)"]
@@ -1561,7 +1573,7 @@ class Table(Canvas):
 
     #--- Preferences stuff ---
 
-    def showtablePrefs(self, prefs=None):
+    def showPrefs(self, prefs=None):
         """Show table options dialog using an instance of prefs"""
 
         if self.prefs == None:
@@ -1571,6 +1583,8 @@ class Table(Canvas):
         #self.prefswindow.geometry('+%s+%s' %(x+w/2,y+h/2))
         self.prefswindow.title('Preferences')
         self.prefswindow.resizable(width=FALSE, height=FALSE)
+        self.prefswindow.grab_set()       
+        self.prefswindow.transient(self)
 
         frame1=Frame(self.prefswindow)
         frame1.pack(side=LEFT)
@@ -1856,14 +1870,15 @@ class Table(Canvas):
             self.model.save(filename)
         return
 
-    def doImport(self):
+    def doImport(self, filename=None):
         """Import from csv file"""
-        filename = filedialog.askopenfilename(parent=self.master,
-                                                      defaultextension='.csv',
-                                                      initialdir=os.getcwd(),
-                                                      filetypes=[("csv","*.csv"),
-                                                                 ("txt","*.txt"),
-                                                        ("All files","*.*")])
+        if filename == None:
+            filename = filedialog.askopenfilename(parent=self.master,
+                                                          defaultextension='.csv',
+                                                          initialdir=os.getcwd(),
+                                                          filetypes=[("csv","*.csv"),
+                                                                     ("txt","*.txt"),
+                                                            ("All files","*.*")])
         if filename:
             df = pd.read_csv(filename)
             model = TableModel(dataframe=df)
@@ -2409,9 +2424,13 @@ class ToolBar(Frame):
         self.addButton('Delete col', self.parentapp.deleteColumn, img)
         img = images.plot()
         self.addButton('Plot', self.parentapp.plotSelected, img)
-        #self.addButton('Plot', self.parentapp.plot3D, img)
-        img = images.plotprefs()
-        #self.addButton('Plot', self.parentapp.plotSelected, img)
+        img = images.transpose()
+        self.addButton('Transpose', self.parentapp.transpose, img)
+        img = images.table_multiple()
+        self.addButton('Transpose', self.parentapp.tableFromSelection, img)
+        img = images.prefs()
+        self.addButton('Prefs', self.parentapp.showPrefs, img)
+
         return
 
     def addButton(self, name, callback, img=None):

@@ -35,6 +35,8 @@ class App(Frame):
         f.pack(fill=BOTH,expand=1)
         pt = Table(f)
         pt.show()
+        pt.load('test.mpk')
+        #pt.doImport('test.csv')
 
 def main():
     "Run the application"
