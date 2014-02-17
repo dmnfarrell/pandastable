@@ -46,7 +46,7 @@ class Table(Canvas):
                          scrollregion=(0,0,300,200))
         self.parentframe = parent
         #get platform into a variable
-        self.ostyp = self.checkOSType()
+        self.ostyp = self.checkOS()
         self.platform = platform.system()
         self.width = width
         self.height = height
@@ -1900,31 +1900,15 @@ class Table(Canvas):
         return
 
     @classmethod
-    def checkOSType(cls):
+    def checkOS(cls):
         """Check the OS we are in"""
-        ostyp=''
-        var_s=['OSTYPE','OS']
-        '''for var in var_s:
-            if var in os.environ:
-                ostyp = string.lower(os.environ[var])'''
-
-        ostyp=ostyp.lower()
-        if ostyp.find('windows')!=-1:
-            ostyp='windows'
-        elif ostyp.find('darwin')!=-1 or ostyp.find('apple')!=-1:
-            ostyp='mac'
-        elif ostyp.find('linux')!=-1:
-            ostyp='linux'
-        else:
-            ostyp='unknown'
-            try:
-                info=os.uname()
-            except:
-                pass
-            #ostyp=info[0].lower()
-            if ostyp.find('darwin')!=-1:
-                ostyp='mac'
-        return ostyp
+        from sys import platform as _platform 
+        if _platform == "linux" or _platform == "linux2":
+            return 'linux'
+        elif _platform == "darwin":
+            return 'darwin'
+        if "win" in _platform:
+            return 'windows' 
 
     def getGeometry(self, frame):
         """Get frame geometry"""

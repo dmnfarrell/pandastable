@@ -53,7 +53,10 @@ class ViewerApp(Frame):
 
         self.style = Style()
         available_themes = self.style.theme_names()
-        self.style.theme_use('default')
+        pf = Table.checkOS()
+        if pf == 'linux':
+            self.style.theme_use('default')
+            
         self.style.configure("TButton", padding=2, relief="raised")
         self.main.title('Pandas DataFrame Viewer')
         self.createMenuBar()
