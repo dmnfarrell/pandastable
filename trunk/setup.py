@@ -4,7 +4,7 @@ home=os.path.expanduser('~')
 
 setup(
     name = 'pandastable',
-    version = '0.0.1',
+    version = '0.0.2',
     description = 'Tkinter frontend for pandas dataframes',
     url='http://code.google.com/p/pandastable/',
     license='GPL v3',

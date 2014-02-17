@@ -31,7 +31,7 @@ import time
 from pandastable.core import Table
 from pandastable.data import TableModel
 from pandastable.prefs import Preferences
-import pandastable.images
+import pandastable.images as images
 
 class ViewerApp(Frame):
     """pandastable viewer app"""
@@ -53,7 +53,7 @@ class ViewerApp(Frame):
 
         self.style = Style()
         available_themes = self.style.theme_names()
-        self.style.theme_use('clam')
+        self.style.theme_use('default')
         self.style.configure("TButton", padding=2, relief="raised")
         self.main.title('Pandas DataFrame Viewer')
         self.createMenuBar()

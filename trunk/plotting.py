@@ -62,7 +62,11 @@ class PlotViewer(Frame):
         self.nb.pack(side=TOP,fill=BOTH)
         self.mplopts = MPLoptions()
         w1 = self.mplopts.showDialog(self.nb)
-        self.nb.add(w1, text='plot options', sticky='news')        
+        self.nb.add(w1, text='plot options', sticky='news')
+        w2 = Frame()
+        b=Button(w2,text='plot',command=self.plot3D)
+        b.pack()
+        self.nb.add(w2, text='3D plot', sticky='news')
         return
 
     def applyPlotoptions(self):

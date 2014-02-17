@@ -230,5 +230,11 @@ class TableModel(object):
         self.df.iloc[rowindex,colindex] = value
         return
 
+    def transpose(self):
+        self.df = self.df.transpose()
+        self.df.reset_index()
+        print (self.df.index)
+        return
+
     def __repr__(self):
         return 'Table Model with %s rows' %len(self.df)
