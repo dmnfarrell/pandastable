@@ -25,7 +25,7 @@ from tkinter import *
 from tkinter.ttk import *
 import numpy as np
 import pandas as pd
-import matplotlib
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 #import matplotlib.animation as animation
@@ -67,6 +67,10 @@ class PlotViewer(Frame):
         b=Button(w2,text='plot',command=self.plot3D)
         b.pack()
         self.nb.add(w2, text='3D plot', sticky='news')
+        w3 = Frame()
+        b=Button(w3,text='plot',command=self.seabornPlots)
+        b.pack()
+        self.nb.add(w3, text='seaborn', sticky='news')
         return
 
     def applyPlotoptions(self):
@@ -204,8 +208,22 @@ class PlotViewer(Frame):
         self.canvas.draw()
         return
 
+    def seabornPlots(self):
+        """Seaborn is a nice plotting and regression package requiring
+           scipy, moss, patsy, statsmodels, husl"""
+        import seaborn as sns
+        from scipy import stats
+        from numpy.random import randn
+        data = self.data
+        sns.set_color_palette("deep", desat=.6)
+        self.fig.clear()
+        self.ax = ax = self.fig.add_subplot(111)
+        sns.corrplot(data, ax=ax)
+        self.canvas.draw()
+        return
+
     def quit(self):
-        self.main.withdraw()        
+        self.main.withdraw()
         return
 
 class animator(Frame):
