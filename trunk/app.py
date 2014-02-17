@@ -58,7 +58,7 @@ class ViewerApp(Frame):
             self.style.theme_use('default')
             
         self.style.configure("TButton", padding=2, relief="raised")
-        self.main.title('Pandas DataFrame Viewer')
+        self.main.title('DataFrame Viewer')
         self.createMenuBar()
         self.setupGUI()
 
@@ -120,7 +120,8 @@ class ViewerApp(Frame):
 
         self.help_menu={'01Online Help':{'cmd':self.online_documentation},
                         '02Load sample data':{'cmd':self.sampleData},
-                        '03About':{'cmd':self.about}}
+                        '03Load Tips data':{'cmd':self.getTipsData},
+                        '04About':{'cmd':self.about}}
         self.help_menu=self.createPulldown(self.menu,self.help_menu)
         self.menu.add_cascade(label='Help',menu=self.help_menu['var'])
 
@@ -287,6 +288,12 @@ class ViewerApp(Frame):
         """Load sample table"""
         df = TableModel.getSampleData()
         self.addSheet(sheetname='sample', df=df)
+        return
+
+    def getTipsData(self):
+        """Get R tips data"""
+        df = pd.read_csv("https://raw.github.com/mwaskom/seaborn/master/examples/tips.csv")
+        self.addSheet(sheetname='tips', df=df)
         return
 
     def about(self):
