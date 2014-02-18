@@ -75,20 +75,15 @@ class TableModel(object):
         self.df = pd.read_msgpack(filename)
         return
 
-    def getlongestEntry(self, columnIndex):
+    def getlongestEntry(self, colindex):
         """Get the longest cell entry in the col"""
-        '''collist = self.getColCells(columnIndex)
-        maxw=5
-        for c in collist:
-            try:
-                w = len(str(c))
-            except UnicodeEncodeError:
-                pass
-            if w > maxw:
-                maxw = w'''
-        #print 'longest width', maxw
-        maxw=5
-        return maxw
+
+        df = self.df
+        col = df.columns[colindex]
+        longest = df[col].str.len().max()
+        if np.isnan(longest):
+            return 1
+        return longest
 
     def getRecordAtRow(self, rowIndex):
         """Get the entire record at the specifed row."""
