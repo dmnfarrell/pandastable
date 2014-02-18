@@ -96,7 +96,7 @@ class Table(Canvas):
         """Set default settings"""
 
         self.cellwidth=150
-        self.maxcellwidth=200
+        self.maxcellwidth=300
         self.rowheight=20
         self.horizlines=1
         self.vertlines=1
@@ -218,7 +218,18 @@ class Table(Canvas):
 
         self.toolbar = ToolBar(self.parentframe, self)
         self.toolbar.grid(row=0,column=3,rowspan=2,sticky='news')
+        self.sb = self.showStatusBar()
+        self.sb.grid(row=3,column=0,columnspan=2,sticky='ew')
         return
+
+    def showStatusBar(self):
+        f = Frame(self.parentframe)
+        Label(f,text='rows:').pack(side=LEFT)
+        self.rowsvar = StringVar()
+        self.rowsvar.set(len(self.model.df))
+        l=Label(f,textvariable=self.rowsvar)
+        l.pack(fill=X, side=LEFT)
+        return f
 
     def getVisibleRegion(self):
         x1, y1 = self.canvasx(0), self.canvasy(0)
@@ -343,18 +354,18 @@ class Table(Canvas):
             fontsize = self.thefont[1]
         except:
             fontsize = self.fontsize
-        scale = 8.5 * float(fontsize)/12
+        scale = 8.5 * float(fontsize)/9
         for col in range(self.cols):
             colname = self.model.getColumnName(col)
             if colname in self.model.columnwidths:
                 w = self.model.columnwidths[colname]
             else:
                 w = self.cellwidth
-            maxlen = self.model.getlongestEntry(col)
-            size = maxlen * scale
+            l = self.model.getlongestEntry(col)
+            size = l * scale
             if size < w:
                 continue
-            #print col, size, self.cellwidth
+            print (col, l,size, self.cellwidth)
             if size >= self.maxcellwidth:
                 size = self.maxcellwidth
             self.model.columnwidths[colname] = size + float(fontsize)/12*6
@@ -1114,7 +1125,7 @@ class Table(Canvas):
                         "Save": self.save,
                         "Import file":self.doImport,
                         "Export file": self.doExport,
-                        "Plot Selected" : self.plotSelected,                        
+                        "Plot Selected" : self.plotSelected,
                         "Preferences" : self.showPrefs}
 
         main = ["Copy", "Paste", "Fill Down","Fill Right",
@@ -1219,9 +1230,9 @@ class Table(Canvas):
             lists.append(x)
         return lists
 
-    def showPlotViewer(self, parent=None):  
+    def showPlotViewer(self, parent=None):
         if not hasattr(self, 'pf'):
-            self.pf = PlotViewer(parent) 
+            self.pf = PlotViewer(parent)
         return self.pf
 
     def getPlotData(self):
@@ -1241,12 +1252,12 @@ class Table(Canvas):
 
     def plotSelected(self):
         """Plot the selected data in the associated plotviewer"""
-        
+
         if not hasattr(self, 'pf'):
             self.pf = PlotViewer()
         else:
             if type(self.pf.main) is tkinter.Toplevel:
-                self.pf.main.deiconify() 
+                self.pf.main.deiconify()
         data = self.getPlotData()
         self.pf.data = data
         self.pf.plot2D()
@@ -1434,7 +1445,7 @@ class Table(Canvas):
             fontsize = self.fontsize
             colname = self.model.getColumnName(col)
             #scaling between canvas and text normalised to about font 14
-            scale = 8.5 * float(fontsize)/12
+            scale = 8.5 * float(fontsize)/10
             size = length * scale
             if size > w:
                 newlength = w / scale
@@ -1583,7 +1594,7 @@ class Table(Canvas):
         #self.prefswindow.geometry('+%s+%s' %(x+w/2,y+h/2))
         self.prefswindow.title('Preferences')
         self.prefswindow.resizable(width=FALSE, height=FALSE)
-        self.prefswindow.grab_set()       
+        self.prefswindow.grab_set()
         self.prefswindow.transient(self)
 
         frame1=Frame(self.prefswindow)
@@ -1855,6 +1866,7 @@ class Table(Canvas):
             return
         if filename:
             self.model.load(filename)
+            self.adjustColumnWidths()
             self.redraw()
         return
 
@@ -1902,13 +1914,13 @@ class Table(Canvas):
     @classmethod
     def checkOS(cls):
         """Check the OS we are in"""
-        from sys import platform as _platform 
+        from sys import platform as _platform
         if _platform == "linux" or _platform == "linux2":
             return 'linux'
         elif _platform == "darwin":
             return 'darwin'
         if "win" in _platform:
-            return 'windows' 
+            return 'windows'
 
     def getGeometry(self, frame):
         """Get frame geometry"""

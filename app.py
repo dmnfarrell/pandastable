@@ -118,6 +118,11 @@ class ViewerApp(Frame):
         self.sheet_menu=self.createPulldown(self.menu,self.sheet_menu)
         self.menu.add_cascade(label='Sheet',menu=self.sheet_menu['var'])
 
+        self.tools_menu={'01Show Plotter':{'cmd':self.showPlotter}                  
+                         }
+        self.tools_menu=self.createPulldown(self.menu,self.tools_menu)
+        self.menu.add_cascade(label='Tools',menu=self.tools_menu['var'])
+
         self.help_menu={'01Online Help':{'cmd':self.online_documentation},
                         '02Load sample data':{'cmd':self.sampleData},
                         '03Load Tips data':{'cmd':self.getTipsData},
@@ -220,6 +225,9 @@ class ViewerApp(Frame):
         for n in self.nb.tabs():
             self.nb.forget(n)
         self.filename = None
+        return
+
+    def showPlotter(self):
         return
 
     def addSheet(self, sheetname=None, df=None):
