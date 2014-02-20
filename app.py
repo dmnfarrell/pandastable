@@ -56,7 +56,7 @@ class ViewerApp(Frame):
         pf = Table.checkOS()
         if pf == 'linux':
             self.style.theme_use('default')
-            
+
         self.style.configure("TButton", padding=2, relief="raised")
         self.main.title('DataFrame Viewer')
         self.createMenuBar()
@@ -118,8 +118,7 @@ class ViewerApp(Frame):
         self.sheet_menu=self.createPulldown(self.menu,self.sheet_menu)
         self.menu.add_cascade(label='Sheet',menu=self.sheet_menu['var'])
 
-        self.tools_menu={'01Show Plotter':{'cmd':self.showPlotter}                  
-                         }
+        self.tools_menu={}
         self.tools_menu=self.createPulldown(self.menu,self.tools_menu)
         self.menu.add_cascade(label='Tools',menu=self.tools_menu['var'])
 
@@ -228,6 +227,7 @@ class ViewerApp(Frame):
         return
 
     def showPlotter(self):
+
         return
 
     def addSheet(self, sheetname=None, df=None):
