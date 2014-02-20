@@ -32,6 +32,7 @@ import pandas as pd
 from pandastable.data import TableModel
 from pandastable.plotting import MPLoptions, PlotViewer
 from pandastable.prefs import Preferences
+from pandastable.io import ImportDialog
 from pandastable import images
 
 class Table(Canvas):
@@ -39,7 +40,7 @@ class Table(Canvas):
 
     def __init__(self, parent=None, model=None, dataframe=None,
                     width=None, height=None,
-                    rows=50, cols=10, **kwargs):
+                    rows=50, cols=10, showtoolbar=False, **kwargs):
         Canvas.__init__(self, parent, bg='white',
                          width=width, height=height,
                          relief=GROOVE,
@@ -50,6 +51,7 @@ class Table(Canvas):
         self.platform = platform.system()
         self.width = width
         self.height = height
+        self.showtoolbar = showtoolbar
         self.set_defaults()
 
         self.currentpage = None
@@ -82,7 +84,7 @@ class Table(Canvas):
         self.rows = self.model.getRowCount()
         self.cols = self.model.getColumnCount()
         self.tablewidth = (self.cellwidth)*self.cols
-        self.do_bindings()
+        self.doBindings()
 
         #column specific actions, define for every column type in the model
         #when you add a column type you should edit this dict
@@ -140,7 +142,7 @@ class Table(Canvas):
         self.redrawVisible()
         return
 
-    def do_bindings(self):
+    def doBindings(self):
         """Bind keys and mouse clicks, this can be overriden"""
 
         self.bind("<Button-1>",self.handle_left_click)
@@ -215,9 +217,9 @@ class Table(Canvas):
         self.parentframe.bind("<Configure>", self.redrawVisible)
         self.tablecolheader.xview("moveto", 0)
         self.xview("moveto", 0)
-
-        self.toolbar = ToolBar(self.parentframe, self)
-        self.toolbar.grid(row=0,column=3,rowspan=2,sticky='news')
+        if self.showtoolbar == True:
+            self.toolbar = ToolBar(self.parentframe, self)
+            self.toolbar.grid(row=0,column=3,rowspan=2,sticky='news')
         self.sb = self.showStatusBar()
         self.sb.grid(row=3,column=0,columnspan=2,sticky='ew')
         return
@@ -349,6 +351,11 @@ class Table(Canvas):
     def adjustColumnWidths(self):
         """Optimally adjust col widths to accomodate the longest entry
             in each column - usually only called  on first redraw"""
+
+        #obj = self.find_withtag(ALL)
+        #print (obj)
+        #x1, y1, x2, y2 = self.bbox(obj)
+        #self.find_overlapping(x1, y1, x2, y2)
 
         try:
             fontsize = self.thefont[1]
@@ -1110,21 +1117,21 @@ class Table(Canvas):
             this function, it will take its values from defined dicts in constructor"""
 
         defaultactions = {
-                        "Copy" : lambda : self.copy(rows, cols),
-                        "Paste" : lambda : self.paste(rows, cols),
-                        "Fill Down" : lambda : self.fillDown(rows, cols),
-                        "Fill Right" : lambda : self.fillAcross(cols, rows),
-                        "Add Row(s)" : lambda : self.addRows(),
-                        "Delete Row(s)" : lambda : self.deleteRow(),
-                        "Clear Data" : lambda : self.deleteCells(rows, cols),
+                        "Copy" : lambda: self.copy(rows, cols),
+                        "Paste" : lambda: self.paste(rows, cols),
+                        "Fill Down" : lambda: self.fillDown(rows, cols),
+                        "Fill Right" : lambda: self.fillAcross(cols, rows),
+                        "Add Row(s)" : lambda: self.addRows(),
+                        "Delete Row(s)" : lambda: self.deleteRow(),
+                        "Clear Data" : lambda: self.deleteCells(rows, cols),
                         "Select All" : self.select_All,
                         "Auto Fit Columns" : self.autoResizeColumns,
                         "Filter Records" : self.showFilteringBar,
                         "New": self.new,
                         "Load": self.load,
                         "Save": self.save,
-                        "Import file":self.doImport,
-                        "Export file": self.doExport,
+                        "Import Text": lambda: self.doImport(dialog=True),
+                        "Export as csv": self.doExport,
                         "Plot Selected" : self.plotSelected,
                         "Preferences" : self.showPrefs}
 
@@ -1132,7 +1139,7 @@ class Table(Canvas):
                 "Clear Data", "Add Row(s)" , "Delete Row(s)"]
         general = ["Select All", "Auto Fit Columns", "Filter Records", "Preferences"]
 
-        filecommands = ['New','Load','Save','Import file','Export file']
+        filecommands = ['New','Load','Save','Import Text','Export as csv']
         plotcommands = ['Plot Selected']
 
         def createSubMenu(parent, label, commands):
@@ -1439,13 +1446,13 @@ class Table(Canvas):
         elif align == 'e':
             x1 = x1+w/2-pad
 
-        if w < 15:
+        if w < 18:
             celltxt = '.'
         else:
             fontsize = self.fontsize
             colname = self.model.getColumnName(col)
             #scaling between canvas and text normalised to about font 14
-            scale = 8.5 * float(fontsize)/10
+            scale = 8.5 * float(fontsize)/12
             size = length * scale
             if size > w:
                 newlength = w / scale
@@ -1457,7 +1464,7 @@ class Table(Canvas):
                                       fill=fgcolor,
                                       font=self.thefont,
                                       anchor=align,
-                                      tag=('text','celltext'+str(col)+'_'+str(row)))
+                                      tag=('text'))#,'celltext'+str(col)+'_'+str(row)))
         return
 
     def drawSelectedRow(self):
@@ -1882,7 +1889,11 @@ class Table(Canvas):
             self.model.save(filename)
         return
 
-    def doImport(self, filename=None):
+    def importDialog(self):
+
+        return
+
+    def doImport(self, filename=None, dialog=False):
         """Import from csv file"""
         if filename == None:
             filename = filedialog.askopenfilename(parent=self.master,
@@ -1891,11 +1902,18 @@ class Table(Canvas):
                                                           filetypes=[("csv","*.csv"),
                                                                      ("txt","*.txt"),
                                                             ("All files","*.*")])
-        if filename:
+        if not filename:
+            return
+        if dialog == True:
+            impdialog = ImportDialog(self, filename=filename)
+            df = impdialog.df
+            if df == None:
+                return
+        else:
             df = pd.read_csv(filename)
-            model = TableModel(dataframe=df)
-            self.updateModel(model)
-            self.redraw()
+        model = TableModel(dataframe=df)
+        self.updateModel(model)
+        self.redraw()
         return
 
     def doExport(self, filename=None):
