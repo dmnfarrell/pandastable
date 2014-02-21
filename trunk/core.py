@@ -39,8 +39,9 @@ class Table(Canvas):
     """A tkinter class for providing table functionality"""
 
     def __init__(self, parent=None, model=None, dataframe=None,
-                    width=None, height=None,
-                    rows=50, cols=10, showtoolbar=False, **kwargs):
+                   width=None, height=None,
+                   rows=50, cols=10, showtoolbar=False, showstatusbar=False,
+                   **kwargs):
         Canvas.__init__(self, parent, bg='white',
                          width=width, height=height,
                          relief=GROOVE,
@@ -52,6 +53,7 @@ class Table(Canvas):
         self.width = width
         self.height = height
         self.showtoolbar = showtoolbar
+        self.showstatusbar = showstatusbar
         self.set_defaults()
 
         self.currentpage = None
@@ -219,8 +221,9 @@ class Table(Canvas):
         if self.showtoolbar == True:
             self.toolbar = ToolBar(self.parentframe, self)
             self.toolbar.grid(row=0,column=3,rowspan=2,sticky='news')
-        self.statusbar = statusBar(self.parentframe, self)
-        self.statusbar.grid(row=3,column=0,columnspan=2,sticky='ew')
+        if self.showstatusbar == True:
+            self.statusbar = statusBar(self.parentframe, self)
+            self.statusbar.grid(row=3,column=0,columnspan=2,sticky='ew')
         self.redraw(callback=callback)
         return
 
@@ -330,7 +333,8 @@ class Table(Canvas):
 
     def redraw(self, event=None, callback=None):
         self.redrawVisible(event, callback)
-        self.statusbar.update()
+        if hasattr(self, 'statusbar'):
+            self.statusbar.update()
         return
 
     def redrawCell(self, row=None, col=None, recname=None, colname=None):

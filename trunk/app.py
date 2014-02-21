@@ -252,7 +252,7 @@ class ViewerApp(Frame):
         self.nb.add(main, text=sheetname)
         f1 = Frame(main)
         main.add(f1)
-        table = Table(f1, dataframe=df, showtoolbar=1)
+        table = Table(f1, dataframe=df, showtoolbar=1, showstatusbar=1)
         table.show()
         f2 = Frame(main)
         main.add(f2, weight=3)
