@@ -213,25 +213,16 @@ class Table(Canvas):
         self.grid(row=1,column=1,rowspan=1,sticky='news',pady=0,ipady=0)
 
         self.adjustColumnWidths()
-        self.redraw(callback=callback)
         self.parentframe.bind("<Configure>", self.redrawVisible)
         self.tablecolheader.xview("moveto", 0)
         self.xview("moveto", 0)
         if self.showtoolbar == True:
             self.toolbar = ToolBar(self.parentframe, self)
             self.toolbar.grid(row=0,column=3,rowspan=2,sticky='news')
-        self.sb = self.showStatusBar()
-        self.sb.grid(row=3,column=0,columnspan=2,sticky='ew')
+        self.statusbar = statusBar(self.parentframe, self)
+        self.statusbar.grid(row=3,column=0,columnspan=2,sticky='ew')
+        self.redraw(callback=callback)
         return
-
-    def showStatusBar(self):
-        f = Frame(self.parentframe)
-        Label(f,text='rows:').pack(side=LEFT)
-        self.rowsvar = StringVar()
-        self.rowsvar.set(len(self.model.df))
-        l=Label(f,textvariable=self.rowsvar)
-        l.pack(fill=X, side=LEFT)
-        return f
 
     def getVisibleRegion(self):
         x1, y1 = self.canvasx(0), self.canvasy(0)
@@ -339,6 +330,7 @@ class Table(Canvas):
 
     def redraw(self, event=None, callback=None):
         self.redrawVisible(event, callback)
+        self.statusbar.update()
         return
 
     def redrawCell(self, row=None, col=None, recname=None, colname=None):
@@ -2455,5 +2447,29 @@ class ToolBar(Frame):
                              image=img)
         b.image = img
         b.pack(side=TOP)
+        return
+
+class statusBar(Frame):
+    """Uses the parent instance to provide the functions"""
+    def __init__(self, parent=None, parentapp=None):
+
+        Frame.__init__(self, parent, width=600, height=40)
+        self.parentframe = parent
+        self.parentapp = parentapp
+        self.rowsvar = StringVar()
+        l=Label(self,textvariable=self.rowsvar)
+        l.pack(fill=X, side=LEFT)
+        Label(self,text='rows x').pack(side=LEFT)
+        self.colsvar = StringVar()
+        self.colsvar.set(len(self.parentapp.model.df))
+        l=Label(self,textvariable=self.colsvar)
+        l.pack(fill=X, side=LEFT)
+        Label(self,text='columns').pack(side=LEFT)
+        return
+
+    def update(self):
+        model = self.parentapp.model
+        self.rowsvar.set(len(model.df))
+        self.colsvar.set(len(model.df.columns))
         return
 
