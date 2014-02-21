@@ -26,6 +26,7 @@ from tkinter.ttk import *
 import numpy as np
 import pandas as pd
 from pandastable.data import TableModel
+from pandastable.dialogs import *
 
 class ImportDialog(Frame):
     """Provides a frame for figure canvas and MPL settings"""
@@ -42,12 +43,20 @@ class ImportDialog(Frame):
         self.main.grab_set()
         self.main.transient(parent)
 
-        #opts =
-        '''{sep:', ', 'dialect':None, escapechar=None, quotechar='"', skipinitialspace=False,
-            lineterminator=None, header='infer', index_col=None, names=None, prefix=None,
+        opts = self.opts = {'sep':{'type':'combobox','default':',','items':[',',' ',';']},
+                     'header':{'type':'combobox','default':'infer','items':['infer']},
+                     'decimal':{'type':'combobox','default':'.','items':['.',',']},
+                     }
+        optsframe, self.tkvars = dialogFromOptions(self.main, opts, callback=self.update)
+
+        ''' escapechar=None, quotechar='"',
+            skipinitialspace=False,
+            lineterminator=None, header='infer', index_col=None,
+            names=None, prefix=None,
             skiprows=None, delimiter=None,
             delim_whitespace=False,
-            comment=None, decimal='.'}'''
+            comment=None, decimal='.'
+            '''
         tf = Frame(self.main)
         tf.pack(side=TOP,fill=BOTH,expand=1)
         from pandastable.core import Table
@@ -55,13 +64,7 @@ class ImportDialog(Frame):
         self.previewtable.show()
         self.update()
 
-        sf = LabelFrame(self.main, text='separator')
-        sf.pack(side=TOP,fill=BOTH)
-        for i in ['tab','comma','semicolon','space']:
-            v = IntVar()
-            c = Checkbutton(sf, text=i, variable=v, command=self.update)
-            c.pack(side=LEFT)
-
+        optsframe.pack(side=TOP,fill=BOTH)
         bf = Frame(self.main)
         bf.pack(side=TOP,fill=BOTH)
         b = Button(bf, text="Import", command=self.doImport)
@@ -72,7 +75,11 @@ class ImportDialog(Frame):
         return
 
     def update(self):
-        f = pd.read_csv(self.filename, chunksize=100)
+        kwds = {}
+        for i in self.opts:
+            kwds[i] = self.tkvars[i].get()
+        self.kwds = kwds
+        f = pd.read_csv(self.filename, chunksize=100, **kwds)
         df = f.get_chunk(100)
         model = TableModel(dataframe=df)
         self.previewtable.updateModel(model)

@@ -2443,13 +2443,13 @@ class ToolBar(Frame):
         img = images.del_row()
         self.addButton('Delete record', self.parentapp.deleteRow, img, 'delete row')
         img = images.del_col()
-        self.addButton('Delete col', self.parentapp.deleteColumn, img, 'delete col')
+        self.addButton('Delete col', self.parentapp.deleteColumn, img, 'delete column')
         img = images.plot()
         self.addButton('Plot', self.parentapp.plotSelected, img, 'plot selected')
         img = images.transpose()
         self.addButton('Transpose', self.parentapp.transpose, img, 'transpose')
         img = images.table_multiple()
-        self.addButton('Tablefromselection', self.parentapp.tableFromSelection,
+        self.addButton('Table from selection', self.parentapp.tableFromSelection,
                     img, 'new table from selection')
         img = images.prefs()
         self.addButton('Prefs', self.parentapp.showPrefs, img, 'table preferences')
@@ -2469,10 +2469,10 @@ class ToolBar(Frame):
         return
 
 class statusBar(Frame):
-    """Uses the parent instance to provide the functions"""
+    """Status bar class"""
     def __init__(self, parent=None, parentapp=None):
 
-        Frame.__init__(self, parent, width=600, height=40)
+        Frame.__init__(self, parent)
         self.parentframe = parent
         self.parentapp = parentapp
         self.rowsvar = StringVar()
@@ -2493,7 +2493,7 @@ class statusBar(Frame):
         return
 
 class ToolTip(object):
-
+    """Tooltip class for tkinter widgets"""
     def __init__(self, widget):
         self.widget = widget
         self.tipwindow = None

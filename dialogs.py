@@ -19,10 +19,10 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 """
 
+import tkinter
 from tkinter import *
 from tkinter.ttk import *
 import types
-#from tkinter import filedialog, messagebox, simpledialog
 
 class MultipleValDialog(simpledialog.Dialog):
     """Simple dialog to get multiple values"""
@@ -75,4 +75,57 @@ class MultipleValDialog(simpledialog.Dialog):
         for i in range(len(self.labels)):
             self.results.append(self.vrs[i].get())
         return
+
+def dialogFromOptions(parent, opts, groups=None, callback=None):
+    """Auto create tk vars and widgets for corresponding options and
+       and return the enclosing frame"""
+
+    tkvars = {}
+    dialog = Frame(parent)
+    if groups == None:
+        groups = {'options': opts.keys()}
+    c=0
+    for g in groups:
+        frame = LabelFrame(dialog, text=g)
+        frame.grid(row=0,column=c,sticky='news')
+        row=0; col=0
+        for i in groups[g]:
+            w=None
+            opt = opts[i]
+            if opt['type'] == 'entry':
+                if 'width' in opt:
+                    w=opt['width']
+                else:
+                    w=8
+                Label(frame,text=i).pack()
+                tkvars[i] = v = StringVar()
+                v.set(opts[i]['default'])
+                w = Entry(frame,textvariable=v, width=w, command=callback)
+            elif opt['type'] == 'checkbutton':
+                tkvars[i] = v = IntVar()
+                v.set(opts[i]['default'])
+                w = Checkbutton(frame,text=opt['label'],
+                         variable=v)
+            elif opt['type'] == 'combobox':
+                Label(frame,text=i).pack()
+                tkvars[i] = v = StringVar()
+                v.set(opts[i]['default'])
+                w = Combobox(frame, values=opt['items'],
+                         textvariable=v,width=15,
+                         validatecommand=callback,validate='key')
+                w.set(opt['default'])
+            elif opt['type'] == 'scale':
+                fr,to=opt['range']
+                tkvars[i] = v = DoubleVar()
+                v.set(opts[i]['default'])
+                w = tkinter.Scale(frame,label=opt['label'],
+                         from_=fr,to=to,
+                         orient='horizontal',
+                         resolution=opt['interval'],
+                         variable=v)
+            if w != None:
+                w.pack(fill=BOTH,expand=1)
+            row+=1
+        c+=1
+    return dialog, tkvars
 

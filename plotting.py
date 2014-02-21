@@ -29,7 +29,9 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 #import matplotlib.animation as animation
-import tkinter.font
+from collections import OrderedDict
+import operator
+from pandastable.dialogs import *
 
 class PlotViewer(Frame):
     """Provides a frame for figure canvas and MPL settings"""
@@ -285,11 +287,13 @@ class MPLoptions(object):
         """Setup variables"""
 
         fonts = self.getFonts()
-        self.groups = {'styles':['font','colormap','alpha','grid','legend'],
+        grps = {'styles':['font','colormap','alpha','grid','legend'],
                 'sizes':['fontsize','s','linewidth'],
                 'formats':['kind','marker','linestyle','stacked','subplots'],
                 'axes':['showxlabels','showylabels','use_index','sharey','logx','logy','rot'],
                 'labels':['title','xlabel','ylabel']}
+        order = ['formats','sizes','axes','styles','labels']
+        self.groups = OrderedDict(sorted(grps.items()))
         opts = self.opts = {'font':{'type':'combobox','default':'Arial','items':fonts},
                 'fontsize':{'type':'scale','default':12,'range':(5,40),'interval':1,'label':'font size'},
                 'marker':{'type':'combobox','default':'','items':self.markers},
@@ -314,19 +318,6 @@ class MPLoptions(object):
                 'subplots':{'type':'checkbutton','default':0,'label':'multiple subplots'},
                 'colormap':{'type':'combobox','default':'jet','items':self.colormaps}
                 }
-        self.tkvars = {}
-        for i in opts:
-            t = opts[i]['type']
-            if t in ['entry','combobox']:
-                var = StringVar()
-            elif t in ['checkbutton']:
-                var = IntVar()
-            elif t in ['scale']:
-                var = DoubleVar()
-            var.set(opts[i]['default'])
-            self.tkvars[i] = var
-
-        self.applyOptions()
         return
 
     def applyOptions(self):
@@ -349,50 +340,14 @@ class MPLoptions(object):
         """Auto create tk vars, widgets for corresponding options and
            and return the frame"""
 
-        opts = self.opts
-        tkvars = self.tkvars
-        dialog = Frame(parent)
-        self.callback = callback
-
-        c=0
-        for g in ['formats','axes','sizes','styles','labels']:
-            frame = LabelFrame(dialog, text=g)
-            frame.grid(row=0,column=c,sticky='news')
-            row=0; col=0
-            for i in self.groups[g]:
-                w=None
-                opt = opts[i]
-                if opt['type'] == 'entry':
-                    if 'width' in opt:
-                        w=opt['width']
-                    else:
-                        w=8
-                    Label(frame,text=i).pack()
-                    w = Entry(frame,textvariable=tkvars[i], width=w)
-                elif opt['type'] == 'checkbutton':
-                    w = Checkbutton(frame,text=opt['label'],
-                             variable=tkvars[i])
-                elif opt['type'] == 'combobox':
-                    Label(frame,text=i).pack()
-                    w = Combobox(frame, values=opt['items'],
-                             textvariable=tkvars[i],width=15)
-                    w.set(opt['default'])
-                elif opt['type'] == 'scale':
-                    fr,to=opt['range']
-                    w = tkinter.Scale(frame,label=opt['label'],
-                             from_=fr,to=to,
-                             orient='horizontal',
-                             resolution=opt['interval'],
-                             variable=tkvars[i])
-                if w != None:
-                    w.pack(fill=BOTH,expand=1)
-                row+=1
-            c+=1
-
+        dialog, self.tkvars = dialogFromOptions(parent, self.opts, self.groups)
+        self.applyOptions()
         return dialog
 
     def getFonts(self):
         """Get the current list of system fonts"""
+
+        import tkinter.font
         fonts = set(list(tkinter.font.families()))
         fonts = sorted(list(fonts))
         return fonts
