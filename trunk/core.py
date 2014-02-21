@@ -1103,7 +1103,14 @@ class Table(Canvas):
 
     def tableFromSelection(self):
         """Create a new table from the selected cells"""
-
+        data = self.getSelectedDataFrame()
+        if len(data) <=1:
+            return
+        win = Toplevel()
+        x,y,w,h = self.getGeometry(self.master)
+        win.geometry('+%s+%s' %(int(x+w/2),int(y+h/2)))
+        newtable = self.__class__(win, dataframe=data, showtoolbar=1, showstatusbar=1)
+        newtable.show()
         return
 
     # --- Some cell specific actions here ---
@@ -1238,14 +1245,19 @@ class Table(Canvas):
             self.pf = PlotViewer(parent)
         return self.pf
 
-    def getPlotData(self):
-        """Plot data from selection"""
+    def getSelectedDataFrame(self):
+        """Return a sub-dataframe of the selected cells"""
         df = self.model.df
         rows = self.multiplerowlist
         if len(rows)<=1:
             rows = list(range(self.rows))
         cols = self.multiplecollist
         data = df.iloc[rows,cols]
+        return data
+
+    def getPlotData(self):
+        """Plot data from selection"""
+        data = self.getSelectedDataFrame()
         data.sort(inplace=True)
         #if the first col is text we try to use it as an index
         #if data.dtypes[0] == 'object':
@@ -1903,7 +1915,7 @@ class Table(Canvas):
         if dialog == True:
             impdialog = ImportDialog(self, filename=filename)
             df = impdialog.df
-            if df == None:
+            if df is None:
                 return
         else:
             df = pd.read_csv(filename)
@@ -2421,29 +2433,30 @@ class ToolBar(Frame):
         self.parentframe = parent
         self.parentapp = parentapp
         img = images.open_proj()
-        self.addButton('Open Project', self.parentapp.load, img)
+        self.addButton('Open Project', self.parentapp.load, img, 'load table')
         img = images.save_proj()
-        self.addButton('Save Project', self.parentapp.save, img)
+        self.addButton('Save Project', self.parentapp.save, img, 'save')
         img = images.add_row()
-        self.addButton('Add record', self.parentapp.addRow, img)
+        self.addButton('Add record', self.parentapp.addRow, img, 'add row')
         img = images.add_col()
-        self.addButton('Add col', self.parentapp.addColumn, img)
+        self.addButton('Add col', self.parentapp.addColumn, img, 'add column')
         img = images.del_row()
-        self.addButton('Delete record', self.parentapp.deleteRow, img)
+        self.addButton('Delete record', self.parentapp.deleteRow, img, 'delete row')
         img = images.del_col()
-        self.addButton('Delete col', self.parentapp.deleteColumn, img)
+        self.addButton('Delete col', self.parentapp.deleteColumn, img, 'delete col')
         img = images.plot()
-        self.addButton('Plot', self.parentapp.plotSelected, img)
+        self.addButton('Plot', self.parentapp.plotSelected, img, 'plot selected')
         img = images.transpose()
-        self.addButton('Transpose', self.parentapp.transpose, img)
+        self.addButton('Transpose', self.parentapp.transpose, img, 'transpose')
         img = images.table_multiple()
-        self.addButton('Transpose', self.parentapp.tableFromSelection, img)
+        self.addButton('Tablefromselection', self.parentapp.tableFromSelection,
+                    img, 'new table from selection')
         img = images.prefs()
-        self.addButton('Prefs', self.parentapp.showPrefs, img)
+        self.addButton('Prefs', self.parentapp.showPrefs, img, 'table preferences')
 
         return
 
-    def addButton(self, name, callback, img=None):
+    def addButton(self, name, callback, img=None, tooltip=None):
         if img==None:
             b = Button(self, text=name, command=callback)
         else:
@@ -2451,6 +2464,8 @@ class ToolBar(Frame):
                              image=img)
         b.image = img
         b.pack(side=TOP)
+        if tooltip != None:
+            ToolTip.createToolTip(b, tooltip)
         return
 
 class statusBar(Frame):
@@ -2476,4 +2491,51 @@ class statusBar(Frame):
         self.rowsvar.set(len(model.df))
         self.colsvar.set(len(model.df.columns))
         return
+
+class ToolTip(object):
+
+    def __init__(self, widget):
+        self.widget = widget
+        self.tipwindow = None
+        self.id = None
+        self.x = self.y = 0
+
+    def showtip(self, text):
+        "Display text in tooltip window"
+        self.text = text
+        if self.tipwindow or not self.text:
+            return
+        x, y, cx, cy = self.widget.bbox("insert")
+        x = x + self.widget.winfo_rootx() + 27
+        y = y + cy + self.widget.winfo_rooty() +27
+        self.tipwindow = tw = Toplevel(self.widget)
+        tw.wm_overrideredirect(1)
+        tw.wm_geometry("+%d+%d" % (x, y))
+        try:
+            # For Mac OS
+            tw.tk.call("::tk::unsupported::MacWindowStyle",
+                       "style", tw._w,
+                       "help", "noActivates")
+        except TclError:
+            pass
+        label = Label(tw, text=self.text, justify=LEFT,
+                      background="#ffffe0", relief=SOLID, borderwidth=1,
+                      font=("tahoma", "8", "normal"))
+        label.pack(ipadx=1)
+
+    def hidetip(self):
+        tw = self.tipwindow
+        self.tipwindow = None
+        if tw:
+            tw.destroy()
+
+    @classmethod
+    def createToolTip(self, widget, text):
+        toolTip = ToolTip(widget)
+        def enter(event):
+            toolTip.showtip(text)
+        def leave(event):
+            toolTip.hidetip()
+        widget.bind('<Enter>', enter)
+        widget.bind('<Leave>', leave)
 
