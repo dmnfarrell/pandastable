@@ -76,6 +76,56 @@ class MultipleValDialog(simpledialog.Dialog):
             self.results.append(self.vrs[i].get())
         return
 
+class ToolTip(object):
+    """Tooltip class for tkinter widgets"""
+    def __init__(self, widget):
+        self.widget = widget
+        self.tipwindow = None
+        self.id = None
+        self.x = self.y = 0
+
+    def showtip(self, text):
+        "Display text in tooltip window"
+        self.text = text
+        if self.tipwindow or not self.text:
+            return
+        x, y, cx, cy = self.widget.bbox("insert")
+        x = x + self.widget.winfo_rootx() + 25
+        y = y + cy + self.widget.winfo_rooty() +25
+        self.tipwindow = tw = Toplevel(self.widget)
+        tw.wm_overrideredirect(1)
+        tw.wm_geometry("+%d+%d" % (x, y))
+        try:
+            # For Mac OS
+            tw.tk.call("::tk::unsupported::MacWindowStyle",
+                       "style", tw._w,
+                       "help", "noActivates")
+        except TclError:
+            pass
+        label = Label(tw, text=self.text, justify=LEFT,
+                      background="#ffffe0", relief=SOLID, borderwidth=1,
+                      font=("tahoma", "8", "normal"))
+        label.pack(ipadx=1)
+
+    def hidetip(self):
+        """Hide tooltip"""
+        tw = self.tipwindow
+        self.tipwindow = None
+        if tw:
+            tw.destroy()
+
+    @classmethod
+    def createToolTip(self, widget, text):
+        """Create a tooltip for a widget"""
+        toolTip = ToolTip(widget)
+        def enter(event):
+            toolTip.showtip(text)
+        def leave(event):
+            toolTip.hidetip()
+        widget.bind('<Enter>', enter)
+        widget.bind('<Leave>', leave)
+        return
+
 def dialogFromOptions(parent, opts, groups=None, callback=None):
     """Auto create tk vars and widgets for corresponding options and
        and return the enclosing frame"""
@@ -114,6 +164,8 @@ def dialogFromOptions(parent, opts, groups=None, callback=None):
                          textvariable=v,width=15,
                          validatecommand=callback,validate='key')
                 w.set(opt['default'])
+                if 'tooltip' in opt:
+                    ToolTip.createToolTip(w, opt['tooltip'])
             elif opt['type'] == 'scale':
                 fr,to=opt['range']
                 tkvars[i] = v = DoubleVar()
@@ -128,4 +180,5 @@ def dialogFromOptions(parent, opts, groups=None, callback=None):
             row+=1
         c+=1
     return dialog, tkvars
+
 

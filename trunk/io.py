@@ -43,19 +43,25 @@ class ImportDialog(Frame):
         self.main.grab_set()
         self.main.transient(parent)
 
-        opts = self.opts = {'sep':{'type':'combobox','default':',','items':[',',' ',';']},
-                     'header':{'type':'combobox','default':'infer','items':['infer']},
-                     'decimal':{'type':'combobox','default':'.','items':['.',',']},
+        opts = self.opts = {'delimiter':{'type':'combobox','default':',',
+                        'items':[',',' ',';'], 'tooltip':'seperator'},
+                     'header':{'type':'combobox','default':'infer','items':['infer'],
+                                'tooltip':'position of column header'},
+                     'decimal':{'type':'combobox','default':'.','items':['.',','],
+                                'tooltip':'decimal point symbol'},
+                     'comment':{'type':'entry','default':'#','label':'comment',
+                                'tooltip':'comment symbol'},
+                     'skipinitialspace':{'type':'checkbutton','default':0,'label':'skipinitialspace',
+                                'tooltip':'skip initial space'},
                      }
-        optsframe, self.tkvars = dialogFromOptions(self.main, opts, callback=self.update)
+        optsframe, self.tkvars = dialogFromOptions(self.main, opts)
 
         ''' escapechar=None, quotechar='"',
             skipinitialspace=False,
-            lineterminator=None, header='infer', index_col=None,
+            lineterminator=None, index_col=None,
             names=None, prefix=None,
             skiprows=None, delimiter=None,
             delim_whitespace=False,
-            comment=None, decimal='.'
             '''
         tf = Frame(self.main)
         tf.pack(side=TOP,fill=BOTH,expand=1)
@@ -67,6 +73,8 @@ class ImportDialog(Frame):
         optsframe.pack(side=TOP,fill=BOTH)
         bf = Frame(self.main)
         bf.pack(side=TOP,fill=BOTH)
+        b = Button(bf, text="Update preview", command=self.update)
+        b.pack(side=LEFT,fill=X,expand=1)
         b = Button(bf, text="Import", command=self.doImport)
         b.pack(side=LEFT,fill=X,expand=1)
         b = Button(bf, text="Cancel", command=self.quit)
