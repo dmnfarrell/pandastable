@@ -118,14 +118,13 @@ class ViewerApp(Frame):
         self.sheet_menu=self.createPulldown(self.menu,self.sheet_menu)
         self.menu.add_cascade(label='Sheet',menu=self.sheet_menu['var'])
 
-        self.tools_menu={}
+        self.tools_menu={'01Load sample data':{'cmd':self.sampleData},
+                         '02Load Tips data':{'cmd':self.getTipsData}}
         self.tools_menu=self.createPulldown(self.menu,self.tools_menu)
         self.menu.add_cascade(label='Tools',menu=self.tools_menu['var'])
 
         self.help_menu={'01Online Help':{'cmd':self.online_documentation},
-                        '02Load sample data':{'cmd':self.sampleData},
-                        '03Load Tips data':{'cmd':self.getTipsData},
-                        '04About':{'cmd':self.about}}
+                        '02About':{'cmd':self.about}}
         self.help_menu=self.createPulldown(self.menu,self.help_menu)
         self.menu.add_cascade(label='Help',menu=self.help_menu['var'])
 

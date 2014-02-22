@@ -77,7 +77,6 @@ class TableModel(object):
 
     def getlongestEntry(self, colindex):
         """Get the longest cell entry in the col"""
-
         df = self.df
         col = df.columns[colindex]
         longest = df[col].str.len().max()
@@ -127,20 +126,20 @@ class TableModel(object):
         """Add a column"""
         x = pd.Series(dtype=dtype)
         self.df[colname] = x
-        #print (self.df)
         return
 
     def deleteColumn(self, colindex):
         """delete a column"""
         df = self.df
         colname = df.columns[colindex]
-        del df[colname]
+        df.drop([colname], axis=1, inplace=True)
         return
 
     def deleteColumns(self, cols=None):
         """Remove all cols or list provided"""
-        for c in cols:
-            self.deleteColumn(c)
+        df = self.df
+        colnames = df.columns[cols]
+        df.drop(colnames, axis=1, inplace=True)
         return
 
     def deleteCells(self, rows, cols):
@@ -226,9 +225,10 @@ class TableModel(object):
         return
 
     def transpose(self):
+        """Transpose dataframe"""
+        rows = self.df.index
         self.df = self.df.transpose()
         self.df.reset_index()
-        print (self.df.index)
         return
 
     def __repr__(self):
