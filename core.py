@@ -1899,10 +1899,6 @@ class Table(Canvas):
             self.model.save(filename)
         return
 
-    def importDialog(self):
-
-        return
-
     def doImport(self, filename=None, dialog=False):
         """Import from csv file"""
         if filename == None:
@@ -1924,6 +1920,22 @@ class Table(Canvas):
         model = TableModel(dataframe=df)
         self.updateModel(model)
         self.redraw()
+        return
+
+    def loadExcel(self, filename=None):
+        """Load excel file"""
+        if filename == None:
+            filename = filedialog.askopenfilename(parent=self.master,
+                                                          defaultextension='.xls',
+                                                          initialdir=os.getcwd(),
+                                                          filetypes=[("xls","*.xls"),
+                                                                     ("xlsx","*.xlsx"),
+                                                            ("All files","*.*")])
+        if not filename:
+            return
+        df = pd.read_excel(filename,sheetname=0)
+        model = TableModel(dataframe=df)
+        self.updateModel(model)
         return
 
     def doExport(self, filename=None):
@@ -2172,7 +2184,7 @@ class ColumnHeader(Canvas):
     def popupMenu(self, event):
         """Add left and right click behaviour for column header"""
 
-        colname = self.model.df.columns[self.table.currentcol]
+        colname = str(self.model.df.columns[self.table.currentcol])
         currcol = self.table.currentcol
         popupmenu = Menu(self, tearoff = 0)
         def popupFocusOut(event):
@@ -2435,9 +2447,14 @@ class ToolBar(Frame):
         self.parentframe = parent
         self.parentapp = parentapp
         img = images.open_proj()
-        self.addButton('Open Project', self.parentapp.load, img, 'load table')
+        self.addButton('Load table', self.parentapp.load, img, 'load table')
         img = images.save_proj()
-        self.addButton('Save Project', self.parentapp.save, img, 'save')
+        self.addButton('Save', self.parentapp.save, img, 'save')
+        img = images.importcsv()
+        func = lambda: self.parentapp.doImport(dialog=1)
+        self.addButton('Import', func, img, 'import csv')
+        img = images.excel()
+        self.addButton('Load excel', self.parentapp.loadExcel, img, 'load excel file')
         img = images.add_row()
         self.addButton('Add record', self.parentapp.addRow, img, 'add row')
         img = images.add_col()
