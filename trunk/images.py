@@ -19,8 +19,9 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 """
 
+import tkinter as tk
+
 def tableapp_logo():
-     import tkinter as tk
      img = tk.PhotoImage(format='gif',data=
              'R0lGODlhhwGAAcZ1AAAAAAgLIQgNJQgPJQoOKggRJgsRLgoTLggVKAoWMAgY'
             +'KQobMgofNAgdWAgkLhUfWgwpLxAsLwotOhglYhgmYhMtLxombxcpZBgvLRAz'
@@ -208,7 +209,6 @@ def tableapp_logo():
      return img
 
 def add_row():
-     import tkinter as tk
      img = tk.PhotoImage(format='gif',data=
              'R0lGODlhEAAQAIcAAAAAACFfHSZlIixtJzN1Ljd6MTl9Mzp+NEJ3uzyBNj2C'
             +'N0GHOkKIO0iPQEqSQkuTQ0yVRE2WRVGbSFijT12gVV6rVGOlWmOxWXy+dn7B'
@@ -236,7 +236,6 @@ def add_row():
      return img
 
 def add_col():
-     import tkinter as tk
      img = tk.PhotoImage(format='gif',data=
              'R0lGODlhEAAQAIcAAAAAADdrGT5wIkx7MUR3a09/e1OMKFePLV+JSWCJSWaO'
             +'T3GXX3y+dlKEw1WGxlaHx1mKyFuKyV6Oy1+Py2OSzmSTzmiW0WqX0W6Z02+b'
@@ -264,7 +263,6 @@ def add_col():
      return img
 
 def del_row():
-     import tkinter as tk
      img = tk.PhotoImage(format='gif',data=
              'R0lGODlhEAAQAIcAAAAAAEJ3u3y+dlKEw1aHx12KxVmKyFuKyV6Oy1+Py2OS'
             +'zmSTzmiW0WqX0W6Z02+b1HKe1nSg13Wh13qj2nqk2X2l3H6o3eoRHOwaI+4m'
@@ -292,7 +290,6 @@ def del_row():
      return img
 
 def del_col():
-     import tkinter as tk
      img = tk.PhotoImage(format='gif',data=
              'R0lGODlhEAAQAIcAAAAAAHy+dlKEw1WGxlaHx1mKyFuKyV6Oy1+Py2OSzmST'
             +'zmiW0WqX0W6Z02+b1HKe1nSg13Wh13qj2nqk2X2l3H6o3bpDBLhFA7lEA7lF'
@@ -320,7 +317,6 @@ def del_col():
      return img
 
 def new_proj():
-     import tkinter as tk
      img = tk.PhotoImage(format='gif',data=
              'R0lGODlhEAAQAIcAAAAAAEJ3u3y+dlKEw1SGxFWGxlaHx12KxVyKxl+MxlmK'
             +'yFuKyV+NyF6Oy1+Py2OSzmSTzmiW0WqX0W6Z02+b1HKe1nSg13Wh13qj2nqk'
@@ -348,7 +344,6 @@ def new_proj():
      return img
 
 def open_proj():
-     import tkinter as tk
      img = tk.PhotoImage(format='gif',data=
              'R0lGODlhEAAQAIcAAAAAABV5ABt5AB57AyF9ACV/ACZ+ECR8FUJ3uy2DAS2D'
             +'CTWHCTCHFzyLEESPFkaQGUqRHFKXIleYKFubKV6fOlygPGKdMGOfMWWfMWih'
@@ -376,7 +371,6 @@ def open_proj():
      return img
 
 def save_proj():
-     import tkinter as tk
      img = tk.PhotoImage(format='gif',data=
              'R0lGODlhEAAQAIcAAAAAACBarS5fpjppqj5qqzNoukRtq0RwsFd+u1F/w1N/'
             +'wXy+dl2Ev1SBxFWDxliEw1uGx1uKyV2IyF6Oy1+Py2GKx2CJyWGLyWKLyGWN'
@@ -405,7 +399,6 @@ def save_proj():
      return img
 
 def prefs():
-    import tkinter as tk
     img = tk.PhotoImage(format='gif',data=
              'R0lGODlhEAAQAIcAAAAAAElJSU5OTlFRUVJSUlNTU1hYWFpaWltbW1xcXGFh'
             +'YWJiYmRkZGdnZ2lpaWpqamtra21tbW5ubm9vb3FxcXZ2dnd3d3l5eXp6en5+'
@@ -433,7 +426,6 @@ def prefs():
     return img
 
 def plot():
-    import tkinter as tk
     img = tk.PhotoImage(format='gif',data=
              'R0lGODlhEAAQAIcAAAAAAC5fpTBiqTBiqjJkrDNmrjRosTVosjZrtTdrtjxy'
             +'vz10wj51wz52xD92xT93xkZwu1prrUJ3xkB4x0F5yUF6ykJ6y0J7zEN8zEN8'
@@ -459,7 +451,6 @@ def plot():
     return img
 
 def plotprefs():
-    import tkinter as tk
     img = tk.PhotoImage(format='gif',data=
              'R0lGODlhEAAQAIcAAAAAAFU9ETxyvz10wj51wz52xD92xT93xltujUJ3xkB4'
             +'x0F5yUF6ykJ6y0J7zEN8zEN8zUR9zkV+0EV/0XCfvYdfKJxpHYNlK6pkHL56'
@@ -486,7 +477,6 @@ def plotprefs():
     return img
 
 def start():
-     import tkinter as tk
      img = tk.PhotoImage(format='gif',data=
              'R0lGODlhGAAYAKUAAP///+bm/+Xl/uPj/OHh++Df+d7d993d99vb9dvb9NnZ'
             +'8tnZ5tfW8NTU7tLS69DQ6dDP6c3N58vL5cnJ48fH4MTE3sLC3MDAzL/A2b2+'
@@ -501,7 +491,6 @@ def start():
      return img
 
 def end():
-     import tkinter as tk
      img = tk.PhotoImage(format='gif',data=
              'R0lGODlhGAAYAKUAAP///+bm/+Xl/uPj/OHh++Df+d7d993d99vb9dvb9NnZ'
             +'8tnZ5tfW8NTU7tLS69DQ6dDP6c3N58vL5cnJ48fH4MTE3sLC3MDAzL/A2b2+'
@@ -516,7 +505,6 @@ def end():
      return img
 
 def next():
-     import tkinter as tk
      img = tk.PhotoImage(format='gif',data=
              'R0lGODlhEAAQAIcAAAAAACBeHSRjISlpJS9wKjV4LzuANUKIO0WIP0mLREqM'
             +'RUmRQU+ZR1CRSlydVVahTV6hWVypU2KjWmKxWGi4XW2+YXy+dnHDZXTHaIDB'
@@ -541,7 +529,6 @@ def next():
      return img
 
 def prev():
-     import tkinter as tk
      img = tk.PhotoImage(format='gif',data=
              'R0lGODlhEAAQAIcAAAAAACBeHSRjISlpJS9wKjV4LzuANUKIO0mRQU+ZR1ah'
             +'TVypU2SqW2KxWGi4XXi9cnu+cXy+dnHDZXTHaH7AeIDBeoPBeoLCfYTDfobI'
@@ -566,7 +553,6 @@ def prev():
      return img
 
 def search():
-     import tkinter as tk
      img = tk.PhotoImage(format='gif',data=
              'R0lGODlhEAAQAIcAAAAAAHaczXufzXug0H+l05JaEJNbEZVdFJdfGJpiG51l'
             +'H51nIp5mIqNrKKVtK6hwMKpyMq93ObF5PLV9Qbd/RLyES7yNVcWXZMeZZsyi'
@@ -593,7 +579,6 @@ def search():
      return img
 
 def transpose():
-     import tkinter as tk
      img = tk.PhotoImage(format='gif',data=
              'R0lGODlhEAAQAMZXACNhHyRjICVlIidmIyloJCprJixtJzJ0LDN2Ljd7Mjp+'
             +'NDyANT6DN0CGOUKIO0SLPUqLRUyNR0mRQU+QSVGSS02WRVSVTk+ZR1aXUFGb'
@@ -611,7 +596,6 @@ def transpose():
      return img
 
 def table_multiple():
-     import tkinter as tk
      img = tk.PhotoImage(format='gif',data=
              'R0lGODlhEAAQAMZbAEJ3u1KEw1SGxFWGxlaHx1mKyF2KxV+Py2OSzmSTzmiW'
             +'0WqX0W6Z02+b1HKe1nSg13Wh13qj2n2l3H+o3ICp3YSs4IWs4Ieu4Yew2oiv'
@@ -629,4 +613,59 @@ def table_multiple():
             +'jvzzEQRIEgGF2EFxoiSJR48GCuFTgIBAgJMnAQQCADs=')
      return img
 
+def importcsv():
+     img = tk.PhotoImage(format='gif',data=
+             'R0lGODlhEAAQAOe1ACpgtyxity5kth57AyxltC5luS9lujBluiJ7DjBmuiN6'
+            +'HTFmuyV/ADNpvDhxvzWHCjt2xDx4wTuLETqMFUJ5vz98xEB8xEOPF0V+wkKA'
+            +'xUKAxkiRG0mRHUWCxUWCxkaCxEaDxkeExkaULkmFxEqUMkmIxkqIxkuIxVGX'
+            +'I0uJxUuJxkyJxleYKE2LyE+Lx0+MyE+MyU+NyFubKWOeMl6fOmOfMVygPGWf'
+            +'MV+hQ2SS22miNmKjRmWU22ujN2ukQWalSG+kOmilRm+lPXKoRnSrT3yvVYGz'
+            +'WoCzYYK1Z1W0+Fa091S194W2ZoW2aom4a32w4X2y4o66b5C8dIS24me9/GW+'
+            +'+2i//ZbBgJfCgm7C/ZjCg57FiKHGiqHHiqXIjanKkKjLkKrLka3NlLDOlrPS'
+            +'8Z7X/6DY/7XU87jW9LrW9bvW9bTY9rvY9rzZ9r3a9sHb+MLc+MTd+cXf+cff'
+            +'+sfg+sjg+cjg+sjg+8nh+8rh+szh+8ni+8vi+83j+83j/M7j+8/j/Mnl+s/k'
+            +'/NDk+9Hk/M3m/NPl/dLm/NXl/tPm/Nfm8tTm/NTm/dPn/dXn/dbn/dbn/tfn'
+            +'/tbo/tfo/tjo/t/p9Nzq9t7q9t7r9t/r9d/s9+Pt9+nv9ebw9+jx+Orx+Ory'
+            +'+uvy+Ozy9+zy+Ovz+uzz+e3z+O30+O30+e30+u70+O/0+e/0+vD0+PD0+fH1'
+            +'+fL2+vP3+/j7+Pj7/fj7////////////////////////////////////////'
+            +'////////////////////////////////////////////////////////////'
+            +'////////////////////////////////////////////////////////////'
+            +'////////////////////////////////////////////////////////////'
+            +'////////////////////////////////////////////////////////////'
+            +'/////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACH5BAEKAP8A'
+            +'LAAAAAAQABAAAAj+AP/9a/Gi4IsYMFykgCCw4QhRqk6ZmjhKlCIoPBr+OwGL'
+            +'Dp49d+S8QUNrzZMcDVe88vOnD586cNLMKhRoCgWBKl4BGiTIT544bSqJisUJ'
+            +'A05XiRY1ItTHDhw1Z8i0+iDQxKpIjxwxOqRnDhw3bFiBEFgCFSVKkyAZIqRn'
+            +'yA04qTwIDFFK0qRHWQ0N8mGEBSgNAjuEgoRXCBAdM4qEIbKhgsAMnhAZMtRj'
+            +'jJgwYKR0CfJAoIVOSZQsqSEmihMmR5BoscHgX4RNWcyUkfHFC5ctTbD8UCDQ'
+            +'QSYrVKqg4HBBAo0rO0QQENjgkyZMlyxZIkVqAg4SsgA0PLAggfcDBgoHIBgg'
+            +'IIDAgAA7')
+     return img
 
+def excel():
+     img = tk.PhotoImage(format='gif',data=
+             'R0lGODlhEAAQAOenACpgtyxity1kuS5kuS5luTN0GS9lujBlujN1GTN1GjN1'
+            +'GzBmujFmuzFnuzNpvDd4HzZvvzhxv0F/LkJ/Ljt2wTt2xEWCNjx4wT9+f0iE'
+            +'OkJ5vz98xUB8xEV+wkKAxlKKREWCxkaCxEaDxliNQ1iNRFaMVUmFxFOLb1mO'
+            +'REmIwkuIxVuQR0uJxUyJxl2RSE2LyE+Lx1+TSk+MyE+MyWCTVU+NyFyWSWCW'
+            +'S2OVVGSWV2aWU2SXUGWWV2SXUWKXYmaXWWiaZ2ubYWSS22WU23GeYXCeaG6g'
+            +'W26hWXOgbHSkXWqrYXWuZ3G2XYOujYK2cX2w4ZC0kH2y4oS7eIe8c4TAaoS2'
+            +'4orBbZW5oZXIdJfJdqHBsaPTgr7TtbTR6bPS8bXanLXU88PWu7jW9LrW9bTY'
+            +'9sjZwLvY9sLZ5b3a9szcxcHb+M3dx8Pc9MLc+MPd+cXf+cbf+sff+sfg+sjg'
+            +'+cjg+8ng+8zg9cjh+8nh+8vh+8zh+8ni+8vi+8zi/M3i/Mzj+83j+83j/M7j'
+            +'+8nl+tDk+9Hk/M3m/Nfm8tzq9t7q9t7r9t/r9d/s9+Pt9+nv9ebw9+rx+Ory'
+            +'+uzy9+zy+Ovz+u3z+O30+O30+u70+O/0+vD0+PH1+fL2+vL3+/P3+/P3/PT3'
+            +'+/T4/PX5/Pf6/fj7/fj7//3+/v//////////////////////////////////'
+            +'////////////////////////////////////////////////////////////'
+            +'////////////////////////////////////////////////////////////'
+            +'////////////////////////////////////////////////////////////'
+            +'////////////////////////////////////////////////////////////'
+            +'////////////////////////////////////////////////////////////'
+            +'/////////////////////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACH5BAEKAP8A'
+            +'LAAAAAAQABAAAAj4AP/9eyGjoIwaM2CwqCCwoQlJmCxVmjhJ0qEoQxr+U8FJ'
+            +'Dp49dN6oEVOKzBMhDVtsCiQIEJ85bcaQMjSoioZ/I0rowHGlyQQJGSxAkeTJ'
+            +'UQecXL5gwREjyZEdPrqA8aIphMATZbZYwXGjBxA2bdCYySRCYAoiabJMGUHD'
+            +'jh45btpcAiEQwwMXa6g4QaGF0J84cCJ5EKjAiI0Va5gsIaHATx48nTb8S5AA'
+            +'QYEPQcJIUZKjT507oygI5PCoUKEzRXj8QGK6kCgIAi80ak27NagGAiMsql2b'
+            +'lACBDiAxUpQIESJKlCJ9CmUKQMMDDBZIP2CAAIEBAwIIDAgAOw==')
+     return img

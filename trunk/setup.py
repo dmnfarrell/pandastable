@@ -13,7 +13,8 @@ setup(
     packages = ['pandastable'],
 	install_requires=['numpy>=1.5',
                       'matplotlib>=1.1',
-                      'pandas>=0.13'],
+                      'pandas>=0.13',
+		      'xlrd>=0.9'],
     entry_points = { 'gui_scripts': [
                      'dataframeviewer = pandastable.app:main']},
     classifiers = ["Operating System :: OS Independent",
