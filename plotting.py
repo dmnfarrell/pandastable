@@ -68,11 +68,11 @@ class PlotViewer(Frame):
         w2 = Frame()
         b=Button(w2,text='plot',command=self.plot3D)
         b.pack()
-        self.nb.add(w2, text='3D plot', sticky='news')
+        #self.nb.add(w2, text='3D plot', sticky='news')
         w3 = Frame()
         b=Button(w3,text='plot',command=self.seabornPlots)
         b.pack()
-        self.nb.add(w3, text='seaborn', sticky='news')
+        #self.nb.add(w3, text='seaborn', sticky='news')
         return
 
     def applyPlotoptions(self):

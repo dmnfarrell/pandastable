@@ -225,10 +225,6 @@ class ViewerApp(Frame):
         self.filename = None
         return
 
-    def showPlotter(self):
-
-        return
-
     def addSheet(self, sheetname=None, df=None):
         """Add a new sheet"""
 
@@ -294,7 +290,12 @@ class ViewerApp(Frame):
     def sampleData(self):
         """Load sample table"""
         df = TableModel.getSampleData()
-        self.addSheet(sheetname='sample', df=df)
+        name='sample'
+        i=1
+        while name in self.sheets:
+            name='sample'+str(i)
+            i+=1
+        self.addSheet(sheetname=name, df=df)
         return
 
     def getTipsData(self):
