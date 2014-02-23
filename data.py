@@ -23,7 +23,7 @@
 
 from types import *
 import operator
-import string, types, copy
+import os, string, types, copy
 import pickle
 import numpy as np
 import pandas as pd
@@ -68,7 +68,15 @@ class TableModel(object):
         return
 
     def save(self, filename):
-        self.df.to_msgpack(filename)
+        ftype = os.path.splitext(filename)[1]
+        if ftype == '.mpk':
+            self.df.to_msgpack(filename)
+        elif ftype == '.pkl':
+            self.df.to_pickle(filename)
+        elif ftype == '.xls':
+            self.df.to_excel(filename)
+        elif ftype == '.csv':
+            self.df.to_csv(filename)
         return
 
     def load(self, filename):

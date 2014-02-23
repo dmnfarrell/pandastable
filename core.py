@@ -53,6 +53,7 @@ class Table(Canvas):
         self.platform = platform.system()
         self.width = width
         self.height = height
+        self.filename = None
         self.showtoolbar = showtoolbar
         self.showstatusbar = showstatusbar
         self.set_defaults()
@@ -1135,8 +1136,8 @@ class Table(Canvas):
                         "New": self.new,
                         "Load": self.load,
                         "Save": self.save,
+                        "Save as": self.saveAs,
                         "Import Text": lambda: self.doImport(dialog=True),
-                        "Export as csv": self.doExport,
                         "Plot Selected" : self.plotSelected,
                         "Preferences" : self.showPrefs}
 
@@ -1144,7 +1145,7 @@ class Table(Canvas):
                 "Clear Data", "Add Row(s)" , "Delete Row(s)"]
         general = ["Select All", "Auto Fit Columns", "Filter Records", "Preferences"]
 
-        filecommands = ['New','Load','Save','Import Text','Export as csv']
+        filecommands = ['New','Load','Import Text','Save','Save as']
         plotcommands = ['Plot Selected']
 
         def createSubMenu(parent, label, commands):
@@ -1883,20 +1884,30 @@ class Table(Canvas):
             return
         if filename:
             self.model.load(filename)
+            self.filename = filename
             self.adjustColumnWidths()
             self.redraw()
         return
 
-    def save(self, filename=None):
+    def saveAs(self, filename=None):
         """Save model to pickle file"""
         if filename == None:
             filename = filedialog.asksaveasfilename(parent=self.master,
                                                         defaultextension='.mpk',
                                                         initialdir = os.getcwd(),
                                                         filetypes=[("msgpack","*.mpk"),
-                                                          ("All files","*.*")])
+                                                                    ("pickle","*.pkl"),
+                                                                    ("csv","*.csv"),
+                                                                    ("excel","*.xls"),
+                                                         ("All files","*.*")])
+
         if filename:
             self.model.save(filename)
+            self.filename = filename
+        return
+
+    def save(self):
+        self.saveAs(self.filename)
         return
 
     def doImport(self, filename=None, dialog=False):
@@ -2195,7 +2206,7 @@ class ColumnHeader(Canvas):
             command=lambda : self.table.sortTable(currcol,ascending=0))
         #popupmenu.add_command(label="Group by "+ colname, command=lambda : self.table.groupby(currcol))
         popupmenu.add_command(label="Set %s as Index" %colname, command=lambda : self.table.setindex(currcol))
-        popupmenu.add_command(label="Delete This Column", command=self.table.deleteColumn)
+        popupmenu.add_command(label="Delete Column(s)", command=self.table.deleteColumn)
 
         popupmenu.bind("<FocusOut>", popupFocusOut)
         #self.bind("<Button-3>", popupFocusOut)

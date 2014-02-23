@@ -33,6 +33,8 @@ from collections import OrderedDict
 import operator
 from pandastable.dialogs import *
 
+colormaps = sorted(m for m in plt.cm.datad if not m.endswith("_r"))
+
 class PlotViewer(Frame):
     """Provides a frame for figure canvas and MPL settings"""
 
@@ -64,13 +66,14 @@ class PlotViewer(Frame):
         self.nb = Notebook(self.main)
         self.nb.bind('<<NotebookTabChanged>>', self.setMode)
         self.nb.pack(side=TOP,fill=BOTH)
+
         self.mplopts = MPLBaseOptions()
         w1 = self.mplopts.showDialog(self.nb)
         self.nb.add(w1, text='plot options', sticky='news')
-        w2 = Frame()
-        b=Button(w2,text='plot',command=self.plot3D)
-        b.pack()
+        self.mplopts3d = MPL3DOptions()
+        w2 = self.mplopts3d.showDialog(self.nb)
         self.nb.add(w2, text='3D plot', sticky='news')
+
         #w3 = Frame()
         #b=Button(w3,text='plot',command=self.seabornPlots)
         #b.pack()
@@ -84,7 +87,10 @@ class PlotViewer(Frame):
 
     def applyPlotoptions(self):
         """Apply the current options"""
-        self.mplopts.applyOptions()
+        if self.mode == 0:
+            self.mplopts.applyOptions()
+        else:
+            self.mplopts3d.applyOptions()
         self.plotCurrent()
         return
 
@@ -210,20 +216,30 @@ class PlotViewer(Frame):
         """3D plots"""
         if not hasattr(self, 'data'):
             return
-        kwds = self.mplopts.kwds
+        kwds = self.mplopts3d.kwds
+        print (kwds)
         data = self.data
         self.fig.clear()
         ax = self.ax = Axes3D(self.fig)
         if kwds['kind'] == 'scatter':
             self.scatter3D(data, ax, kwds)
         elif kwds['kind'] == 'bar':
-            i=0
-            for c in data.columns:
-                h = data[c]
-                ax.bar(data.index, h, zs=i, zdir='y')
-                i+=1
+            self.bar3D(data, ax, kwds)
+        elif kwds['kind'] == 'contour':
+            X = data.values
+            ax.contour(X[:,0], X[:,1], X[:,2])
         self.canvas.draw()
         return
+
+    def bar3D(self, data, ax, kwds):
+        i=0
+        plots=len(data.columns)
+        cmap = plt.cm.get_cmap(kwds['colormap'])
+        for c in data.columns:
+            h = data[c]
+            c = cmap(float(i)/(plots))
+            ax.bar(data.index, h, zs=i, zdir='y', color=c)
+            i+=1
 
     def scatter3D(self, data, ax, kwds):
         X = data.values
@@ -304,7 +320,6 @@ class MPLBaseOptions(object):
     """Class to provide a dialog for matplotlib options and returning
         the selected prefs"""
 
-    colormaps = sorted(m for m in plt.cm.datad if not m.endswith("_r"))
     markers = ['','o','.','^','v','>','<','s','+','x','p','d','h','*']
     linestyles = ['-','--','-.',':','steps']
     kinds = ['line', 'scatter', 'bar', 'barh', 'boxplot', 'histogram',
@@ -343,7 +358,7 @@ class MPLBaseOptions(object):
                 'xlabel':{'type':'entry','default':'','width':25},
                 'ylabel':{'type':'entry','default':'','width':25},
                 'subplots':{'type':'checkbutton','default':0,'label':'multiple subplots'},
-                'colormap':{'type':'combobox','default':'jet','items':self.colormaps}
+                'colormap':{'type':'combobox','default':'jet','items':colormaps}
                 }
         return
 
@@ -379,4 +394,49 @@ class MPLBaseOptions(object):
         fonts = sorted(list(fonts))
         return fonts
 
+class MPL3DOptions(object):
+    """Class to provide 3D matplotlib options"""
 
+    kinds = ['scatter', 'bar', 'bar3d', 'surface', 'contour']
+
+    def __init__(self):
+        """Setup variables"""
+
+        fonts = self.getFonts()
+        self.groups = grps = {'styles':['font','fontsize','colormap','alpha'],
+                            'formats':['kind','subplots','title']}
+
+        opts = self.opts = {'font':{'type':'combobox','default':'Arial','items':fonts},
+                'fontsize':{'type':'scale','default':12,'range':(5,40),'interval':1,'label':'font size'},
+                'kind':{'type':'combobox','default':'scatter','items':self.kinds,'label':'kind'},
+                'alpha':{'type':'scale','default':0.7,'range':(0,1),'interval':0.1,'label':'alpha'},
+                'title':{'type':'entry','default':'','width':25},
+                'subplots':{'type':'checkbutton','default':0,'label':'multiple subplots'},
+                'colormap':{'type':'combobox','default':'jet','items': colormaps}
+                 }
+
+    def applyOptions(self):
+        """Set the options"""
+
+        kwds = {}
+        for i in self.opts:
+            kwds[i] = self.tkvars[i].get()
+        self.kwds = kwds
+        plt.rc("font", family=kwds['font'], size=kwds['fontsize'])
+        return
+
+    def showDialog(self, parent, callback=None):
+        """Auto create tk vars, widgets for corresponding options and
+           and return the frame"""
+
+        dialog, self.tkvars = dialogFromOptions(parent, self.opts, self.groups)
+        self.applyOptions()
+        return dialog
+
+    def getFonts(self):
+        """Get the current list of system fonts"""
+
+        import tkinter.font
+        fonts = set(list(tkinter.font.families()))
+        fonts = sorted(list(fonts))
+        return fonts
