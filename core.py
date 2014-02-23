@@ -30,7 +30,7 @@ import platform
 import pylab as plt
 import pandas as pd
 from pandastable.data import TableModel
-from pandastable.plotting import MPLoptions, PlotViewer
+from pandastable.plotting import MPLBaseOptions, PlotViewer
 from pandastable.prefs import Preferences
 from pandastable.io import ImportDialog
 from pandastable import images
@@ -1277,7 +1277,7 @@ class Table(Canvas):
                 self.pf.main.deiconify()
         data = self.getPlotData()
         self.pf.data = data
-        self.pf.plot2D()
+        self.pf.plotCurrent()
         return
 
     def plot3D(self):

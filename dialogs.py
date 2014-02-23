@@ -181,4 +181,10 @@ def dialogFromOptions(parent, opts, groups=None, callback=None):
         c+=1
     return dialog, tkvars
 
+class ProgressDialog(Toplevel):
+    def __init__(self):
+        Toplevel.__init__()
+        prog = Progressbar(self, orient='horizontal',
+                            length=200, mode='indeterminate')
+
 
