@@ -39,6 +39,7 @@ class PlotViewer(Frame):
     def __init__(self,parent=None):
 
         self.parent=parent
+        self.mode = 0
         if self.parent != None:
             Frame.__init__(self, parent)
             self.main = self.master
@@ -61,26 +62,34 @@ class PlotViewer(Frame):
         c = Checkbutton(bf,text='Hide Options', command=hide, variable=hidevar)
         c.pack(side=LEFT,fill=X,expand=1)
         self.nb = Notebook(self.main)
+        self.nb.bind('<<NotebookTabChanged>>', self.setMode)
         self.nb.pack(side=TOP,fill=BOTH)
-        self.mplopts = MPLoptions()
+        self.mplopts = MPLBaseOptions()
         w1 = self.mplopts.showDialog(self.nb)
         self.nb.add(w1, text='plot options', sticky='news')
         w2 = Frame()
         b=Button(w2,text='plot',command=self.plot3D)
         b.pack()
-        #self.nb.add(w2, text='3D plot', sticky='news')
-        w3 = Frame()
-        b=Button(w3,text='plot',command=self.seabornPlots)
-        b.pack()
+        self.nb.add(w2, text='3D plot', sticky='news')
+        #w3 = Frame()
+        #b=Button(w3,text='plot',command=self.seabornPlots)
+        #b.pack()
         #self.nb.add(w3, text='seaborn', sticky='news')
         return
 
+    def setMode(self, evt=None):
+        """Set the plot mode based on selected tab"""
+        self.mode = self.nb.index(self.nb.select())
+        return
+
     def applyPlotoptions(self):
+        """Apply the current options"""
         self.mplopts.applyOptions()
-        self.plot2D()
+        self.plotCurrent()
         return
 
     def addFigure(self, parent):
+        """Add the tk figure canvas"""
         from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
         from matplotlib.figure import Figure
         self.fig = f = Figure(figsize=(5,4), dpi=100)
@@ -93,6 +102,14 @@ class PlotViewer(Frame):
         canvas._tkcanvas.pack(side=TOP, fill=BOTH, expand=1)
         self.ax = a
         self.canvas = canvas
+        return
+
+    def plotCurrent(self):
+        """Plot current data"""
+        if self.mode == 0:
+            self.plot2D()
+        elif self.mode == 1:
+            self.plot3D()
         return
 
     def plot2D(self):
@@ -190,24 +207,34 @@ class PlotViewer(Frame):
         return
 
     def plot3D(self):
+        """3D plots"""
         if not hasattr(self, 'data'):
             return
         kwds = self.mplopts.kwds
         data = self.data
         self.fig.clear()
         ax = self.ax = Axes3D(self.fig)
-        X = data.values
-        if len(X[0])<3:
-            zs=0
-        else:
-            zs=X[:,2]
-        ax.scatter(X[:,0], X[:,1], zs, cmap=kwds['colormap'])
-        '''i=0
-        for c in data.columns:
-            h = data[c]
-            ax.bar(data.index, h, zs=i, zdir='y')
-            i+=1'''
+        if kwds['kind'] == 'scatter':
+            self.scatter3D(data, ax, kwds)
+        elif kwds['kind'] == 'bar':
+            i=0
+            for c in data.columns:
+                h = data[c]
+                ax.bar(data.index, h, zs=i, zdir='y')
+                i+=1
         self.canvas.draw()
+        return
+
+    def scatter3D(self, data, ax, kwds):
+        X = data.values
+        plots=len(data.columns)
+        cmap = plt.cm.get_cmap(kwds['colormap'])
+        x = X[:,0]
+        for i in range(1,plots-1,2):
+            y = X[:,i]
+            z = X[:,i+1]
+            c = cmap(float(i)/(plots))
+            ax.scatter(x, y, z, color=c)
         return
 
     def seabornPlots(self):
@@ -273,7 +300,7 @@ class animator(Frame):
         line.set_data(xdata, ydata)
         return line,
 
-class MPLoptions(object):
+class MPLBaseOptions(object):
     """Class to provide a dialog for matplotlib options and returning
         the selected prefs"""
 
