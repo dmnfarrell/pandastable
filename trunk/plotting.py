@@ -74,10 +74,9 @@ class PlotViewer(Frame):
         w2 = self.mplopts3d.showDialog(self.nb)
         self.nb.add(w2, text='3D plot', sticky='news')
 
-        #w3 = Frame()
-        #b=Button(w3,text='plot',command=self.seabornPlots)
-        #b.pack()
-        #self.nb.add(w3, text='seaborn', sticky='news')
+        self.sbopts = SeabornOptions()
+        w3 = self.sbopts.showDialog(self.nb)
+        self.nb.add(w3, text='Seaborn Tools', sticky='news')
         return
 
     def setMode(self, evt=None):
@@ -89,6 +88,8 @@ class PlotViewer(Frame):
         """Apply the current options"""
         if self.mode == 0:
             self.mplopts.applyOptions()
+        elif self.mode == 2:
+            self.sbopts.applyOptions()
         else:
             self.mplopts3d.applyOptions()
         self.plotCurrent()
@@ -112,7 +113,7 @@ class PlotViewer(Frame):
 
     def plotCurrent(self):
         """Plot current data"""
-        if self.mode == 0:
+        if self.mode == 0 or self.mode==2:
             self.plot2D()
         elif self.mode == 1:
             self.plot3D()
@@ -440,3 +441,49 @@ class MPL3DOptions(object):
         fonts = set(list(tkinter.font.families()))
         fonts = sorted(list(fonts))
         return fonts
+
+class SeabornOptions(object):
+    """Class to provide 3D matplotlib options"""
+
+    def __init__(self):
+        """Setup variables"""
+        self.groups = grps = {'basic':['style','despine'],'plots':['corrplot']}
+        styles = ['darkgrid', 'whitegrid', 'dark', 'white', 'ticks']
+        self.opts = {'style': {'type':'combobox','default':'whitegrid','items':styles},
+                     'despine': {'type':'checkbutton','default':0,'label':'despine'},
+                     'corrplot': {'type':'checkbutton','default':0,'label':'corrplot'}}
+        return
+
+    def showDialog(self, parent, callback=None):
+        """Auto create tk vars, widgets for corresponding options and
+           and return the frame"""
+
+        dialog, self.tkvars = dialogFromOptions(parent, self.opts, self.groups)
+        #self.applyOptions()
+        return dialog
+
+    def applyOptions(self):
+        """Set the options"""
+        import seaborn as sns
+        kwds = {}
+        for i in self.opts:
+            kwds[i] = self.tkvars[i].get()
+        self.kwds = kwds
+        sns.set_style(self.kwds['style'])
+        if self.kwds['despine'] == 1:
+            sns.despine()
+        return
+
+    def seabornPlots(self):
+        """Seaborn is a nice plotting and regression package requiring
+           scipy, moss, patsy, statsmodels, husl"""
+
+        from scipy import stats
+        from numpy.random import randn
+        data = self.data
+        sns.set_color_palette("deep", desat=.6)
+        self.fig.clear()
+        self.ax = ax = self.fig.add_subplot(111)
+        sns.corrplot(data, ax=ax)
+        self.canvas.draw()
+        return
