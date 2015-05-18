@@ -69,14 +69,14 @@ class PlotViewer(Frame):
 
         self.mplopts = MPLBaseOptions()
         w1 = self.mplopts.showDialog(self.nb)
-        self.nb.add(w1, text='plot options', sticky='news')
+        self.nb.add(w1, text='base plot options', sticky='news')
         self.mplopts3d = MPL3DOptions()
         w2 = self.mplopts3d.showDialog(self.nb)
         self.nb.add(w2, text='3D plot', sticky='news')
 
-        self.sbopts = SeabornOptions()
+        self.sbopts = FactorPlotter()
         w3 = self.sbopts.showDialog(self.nb)
-        self.nb.add(w3, text='Seaborn Tools', sticky='news')
+        self.nb.add(w3, text='factor plots', sticky='news')
         return
 
     def setMode(self, evt=None):
@@ -85,7 +85,7 @@ class PlotViewer(Frame):
         return
 
     def applyPlotoptions(self):
-        """Apply the current options"""
+        """Apply the current plotter/options"""
         if self.mode == 0:
             self.mplopts.applyOptions()
         elif self.mode == 2:
@@ -117,6 +117,8 @@ class PlotViewer(Frame):
             self.plot2D()
         elif self.mode == 1:
             self.plot3D()
+        elif self.mode == 2:
+            self.factorPlot()
         return
 
     def plot2D(self):
@@ -254,7 +256,7 @@ class PlotViewer(Frame):
             ax.scatter(x, y, z, color=c)
         return
 
-    def seabornPlots(self):
+    '''def seabornPlots(self):
         """Seaborn is a nice plotting and regression package requiring
            scipy, moss, patsy, statsmodels, husl"""
         import seaborn as sns
@@ -266,6 +268,50 @@ class PlotViewer(Frame):
         self.ax = ax = self.fig.add_subplot(111)
         sns.corrplot(data, ax=ax)
         self.canvas.draw()
+        return'''
+
+    def meltData(df, labels):
+        """Melt results for categorical plots"""
+        cols,ncols = mdp.getColumnNames(df)
+        t = df[ncols].T
+        t.index = cols
+        t = t.merge(labels,left_index=True,right_on='id')
+        tm = pd.melt(t,id_vars=list(labels.columns),
+                     var_name='miRNA',value_name='read count')
+        return tm
+
+    def factorPlot(self):
+        """Seaborn facet grid plots"""
+        import seaborn as sns
+        if not hasattr(self, 'data'):
+            return
+        data = self.data
+        #m = meltData(df, labels)
+        x='id'
+        hue='miRNA'
+        col='miRNA'
+        row=None
+        wrap=2
+        kind='auto'
+
+        sns.set_style("ticks", {'axes.facecolor': '#F7F7F7','legend.frameon': True})
+        sns.set_context("paper", rc={'legend.fontsize':18,'xtick.labelsize':14,'ytick.labelsize':16,
+                            'axes.labelsize':24,'axes.titlesize':30})
+
+        plots = len(data[col].unique())
+        wrap=int(wrap)
+        '''if plots == 1 or wrap==1:
+            row=col
+            col=None
+            wrap=None
+        if hue == '':
+            hue=None
+        g = base.sns.factorplot(x,'read count',data=m, hue=hue, row=row, col=col,
+                                col_wrap=wrap, kind=kind,size=5, aspect=float(aspect),
+                                legend_out=True,sharey=False,palette=palette)'''
+
+        #rotateLabels(g)
+
         return
 
     def quit(self):
@@ -345,7 +391,7 @@ class MPLBaseOptions(object):
                 'grid':{'type':'checkbutton','default':0,'label':'show grid'},
                 'logx':{'type':'checkbutton','default':0,'label':'log x'},
                 'logy':{'type':'checkbutton','default':0,'label':'log y'},
-                'rot':{'type':'entry','default':0},
+                'rot':{'type':'entry','default':0, 'label':'ylabel rot'},
                 'use_index':{'type':'checkbutton','default':1,'label':'use index'},
                 'showxlabels':{'type':'checkbutton','default':1,'label':'x tick labels'},
                 'showylabels':{'type':'checkbutton','default':1,'label':'y tick labels'},
@@ -441,6 +487,38 @@ class MPL3DOptions(object):
         fonts = set(list(tkinter.font.families()))
         fonts = sorted(list(fonts))
         return fonts
+
+class FactorPlotter(object):
+    """Provides seaborn factor plots"""
+    def __init__(self):
+        """Setup variables"""
+        self.groups = grps = {'basic':['style','despine'],'plots':['corrplot']}
+        styles = ['darkgrid', 'whitegrid', 'dark', 'white', 'ticks']
+        self.opts = {'style': {'type':'combobox','default':'whitegrid','items':styles},
+                     'despine': {'type':'checkbutton','default':0,'label':'despine'},
+                     'corrplot': {'type':'checkbutton','default':0,'label':'corrplot'}}
+        return
+
+    def showDialog(self, parent, callback=None):
+        """Auto create tk vars, widgets for corresponding options and
+           and return the frame"""
+
+        dialog, self.tkvars = dialogFromOptions(parent, self.opts, self.groups)
+        #self.applyOptions()
+        return dialog
+
+    def applyOptions(self):
+        """Set the options"""
+        import seaborn as sns
+        kwds = {}
+        for i in self.opts:
+            kwds[i] = self.tkvars[i].get()
+        self.kwds = kwds
+        sns.set_style(self.kwds['style'])
+        if self.kwds['despine'] == 1:
+            sns.despine()
+        return
+
 
 class SeabornOptions(object):
     """Class to provide 3D matplotlib options"""

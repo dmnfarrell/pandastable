@@ -57,8 +57,17 @@ class TableModel(object):
         n = np.array([np.random.normal(i,.5,10) for i in np.random.normal(2,1,rows)])
         df = pd.DataFrame(n, columns=colnames)
         df = np.round(df, 3)
+        df = df.astype('object')
         cats = ['foo','bar','sel']
         df['label'] = [cats[i] for i in np.random.randint(0,3,rows)]
+        return df
+
+    @classmethod
+    def getIrisData(self):
+        """Get iris dataset"""
+        path = os.path.dirname(__file__)
+        cols = ['sepal length','sepal width','petal length','petal width','class']
+        df = pd.read_csv(os.path.join(path,'iris.data'),names=cols)
         return df
 
     def initialiseFields(self):
@@ -87,7 +96,7 @@ class TableModel(object):
         """Get the longest cell entry in the col"""
         df = self.df
         col = df.columns[colindex]
-        longest = df[col].str.len().max()
+        longest = df[col].astype('str').str.len().max()
         if np.isnan(longest):
             return 1
         return longest

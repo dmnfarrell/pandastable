@@ -119,7 +119,8 @@ class ViewerApp(Frame):
         self.menu.add_cascade(label='Sheet',menu=self.sheet_menu['var'])
 
         self.tools_menu={'01Load sample data':{'cmd':self.sampleData},
-                         '02Load Tips data':{'cmd':self.getTipsData}}
+                         '03Load Iris data':{'cmd':self.getIrisData},
+                         '03Load Tips data':{'cmd':self.getTipsData}}
         self.tools_menu=self.createPulldown(self.menu,self.tools_menu)
         self.menu.add_cascade(label='Tools',menu=self.tools_menu['var'])
 
@@ -296,6 +297,11 @@ class ViewerApp(Frame):
             name='sample'+str(i)
             i+=1
         self.addSheet(sheetname=name, df=df)
+        return
+
+    def getIrisData(self):
+        df = TableModel.getIrisData()
+        self.addSheet(sheetname='iris', df=df)
         return
 
     def getTipsData(self):

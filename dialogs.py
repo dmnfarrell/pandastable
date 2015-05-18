@@ -143,11 +143,15 @@ def dialogFromOptions(parent, opts, groups=None, callback=None):
             w=None
             opt = opts[i]
             if opt['type'] == 'entry':
+                if 'label' in opt:
+                    label=opt['label']
+                else:
+                    label=i
                 if 'width' in opt:
                     w=opt['width']
                 else:
                     w=8
-                Label(frame,text=i).pack()
+                Label(frame,text=label).pack()
                 tkvars[i] = v = StringVar()
                 v.set(opts[i]['default'])
                 w = Entry(frame,textvariable=v, width=w, command=callback)
