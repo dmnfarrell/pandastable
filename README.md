@@ -78,8 +78,10 @@ This is a standalone application for plotting and also serves as a way of testin
 Data can be saved and then re-loaded using the popup menu commands, currently as 
 messagepack format. This is supported by pandas>=0.13.
 
+<img src=https://raw.githubusercontent.com/dmnfarrell/pandastable/master/img/viewerapp.png width=600px>
+
 ## For programmers. 
-The basics.
+The basics for now. More details to be added here.
 
 Create a parent frame and then add the table to it:
 ```
@@ -92,6 +94,7 @@ pt.show()
 
 Update the table:
 ```
+#alter the DataFrame in some way, then update
 pt.redraw()
 ```
 
@@ -108,3 +111,6 @@ http://stanford.edu/~mwaskom/software/seaborn/
 
 http://jakevdp.github.io/blog/2013/03/23/matplotlib-and-the-future-of-visualization-in-python/
 
+## Screenshots
+
+<img src=https://raw.githubusercontent.com/dmnfarrell/pandastable/master/img/plotviewer.png width=600px>
