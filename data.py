@@ -51,15 +51,16 @@ class TableModel(object):
         return
 
     @classmethod
-    def getSampleData(self, rows=200):
+    def getSampleData(self, rows=200, cols=5):
         """Generate sample data"""
-        colnames = list(string.ascii_lowercase[:10])
-        n = np.array([np.random.normal(i,.5,10) for i in np.random.normal(2,1,rows)])
+        colnames = list(string.ascii_lowercase[:cols])
+        n = np.array([np.random.normal(i,.5,cols) for i in np.random.normal(2,1,rows)])
         df = pd.DataFrame(n, columns=colnames)
         df = np.round(df, 3)
         df = df.astype('object')
         cats = ['foo','bar','sel']
         df['label'] = [cats[i] for i in np.random.randint(0,3,rows)]
+        df['date'] = pd.date_range('1/1/2015', periods=rows, freq='H')
         return df
 
     @classmethod

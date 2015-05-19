@@ -70,13 +70,13 @@ class PlotViewer(Frame):
         self.mplopts = MPLBaseOptions()
         w1 = self.mplopts.showDialog(self.nb)
         self.nb.add(w1, text='base plot options', sticky='news')
+        self.factorplotter = FactorPlotter()
+        w3 = self.factorplotter.showDialog(self.nb)
+        self.nb.add(w3, text='factor plots', sticky='news')
         self.mplopts3d = MPL3DOptions()
         w2 = self.mplopts3d.showDialog(self.nb)
         self.nb.add(w2, text='3D plot', sticky='news')
 
-        self.sbopts = FactorPlotter()
-        w3 = self.sbopts.showDialog(self.nb)
-        self.nb.add(w3, text='factor plots', sticky='news')
         return
 
     def setMode(self, evt=None):
@@ -88,9 +88,9 @@ class PlotViewer(Frame):
         """Apply the current plotter/options"""
         if self.mode == 0:
             self.mplopts.applyOptions()
+        elif self.mode == 1:
+            self.factorplotter.applyOptions()
         elif self.mode == 2:
-            self.sbopts.applyOptions()
-        else:
             self.mplopts3d.applyOptions()
         self.plotCurrent()
         return
@@ -113,12 +113,13 @@ class PlotViewer(Frame):
 
     def plotCurrent(self):
         """Plot current data"""
-        if self.mode == 0 or self.mode==2:
+        if self.mode == 0:
             self.plot2D()
         elif self.mode == 1:
-            self.plot3D()
-        elif self.mode == 2:
+            self.factorplotter.data = self.data
             self.factorPlot()
+        elif self.mode == 2:
+            self.plot3D()
         return
 
     def plot2D(self):
@@ -152,31 +153,39 @@ class PlotViewer(Frame):
 
         if len(data.columns)==1:
             kwdargs['subplots'] = 0
+        if kwds['subplots'] == 0:
+            layout=None
+        else:
+            r=int(np.sqrt(len(data.columns)))
+            layout=(r,-1)
         self.fig.clear()
         self.ax = ax = self.fig.add_subplot(111)
         if kind == 'bar':
             if len(data) > 50:
                 self.ax.get_xaxis().set_visible(False)
         if kind == 'scatter':
-            self.scatter(data, ax, kwdargs)
+            axs = self.scatter(data, ax, kwdargs)
         elif kind == 'boxplot':
-            data.boxplot(ax=ax)
+            axs = data.boxplot(ax=ax)
         elif kind == 'histogram':
-            data.hist(ax=ax, **kwdargs)
+            axs = data.hist(ax=ax, **kwdargs)
         elif kind == 'heatmap':
-            self.heatmap(data, ax, kwdargs)
+            axs = self.heatmap(data, ax, kwdargs)
         elif kind == 'pie':
             ax.pie(data)
         elif kind == 'scatter_matrix':
-            pd.scatter_matrix(data, ax=ax, **kwdargs)
+            axs = pd.scatter_matrix(data, ax=ax, **kwdargs)
         else:
-            data.plot(ax=ax, **kwdargs)
+            axs = data.plot(ax=ax, layout=layout, **kwdargs)
+        if type(axs) is np.ndarray:
+            self.ax = axs[0,0]
         self.fig.suptitle(kwds['title'])
         self.ax.set_xlabel(kwds['xlabel'])
         self.ax.set_ylabel(kwds['ylabel'])
         self.ax.xaxis.set_visible(kwds['showxlabels'])
         self.ax.yaxis.set_visible(kwds['showylabels'])
-        #self.fig.tight_layout()
+        #if kwds['subplots']==1:
+            #self.fig.tight_layout()
         self.canvas.draw()
         return
 
@@ -256,61 +265,46 @@ class PlotViewer(Frame):
             ax.scatter(x, y, z, color=c)
         return
 
-    '''def seabornPlots(self):
-        """Seaborn is a nice plotting and regression package requiring
-           scipy, moss, patsy, statsmodels, husl"""
-        import seaborn as sns
-        from scipy import stats
-        from numpy.random import randn
-        data = self.data
-        sns.set_color_palette("deep", desat=.6)
-        self.fig.clear()
-        self.ax = ax = self.fig.add_subplot(111)
-        sns.corrplot(data, ax=ax)
-        self.canvas.draw()
-        return'''
-
-    def meltData(df, labels):
-        """Melt results for categorical plots"""
-        cols,ncols = mdp.getColumnNames(df)
-        t = df[ncols].T
-        t.index = cols
-        t = t.merge(labels,left_index=True,right_on='id')
-        tm = pd.melt(t,id_vars=list(labels.columns),
-                     var_name='miRNA',value_name='read count')
-        return tm
-
     def factorPlot(self):
         """Seaborn facet grid plots"""
         import seaborn as sns
         if not hasattr(self, 'data'):
             return
-        data = self.data
-        #m = meltData(df, labels)
+        df = self.data
+        labels = list(df.columns)
+        dtypes = list(df.dtypes)
         x='id'
-        hue='miRNA'
-        col='miRNA'
+        print (labels)
+        hue='label'
+        col='var'
         row=None
         wrap=2
         kind='auto'
+        aspect = 1.0
 
-        sns.set_style("ticks", {'axes.facecolor': '#F7F7F7','legend.frameon': True})
-        sns.set_context("paper", rc={'legend.fontsize':18,'xtick.labelsize':14,'ytick.labelsize':16,
-                            'axes.labelsize':24,'axes.titlesize':30})
+        print (df[:10])
+        tm = pd.melt(df,id_vars=['label'],
+                     var_name='var',value_name='x')
+        print (tm[:10])
 
-        plots = len(data[col].unique())
+        '''plots = len(df[col].unique())
         wrap=int(wrap)
-        '''if plots == 1 or wrap==1:
+        if plots == 1 or wrap==1:
             row=col
             col=None
             wrap=None
         if hue == '':
-            hue=None
-        g = base.sns.factorplot(x,'read count',data=m, hue=hue, row=row, col=col,
-                                col_wrap=wrap, kind=kind,size=5, aspect=float(aspect),
-                                legend_out=True,sharey=False,palette=palette)'''
-
+            hue=None'''
+        plt.clf()
+        g = sns.factorplot('label','x',data=tm, hue=hue, row=row, col=col,
+                                col_wrap=wrap, kind=kind,size=3, aspect=float(aspect),
+                                legend_out=True,sharey=False,palette='Spectral')
+        print (g.fig)
         #rotateLabels(g)
+        self.fig.clear()
+        self.canvas.figure = g.fig
+        self.canvas.resize_event()
+        self.canvas.draw()
 
         return
 
@@ -376,11 +370,11 @@ class MPLBaseOptions(object):
         """Setup variables"""
 
         fonts = self.getFonts()
-        grps = {'styles':['font','colormap','alpha','grid','legend'],
+        grps = {'styles':['font','colormap','alpha','grid'],
                 'sizes':['fontsize','s','linewidth'],
                 'formats':['kind','marker','linestyle','stacked','subplots'],
                 'axes':['showxlabels','showylabels','use_index','sharey','logx','logy','rot'],
-                'labels':['title','xlabel','ylabel']}
+                'labels':['title','xlabel','ylabel','legend']}
         order = ['formats','sizes','axes','styles','labels']
         self.groups = OrderedDict(sorted(grps.items()))
         opts = self.opts = {'font':{'type':'combobox','default':'Arial','items':fonts},
@@ -490,13 +484,27 @@ class MPL3DOptions(object):
 
 class FactorPlotter(object):
     """Provides seaborn factor plots"""
-    def __init__(self):
+    def __init__(self, data=None):
         """Setup variables"""
-        self.groups = grps = {'basic':['style','despine'],'plots':['corrplot']}
+        self.data=data
+        self.setDefaultStyle()
+        self.groups = grps = {'formats':['style','despine','palette'],
+                'factors':['kind','hue','x']}
         styles = ['darkgrid', 'whitegrid', 'dark', 'white', 'ticks']
+        kinds = ['auto','bar']
+        palettes = ['Spectral','cubehelix','hls','hot','coolwarm','copper',
+                    'winter','spring','summer','autumn','Greys','Blues','Reds',
+                    'Set1','Accent']
+        if self.data is not None:
+            cols = self.data.columns
+
         self.opts = {'style': {'type':'combobox','default':'whitegrid','items':styles},
                      'despine': {'type':'checkbutton','default':0,'label':'despine'},
-                     'corrplot': {'type':'checkbutton','default':0,'label':'corrplot'}}
+                     'palette': {'type':'combobox','default':'Spectral','items':palettes},
+                     'kind': {'type':'combobox','default':'auto','items':kinds},
+                     'x': {'type':'combobox','default':'auto','items':kinds},
+                     'hue': {'type':'combobox','default':'auto','items':kinds},
+                        }
         return
 
     def showDialog(self, parent, callback=None):
@@ -519,49 +527,9 @@ class FactorPlotter(object):
             sns.despine()
         return
 
-
-class SeabornOptions(object):
-    """Class to provide 3D matplotlib options"""
-
-    def __init__(self):
-        """Setup variables"""
-        self.groups = grps = {'basic':['style','despine'],'plots':['corrplot']}
-        styles = ['darkgrid', 'whitegrid', 'dark', 'white', 'ticks']
-        self.opts = {'style': {'type':'combobox','default':'whitegrid','items':styles},
-                     'despine': {'type':'checkbutton','default':0,'label':'despine'},
-                     'corrplot': {'type':'checkbutton','default':0,'label':'corrplot'}}
-        return
-
-    def showDialog(self, parent, callback=None):
-        """Auto create tk vars, widgets for corresponding options and
-           and return the frame"""
-
-        dialog, self.tkvars = dialogFromOptions(parent, self.opts, self.groups)
-        #self.applyOptions()
-        return dialog
-
-    def applyOptions(self):
-        """Set the options"""
+    def setDefaultStyle(self):
         import seaborn as sns
-        kwds = {}
-        for i in self.opts:
-            kwds[i] = self.tkvars[i].get()
-        self.kwds = kwds
-        sns.set_style(self.kwds['style'])
-        if self.kwds['despine'] == 1:
-            sns.despine()
-        return
-
-    def seabornPlots(self):
-        """Seaborn is a nice plotting and regression package requiring
-           scipy, moss, patsy, statsmodels, husl"""
-
-        from scipy import stats
-        from numpy.random import randn
-        data = self.data
-        sns.set_color_palette("deep", desat=.6)
-        self.fig.clear()
-        self.ax = ax = self.fig.add_subplot(111)
-        sns.corrplot(data, ax=ax)
-        self.canvas.draw()
+        sns.set_style("ticks", {'axes.facecolor': '#F7F7F7','legend.frameon': True})
+        sns.set_context("paper", rc={'legend.fontsize':18,'xtick.labelsize':14,
+                        'ytick.labelsize':16,'axes.labelsize':20,'axes.titlesize':20})
         return

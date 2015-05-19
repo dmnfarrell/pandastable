@@ -2312,16 +2312,12 @@ class RowHeader(Canvas):
             else:
                 text = row+1
             x1,y1,x2,y2 = self.table.getCellCoords(row,0)
-            self.create_rectangle(0,y1,w-1,y2,
-                                      fill='gray75',
-                                      outline='white',
-                                      width=1,
-                                      tag='rowheader')
-            self.create_text(x,y1+h/2,
-                                      text=text,
-                                      fill='black',
-                                      font=self.table.thefont,
-                                      tag='text', anchor=align)
+            self.create_rectangle(0,y1,w-1,y2, fill='gray75',
+                                    outline='white', width=1,
+                                    tag='rowheader')
+            self.create_text(x,y1+h/2, text=text,
+                              fill='black', font=self.table.thefont,
+                              tag='text', anchor=align)
         return
 
     def setWidth(self, w):

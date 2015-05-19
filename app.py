@@ -339,11 +339,13 @@ class ViewerApp(Frame):
     def online_documentation(self,event=None):
         """Open the online documentation"""
         import webbrowser
-        link='http://sourceforge.net/projects/pandastable/'
+        link='https://github.com/dmnfarrell/pandastable/wiki'
         webbrowser.open(link,autoraise=1)
         return
 
     def quit(self):
+        #import pylab as plt
+        #plt.close()
         self.main.destroy()
         return
 
