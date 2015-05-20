@@ -345,6 +345,14 @@ class Table(Canvas):
         self.drawText(row, col, text)
         return
 
+    def getScale(self):
+        try:
+            fontsize = self.thefont[1]
+        except:
+            fontsize = self.fontsize
+        scale = 8.5 * float(fontsize)/9
+        return scale
+
     def adjustColumnWidths(self):
         """Optimally adjust col widths to accomodate the longest entry
             in each column - usually only called  on first redraw"""
@@ -353,12 +361,11 @@ class Table(Canvas):
         #print (obj)
         #x1, y1, x2, y2 = self.bbox(obj)
         #self.find_overlapping(x1, y1, x2, y2)
-
         try:
             fontsize = self.thefont[1]
         except:
             fontsize = self.fontsize
-        scale = 8.5 * float(fontsize)/9
+        scale = self.getScale()
         for col in range(self.cols):
             colname = self.model.getColumnName(col)
             if colname in self.model.columnwidths:
@@ -401,12 +408,15 @@ class Table(Canvas):
         self.tablewidth = self.col_positions[len(self.col_positions)-1]
         return
 
-    def sortTable(self, columnIndex=0, columnName=None, ascending=1):
+    def sortTable(self, columnIndex=0, columnName=None, ascending=1, index=False):
         """Set up sort order dict based on currently selected field"""
 
         df = self.model.df
-        colname = df.columns[columnIndex]
-        df.sort(colname, inplace=True, ascending=ascending)
+        if index == True:
+            df.sort_index(inplace=True)
+        else:
+            colname = df.columns[columnIndex]
+            df.sort(colname, inplace=True, ascending=ascending)
         self.redraw()
         return
 
@@ -2274,7 +2284,6 @@ class RowHeader(Canvas):
 
     def __init__(self, parent=None, table=None, width=40):
         Canvas.__init__(self, parent, bg='gray75', width=width, height=None)
-
         if table != None:
             self.table = table
             self.width = width
@@ -2293,7 +2302,7 @@ class RowHeader(Canvas):
             #self.bind('<Shift-Button-1>', self.handle_left_shift_click)
         return
 
-    def redraw(self, align='center', showkeys=False):
+    def redraw(self, align='w', showkeys=False):
         """Redraw row header"""
 
         self.height = self.table.rowheight * self.table.rows+10
@@ -2301,34 +2310,39 @@ class RowHeader(Canvas):
         self.delete('rowheader','text')
         self.delete('rect')
 
-        #if self.showindex == True:
         v=self.table.visiblerows
-        ind = self.model.df.index[v]
-        dtype = ind.dtype
-        print (ind)
-        longest = ind.astype('str').str.len().max()
-        print (longest)
-        rows = ind.astype('str')
-
-        w = float(self.width)
+        if self.showindex == True:
+            ind = self.model.df.index[v]
+            dtype = ind.dtype
+            #print (ind)
+            rows = ind.astype('object').astype('str')
+            l = rows.str.len().max()
+            scale = self.table.getScale()
+            self.width = l * scale # + float(self.table.fontsize)/12*6
+            w = float(self.width)
+        else:
+            rows = v
+            rows = [i+1 for i in rows]
+            w = self.width = 40
         h = self.table.rowheight
         x = self.x_start+w/2
         if align == 'w':
             x = x-w/2+3
         elif align == 'e':
             x = x+w/2-3
-        #for row in self.table.visiblerows:
+
+        self.config(width=self.width)
+        r=v[0]
         for row in rows:
-            #if showkeys == True:
-                #text = self.model.getRecName(row)
             text = row
-            x1,y1,x2,y2 = self.table.getCellCoords(row,0)
+            x1,y1,x2,y2 = self.table.getCellCoords(r,0)
             self.create_rectangle(0,y1,w-1,y2, fill=self.color,
                                     outline='white', width=1,
                                     tag='rowheader')
             self.create_text(x,y1+h/2, text=text,
                               fill='black', font=self.table.thefont,
                               tag='text', anchor=align)
+            r+=1
         return
 
     def setWidth(self, w):
@@ -2417,44 +2431,37 @@ class RowHeader(Canvas):
         """Copy index"""
         return
 
+    def resetIndex(self):
+        df = self.table.model.df
+        if 'index' in df.index:
+            return
+        df.reset_index(drop=False,inplace=True)
+        self.table.redraw()
+        return
+
     def toggleIndex(self):
         if self.showindex == True:
-            pass
+            self.showindex = False
+        else:
+            self.showindex = True
+        self.redraw()
         return
 
     def popupMenu(self, event, rows=None, cols=None, outside=None):
         """Add left and right click behaviour for canvas, should not have to override
             this function, it will take its values from defined dicts in constructor"""
 
-        defaultactions = {
-                        "Toggle index" : self.toggleIndex(),
-                        "Copy index" : lambda: self.copy(rows, cols),
-                        "Select All" : self.table.select_All,
-                        #"Filter Records" : self.showFilteringBar,
-                        }
+        defaultactions = {"Sort by index" : lambda: self.table.sortTable(index=True),
+                         "Reset index" : lambda: self.resetIndex(),
+                         "Toggle index" : lambda: self.toggleIndex(),
+                         "Copy index" : lambda: self.copy(rows, cols),
+                         "Select All" : self.table.select_All}
+        main = ["Sort by index","Reset index","Toggle index","Copy index","Select All"]
 
-        main = ["Toggle index", "Copy index", "Select All"]
-
-        def createSubMenu(parent, label, commands):
-            menu = Menu(parent, tearoff = 0)
-            popupmenu.add_cascade(label=label,menu=menu)
-            for action in commands:
-                menu.add_command(label=action, command=defaultactions[action])
-            return menu
-
+        #row = self.get_row_clicked(event)
         popupmenu = Menu(self, tearoff = 0)
         def popupFocusOut(event):
             popupmenu.unpost()
-
-        if outside == None:
-            #if outside table, just show general items
-            row = self.get_row_clicked(event)
-            def add_defaultcommands():
-                for action in main:
-                    popupmenu.add_command(label=action, command=defaultactions[action])
-                return
-            add_defaultcommands()
-
         for action in main:
             popupmenu.add_command(label=action, command=defaultactions[action])
 
