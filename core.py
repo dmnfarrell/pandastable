@@ -2280,6 +2280,7 @@ class RowHeader(Canvas):
             self.width = width
             self.x_start = 0
             self.inset = 1
+            self.color = '#C8C8C8'
             self.showindex = False
             self.config(height = self.table.height)
             self.startrow = self.endrow = None
@@ -2299,6 +2300,16 @@ class RowHeader(Canvas):
         self.configure(scrollregion=(0,0, self.width, self.height))
         self.delete('rowheader','text')
         self.delete('rect')
+
+        #if self.showindex == True:
+        v=self.table.visiblerows
+        ind = self.model.df.index[v]
+        dtype = ind.dtype
+        print (ind)
+        longest = ind.astype('str').str.len().max()
+        print (longest)
+        rows = ind.astype('str')
+
         w = float(self.width)
         h = self.table.rowheight
         x = self.x_start+w/2
@@ -2306,13 +2317,13 @@ class RowHeader(Canvas):
             x = x-w/2+3
         elif align == 'e':
             x = x+w/2-3
-        for row in self.table.visiblerows:
-            if showkeys == True:
-                text = self.model.getRecName(row)
-            else:
-                text = row+1
+        #for row in self.table.visiblerows:
+        for row in rows:
+            #if showkeys == True:
+                #text = self.model.getRecName(row)
+            text = row
             x1,y1,x2,y2 = self.table.getCellCoords(row,0)
-            self.create_rectangle(0,y1,w-1,y2, fill='gray75',
+            self.create_rectangle(0,y1,w-1,y2, fill=self.color,
                                     outline='white', width=1,
                                     tag='rowheader')
             self.create_text(x,y1+h/2, text=text,
