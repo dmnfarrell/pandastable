@@ -95,7 +95,6 @@ class Table(Canvas):
         self.columnactions = {'text' : {"Edit":  'drawCellEntry' },
                               'number' : {"Edit": 'drawCellEntry' }}
         self.setFontSize()
-        #self.mplopts = MPLoptions()
         return
 
     def set_defaults(self):
@@ -844,9 +843,9 @@ class Table(Canvas):
 
     def handle_left_click(self, event):
         """Respond to a single press"""
-        #which row and column is the click inside?
         self.clearSelected()
         self.allrows = False
+        #which row and column is the click inside?
         rowclicked = self.get_row_clicked(event)
         colclicked = self.get_col_clicked(event)
         self.focus_set()
@@ -1132,7 +1131,7 @@ class Table(Canvas):
                         "Clear Data" : lambda: self.deleteCells(rows, cols),
                         "Select All" : self.select_All,
                         "Auto Fit Columns" : self.autoResizeColumns,
-                        "Filter Records" : self.showFilteringBar,
+                        #"Filter Records" : self.showFilteringBar,
                         "New": self.new,
                         "Load": self.load,
                         "Save": self.save,
@@ -1143,7 +1142,7 @@ class Table(Canvas):
 
         main = ["Copy", "Paste", "Fill Down","Fill Right",
                 "Clear Data", "Add Row(s)" , "Delete Row(s)"]
-        general = ["Select All", "Auto Fit Columns", "Filter Records", "Preferences"]
+        general = ["Select All", "Auto Fit Columns", "Preferences"]
 
         filecommands = ['New','Load','Import Text','Save','Save as']
         plotcommands = ['Plot Selected']
@@ -2268,8 +2267,8 @@ class ColumnHeader(Canvas):
         return
 
 class RowHeader(Canvas):
-    """Class that displays the row headings on the table
-       takes it's size and rendering from the parent table
+    """Class that displays the row headings (or DataFrame index).
+       Takes it's size and rendering from the parent table.
        This also handles row/record selection as opposed to cell
        selection"""
 
@@ -2281,6 +2280,7 @@ class RowHeader(Canvas):
             self.width = width
             self.x_start = 0
             self.inset = 1
+            self.showindex = False
             self.config(height = self.table.height)
             self.startrow = self.endrow = None
             self.model = self.table.getModel()
@@ -2327,11 +2327,12 @@ class RowHeader(Canvas):
         return
 
     def clearSelected(self):
+        """Clear selected rows"""
         self.delete('rect')
         return
 
     def handle_left_click(self, event):
-
+        """Handle left click"""
         rowclicked = self.table.get_row_clicked(event)
         self.startrow = rowclicked
         if 0 <= rowclicked < self.table.rows:
@@ -2345,7 +2346,6 @@ class RowHeader(Canvas):
         return
 
     def handle_left_release(self,event):
-
         return
 
     def handle_left_ctrl_click(self, event):
@@ -2362,8 +2362,15 @@ class RowHeader(Canvas):
             self.drawSelectedRows(multirowlist)
         return
 
-    def handle_right_click(self,event):
+    def handle_right_click(self, event):
+        """respond to a right click"""
 
+        self.delete('tooltip')
+        #self.tablerowheader.clearSelected()
+        if hasattr(self, 'rightmenu'):
+            self.rightmenu.destroy()
+        #rowclicked = self.get_row_clicked(event)
+        self.rightmenu = self.popupMenu(event, outside=1)
         return
 
     def handle_mouse_drag(self, event):
@@ -2395,6 +2402,56 @@ class RowHeader(Canvas):
             self.table.drawMultipleRows(self.table.multiplerowlist)
         return
 
+    def copy(self):
+        """Copy index"""
+        return
+
+    def toggleIndex(self):
+        if self.showindex == True:
+            pass
+        return
+
+    def popupMenu(self, event, rows=None, cols=None, outside=None):
+        """Add left and right click behaviour for canvas, should not have to override
+            this function, it will take its values from defined dicts in constructor"""
+
+        defaultactions = {
+                        "Toggle index" : self.toggleIndex(),
+                        "Copy index" : lambda: self.copy(rows, cols),
+                        "Select All" : self.table.select_All,
+                        #"Filter Records" : self.showFilteringBar,
+                        }
+
+        main = ["Toggle index", "Copy index", "Select All"]
+
+        def createSubMenu(parent, label, commands):
+            menu = Menu(parent, tearoff = 0)
+            popupmenu.add_cascade(label=label,menu=menu)
+            for action in commands:
+                menu.add_command(label=action, command=defaultactions[action])
+            return menu
+
+        popupmenu = Menu(self, tearoff = 0)
+        def popupFocusOut(event):
+            popupmenu.unpost()
+
+        if outside == None:
+            #if outside table, just show general items
+            row = self.get_row_clicked(event)
+            def add_defaultcommands():
+                for action in main:
+                    popupmenu.add_command(label=action, command=defaultactions[action])
+                return
+            add_defaultcommands()
+
+        for action in main:
+            popupmenu.add_command(label=action, command=defaultactions[action])
+
+        popupmenu.bind("<FocusOut>", popupFocusOut)
+        popupmenu.focus_set()
+        popupmenu.post(event.x_root, event.y_root)
+        return popupmenu
+
     def drawSelectedRows(self, rows=None):
         """Draw selected rows, accepts a list or integer"""
 
@@ -2412,6 +2469,7 @@ class RowHeader(Canvas):
 
     def drawRect(self, row=None, tag=None, color=None, outline=None, delete=1):
         """Draw a rect representing row selection"""
+
         if tag==None:
             tag='rect'
         if color==None:
@@ -2430,6 +2488,7 @@ class RowHeader(Canvas):
                                       tag=tag)
         self.lift('text')
         return
+
 
 class AutoScrollbar(Scrollbar):
     """a scrollbar that hides itself if it's not needed.  only

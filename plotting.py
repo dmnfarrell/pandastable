@@ -99,6 +99,8 @@ class PlotViewer(Frame):
         """Add the tk figure canvas"""
         from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
         from matplotlib.figure import Figure
+        #if hasattr(self,'canvas'):
+        #    self.canvas._tkcanvas.destroy()
         self.fig = f = Figure(figsize=(5,4), dpi=100)
         a = f.add_subplot(111)
         canvas = FigureCanvasTkAgg(f, master=parent)
@@ -111,9 +113,18 @@ class PlotViewer(Frame):
         self.canvas = canvas
         return
 
+    def setFigure(self):
+        from matplotlib.figure import Figure
+        self.fig = f = Figure(figsize=(5,4), dpi=100)
+        self.ax = f.add_subplot(111)
+        self.canvas.figure = f
+        f.canvas = self.canvas
+        return
+
     def plotCurrent(self):
         """Plot current data"""
         if self.mode == 0:
+            #self.setFigure()
             self.plot2D()
         elif self.mode == 1:
             self.factorplotter.data = self.data
@@ -184,8 +195,6 @@ class PlotViewer(Frame):
         self.ax.set_ylabel(kwds['ylabel'])
         self.ax.xaxis.set_visible(kwds['showxlabels'])
         self.ax.yaxis.set_visible(kwds['showylabels'])
-        #if kwds['subplots']==1:
-            #self.fig.tight_layout()
         self.canvas.draw()
         return
 
@@ -302,8 +311,9 @@ class PlotViewer(Frame):
         print (g.fig)
         #rotateLabels(g)
         self.fig.clear()
+        self.figure.canvas = self.canvas
         self.canvas.figure = g.fig
-        self.canvas.resize_event()
+        self.canvas._tkcanvas.config('state')
         self.canvas.draw()
 
         return
@@ -487,7 +497,7 @@ class FactorPlotter(object):
     def __init__(self, data=None):
         """Setup variables"""
         self.data=data
-        self.setDefaultStyle()
+        #self.setDefaultStyle()
         self.groups = grps = {'formats':['style','despine','palette'],
                 'factors':['kind','hue','x']}
         styles = ['darkgrid', 'whitegrid', 'dark', 'white', 'ticks']
