@@ -145,11 +145,13 @@ class PlotViewer(Frame):
                            'sharey', 'use_index', 'kind'],
                     'scatter': ['alpha', 'grid', 'linewidth', 'marker', 's', 'legend', 'colormap'],
                     'hexbin': ['alpha', 'colormap', 'grid', 'linewidth'],
+                    'bootstrap': ['grid'],
                     'bar': ['alpha', 'colormap', 'grid', 'legend', 'linewidth', 'subplots',
                             'sharey', 'stacked', 'rot', 'kind'],
                     'barh': ['alpha', 'colormap', 'grid', 'legend', 'linewidth', 'subplots',
                             'stacked', 'rot', 'kind'],
-                    'histogram': ['alpha', 'linewidth', 'grid'],
+                    'histogram': ['alpha', 'linewidth','grid','stacked','subplots','colormap',
+                             'sharey','rot'],
                     'heatmap': ['colormap','rot'],
                     'density': ['alpha', 'colormap', 'grid', 'legend', 'linestyle',
                                  'linewidth', 'marker', 'subplots', 'rot', 'kind'],
@@ -157,6 +159,7 @@ class PlotViewer(Frame):
                     'scatter_matrix':['alpha', 'linewidth', 'marker', 'grid', 's'],
                     }
 
+        from pandas.tools import plotting
         data = self.data
         kwds = self.mplopts.kwds
         kind = kwds['kind']
@@ -180,9 +183,13 @@ class PlotViewer(Frame):
         elif kind == 'boxplot':
             axs = data.boxplot(ax=ax)
         elif kind == 'histogram':
-            axs = data.hist(ax=ax, **kwdargs)
+            bins = int(kwds['bins'])
+            axs = data.plot(kind='hist', bins=bins,layout=layout, ax=ax, **kwdargs)
         elif kind == 'heatmap':
             axs = self.heatmap(data, ax, kwdargs)
+        elif kind == 'bootstrap':
+            axs = plotting.bootstrap_plot(data)
+            print (axs)
         elif kind == 'pie':
             ax.pie(data)
         elif kind == 'scatter_matrix':
@@ -195,7 +202,11 @@ class PlotViewer(Frame):
         else:
             axs = data.plot(ax=ax, layout=layout, **kwdargs)
         if type(axs) is np.ndarray:
-            self.ax = axs[0,0]
+            self.ax = axs.flat[0]
+            try:
+                self.fig.tight_layout()
+            except:
+                print ('tight_layout failed')
         self.fig.suptitle(kwds['title'])
         self.ax.set_xlabel(kwds['xlabel'])
         self.ax.set_ylabel(kwds['ylabel'])
@@ -389,7 +400,8 @@ class MPLBaseOptions(object):
         """Setup variables"""
 
         fonts = self.getFonts()
-        grps = {'styles':['font','colormap','alpha','grid'],
+        grps = {'data':['bins'],
+                'styles':['font','colormap','alpha','grid'],
                 'sizes':['fontsize','s','linewidth'],
                 'formats':['kind','marker','linestyle','stacked','subplots'],
                 'axes':['showxlabels','showylabels','use_index','sharey','logx','logy','rot'],
@@ -414,11 +426,12 @@ class MPLBaseOptions(object):
                 'stacked':{'type':'checkbutton','default':0,'label':'stacked bar'},
                 'linewidth':{'type':'scale','default':1,'range':(0,5),'interval':0.5,'label':'line width'},
                 'alpha':{'type':'scale','default':0.7,'range':(0,1),'interval':0.1,'label':'alpha'},
-                'title':{'type':'entry','default':'','width':25},
-                'xlabel':{'type':'entry','default':'','width':25},
-                'ylabel':{'type':'entry','default':'','width':25},
+                'title':{'type':'entry','default':'','width':20},
+                'xlabel':{'type':'entry','default':'','width':20},
+                'ylabel':{'type':'entry','default':'','width':20},
                 'subplots':{'type':'checkbutton','default':0,'label':'multiple subplots'},
-                'colormap':{'type':'combobox','default':'jet','items':colormaps}
+                'colormap':{'type':'combobox','default':'jet','items':colormaps},
+                'bins':{'type':'entry','default':10,'width':10},
                 }
         return
 

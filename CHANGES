@@ -3,6 +3,17 @@ CHANGES
 =======
 
 ------
+0.2.0
+------
+
+Added dataframe index display in row header
+Ability to reset index
+Added hexbin plot
+Added iris.data for tests
+Fixes for subplots layout
+Improved histogram plots
+
+------
 0.0.1
 ------
 
