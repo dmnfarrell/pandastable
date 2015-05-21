@@ -6,7 +6,7 @@ setup(
     name = 'pandastable',
     version = '0.2.0',
     description = 'Tkinter widget for pandas dataframes',
-    url='http://code.google.com/p/pandastable/',
+    url='https://github.com/dmnfarrell/pandastable',
     license='GPL v3',
     author = 'Damien Farrell',
     author_email = 'farrell.damien[at]gmail.com',
