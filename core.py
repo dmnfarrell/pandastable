@@ -309,13 +309,6 @@ class Table(Canvas):
         self.delete('fillrect')
         bgcolor = self.cellbackgr
         df = self.model.df
-        '''vdf = df.iloc[self.visiblerows,self.visiblecols]
-        r=0
-        for idx,row in vdf.iterrows():
-            for c,val in enumerate(row):
-                print (c)
-                self.drawText(r, c, val, align)
-            r+=1'''
         for row in self.visiblerows:
             cols = df.iloc[row,:].fillna('')
             for col in self.visiblecols:
@@ -428,7 +421,9 @@ class Table(Canvas):
 
     def setindex(self, colindex):
         self.model.setindex(colindex)
+        self.setSelectedCol(0)
         self.redraw()
+        self.drawSelectedCol()
         return
 
     def set_xviews(self,*args):
@@ -858,6 +853,8 @@ class Table(Canvas):
         #which row and column is the click inside?
         rowclicked = self.get_row_clicked(event)
         colclicked = self.get_col_clicked(event)
+        if colclicked == None:
+            return
         self.focus_set()
 
         if hasattr(self, 'cellentry'):
@@ -906,7 +903,6 @@ class Table(Canvas):
 
     def handle_left_shift_click(self, event):
         """Handle shift click, for selecting multiple rows"""
-        #Has same effect as mouse drag, so just use same method
         self.handle_mouse_drag(event)
         return
 
@@ -2318,7 +2314,7 @@ class RowHeader(Canvas):
             rows = ind.astype('object').astype('str')
             l = rows.str.len().max()
             scale = self.table.getScale()
-            self.width = l * scale # + float(self.table.fontsize)/12*6
+            self.width = l * scale + 6
             w = float(self.width)
         else:
             rows = v

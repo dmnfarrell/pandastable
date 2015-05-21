@@ -97,7 +97,7 @@ class TableModel(object):
         """Get the longest cell entry in the col"""
         df = self.df
         col = df.columns[colindex]
-        longest = df[col].astype('str').str.len().max()
+        longest = df[col].astype('object').astype('str').str.len().max()
         if np.isnan(longest):
             return 1
         return longest
@@ -165,8 +165,11 @@ class TableModel(object):
         return
 
     def setindex(self, colindex):
+        """Index setting behaviour"""
         df = self.df
         colnames = df.columns[colindex]
+        if df.index.name != None:
+            df.reset_index(inplace=True)
         df.set_index(colnames, inplace=True)
         return
 
