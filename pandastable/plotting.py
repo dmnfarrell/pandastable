@@ -31,7 +31,7 @@ from mpl_toolkits.mplot3d import Axes3D
 #import matplotlib.animation as animation
 from collections import OrderedDict
 import operator
-from pandastable.dialogs import *
+from dialogs import *
 
 colormaps = sorted(m for m in plt.cm.datad if not m.endswith("_r"))
 

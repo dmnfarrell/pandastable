@@ -29,12 +29,12 @@ import string, copy
 import platform
 import pylab as plt
 import pandas as pd
-from pandastable.data import TableModel
-from pandastable.plotting import MPLBaseOptions, PlotViewer
-from pandastable.prefs import Preferences
-from pandastable.io import ImportDialog
-from pandastable import images
-from pandastable.dialogs import *
+from data import TableModel
+from plotting import MPLBaseOptions, PlotViewer
+from prefs import Preferences
+from dialogs import ImportDialog
+import images
+from dialogs import *
 
 class Table(Canvas):
     """A tkinter class for providing table functionality"""

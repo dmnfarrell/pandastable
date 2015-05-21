@@ -28,10 +28,10 @@ matplotlib.use('TkAgg')
 import pandas as pd
 import re, os, platform
 import time
-from pandastable.core import Table
-from pandastable.data import TableModel
-from pandastable.prefs import Preferences
-import pandastable.images as images
+from core import Table
+from data import TableModel
+from prefs import Preferences
+import images as images
 
 class ViewerApp(Frame):
     """pandastable viewer app"""
