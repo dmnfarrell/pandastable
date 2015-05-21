@@ -426,6 +426,17 @@ class Table(Canvas):
         self.drawSelectedCol()
         return
 
+    def resetIndex(self):
+        df = self.model.df
+        if df.index.name == None:
+            drop = True
+        else:
+            drop = False
+        df.reset_index(drop=drop,inplace=True)
+        self.redraw()
+        self.drawSelectedCol()
+        return
+
     def set_xviews(self,*args):
         """Set the xview of table and col header"""
 
@@ -2314,12 +2325,15 @@ class RowHeader(Canvas):
             rows = ind.astype('object').astype('str')
             l = rows.str.len().max()
             scale = self.table.getScale()
-            self.width = l * scale + 6
-            w = float(self.width)
+            w = l * scale + 6
         else:
             rows = v
             rows = [i+1 for i in rows]
-            w = self.width = 40
+            w = 40
+
+        if self.width != w:
+            self.config(width=w)
+            self.width = w
         h = self.table.rowheight
         x = self.x_start+w/2
         if align == 'w':
@@ -2327,7 +2341,6 @@ class RowHeader(Canvas):
         elif align == 'e':
             x = x+w/2-3
 
-        self.config(width=self.width)
         r=v[0]
         for row in rows:
             text = row
@@ -2427,14 +2440,6 @@ class RowHeader(Canvas):
         """Copy index"""
         return
 
-    def resetIndex(self):
-        df = self.table.model.df
-        if 'index' in df.index:
-            return
-        df.reset_index(drop=False,inplace=True)
-        self.table.redraw()
-        return
-
     def toggleIndex(self):
         if self.showindex == True:
             self.showindex = False
@@ -2448,11 +2453,11 @@ class RowHeader(Canvas):
             this function, it will take its values from defined dicts in constructor"""
 
         defaultactions = {"Sort by index" : lambda: self.table.sortTable(index=True),
-                         "Reset index" : lambda: self.resetIndex(),
+                         "Reset index" : lambda: self.table.resetIndex(),
                          "Toggle index" : lambda: self.toggleIndex(),
                          "Copy index" : lambda: self.copy(rows, cols),
                          "Select All" : self.table.select_All}
-        main = ["Sort by index","Reset index","Toggle index","Copy index","Select All"]
+        main = ["Sort by index","Reset index","Toggle index","Copy index"]
 
         #row = self.get_row_clicked(event)
         popupmenu = Menu(self, tearoff = 0)

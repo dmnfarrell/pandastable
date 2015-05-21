@@ -4,8 +4,8 @@ home=os.path.expanduser('~')
 
 setup(
     name = 'pandastable',
-    version = '0.0.2',
-    description = 'Tkinter frontend for pandas dataframes',
+    version = '0.2.0',
+    description = 'Tkinter widget for pandas dataframes',
     url='http://code.google.com/p/pandastable/',
     license='GPL v3',
     author = 'Damien Farrell',
@@ -13,7 +13,7 @@ setup(
     packages = ['pandastable'],
 	install_requires=['numpy>=1.5',
                       'matplotlib>=1.1',
-                      'pandas>=0.13',
+                      'pandas>=0.16',
 		      'xlrd>=0.9'],
     entry_points = { 'gui_scripts': [
                      'dataframeviewer = pandastable.app:main']},

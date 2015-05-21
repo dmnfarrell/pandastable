@@ -70,9 +70,9 @@ class PlotViewer(Frame):
         self.mplopts = MPLBaseOptions()
         w1 = self.mplopts.showDialog(self.nb)
         self.nb.add(w1, text='base plot options', sticky='news')
-        self.factorplotter = FactorPlotter()
-        w3 = self.factorplotter.showDialog(self.nb)
-        self.nb.add(w3, text='factor plots', sticky='news')
+        #self.factorplotter = FactorPlotter()
+        #w3 = self.factorplotter.showDialog(self.nb)
+        #self.nb.add(w3, text='factor plots', sticky='news')
         self.mplopts3d = MPL3DOptions()
         w2 = self.mplopts3d.showDialog(self.nb)
         self.nb.add(w2, text='3D plot', sticky='news')
@@ -88,9 +88,9 @@ class PlotViewer(Frame):
         """Apply the current plotter/options"""
         if self.mode == 0:
             self.mplopts.applyOptions()
+        #elif self.mode == 1:
+        #    self.factorplotter.applyOptions()
         elif self.mode == 1:
-            self.factorplotter.applyOptions()
-        elif self.mode == 2:
             self.mplopts3d.applyOptions()
         self.plotCurrent()
         return
@@ -126,10 +126,10 @@ class PlotViewer(Frame):
         if self.mode == 0:
             #self.setFigure()
             self.plot2D()
+        #elif self.mode == 1:
+        #    self.factorplotter.data = self.data
+        #    self.factorPlot()
         elif self.mode == 1:
-            self.factorplotter.data = self.data
-            self.factorPlot()
-        elif self.mode == 2:
             self.plot3D()
         return
 
@@ -144,6 +144,7 @@ class PlotViewer(Frame):
                           'linewidth', 'marker', 'subplots', 'rot', 'logx', 'logy',
                            'sharey', 'use_index', 'kind'],
                     'scatter': ['alpha', 'grid', 'linewidth', 'marker', 's', 'legend', 'colormap'],
+                    'hexbin': ['alpha', 'colormap', 'grid', 'linewidth'],
                     'bar': ['alpha', 'colormap', 'grid', 'legend', 'linewidth', 'subplots',
                             'sharey', 'stacked', 'rot', 'kind'],
                     'barh': ['alpha', 'colormap', 'grid', 'legend', 'linewidth', 'subplots',
@@ -186,6 +187,11 @@ class PlotViewer(Frame):
             ax.pie(data)
         elif kind == 'scatter_matrix':
             axs = pd.scatter_matrix(data, ax=ax, **kwdargs)
+        elif kind == 'hexbin':
+            cols = data.columns
+            x = cols[0]
+            y = cols[1]
+            axs = data.plot(x,y,ax=ax,kind='hexbin',gridsize=20,**kwdargs)
         else:
             axs = data.plot(ax=ax, layout=layout, **kwdargs)
         if type(axs) is np.ndarray:
@@ -249,6 +255,9 @@ class PlotViewer(Frame):
         elif kwds['kind'] == 'contour':
             X = data.values
             ax.contour(X[:,0], X[:,1], X[:,2])
+        self.fig.suptitle(kwds['title'])
+        self.ax.set_xlabel(kwds['xlabel'])
+        self.ax.set_ylabel(kwds['ylabel'])
         self.canvas.draw()
         return
 
@@ -374,7 +383,7 @@ class MPLBaseOptions(object):
     markers = ['','o','.','^','v','>','<','s','+','x','p','d','h','*']
     linestyles = ['-','--','-.',':','steps']
     kinds = ['line', 'scatter', 'bar', 'barh', 'boxplot', 'histogram',
-             'heatmap', 'scatter_matrix', 'density']
+             'heatmap', 'hexbin', 'scatter_matrix', 'density']
 
     def __init__(self):
         """Setup variables"""
@@ -385,7 +394,7 @@ class MPLBaseOptions(object):
                 'formats':['kind','marker','linestyle','stacked','subplots'],
                 'axes':['showxlabels','showylabels','use_index','sharey','logx','logy','rot'],
                 'labels':['title','xlabel','ylabel','legend']}
-        order = ['formats','sizes','axes','styles','labels']
+        order = ['data','formats','sizes','axes','styles','labels']
         self.groups = OrderedDict(sorted(grps.items()))
         opts = self.opts = {'font':{'type':'combobox','default':'Arial','items':fonts},
                 'fontsize':{'type':'scale','default':12,'range':(5,40),'interval':1,'label':'font size'},
@@ -455,13 +464,15 @@ class MPL3DOptions(object):
 
         fonts = self.getFonts()
         self.groups = grps = {'styles':['font','fontsize','colormap','alpha'],
-                            'formats':['kind','subplots','title']}
+                            'formats':['kind','subplots','title','xlabel','ylabel']}
 
         opts = self.opts = {'font':{'type':'combobox','default':'Arial','items':fonts},
                 'fontsize':{'type':'scale','default':12,'range':(5,40),'interval':1,'label':'font size'},
                 'kind':{'type':'combobox','default':'scatter','items':self.kinds,'label':'kind'},
                 'alpha':{'type':'scale','default':0.7,'range':(0,1),'interval':0.1,'label':'alpha'},
                 'title':{'type':'entry','default':'','width':25},
+                'xlabel':{'type':'entry','default':'','width':25},
+                'ylabel':{'type':'entry','default':'','width':25},
                 'subplots':{'type':'checkbutton','default':0,'label':'multiple subplots'},
                 'colormap':{'type':'combobox','default':'jet','items': colormaps}
                  }
