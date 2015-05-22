@@ -448,8 +448,8 @@ a:hover {
 }
 
 header {
-  padding-top: 40px;
-  padding-bottom: 40px;
+  padding-top: 15px;
+  padding-bottom: 15px;
   font-family: 'Architects Daughter', 'Helvetica Neue', Helvetica, Arial, serif;
   background: #2e7bcf url(../images/header-bg.jpg) 0 0 repeat-x;
   border-bottom: solid 1px #275da1;
@@ -515,7 +515,16 @@ aside#sidebar p.repo-owner a {
 #downloads {
   margin-bottom: 40px;
 }
-
+a.logo {
+  width: 254px;
+  height: 160px;
+  padding-top: 22px;
+  padding-left: 68px;
+  font-family: 'Architects Daughter', 'Helvetica Neue', Helvetica, Arial, serif;
+  font-size: 23px;
+  line-height: 1.2;
+  color: #fff;
+}
 a.button {
   width: 134px;
   height: 58px;
@@ -535,6 +544,12 @@ header a.button {
   top: 0;
   right: 0;
   background: transparent url(../images/github-button.png) 0 0 no-repeat;
+}
+header a.logo {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: transparent url(../images/window.png) 0 0 no-repeat;
 }
 aside a.button {
   display: block;
