@@ -76,7 +76,7 @@ class PlotViewer(Frame):
         self.mplopts3d = MPL3DOptions()
         w2 = self.mplopts3d.showDialog(self.nb)
         self.nb.add(w2, text='3D plot', sticky='news')
-        self.table.add_callback()
+        #self.table.add_callback()
         return
 
     def setMode(self, evt=None):
@@ -155,6 +155,7 @@ class PlotViewer(Frame):
                     'histogram': ['alpha', 'linewidth','grid','stacked','subplots','colormap',
                              'sharey','rot'],
                     'heatmap': ['colormap','rot'],
+                    'area': ['alpha','colormap','grid','linewidth','legend','stacked','kind'],
                     'density': ['alpha', 'colormap', 'grid', 'legend', 'linestyle',
                                  'linewidth', 'marker', 'subplots', 'rot', 'kind'],
                     'boxplot': ['alpha', 'linewidth', 'rot', 'grid'],
@@ -396,7 +397,7 @@ class MPLBaseOptions(object):
     markers = ['','o','.','^','v','>','<','s','+','x','p','d','h','*']
     linestyles = ['-','--','-.',':','steps']
     kinds = ['line', 'scatter', 'bar', 'barh', 'boxplot', 'histogram',
-             'heatmap', 'hexbin', 'scatter_matrix', 'density']
+             'heatmap', 'area', 'hexbin', 'scatter_matrix', 'density']
 
     def __init__(self, parent=None):
         """Setup variables"""

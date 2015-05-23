@@ -165,7 +165,7 @@ def dialogFromOptions(parent, opts, groups=None, callback=None):
                 tkvars[i] = v = StringVar()
                 v.set(opts[i]['default'])
                 w = Combobox(frame, values=opt['items'],
-                         textvariable=v,width=15,
+                         textvariable=v,width=14,
                          validatecommand=callback,validate='key')
                 w.set(opt['default'])
                 if 'tooltip' in opt:
