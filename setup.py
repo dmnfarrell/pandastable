@@ -16,7 +16,7 @@ setup(
                       'pandas>=0.16',
 		      'xlrd>=0.9'],
     entry_points = { 'gui_scripts': [
-                     'dataframeviewer = pandastable.app:main']},
+                     'dataviewer = pandastable.app:main']},
     classifiers = ["Operating System :: OS Independent",
             "Programming Language :: Python :: 3",
             "Topic :: Software Development :: User Interfaces",

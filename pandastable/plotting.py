@@ -67,7 +67,7 @@ class PlotViewer(Frame):
         self.nb.bind('<<NotebookTabChanged>>', self.setMode)
         self.nb.pack(side=TOP,fill=BOTH)
 
-        self.mplopts = MPLBaseOptions()
+        self.mplopts = MPLBaseOptions(parent=self)
         w1 = self.mplopts.showDialog(self.nb)
         self.nb.add(w1, text='base plot options', sticky='news')
         #self.factorplotter = FactorPlotter()
@@ -396,11 +396,12 @@ class MPLBaseOptions(object):
     kinds = ['line', 'scatter', 'bar', 'barh', 'boxplot', 'histogram',
              'heatmap', 'hexbin', 'scatter_matrix', 'density']
 
-    def __init__(self):
+    def __init__(self, parent=None):
         """Setup variables"""
 
+        self.parent = parent
         fonts = self.getFonts()
-        grps = {'data':['bins'],
+        grps = {'data':['bins','by'],
                 'styles':['font','colormap','alpha','grid'],
                 'sizes':['fontsize','s','linewidth'],
                 'formats':['kind','marker','linestyle','stacked','subplots'],
@@ -432,6 +433,7 @@ class MPLBaseOptions(object):
                 'subplots':{'type':'checkbutton','default':0,'label':'multiple subplots'},
                 'colormap':{'type':'combobox','default':'jet','items':colormaps},
                 'bins':{'type':'entry','default':10,'width':10},
+                'by':{'type':'combobox','default':'','items':[]},
                 }
         return
 
@@ -466,6 +468,14 @@ class MPLBaseOptions(object):
         fonts = set(list(tkinter.font.families()))
         fonts = sorted(list(fonts))
         return fonts
+
+    def updateData(self):
+        """Update data columns widget"""
+        if hasattr(self.parent, 'data'):
+            df = self.parent.data
+            cols = df.columns
+            print (cols)
+        return
 
 class MPL3DOptions(object):
     """Class to provide 3D matplotlib options"""
