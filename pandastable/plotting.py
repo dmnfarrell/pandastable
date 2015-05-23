@@ -76,7 +76,7 @@ class PlotViewer(Frame):
         self.mplopts3d = MPL3DOptions()
         w2 = self.mplopts3d.showDialog(self.nb)
         self.nb.add(w2, text='3D plot', sticky='news')
-
+        self.table.add_callback()
         return
 
     def setMode(self, evt=None):
@@ -106,6 +106,8 @@ class PlotViewer(Frame):
         canvas = FigureCanvasTkAgg(f, master=parent)
         canvas.show()
         canvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=1)
+        canvas.get_tk_widget().configure(highlightcolor='gray75',
+                                       highlightbackground='gray75')
         toolbar = NavigationToolbar2TkAgg(canvas, parent)
         toolbar.update()
         canvas._tkcanvas.pack(side=TOP, fill=BOTH, expand=1)
