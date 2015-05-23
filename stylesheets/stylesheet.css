@@ -550,7 +550,7 @@ header a.logo {
   position: absolute;
   top: 0;
   right: 0;
-  background: transparent url(../images/window.png) 0 0 no-repeat;
+  background: transparent url(../images/logo.png) 0 0 no-repeat;
 }
 aside a.button {
   display: block;
