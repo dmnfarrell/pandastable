@@ -111,6 +111,3 @@ http://stanford.edu/~mwaskom/software/seaborn/
 
 http://jakevdp.github.io/blog/2013/03/23/matplotlib-and-the-future-of-visualization-in-python/
 
-## Screenshots
-
-<img src=https://raw.githubusercontent.com/dmnfarrell/pandastable/master/img/plotviewer.png width=600px>
