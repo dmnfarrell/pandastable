@@ -51,7 +51,7 @@ class TableModel(object):
         return
 
     @classmethod
-    def getSampleData(self, rows=200, cols=5):
+    def getSampleData(self, rows=400, cols=5):
         """Generate sample data"""
         colnames = list(string.ascii_lowercase[:cols])
         n = np.array([np.random.normal(i,.5,cols) for i in np.random.normal(2,1,rows)])

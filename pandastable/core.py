@@ -544,6 +544,7 @@ class Table(Canvas):
             self.setSelectedCol(0)
             self.redraw()
             self.drawSelectedCol()
+            self.pf.updateData()
         return
 
     def deleteCells(self, rows, cols):
@@ -1149,6 +1150,7 @@ class Table(Canvas):
         #replace or make new table
         if replace == True:
             self.model.df = g
+            self.showIndex()
             self.redraw()
         else:
             self.createChildTable(g, 'agg-%s-%s' %(grp,func), index=True)
@@ -1313,7 +1315,7 @@ class Table(Canvas):
 
     def showPlotViewer(self, parent=None):
         if not hasattr(self, 'pf'):
-            self.pf = PlotViewer(parent)
+            self.pf = PlotViewer(table=self, parent=parent)
         return self.pf
 
     def getSelectedDataFrame(self):
@@ -1340,7 +1342,7 @@ class Table(Canvas):
         """Plot the selected data in the associated plotviewer"""
 
         if not hasattr(self, 'pf'):
-            self.pf = PlotViewer()
+            self.pf = PlotViewer(table=self)
         else:
             if type(self.pf.main) is tkinter.Toplevel:
                 self.pf.main.deiconify()
@@ -1352,7 +1354,7 @@ class Table(Canvas):
     def plot3D(self):
 
         if not hasattr(self, 'pf'):
-            self.pf = PlotViewer()
+            self.pf = PlotViewer(table=self)
 
         data = self.getPlotData()
         self.pf.data = data

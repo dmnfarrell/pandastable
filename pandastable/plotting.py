@@ -38,9 +38,10 @@ colormaps = sorted(m for m in plt.cm.datad if not m.endswith("_r"))
 class PlotViewer(Frame):
     """Provides a frame for figure canvas and MPL settings"""
 
-    def __init__(self,parent=None):
+    def __init__(self,table,parent=None):
 
         self.parent=parent
+        self.table=table
         self.mode = 0
         if self.parent != None:
             Frame.__init__(self, parent)
@@ -144,12 +145,13 @@ class PlotViewer(Frame):
             return
         valid = {'line': ['alpha', 'colormap', 'grid', 'legend', 'linestyle',
                           'linewidth', 'marker', 'subplots', 'rot', 'logx', 'logy',
-                           'sharey', 'use_index', 'kind'],
+                           'sharey', 'use_index', 'kind', 'by'],
                     'scatter': ['alpha', 'grid', 'linewidth', 'marker', 's', 'legend', 'colormap'],
+                    'pie': ['colormap', 'legend', 'kind','subplots'],
                     'hexbin': ['alpha', 'colormap', 'grid', 'linewidth'],
                     'bootstrap': ['grid'],
                     'bar': ['alpha', 'colormap', 'grid', 'legend', 'linewidth', 'subplots',
-                            'sharey', 'stacked', 'rot', 'kind'],
+                            'sharey', 'stacked', 'rot', 'kind', 'by'],
                     'barh': ['alpha', 'colormap', 'grid', 'legend', 'linewidth', 'subplots',
                             'stacked', 'rot', 'kind'],
                     'histogram': ['alpha', 'linewidth','grid','stacked','subplots','colormap',
@@ -165,6 +167,7 @@ class PlotViewer(Frame):
 
         from pandas.tools import plotting
         data = self.data
+        cols = data.columns
         kwds = self.mplopts.kwds
         kind = kwds['kind']
         #valid kwd args for this plot type
@@ -172,6 +175,8 @@ class PlotViewer(Frame):
 
         if len(data.columns)==1:
             kwdargs['subplots'] = 0
+        if kind == 'pie':
+            kwdargs['subplots'] = True
         if kwds['subplots'] == 0:
             layout=None
         else:
@@ -182,6 +187,7 @@ class PlotViewer(Frame):
         if kind == 'bar':
             if len(data) > 50:
                 self.ax.get_xaxis().set_visible(False)
+
         if kind == 'scatter':
             axs = self.scatter(data, ax, kwdargs)
         elif kind == 'boxplot':
@@ -194,23 +200,17 @@ class PlotViewer(Frame):
         elif kind == 'bootstrap':
             axs = plotting.bootstrap_plot(data)
             print (axs)
-        elif kind == 'pie':
-            ax.pie(data)
         elif kind == 'scatter_matrix':
             axs = pd.scatter_matrix(data, ax=ax, **kwdargs)
         elif kind == 'hexbin':
-            cols = data.columns
             x = cols[0]
             y = cols[1]
             axs = data.plot(x,y,ax=ax,kind='hexbin',gridsize=20,**kwdargs)
         else:
+            #data = data.groupby(kwdargs['by']).agg('mean')
             axs = data.plot(ax=ax, layout=layout, **kwdargs)
         if type(axs) is np.ndarray:
             self.ax = axs.flat[0]
-            try:
-                self.fig.tight_layout()
-            except:
-                print ('tight_layout failed')
         self.fig.suptitle(kwds['title'])
         if kwds['xlabel'] != '':
             self.ax.set_xlabel(kwds['xlabel'])
@@ -218,6 +218,10 @@ class PlotViewer(Frame):
             self.ax.set_ylabel(kwds['ylabel'])
         self.ax.xaxis.set_visible(kwds['showxlabels'])
         self.ax.yaxis.set_visible(kwds['showylabels'])
+        try:
+            self.fig.tight_layout()
+        except:
+            print ('tight_layout failed')
         self.canvas.draw()
         return
 
@@ -344,6 +348,13 @@ class PlotViewer(Frame):
 
         return
 
+    def updateData(self):
+        """Update data widgets"""
+
+        df = self.table.model.df
+        self.mplopts.update(df)
+        return
+
     def quit(self):
         self.main.withdraw()
         return
@@ -399,13 +410,15 @@ class MPLBaseOptions(object):
 
     markers = ['','o','.','^','v','>','<','s','+','x','p','d','h','*']
     linestyles = ['-','--','-.',':','steps']
-    kinds = ['line', 'scatter', 'bar', 'barh', 'boxplot', 'histogram',
+    kinds = ['line', 'scatter', 'bar', 'barh', 'pie', 'histogram', 'boxplot',
              'heatmap', 'area', 'hexbin', 'scatter_matrix', 'density']
 
     def __init__(self, parent=None):
         """Setup variables"""
 
         self.parent = parent
+        df = self.parent.table.model.df
+        datacols = list(df.columns)
         fonts = self.getFonts()
         grps = {'data':['bins','by'],
                 'styles':['font','colormap','alpha','grid'],
@@ -439,7 +452,7 @@ class MPLBaseOptions(object):
                 'subplots':{'type':'checkbutton','default':0,'label':'multiple subplots'},
                 'colormap':{'type':'combobox','default':'jet','items':colormaps},
                 'bins':{'type':'entry','default':10,'width':10},
-                'by':{'type':'combobox','default':'','items':[]},
+                'by':{'type':'combobox','default':'','items':datacols},
                 }
         return
 
@@ -475,12 +488,11 @@ class MPLBaseOptions(object):
         fonts = sorted(list(fonts))
         return fonts
 
-    def updateData(self):
-        """Update data columns widget"""
-        if hasattr(self.parent, 'data'):
-            df = self.parent.data
-            cols = df.columns
-            print (cols)
+    def update(self, df):
+        """Update data widget(s)"""
+
+        cols = df.columns
+
         return
 
 class MPL3DOptions(object):
