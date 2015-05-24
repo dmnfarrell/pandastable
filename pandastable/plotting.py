@@ -155,7 +155,8 @@ class PlotViewer(Frame):
                     'histogram': ['alpha', 'linewidth','grid','stacked','subplots','colormap',
                              'sharey','rot'],
                     'heatmap': ['colormap','rot'],
-                    'area': ['alpha','colormap','grid','linewidth','legend','stacked','kind'],
+                    'area': ['alpha','colormap','grid','linewidth','legend','stacked',
+                             'kind','rot','logx'],
                     'density': ['alpha', 'colormap', 'grid', 'legend', 'linestyle',
                                  'linewidth', 'marker', 'subplots', 'rot', 'kind'],
                     'boxplot': ['alpha', 'linewidth', 'rot', 'grid'],
@@ -211,8 +212,10 @@ class PlotViewer(Frame):
             except:
                 print ('tight_layout failed')
         self.fig.suptitle(kwds['title'])
-        self.ax.set_xlabel(kwds['xlabel'])
-        self.ax.set_ylabel(kwds['ylabel'])
+        if kwds['xlabel'] != '':
+            self.ax.set_xlabel(kwds['xlabel'])
+        if kwds['ylabel'] != '':
+            self.ax.set_ylabel(kwds['ylabel'])
         self.ax.xaxis.set_visible(kwds['showxlabels'])
         self.ax.yaxis.set_visible(kwds['showylabels'])
         self.canvas.draw()
@@ -427,7 +430,7 @@ class MPLBaseOptions(object):
                 'sharey':{'type':'checkbutton','default':0,'label':'share y'},
                 'legend':{'type':'checkbutton','default':1,'label':'legend'},
                 'kind':{'type':'combobox','default':'line','items':self.kinds,'label':'kind'},
-                'stacked':{'type':'checkbutton','default':0,'label':'stacked bar'},
+                'stacked':{'type':'checkbutton','default':0,'label':'stacked'},
                 'linewidth':{'type':'scale','default':1,'range':(0,5),'interval':0.5,'label':'line width'},
                 'alpha':{'type':'scale','default':0.7,'range':(0,1),'interval':0.1,'label':'alpha'},
                 'title':{'type':'entry','default':'','width':20},

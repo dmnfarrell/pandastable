@@ -39,8 +39,8 @@ class MultipleValDialog(simpledialog.Dialog):
         r=0
         self.vrs=[];self.entries=[]
         for i in range(len(self.labels)):
-            Label(master, text=self.labels[i]).grid(row=r, column=0,sticky='news')
-            if self.types[i] == 'int':
+            Label(master, text=self.labels[i]).grid(row=r,column=0,sticky='news')
+            if self.types[i] in ['int','boolean']:
                 self.vrs.append(IntVar())
             else:
                 self.vrs.append(StringVar())
@@ -50,21 +50,21 @@ class MultipleValDialog(simpledialog.Dialog):
                 s=None
 
             if self.types[i] == 'list':
-                button = Menubutton(master, textvariable=self.vrs[i])
-                menu = Menu(button,tearoff=0)
-                button['menu'] = menu
-                choices=self.initialvalues[i]
-                for c in choices:
-                    menu.add_radiobutton(label=c,
-                                        variable=self.vrs[i],
-                                        value=c,
-                                        indicatoron=1)
-                self.entries.append(button)
+                choices = self.initialvalues[i]
                 self.vrs[i].set(self.initialvalues[i][0])
+                w = Combobox(master, values=choices,
+                         textvariable=self.vrs[i],width=14)
+                #w.set(opt['default'])
+                self.entries.append(w)
+            elif self.types[i] == 'boolean':
+                self.vrs[i].set(self.initialvalues[i][0])
+                w = Checkbutton(master, text='',
+                         variable=self.vrs[i])
+                self.entries.append(w)
             else:
                 self.vrs[i].set(self.initialvalues[i])
                 self.entries.append(Entry(master, textvariable=self.vrs[i], show=s))
-            self.entries[i].grid(row=r, column=1)
+            self.entries[i].grid(row=r, column=1,padx=2,pady=2)
             r+=1
 
         return self.entries[0] # initial focus

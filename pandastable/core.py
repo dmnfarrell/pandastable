@@ -28,6 +28,7 @@ import os, types
 import string, copy
 import platform
 import pylab as plt
+import numpy as np
 import pandas as pd
 from data import TableModel
 from plotting import MPLBaseOptions, PlotViewer
@@ -435,6 +436,11 @@ class Table(Canvas):
         df.reset_index(drop=drop,inplace=True)
         self.redraw()
         self.drawSelectedCol()
+        return
+
+    def showIndex(self):
+        self.tablerowheader.showindex = True
+        #self.redraw()
         return
 
     def set_xviews(self,*args):
@@ -1120,16 +1126,62 @@ class Table(Canvas):
         self.redraw()
         return
 
-    def tableFromSelection(self):
-        """Create a new table from the selected cells"""
-        data = self.getSelectedDataFrame()
-        if len(data) <=1:
+    def aggregate(self):
+        """Do aggregate operation"""
+
+        from dialogs import MultipleValDialog
+        df = self.model.df
+        cols = list(df.columns)
+        funcs = ['mean','sum','size','count','std','first','last','min','max']
+        d = MultipleValDialog(title='Aggregate',
+                                initialvalues=(cols,funcs,[0,1]),
+                                labels=('Group by:','Aggregate:','Replace:'),
+                                types=('list','list','boolean'),
+                                parent = self.parentframe)
+        if d.result == None:
             return
+        #apply func
+        grp = d.results[0]
+        func = d.results[1]
+        replace = d.results[2]
+        x = df.convert_objects(convert_dates='coerce', convert_numeric=True)
+        g = x.groupby(grp).agg(func)
+        #replace or make new table
+        if replace == True:
+            self.model.df = g
+            self.redraw()
+        else:
+            self.createChildTable(g, 'agg-%s-%s' %(grp,func), index=True)
+        return
+
+    def merge(self, table):
+        """Merge with another table"""
+        return
+
+    def describe(self):
+        g = self.model.df.describe()
+        self.createChildTable(g)
+        return
+
+    def createChildTable(self, df, title=None, index=False):
         win = Toplevel()
         x,y,w,h = self.getGeometry(self.master)
         win.geometry('+%s+%s' %(int(x+w/2),int(y+h/2)))
-        newtable = self.__class__(win, dataframe=data, showtoolbar=1, showstatusbar=1)
+        if title != None:
+            win.title(title)
+        newtable = self.__class__(win, dataframe=df, showtoolbar=1, showstatusbar=1)
+        newtable.adjustColumnWidths()
         newtable.show()
+        if index==True:
+            newtable.showIndex()
+        return
+
+    def tableFromSelection(self):
+        """Create a new table from the selected cells"""
+        df = self.getSelectedDataFrame()
+        if len(df) <=1:
+            return
+        self.createChildTable(df, 'selection')
         return
 
     # --- Some cell specific actions here ---
@@ -1457,7 +1509,9 @@ class Table(Canvas):
         w=x2-x1
         wrap = False
         pad=5
-        celltxt=str(celltxt)
+        if  type(celltxt) is np.float64:
+            celltxt = np.round(celltxt,3)
+        celltxt = str(celltxt)
         length = len(celltxt)
         if length == 0:
             return
@@ -2552,12 +2606,15 @@ class ToolBar(Frame):
         self.addButton('Plot', self.parentapp.plotSelected, img, 'plot selected')
         img = images.transpose()
         self.addButton('Transpose', self.parentapp.transpose, img, 'transpose')
+        img = images.aggregate()
+        self.addButton('Aggregate', self.parentapp.aggregate, img, 'aggregate')
+        #img = images.merge()
+        #self.addButton('Merge', self.parentapp.merge, img, 'merge')
         img = images.table_multiple()
         self.addButton('Table from selection', self.parentapp.tableFromSelection,
                     img, 'new table from selection')
         img = images.prefs()
         self.addButton('Prefs', self.parentapp.showPrefs, img, 'table preferences')
-
         return
 
     def addButton(self, name, callback, img=None, tooltip=None):

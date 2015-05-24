@@ -58,7 +58,7 @@ class ViewerApp(Frame):
             self.style.theme_use('default')
 
         self.style.configure("TButton", padding=2, relief="raised")
-        self.main.title('DataFrame Viewer')
+        self.main.title('DataViewer')
         self.createMenuBar()
         self.setupGUI()
 
@@ -242,6 +242,8 @@ class ViewerApp(Frame):
         if sheetname == None:
             sheetname = simpledialog.askstring("New sheet name?", "Enter sheet name:",
                                                 initialvalue='sheet'+str(noshts+1))
+        if sheetname == None:
+            return
         checkName(sheetname)
         #Create the table
         main = PanedWindow(orient=HORIZONTAL)

@@ -58,7 +58,7 @@ class TableModel(object):
         df = pd.DataFrame(n, columns=colnames)
         df = np.round(df, 3)
         df = df.astype('object')
-        cats = ['foo','bar','sel']
+        cats = ['green','blue','red','orange']
         df['label'] = [cats[i] for i in np.random.randint(0,3,rows)]
         df['date'] = pd.date_range('1/1/2015', periods=rows, freq='H')
         return df
