@@ -456,7 +456,7 @@ header {
 }
 
 header h1 {
-  width: 540px;
+  width: 550px;
   margin-top: 0;
   margin-bottom: 0.2em;
   font-family: 'Architects Daughter','Helvetica Neue', helvetica;
@@ -468,10 +468,10 @@ header h1 {
 }
 
 header h2 {
-  width: 540px;
+  width: 580px;
   margin-top: 0;
   margin-bottom: 0;
-  font-size: 26px;
+  font-size: 24px;
   font-weight: normal;
   line-height: 1.3;
   color: #9ddcff;
