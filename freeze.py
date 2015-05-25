@@ -15,10 +15,12 @@ if sys.platform == "win32":
 
 executables = [Executable("pandastable/app.py", base=base,
                           copyDependentFiles = True,
-                          targetName='DataViewer.exe',
-                          icon="img/dataviewer.ico")]
+                          targetName='DataExplore.exe',
+                          shortcutName="DataExplore",
+                          shortcutDir="DesktopFolder",
+                          icon="img/dataexplore.ico")]
 
-setup(  name = "DataViewer",
+setup(  name = "DataExplore",
         version = "0.2",
         description = "Data analysis and plotter",
         options = {"build_exe": build_exe_options},
