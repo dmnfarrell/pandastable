@@ -12,6 +12,8 @@ Added hexbin plot
 Added iris.data for tests
 Fixes for subplots layout
 Improved histogram plots
+Aggregate, pivot tools added
+freeze script for windows binary
 
 ------
 0.0.1

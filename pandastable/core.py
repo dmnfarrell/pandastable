@@ -336,6 +336,7 @@ class Table(Canvas):
         """Redraw a specific cell only"""
 
         text = self.model.getValueAt(row,col)
+        self.delete('celltext'+str(col)+'_'+str(row))
         self.drawText(row, col, text)
         return
 
@@ -1129,14 +1130,13 @@ class Table(Canvas):
 
     def aggregate(self):
         """Do aggregate operation"""
-
         from dialogs import MultipleValDialog
         df = self.model.df
         cols = list(df.columns)
         funcs = ['mean','sum','size','count','std','first','last','min','max']
         d = MultipleValDialog(title='Aggregate',
                                 initialvalues=(cols,funcs,[0,1]),
-                                labels=('Group by:','Aggregate:','Replace:'),
+                                labels=('Group by:','Function:','Replace:'),
                                 types=('list','list','boolean'),
                                 parent = self.parentframe)
         if d.result == None:
@@ -1154,6 +1154,25 @@ class Table(Canvas):
             self.redraw()
         else:
             self.createChildTable(g, 'agg-%s-%s' %(grp,func), index=True)
+        return
+
+    def pivot(self):
+        """Pivot table"""
+        from dialogs import MultipleValDialog
+        df = self.model.df
+        cols = list(df.columns)
+        d = MultipleValDialog(title='Pivot',
+                                initialvalues=(cols,cols,cols),
+                                labels=('Index:', 'Column:', 'Values:'),
+                                types=('list','list','list'),
+                                parent = self.parentframe)
+        if d.result == None:
+            return
+        index = d.results[0]
+        column = d.results[1]
+        values = d.results[2]
+        p = df.pivot(index, column, values)
+        self.createChildTable(p, 'pivot-%s-%s' %(index,column), index=True)
         return
 
     def merge(self, table):
@@ -1449,7 +1468,8 @@ class Table(Canvas):
         return
 
     def drawCellEntry(self, row, col, text=None):
-        """When the user single/double clicks on a text/number cell, bring up entry window"""
+        """When the user single/double clicks on a text/number cell,
+          bring up entry window and allow edits."""
 
         if self.editable == False:
             return
@@ -1465,9 +1485,9 @@ class Table(Canvas):
             value = txtvar.get()
             model.setValueAt(value,row,col)
             self.drawText(row, col, value, align=self.align)
-            if e.keysym=='Return':
+            if e.keysym == 'Return':
                 self.delete('entry')
-                #self.gotonextCell(e)
+                self.gotonextCell(e)
             return
 
         self.cellentry = Entry(self.parentframe,width=20,
@@ -1476,7 +1496,8 @@ class Table(Canvas):
                         font=self.thefont)
         self.cellentry.icursor(END)
         self.cellentry.bind('<Return>', callback)
-        #self.cellentry.bind('<KeyRelease>', callback)
+        self.cellentry.bind('<Up>', callback)
+        self.cellentry.bind('<Down>', callback)
         self.cellentry.focus_set()
         self.entrywin = self.create_window(x1,y1,
                                 width=w,height=h,
@@ -1511,7 +1532,7 @@ class Table(Canvas):
         w=x2-x1
         wrap = False
         pad=5
-        if  type(celltxt) is np.float64:
+        if type(celltxt) is np.float64:
             celltxt = np.round(celltxt,3)
         celltxt = str(celltxt)
         length = len(celltxt)
@@ -1519,6 +1540,9 @@ class Table(Canvas):
             return
         #if cell width is less than x, print nothing
         if w<=10:
+            return
+        if w < 18:
+            celltxt = '.'
             return
 
         fgcolor = 'black'
@@ -1529,25 +1553,22 @@ class Table(Canvas):
         elif align == 'e':
             x1 = x1+w/2-pad
 
-        if w < 18:
-            celltxt = '.'
-        else:
-            fontsize = self.fontsize
-            colname = self.model.getColumnName(col)
-            #scaling between canvas and text normalised to about font 14
-            scale = 8.5 * float(fontsize)/12
-            size = length * scale
-            if size > w:
-                newlength = w / scale
-                #print w, size, length, newlength
-                celltxt = celltxt[0:int(math.floor(newlength))]
+        fontsize = self.fontsize
+        colname = self.model.getColumnName(col)
+        #scaling between canvas and text normalised to about font 14
+        scale = 8.5 * float(fontsize)/12
+        size = length * scale
+        if size > w:
+            newlength = w / scale
+            #print w, size, length, newlength
+            celltxt = celltxt[0:int(math.floor(newlength))]
 
-            rect = self.create_text(x1+w/2,y1+h/2,
-                                      text=celltxt,
-                                      fill=fgcolor,
-                                      font=self.thefont,
-                                      anchor=align,
-                                      tag=('text'))#,'celltext'+str(col)+'_'+str(row)))
+        rect = self.create_text(x1+w/2,y1+h/2,
+                                  text=celltxt,
+                                  fill=fgcolor,
+                                  font=self.thefont,
+                                  anchor=align,
+                                  tag=('text','celltext'+str(col)+'_'+str(row)))
         return
 
     def drawSelectedRow(self):
@@ -2610,6 +2631,8 @@ class ToolBar(Frame):
         self.addButton('Transpose', self.parentapp.transpose, img, 'transpose')
         img = images.aggregate()
         self.addButton('Aggregate', self.parentapp.aggregate, img, 'aggregate')
+        img = images.pivot()
+        self.addButton('Pivot', self.parentapp.pivot, img, 'pivot')
         #img = images.merge()
         #self.addButton('Merge', self.parentapp.merge, img, 'merge')
         img = images.table_multiple()

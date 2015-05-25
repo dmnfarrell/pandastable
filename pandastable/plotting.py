@@ -145,13 +145,13 @@ class PlotViewer(Frame):
             return
         valid = {'line': ['alpha', 'colormap', 'grid', 'legend', 'linestyle',
                           'linewidth', 'marker', 'subplots', 'rot', 'logx', 'logy',
-                           'sharey', 'use_index', 'kind', 'by'],
+                           'sharey', 'use_index', 'kind'],
                     'scatter': ['alpha', 'grid', 'linewidth', 'marker', 's', 'legend', 'colormap'],
                     'pie': ['colormap', 'legend', 'kind','subplots'],
                     'hexbin': ['alpha', 'colormap', 'grid', 'linewidth'],
                     'bootstrap': ['grid'],
                     'bar': ['alpha', 'colormap', 'grid', 'legend', 'linewidth', 'subplots',
-                            'sharey', 'stacked', 'rot', 'kind', 'by'],
+                            'sharey', 'stacked', 'rot', 'kind'],
                     'barh': ['alpha', 'colormap', 'grid', 'legend', 'linewidth', 'subplots',
                             'stacked', 'rot', 'kind'],
                     'histogram': ['alpha', 'linewidth','grid','stacked','subplots','colormap',
@@ -173,6 +173,10 @@ class PlotViewer(Frame):
         #valid kwd args for this plot type
         kwdargs = dict((k, kwds[k]) for k in valid[kind])
 
+        #if 'by' != '':
+            #data = data.groupby(kwds['by']).agg('mean')
+            #data = data.pivot(kwds['by'])
+
         if len(data.columns)==1:
             kwdargs['subplots'] = 0
         if kind == 'pie':
@@ -187,7 +191,9 @@ class PlotViewer(Frame):
         if kind == 'bar':
             if len(data) > 50:
                 self.ax.get_xaxis().set_visible(False)
-
+            if len(data) > 500:
+                print ('too many rows to plot')
+                return
         if kind == 'scatter':
             axs = self.scatter(data, ax, kwdargs)
         elif kind == 'boxplot':
@@ -199,7 +205,6 @@ class PlotViewer(Frame):
             axs = self.heatmap(data, ax, kwdargs)
         elif kind == 'bootstrap':
             axs = plotting.bootstrap_plot(data)
-            print (axs)
         elif kind == 'scatter_matrix':
             axs = pd.scatter_matrix(data, ax=ax, **kwdargs)
         elif kind == 'hexbin':
@@ -207,7 +212,6 @@ class PlotViewer(Frame):
             y = cols[1]
             axs = data.plot(x,y,ax=ax,kind='hexbin',gridsize=20,**kwdargs)
         else:
-            #data = data.groupby(kwdargs['by']).agg('mean')
             axs = data.plot(ax=ax, layout=layout, **kwdargs)
         if type(axs) is np.ndarray:
             self.ax = axs.flat[0]
@@ -420,7 +424,7 @@ class MPLBaseOptions(object):
         df = self.parent.table.model.df
         datacols = list(df.columns)
         fonts = self.getFonts()
-        grps = {'data':['bins','by'],
+        grps = {'data':['bins','by','by2'],
                 'styles':['font','colormap','alpha','grid'],
                 'sizes':['fontsize','s','linewidth'],
                 'formats':['kind','marker','linestyle','stacked','subplots'],
@@ -451,8 +455,9 @@ class MPLBaseOptions(object):
                 'ylabel':{'type':'entry','default':'','width':20},
                 'subplots':{'type':'checkbutton','default':0,'label':'multiple subplots'},
                 'colormap':{'type':'combobox','default':'jet','items':colormaps},
-                'bins':{'type':'entry','default':10,'width':10},
+                'bins':{'type':'entry','default':20,'width':10},
                 'by':{'type':'combobox','default':'','items':datacols},
+                'by2':{'type':'combobox','default':'','items':datacols},
                 }
         return
 

@@ -941,19 +941,36 @@ def search():
 
 def transpose():
      img = tk.PhotoImage(format='gif',data=
-             'R0lGODlhEAAQAMZXACNhHyRjICVlIidmIyloJCprJixtJzJ0LDN2Ljd7Mjp+'
-            +'NDyANT6DN0CGOUKIO0SLPUqLRUyNR0mRQU+QSVGSS02WRVSVTk+ZR1aXUFGb'
-            +'SVOeS1WhTVejTmKiW1qmUGOkXWWnXl6rVGioYF+tVmiqYWusY2ytZW6wZmW0'
-            +'W2e2XHazb2i5Xmq7X2y8YG2+Ym7AY3y9c36/dYG+en/BeYHCd4LCeoPDeYPE'
-            +'eYXEfonDgIfEgIvDg4rEg4XHe4nGgovGg47GhovHhY3Hho7JhY/Jh4/JiJDK'
-            +'iJHKipLKiZTLjJXMjZbNj5jOj5nPkJrPkpzPlJzQlJ7RlZ/Rlp/Sl6HSmKTU'
-            +'m6fXnv//////////////////////////////////////////////////////'
+             'R0lGODlhEAAQAPYAACxsJyxtKC1uKC1uKS9xKzFzLDd7MTl9Mzt/NT6EOEGH'
+            +'OkKJO0OJPESLPUWMPkaNP0mRQkqSQkqTQ0yVRE6RSU+SSlCZR1GUTFOWTVCa'
+            +'SFKcSlOdSlqdVFWgTFahTVijT1mlUFmmUF2qU1+sVV6gWGOlW2WnXWOxWGa1'
+            +'W2a2XGm5Xmq6X2mrYWy8YG2/Ym6/YnGyaXK1aXm4cXi6cHu6cnu7dX68dX6+'
+            +'dn6/d4HAd4DBeYLCe4XHe4LCfITAfYTDfoXDfoTEfYfEf4fIfInGgo3HhozK'
+            +'go/Jh4/KiJLJiZLKi5PLi5TLjJbMjpfMjpjOkJnOkJvPk5vQkp3RlJ7RlqDR'
+            +'l6DSlqHTlqHTmKLTmaLUmaTUm6TUnKbVnKfWnqnXoKrYoKvYoQAAAAAAAAAA'
+            +'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+            +'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAAGIA'
+            +'If8LSW1hZ2VNYWdpY2sKZ2FtbWE9MC40NQAsAAAAABAAEAAAB4aAYoKDhIWG'
+            +'h4iCLisoJ4liLkNXXl5QMx+HLkZhWV1bUVMzFoY8YVxZOjZQUVAshStTV1Mi'
+            +'IBsbRUw+DIQppzcggxEPCwmEJ1dXMx2CEYgiSkxKGRNiEAuIMUxMSCYMJBwH'
+            +'hxswSD5EQj49GAWHESU1PTo6NxUDiQkJBhf1j4ME9v0EASQUCAA7')
+     return img
+
+def pivot():
+     img = tk.PhotoImage(format='gif',data=
+             'R0lGODlhEAAQAMZQACFfHiNiICRiICZlIidmIylpJSprJixtKC5vKTByKzJ0'
+            +'LTR3LzZ5MDh8Mjp+NDyBNj6EOEGHOkmRQkuUQ06XRlGcSVOeS1mmUGOlXFyp'
+            +'U12qU2eoYF+sVWCuVmKxWGW1W2e2XGi4XXO0ane2cHa3bnO5bW2+YnS7b3W7'
+            +'cG7AY326dXi9cnDBZHm9c3DCZHDCZXy+cnu+dX2/dn7AeX/BdYDBeoLCfITD'
+            +'fofFf4fFgIjFgoXHe4rFg4fIfIvHhI7HhYjKfonKfpHJiZTLjJbNjJbNj5vP'
+            +'k57RlaDSl6LUmaXUnKbVnafWnqjXn6rXoavYof//////////////////////'
+            +'////////////////////////////////////////////////////////////'
             +'////////////////////////////////////////////////////////////'
             +'/////////////////////////////////////////////////yH+EUNyZWF0'
-            +'ZWQgd2l0aCBHSU1QACH5BAEKAH8ALAAAAAAQABAAAAeLgH+Cg4SFhoQXEoeC'
-            +'KCMeGhUiHQqGKzZIUFFNSUQ6FgaEKUNVTE5KRj84MxEChDFUT0IgDQoIExAB'
-            +'hCE5SjwPDIMDAIUbiQ4Li8nExsiELyyDkEBFKgiELj00IRwZJTtEPhiELTdW'
-            +'VVOmRjU4HwWEKDBST0tHQTImFASGHCckvwkHQC2S4ECZQUKBAAA7')
+            +'ZWQgd2l0aCBHSU1QACH5BAEKAH8ALAAAAAAQABAAAAdtgH+Cg4SFhoeIhiYs'
+            +'iYQgO0AujX8dNE1OQS+NGTBMTz0pkxpKTSGTfxdJSx+TFSJIRx6NEhRCRD8c'
+            +'gwUHCQsNDxEYPEVGJIQDJysxMzY5PjhDKhaEASUoLTI1NzojGxOFAAIEBggK'
+            +'DA4Qp+rrgQA7')
      return img
 
 def aggregate():
