@@ -97,7 +97,11 @@ class TableModel(object):
         """Get the longest cell entry in the col"""
         df = self.df
         col = df.columns[colindex]
-        longest = df[col].astype('object').astype('str').str.len().max()
+        if df.dtypes[col] == 'float64':
+            c = df[col].round(3)
+        else:
+            c = df[col]
+        longest = c.astype('object').astype('str').str.len().max()
         if np.isnan(longest):
             return 1
         return longest

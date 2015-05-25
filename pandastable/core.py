@@ -101,7 +101,7 @@ class Table(Canvas):
     def set_defaults(self):
         """Set default settings"""
 
-        self.cellwidth=150
+        self.cellwidth=100
         self.maxcellwidth=300
         self.rowheight=20
         self.horizlines=1

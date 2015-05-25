@@ -23,6 +23,8 @@ import tkinter
 from tkinter import *
 from tkinter.ttk import *
 import types
+import pandas as pd
+from data import TableModel
 
 class MultipleValDialog(simpledialog.Dialog):
     """Simple dialog to get multiple values"""
@@ -198,6 +200,7 @@ class ImportDialog(Frame):
 
     def __init__(self, parent=None, filename=None):
 
+        from core import Table
         self.parent = parent
         self.filename = filename
         self.df = None
@@ -219,7 +222,7 @@ class ImportDialog(Frame):
                      'skipinitialspace':{'type':'checkbutton','default':0,'label':'skipinitialspace',
                                 'tooltip':'skip initial space'},
                      }
-        optsframe, self.tkvars = dialogFromOptions(self.main, opts)
+        optsframe, self.tkvars, w = dialogFromOptions(self.main, opts)
 
         ''' escapechar=None, quotechar='"',
             skipinitialspace=False,
@@ -230,7 +233,6 @@ class ImportDialog(Frame):
             '''
         tf = Frame(self.main)
         tf.pack(side=TOP,fill=BOTH,expand=1)
-        from pandastable.core import Table
         self.previewtable = Table(tf,rows=0,columns=0)
         self.previewtable.show()
         self.update()

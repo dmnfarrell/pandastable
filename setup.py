@@ -5,7 +5,7 @@ home=os.path.expanduser('~')
 setup(
     name = 'pandastable',
     version = '0.2.0',
-    description = 'Tkinter widget for pandas dataframes',
+    description = 'Library for embedding tables in Tkinter using pandas DataFrames',
     url='https://github.com/dmnfarrell/pandastable',
     license='GPL v3',
     author = 'Damien Farrell',
@@ -16,7 +16,7 @@ setup(
                       'pandas>=0.16',
 		      'xlrd>=0.9'],
     entry_points = { 'gui_scripts': [
-                     'dataviewer = pandastable.app:main']},
+                     'dataexplore = pandastable.app:main']},
     classifiers = ["Operating System :: OS Independent",
             "Programming Language :: Python :: 3",
             "Topic :: Software Development :: User Interfaces",
