@@ -34,10 +34,11 @@ or
 * sort by column, rename columns
 * reorder columns dynamically by mouse drags
 * set some basic formatting such as font, text size and column width
-* save the DataFrame? to supported pandas formats
+* save the DataFrame to supported pandas formats
 * import/export of supported text files
 * rendering of very large tables is only memory limited
 * interactive plots with matplotlib, mostly using the pandas plot functions
+* basic table manipulations like aggregate and pivot
 
 ## Potential features
 * filter table using built in dataframe functionality
@@ -54,7 +55,7 @@ For a similar table widget that works in Python 2 see the previous incarnation, 
 *Why use Tkinter?*
 
 Tkinter is still the standard GUI toolkit for python 3 though it is sometimes disliked 
-for its outdated appearance (especially on linux) and limited widget set. However largely
+for its outdated appearance (especially on linux) and somewhat limited widget set. However largely
 because this library is based on an older one called tkintertable for drawing the table, 
 I have stuck with tkinter rather than start from scratch using another toolkit.
 
@@ -67,16 +68,15 @@ not be available in a spreadsheet application.
 
 *Are there other better tools for dataframe visualization?*
 
-This depends as always on what is required. bokeh, for example, is an advanced
-interactive plotting tool using modern generation web technologies for in browser 
-rendering. This can handle dataframes. The goal of this project is narrower - namely 
-to provide a widget in a desktop appplication.
+This depends as always on what is required. The ipython notebook is good for interactive use.
+bokeh is an advanced interactive plotting tool using modern generation web technologies for in browser 
+rendering. This can handle dataframes. The goal of this project is to use DataFrames as the back end
+for a table widget that can be used in a desktop appplication.
 
-## The Viewer application
-Installing the package creates a command pandasviewer in your path. Just run this to open the program. 
-This is a standalone application for plotting and also serves as a way of testing the library.
-Data can be saved and then re-loaded using the popup menu commands, currently as 
-messagepack format. This is supported by pandas>=0.13.
+## The DataExplore application
+Installing the package creates a command *dataexplore* in your path. Just run this to open the program. 
+This is a standalone application for data manipulation and plotting meant for education and basic data analysis.
+See the home page for this application at http://dmnfarrell.github.io/pandastable/
 
 <img src=https://raw.githubusercontent.com/dmnfarrell/pandastable/master/img/viewerapp.png width=600px>
 
