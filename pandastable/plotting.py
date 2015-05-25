@@ -481,7 +481,10 @@ class MPLBaseOptions(object):
         """Auto create tk vars, widgets for corresponding options and
            and return the frame"""
 
-        dialog, self.tkvars = dialogFromOptions(parent, self.opts, self.groups)
+        dialog, self.tkvars, self.widgets = dialogFromOptions(parent, self.opts, self.groups)
+        #disable until this works
+        self.widgets['by'].configure(state='disabled')
+        self.widgets['by2'].configure(state='disabled')
         self.applyOptions()
         return dialog
 
@@ -537,7 +540,7 @@ class MPL3DOptions(object):
         """Auto create tk vars, widgets for corresponding options and
            and return the frame"""
 
-        dialog, self.tkvars = dialogFromOptions(parent, self.opts, self.groups)
+        dialog, self.tkvars, w = dialogFromOptions(parent, self.opts, self.groups)
         self.applyOptions()
         return dialog
 

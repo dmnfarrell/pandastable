@@ -877,6 +877,7 @@ class Table(Canvas):
         self.focus_set()
 
         if hasattr(self, 'cellentry'):
+            #self.cellentryCallback()
             self.cellentry.destroy()
         #ensure popup menus are removed if present
         if hasattr(self, 'rightmenu'):
@@ -898,7 +899,8 @@ class Table(Canvas):
             self.drawSelectedRow()
             self.tablerowheader.drawSelectedRows(rowclicked)
             self.tablecolheader.delete('rect')
-            #self.drawCellEntry(rowclicked, colclicked)
+        if hasattr(self, 'cellentry'):
+            self.cellentry.destroy()
         return
 
     def handle_left_release(self,event):
@@ -1051,14 +1053,13 @@ class Table(Canvas):
         """Handle mouse motion on table"""
         return
 
-    def gotonextCell(self, event):
+    def gotonextCell(self):
         """Move highlighted cell to next cell in row or a new col"""
 
         if hasattr(self, 'cellentry'):
             self.cellentry.destroy()
-        self.currentcol=self.currentcol+1
+        self.currentrow = self.currentrow+1
         if self.currentcol >= self.cols-1:
-            self.currentrow  = self.currentrow +1
             self.currentcol = self.currentcol+1
         self.drawSelectedRect(self.currentrow, self.currentcol)
         return
@@ -1467,6 +1468,15 @@ class Table(Canvas):
         self.lower(recttag)
         return
 
+    def cellentryCallback(self, row, col):
+        """Callback for cell entry"""
+        value = self.cellentryvar.get()
+        self.model.setValueAt(value,row,col)
+        self.drawText(row, col, value, align=self.align)
+        self.delete('entry')
+        self.gotonextCell()
+        return
+
     def drawCellEntry(self, row, col, text=None):
         """When the user single/double clicks on a text/number cell,
           bring up entry window and allow edits."""
@@ -1478,32 +1488,20 @@ class Table(Canvas):
         text = self.model.getValueAt(row, col)
         x1,y1,x2,y2 = self.getCellCoords(row,col)
         w=x2-x1
-        txtvar = StringVar()
+        self.cellentryvar = txtvar = StringVar()
         txtvar.set(text)
-
-        def callback(e):
-            value = txtvar.get()
-            model.setValueAt(value,row,col)
-            self.drawText(row, col, value, align=self.align)
-            if e.keysym == 'Return':
-                self.delete('entry')
-                self.gotonextCell(e)
-            return
 
         self.cellentry = Entry(self.parentframe,width=20,
                         textvariable=txtvar,
                         takefocus=1,
                         font=self.thefont)
         self.cellentry.icursor(END)
-        self.cellentry.bind('<Return>', callback)
-        self.cellentry.bind('<Up>', callback)
-        self.cellentry.bind('<Down>', callback)
+        self.cellentry.bind('<Return>', lambda x: self.cellentryCallback(row,col))
         self.cellentry.focus_set()
         self.entrywin = self.create_window(x1,y1,
                                 width=w,height=h,
                                 window=self.cellentry,anchor='nw',
                                 tag='entry')
-
         return
 
     def checkDataEntry(self,event=None):
@@ -1820,7 +1818,8 @@ class Table(Canvas):
 
     def loadPrefs(self, prefs=None):
         """Load table specific prefs from the prefs instance used
-           if they are not present, create them."""
+           if they are ntafa99
+           ot present, create them."""
 
         if prefs==None:
             prefs=Preferences('Table',{'check_for_update':1})
@@ -1846,7 +1845,7 @@ class Table(Canvas):
 
         #Create tkvars for dialog
         self.fontvar = StringVar()
-        #self.fontvar.set(self.prefs.get('font'))
+        self.fontvar.set(self.prefs.get('celltextfont'))
         self.rowheightvar = IntVar()
         self.rowheightvar.set(self.prefs.get('rowheight'))
         self.rowheight = self.rowheightvar.get()

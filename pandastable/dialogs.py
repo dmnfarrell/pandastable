@@ -54,7 +54,6 @@ class MultipleValDialog(simpledialog.Dialog):
                 self.vrs[i].set(self.initialvalues[i][0])
                 w = Combobox(master, values=choices,
                          textvariable=self.vrs[i],width=14)
-                #w.set(opt['default'])
                 self.entries.append(w)
             elif self.types[i] == 'boolean':
                 self.vrs[i].set(self.initialvalues[i][0])
@@ -131,6 +130,7 @@ def dialogFromOptions(parent, opts, groups=None, callback=None):
        and return the enclosing frame"""
 
     tkvars = {}
+    widgets = {}
     dialog = Frame(parent)
     if groups == None:
         groups = {'options': opts.keys()}
@@ -181,9 +181,10 @@ def dialogFromOptions(parent, opts, groups=None, callback=None):
                          variable=v)
             if w != None:
                 w.pack(fill=BOTH,expand=1)
+                widgets[i] = w
             row+=1
         c+=1
-    return dialog, tkvars
+    return dialog, tkvars, widgets
 
 class ProgressDialog(Toplevel):
     def __init__(self):
