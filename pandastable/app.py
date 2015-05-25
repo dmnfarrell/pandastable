@@ -58,7 +58,7 @@ class ViewerApp(Frame):
             self.style.theme_use('default')
 
         self.style.configure("TButton", padding=2, relief="raised")
-        self.main.title('DataViewer')
+        self.main.title('DataExplore')
         self.createMenuBar()
         self.setupGUI()
 
@@ -325,7 +325,7 @@ class ViewerApp(Frame):
         style = Style()
         style.configure("BW.TLabel", font='arial 11 bold')
 
-        text='DataFrame Viewer for pandastable library\n'\
+        text='DataExplore (pandastable library)\n'\
                 +'Copyright (C) Damien Farrell 2014-\n'\
                 +'This program is free software; you can redistribute it and/or\n'\
                 +'modify it under the terms of the GNU General Public License\n'\
