@@ -58,6 +58,7 @@ class ViewerApp(Frame):
             self.style.theme_use('default')
 
         self.style.configure("TButton", padding=2, relief="raised")
+        self.style.configure("TEntry", padding=2)
         self.main.title('DataExplore')
         self.createMenuBar()
         self.setupGUI()
@@ -217,7 +218,7 @@ class ViewerApp(Frame):
         for i in self.sheets:
             data[i] = self.sheets[i].model.df
 
-        pd.to_msgpack(filename, data)
+        pd.to_msgpack(filename, data, encoding='utf-8')
         return
 
     def closeProject(self):

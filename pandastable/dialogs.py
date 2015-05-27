@@ -23,6 +23,7 @@ import tkinter
 from tkinter import *
 from tkinter.ttk import *
 import types
+from collections import OrderedDict
 import pandas as pd
 from data import TableModel
 
@@ -152,9 +153,12 @@ def dialogFromOptions(parent, opts, groups=None, callback=None):
                 if 'width' in opt:
                     w=opt['width']
                 else:
-                    w=8
+                    w=6
                 Label(frame,text=label).pack()
-                tkvars[i] = v = StringVar()
+                if type(opts[i]['default']) == int:
+                    tkvars[i] = v = IntVar()
+                else:
+                    tkvars[i] = v = StringVar()
                 v.set(opts[i]['default'])
                 w = Entry(frame,textvariable=v, width=w, command=callback)
             elif opt['type'] == 'checkbutton':
@@ -211,26 +215,33 @@ class ImportDialog(Frame):
         self.main.grab_set()
         self.main.transient(parent)
 
+        grps = {'formats':['delimiter','decimal','comment'],
+                'data':['header','skiprows','index_col'],
+                'other':['skipinitialspace','skip_blank_lines']}
+        grps = OrderedDict(sorted(grps.items()))
         opts = self.opts = {'delimiter':{'type':'combobox','default':',',
                         'items':[',',' ',';'], 'tooltip':'seperator'},
-                     'header':{'type':'combobox','default':'infer','items':['infer'],
-                                'tooltip':'position of column header'},
+                     'header':{'type':'entry','default':0,'label':'header',
+                               'tooltip':'position of column header'},
+                     'index_col':{'type':'entry','default':'','label':'index col',
+                                'tooltip':''},
                      'decimal':{'type':'combobox','default':'.','items':['.',','],
                                 'tooltip':'decimal point symbol'},
                      'comment':{'type':'entry','default':'#','label':'comment',
                                 'tooltip':'comment symbol'},
                      'skipinitialspace':{'type':'checkbutton','default':0,'label':'skipinitialspace',
                                 'tooltip':'skip initial space'},
+                     'skiprows':{'type':'entry','default':0,'label':'skiprows',
+                                'tooltip':'rows to skip'},
+                    'skip_blank_lines':  {'type':'checkbutton','default':0,'label':'skipblanklines',
+                                'tooltip':'do not use blank lines'}
+                     #'prefix':{'type':'entry','default':None,'label':'prefix',
+                     #           'tooltip':''}
+                     #'nrows':{'type':'entry','default':None,'label':'number of rows',
+                     #           'tooltip':'rows to read'},
                      }
-        optsframe, self.tkvars, w = dialogFromOptions(self.main, opts)
+        optsframe, self.tkvars, w = dialogFromOptions(self.main, opts, grps)
 
-        ''' escapechar=None, quotechar='"',
-            skipinitialspace=False,
-            lineterminator=None, index_col=None,
-            names=None, prefix=None,
-            skiprows=None, delimiter=None,
-            delim_whitespace=False,
-            '''
         tf = Frame(self.main)
         tf.pack(side=TOP,fill=BOTH,expand=1)
         self.previewtable = Table(tf,rows=0,columns=0)
@@ -241,23 +252,27 @@ class ImportDialog(Frame):
         bf = Frame(self.main)
         bf.pack(side=TOP,fill=BOTH)
         b = Button(bf, text="Update preview", command=self.update)
-        b.pack(side=LEFT,fill=X,expand=1)
+        b.pack(side=LEFT,fill=X,expand=1,pady=1)
         b = Button(bf, text="Import", command=self.doImport)
-        b.pack(side=LEFT,fill=X,expand=1)
+        b.pack(side=LEFT,fill=X,expand=1,pady=1)
         b = Button(bf, text="Cancel", command=self.quit)
-        b.pack(side=LEFT,fill=X,expand=1)
+        b.pack(side=LEFT,fill=X,expand=1,pady=1)
         self.main.wait_window()
         return
 
     def update(self):
         kwds = {}
         for i in self.opts:
-            kwds[i] = self.tkvars[i].get()
+            val = self.tkvars[i].get()
+            if val == '':
+                val=None
+            kwds[i] = val
         self.kwds = kwds
         f = pd.read_csv(self.filename, chunksize=100, **kwds)
         df = f.get_chunk(100)
         model = TableModel(dataframe=df)
         self.previewtable.updateModel(model)
+        self.previewtable.showIndex()
         self.previewtable.redraw()
         return
 

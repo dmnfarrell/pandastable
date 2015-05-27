@@ -371,7 +371,7 @@ class Table(Canvas):
             size = l * scale
             if size < w:
                 continue
-            print (col, l,size, self.cellwidth)
+            #print (col, l,size, self.cellwidth)
             if size >= self.maxcellwidth:
                 size = self.maxcellwidth
             self.model.columnwidths[colname] = size + float(fontsize)/12*6
@@ -642,26 +642,26 @@ class Table(Canvas):
         """Add a filter frame"""
         if parent == None:
             parent = Toplevel()
-            parent.title('Filter Records')
+            parent.title('Filter Table')
             x,y,w,h = self.getGeometry(self.master)
             parent.geometry('+%s+%s' %(x,y+h))
         if fields == None:
-            fields = self.model.columnNames
-        from Filtering import FilterFrame
-        self.filterframe = FilterFrame(parent, fields,
-                                       self.doFilter, self.closeFilterFrame)
+            fields = list(self.model.df.columns)
+        from filtering import Filterer
+        self.filterframe = Filterer(parent, fields,
+                                       self.doFilter, self.closeFilterBar)
         self.filterframe.pack()
         return parent
 
     def showFilteringBar(self):
         if not hasattr(self, 'filterwin') or self.filterwin == None:
             self.filterwin = self.createFilteringBar()
-            self.filterwin.protocol("WM_DELETE_WINDOW", self.closeFilterFrame)
+            self.filterwin.protocol("WM_DELETE_WINDOW", self.closeFilterBar)
         else:
             self.filterwin.lift()
         return
 
-    def closeFilterFrame(self):
+    def closeFilterBar(self):
         """Callback for closing filter frame"""
         self.filterwin.destroy()
         self.filterwin = None
@@ -2637,6 +2637,8 @@ class ToolBar(Frame):
         img = images.table_multiple()
         self.addButton('Table from selection', self.parentapp.tableFromSelection,
                     img, 'new table from selection')
+        img = images.filtering()
+        self.addButton('Filter', self.parentapp.createFilteringBar, img, 'filtering')
         img = images.prefs()
         self.addButton('Prefs', self.parentapp.showPrefs, img, 'table preferences')
         return

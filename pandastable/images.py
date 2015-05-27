@@ -1043,6 +1043,34 @@ def table_multiple():
             +'IBAAOw==')
      return img
 
+def filtering():
+     img = tk.PhotoImage(format='gif',data=
+             'R0lGODlhEAAQAPcAAMh/M81/OIF7c9mYP/LSOLmIScWIR9WOSMqTQMmWQ82X'
+            +'Q8eaT9eiVcOsa8mvatCpYNK3Ztm0atm2eOe+Y+K7bfbWR/bZRvXZTfbbTurB'
+            +'XvXcU/XYVfbaVffdW/LZXvbfX+zJb+zHfvDRfvbgavfic/jmfipgtyxity1k'
+            +'uS5kuS5luTBlujBmujFmuzNpvDhxv1dmhlhkh0J5vzt2xDx4wUV+wkB8xGyD'
+            +'l3aYqUKAxUWCxUaCxEaDxkeExkmFxEuIxUuJxUmIxkqIxkuJxkyJxk+Lx02L'
+            +'yE+MyE+NyE+MyWSS22WU226sz1S191a091O0+FW0+H2w4X2y4ma38GW++2e9'
+            +'/Gi//W7C/c23jM69ntS8k869rLLAtPDUgPTdifbigPnphvbimfjomtTFqefQ'
+            +'qvjmofnuqfvwo4S24p7X/6DY/7PS8bXU87jW9LrW9bvW9bTY9rzZ9vvzycLb'
+            +'9sHb+MLc+MTd+cXf+cff+sfg+sjg+cjg+sjg+8nh+8rh+sni+8vi+8zh+83j'
+            +'+87j+8nl+s3j/M/j/M/k/M3m/Nfm8t/p9N/r9d7q9t7r9t/s99Dk+9Hk/NPl'
+            +'/NPl/dLm/NPm/NPn/dTm/NTm/dXm/dXn/dbn/dXl/tbn/tfn/tbo/tfo/tjo'
+            +'/uPt9+nv9ebw9+zy9+jx+Orx+Ovy+Ozy+O3z+Ozz+e30+O30+e70+O/0+fXz'
+            +'8vD0+PD0+fH1+fL2+vP3+/P3/PT4/Pj7/fj7//3+/gAAAAAAAAAAAAAAAAAA'
+            +'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+            +'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+            +'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+            +'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+            +'AAAAAAAAAAAAAAAAAAAAACH5BAEAALoAIf8LSW1hZ2VNYWdpY2sKZ2FtbWE9'
+            +'MC40NQAsAAAAABAAEAAACPMAdekycqSgwSJEZghc6INUq1anVEkklUjKkoW6'
+            +'fszK4weQnzt03NiCE+WiQI2FBhUChKeOm1uICKGRcXJWykeFPsZRpIqWqBo1'
+            +'K0WqhLOlGzZrZu0QGKTVp0hPKw26MwdLBDJLMzoFBeqpJDxZQMiZcENgD1Wf'
+            +'uEZaOybDmS4hGAjcoQpqJFBCJZj5IkZEiQO6cpwSOvTRIy1eRojooGGALhuj'
+            +'oDiB8oRJAwgeMGjYAEAgjVBW0qTh8iCMBgsIDByAIXAGaCpXHJQhUCEBjimv'
+            +'WAh0IUpRI0UUwFxQsIWWrVwnFrJowYKFgAUFYqhQwSK5roAAOw==')
+     return img
+
 def importcsv():
      img = tk.PhotoImage(format='gif',data=
              'R0lGODlhEAAQAOe1ACpgtyxity5kth57AyxltC5luS9lujBluiJ7DjBmuiN6'
