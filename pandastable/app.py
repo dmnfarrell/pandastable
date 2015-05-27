@@ -181,9 +181,9 @@ class ViewerApp(Frame):
 
     def openProject(self, filename=None):
         if filename == None:
-            filename = filedialog.askopenfilename(defaultextension='.tbleprj"',
+            filename = filedialog.askopenfilename(defaultextension='.dexpl"',
                                                     initialdir=os.getcwd(),
-                                                    filetypes=[("msgpack","*.dfv"),
+                                                    filetypes=[("project","*.dexpl"),
                                                                ("All files","*.*")],
                                                     parent=self.main)
         if os.path.isfile(filename):
@@ -202,10 +202,9 @@ class ViewerApp(Frame):
     def saveasProject(self):
         """Save as a new filename"""
         filename = filedialog.asksaveasfilename(parent=self.main,
-                                                defaultextension='.dfv',
+                                                defaultextension='.dexpl',
                                                 initialdir=self.defaultsavedir,
-                                                filetypes=[("msgpack","*.dfv"),
-                                                           ("All files","*.*")])
+                                                filetypes=[("project","*.dexpl")])
         if not filename:
             return
         self.filename=filename

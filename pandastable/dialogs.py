@@ -217,7 +217,7 @@ class ImportDialog(Frame):
 
         grps = {'formats':['delimiter','decimal','comment'],
                 'data':['header','skiprows','index_col'],
-                'other':['skipinitialspace','skip_blank_lines']}
+                'other':['skipinitialspace','skip_blank_lines','parse_dates']}
         grps = OrderedDict(sorted(grps.items()))
         opts = self.opts = {'delimiter':{'type':'combobox','default':',',
                         'items':[',',' ',';'], 'tooltip':'seperator'},
@@ -233,8 +233,10 @@ class ImportDialog(Frame):
                                 'tooltip':'skip initial space'},
                      'skiprows':{'type':'entry','default':0,'label':'skiprows',
                                 'tooltip':'rows to skip'},
-                    'skip_blank_lines':  {'type':'checkbutton','default':0,'label':'skipblanklines',
-                                'tooltip':'do not use blank lines'}
+                     'skip_blank_lines':  {'type':'checkbutton','default':0,'label':'skipblanklines',
+                                'tooltip':'do not use blank lines'},
+                     'parse_dates':{'type':'entry','default':'','label':'parse date',
+                                'tooltip':''},
                      #'prefix':{'type':'entry','default':None,'label':'prefix',
                      #           'tooltip':''}
                      #'nrows':{'type':'entry','default':None,'label':'number of rows',

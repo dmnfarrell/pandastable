@@ -149,6 +149,7 @@ class Filterer(Frame):
         return
 
     def doFiltering(self, searchfunc):
+        """Apply the filters"""
         F=[]
         for f in self.filters:
             F.append(f.getFilter())
@@ -201,7 +202,7 @@ class FilterBar(Frame):
         #disable the boolean operator if it's the first filter
         #if self.index == 0:
             #booleanopmenu.component('menubutton').configure(state=DISABLED)
-        cbutton=Button(self,text='-', command=self.close)
+        cbutton=Button(self,text='-', command=self.close, width=5)
         cbutton.grid(row=0,column=5,sticky='news',padx=2,pady=2)
         return
 

@@ -256,5 +256,17 @@ class TableModel(object):
         self.df.reset_index()
         return
 
+    def query(self):
+
+        return
+
+    def filterby(self):
+        import filtering
+        funcs = filtering.operatornames
+        floatops = ['=','>','<']
+        func = funcs[op]
+
+        return
+
     def __repr__(self):
         return 'Table Model with %s rows' %len(self.df)

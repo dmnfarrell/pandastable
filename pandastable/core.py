@@ -291,9 +291,8 @@ class Table(Canvas):
         self.setColPositions()
 
         #are we drawing a filtered subset of the recs?
-        '''if self.filtered == True and self.model.filteredrecs != None:
-            self.rows = len(self.model.filteredrecs)
-            self.delete('colrect')'''
+        if self.filtered == True:
+            self.delete('colrect')
 
         self.rowrange = list(range(0,self.rows))
         self.configure(scrollregion=(0,0, self.tablewidth+self.x_start,
@@ -618,9 +617,38 @@ class Table(Canvas):
             return None
 
     def showAll(self):
-        self.model.filteredrecs = None
+        """Re-show unfiltered"""
+        self.model.df = self.dataframe
         self.filtered = False
         self.redraw()
+        return
+
+    def query(self):
+        """Do query"""
+        s = self.queryvar.get()
+        if self.filtered == True:
+            self.model.df = self.dataframe
+        df = self.model.df
+        filtdf = df.query(s)
+        #replace current dataframe but keep a copy!
+        self.dataframe = self.model.df.copy()
+        self.model.df = filtdf
+        self.filtered = True
+        self.redraw()
+        return
+
+    def queryBar(self, evt=None):
+        """Use string query to filter. Will not work with spaces in column
+        names, so these would need to be converted first."""
+        qf = self.qframe = Frame(self.parentframe)
+        self.qframe.grid(row=4,column=1)
+        self.queryvar = StringVar()
+        e = Entry(qf, textvariable=self.queryvar,width=30)
+        e.pack(fill=BOTH,side=LEFT,pady=2)
+        b = Button(qf,text='find',command=self.query)
+        b.pack(fill=BOTH,side=LEFT,pady=2)
+        b = Button(qf,text='reset',command=self.showAll)
+        b.pack(fill=BOTH,side=LEFT,pady=2)
         return
 
     def doFilter(self, event=None):
@@ -640,6 +668,7 @@ class Table(Canvas):
 
     def createFilteringBar(self, parent=None, fields=None):
         """Add a filter frame"""
+
         if parent == None:
             parent = Toplevel()
             parent.title('Filter Table')
@@ -650,21 +679,21 @@ class Table(Canvas):
         from filtering import Filterer
         self.filterframe = Filterer(parent, fields,
                                        self.doFilter, self.closeFilterBar)
-        self.filterframe.pack()
+        self.filterframe.grid(row=4,column=1,sticky='news') #pack()
         return parent
 
     def showFilteringBar(self):
-        if not hasattr(self, 'filterwin') or self.filterwin == None:
-            self.filterwin = self.createFilteringBar()
-            self.filterwin.protocol("WM_DELETE_WINDOW", self.closeFilterBar)
+        if not hasattr(self, 'filterframe') or self.filterframe == None:
+            self.filterwin = self.createFilteringBar(self.parentframe)
+            #self.filterwin.protocol("WM_DELETE_WINDOW", self.closeFilterBar)
         else:
             self.filterwin.lift()
         return
 
     def closeFilterBar(self):
         """Callback for closing filter frame"""
-        self.filterwin.destroy()
-        self.filterwin = None
+        self.filterframe.destroy()
+        self.filterframe = None
         self.showAll()
         return
 
@@ -1351,7 +1380,7 @@ class Table(Canvas):
     def getPlotData(self):
         """Plot data from selection"""
         data = self.getSelectedDataFrame()
-        data.sort(inplace=True)
+        #data.sort(inplace=True)
         #if the first col is text we try to use it as an index
         #if data.dtypes[0] == 'object':
         #    data.set_index(data.columns[0], inplace=True)
@@ -2638,7 +2667,7 @@ class ToolBar(Frame):
         self.addButton('Table from selection', self.parentapp.tableFromSelection,
                     img, 'new table from selection')
         img = images.filtering()
-        self.addButton('Filter', self.parentapp.createFilteringBar, img, 'filtering')
+        self.addButton('Query', self.parentapp.queryBar, img, 'filtering')
         img = images.prefs()
         self.addButton('Prefs', self.parentapp.showPrefs, img, 'table preferences')
         return
