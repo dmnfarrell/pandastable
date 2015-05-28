@@ -116,12 +116,14 @@ class PlotViewer(Frame):
         self.canvas = canvas
         return
 
-    def setFigure(self):
+    def setFigure(self, f=None):
         from matplotlib.figure import Figure
-        self.fig = f = Figure(figsize=(5,4), dpi=100)
-        self.ax = f.add_subplot(111)
+        if f == None:
+            self.fig = f = Figure(figsize=(5,4), dpi=100)
+            self.ax = f.add_subplot(111)
         self.canvas.figure = f
         f.canvas = self.canvas
+        self.canvas.show()
         return
 
     def plotCurrent(self):
@@ -172,10 +174,19 @@ class PlotViewer(Frame):
         kind = kwds['kind']
         #valid kwd args for this plot type
         kwdargs = dict((k, kwds[k]) for k in valid[kind])
+        rows = int(np.sqrt(len(data.columns)))
+        self.fig.clear()
+        self.ax = ax = self.fig.add_subplot(111)
 
-        #if 'by' != '':
-            #data = data.groupby(kwds['by']).agg('mean')
-            #data = data.pivot(kwds['by'])
+        if kwds['by'] != '':
+            layout=(rows,-1)
+            data = data.groupby(kwds['by'])
+            axs = data.plot(layout=layout, **kwdargs)
+            for i in axs:
+                print (i.get_figure())
+            self.setFigure(i.get_figure())
+            self.canvas.draw()
+            return
 
         if len(data.columns)==1:
             kwdargs['subplots'] = 0
@@ -184,10 +195,8 @@ class PlotViewer(Frame):
         if kwds['subplots'] == 0:
             layout=None
         else:
-            r=int(np.sqrt(len(data.columns)))
-            layout=(r,-1)
-        self.fig.clear()
-        self.ax = ax = self.fig.add_subplot(111)
+            layout=(rows,-1)
+
         if kind == 'bar':
             if len(data) > 50:
                 self.ax.get_xaxis().set_visible(False)

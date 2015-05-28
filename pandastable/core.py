@@ -165,15 +165,15 @@ class Table(Canvas):
         self.bind('<B1-Motion>', self.handle_mouse_drag)
         self.bind('<Motion>', self.handle_motion)
 
-        self.bind_all("<Control-x>", self.deleteRow)
-        self.bind_all("<Control-n>", self.addRow)
-        self.bind_all("<Delete>", self.clearData)
-        self.bind_all("<Control-v>", self.paste)
+        self.bind("<Control-x>", self.deleteRow)
+        #self.bind_all("<Control-n>", self.addRow)
+        self.bind("<Delete>", self.clearData)
+        self.bind("<Control-v>", self.paste)
 
-        self.parentframe.master.bind_all("<Right>", self.handle_arrow_keys)
-        self.parentframe.master.bind_all("<Left>", self.handle_arrow_keys)
-        self.parentframe.master.bind_all("<Up>", self.handle_arrow_keys)
-        self.parentframe.master.bind_all("<Down>", self.handle_arrow_keys)
+        self.bind("<Right>", self.handle_arrow_keys)
+        self.bind("<Left>", self.handle_arrow_keys)
+        self.bind("<Up>", self.handle_arrow_keys)
+        self.bind("<Down>", self.handle_arrow_keys)
         self.parentframe.master.bind_all("<KP_8>", self.handle_arrow_keys)
         self.parentframe.master.bind_all("<Return>", self.handle_arrow_keys)
         self.parentframe.master.bind_all("<Tab>", self.handle_arrow_keys)
@@ -560,6 +560,7 @@ class Table(Canvas):
 
     def clearData(self, evt=None):
         """Delete cells from gui event"""
+        print (self.focus_get())
         rows = self.multiplerowlist
         cols = self.multiplecollist
         self.deleteCells(rows, cols)
@@ -624,9 +625,12 @@ class Table(Canvas):
         self.redraw()
         return
 
-    def query(self):
+    def query(self, evt=None):
         """Do query"""
         s = self.queryvar.get()
+        if s=='':
+            self.showAll()
+            return
         if self.filtered == True:
             self.model.df = self.dataframe
         df = self.model.df
@@ -652,10 +656,11 @@ class Table(Canvas):
         self.qframe.grid(row=4,column=1,sticky='news')
         self.queryvar = StringVar()
         e = Entry(qf, textvariable=self.queryvar, font="Courier 12 bold")
+        e.bind('<Return>', self.query)
         e.pack(fill=BOTH,side=LEFT,expand=1,padx=2,pady=2)
-        b = Button(qf,text='find',command=self.query)
+        b = Button(qf,text='find',width=5,command=self.query)
         b.pack(fill=BOTH,side=LEFT,padx=2,pady=2)
-        b = Button(qf,text='close',command=reset)
+        b = Button(qf,text='close',width=5,command=reset)
         b.pack(fill=BOTH,side=LEFT,padx=2,pady=2)
         return
 
