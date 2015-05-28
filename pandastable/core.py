@@ -618,7 +618,8 @@ class Table(Canvas):
 
     def showAll(self):
         """Re-show unfiltered"""
-        self.model.df = self.dataframe
+        if hasattr(self, 'dataframe'):
+            self.model.df = self.dataframe
         self.filtered = False
         self.redraw()
         return
@@ -640,15 +641,22 @@ class Table(Canvas):
     def queryBar(self, evt=None):
         """Use string query to filter. Will not work with spaces in column
         names, so these would need to be converted first."""
+
+        def reset():
+            self.qframe.destroy()
+            self.qframe = None
+            self.showAll()
+        if hasattr(self, 'qframe') and self.qframe != None:
+            return
         qf = self.qframe = Frame(self.parentframe)
-        self.qframe.grid(row=4,column=1)
+        self.qframe.grid(row=4,column=1,sticky='news')
         self.queryvar = StringVar()
-        e = Entry(qf, textvariable=self.queryvar,width=30)
-        e.pack(fill=BOTH,side=LEFT,pady=2)
+        e = Entry(qf, textvariable=self.queryvar, font="Courier 12 bold")
+        e.pack(fill=BOTH,side=LEFT,expand=1,padx=2,pady=2)
         b = Button(qf,text='find',command=self.query)
-        b.pack(fill=BOTH,side=LEFT,pady=2)
-        b = Button(qf,text='reset',command=self.showAll)
-        b.pack(fill=BOTH,side=LEFT,pady=2)
+        b.pack(fill=BOTH,side=LEFT,padx=2,pady=2)
+        b = Button(qf,text='close',command=reset)
+        b.pack(fill=BOTH,side=LEFT,padx=2,pady=2)
         return
 
     def doFilter(self, event=None):
@@ -2691,15 +2699,17 @@ class statusBar(Frame):
         Frame.__init__(self, parent)
         self.parentframe = parent
         self.parentapp = parentapp
+        sfont = ("Helvetica bold", 11)
+        clr = '#A10000'
         self.rowsvar = StringVar()
-        l=Label(self,textvariable=self.rowsvar)
+        l=Label(self,textvariable=self.rowsvar,font=sfont,foreground=clr)
         l.pack(fill=X, side=LEFT)
-        Label(self,text='rows x').pack(side=LEFT)
+        Label(self,text='rows x',font=sfont,foreground=clr).pack(side=LEFT)
         self.colsvar = StringVar()
         self.colsvar.set(len(self.parentapp.model.df))
-        l=Label(self,textvariable=self.colsvar)
+        l=Label(self,textvariable=self.colsvar,font=sfont,foreground=clr)
         l.pack(fill=X, side=LEFT)
-        Label(self,text='columns').pack(side=LEFT)
+        Label(self,text='columns',font=sfont,foreground=clr).pack(side=LEFT)
         return
 
     def update(self):
