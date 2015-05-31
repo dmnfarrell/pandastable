@@ -492,7 +492,7 @@ class MPLBaseOptions(object):
 
         dialog, self.tkvars, self.widgets = dialogFromOptions(parent, self.opts, self.groups)
         #disable until this works
-        self.widgets['by'].configure(state='disabled')
+        #self.widgets['by'].configure(state='disabled')
         self.widgets['by2'].configure(state='disabled')
         self.applyOptions()
         return dialog

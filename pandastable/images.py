@@ -1127,3 +1127,38 @@ def excel():
             +'QYEPQcJIUZKjT507oygI5PCoUKEzRXj8QGK6kCgIAi80ak27NagGAiMsql2b'
             +'lACBDiAxUpQIESJKlCJ9CmUKQMMDDBZIP2CAAIEBAwIIDAgAOw==')
      return img
+
+def add():
+     img = tk.PhotoImage(format='gif',data=
+             'R0lGODlhEAAQAPZ2ADSBLDSCLDeELzmFMDyHMj2INECJNkKNNkKLOEOPOESM'
+            +'OkeOPFOWRVCZQVeeRVaYSF2cTV+eUGajVmWrVWirU2mlWGuqWGyqWmqsW261'
+            +'WG+1WG+1WXS3W3S3XHC4WXK5W3O6XHG+X3WsYXeuY3qvZXyxZ3i0ZHe8YHy6'
+            +'ZH28Zn2+Z36yaX25an25a3+5bXm9bnDBY3nBZH7BaXzDa3rGa37Hb4CzaoO1'
+            +'bYS2boe4cIe4cYm+eI2+e4HMdYrCeY/CfYbJeoXNeYbJfInIf4rPfYzLgY7M'
+            +'hJLFgJfHhZfMhZjLhpjMh5PNiJjMio7Sg5bTiZTTipXUipbUi5fVi5nRi53Y'
+            +'kqTOlKbPlqbQlqDZlaDZlqvUnKrUnaXbm6/fpa/fprPZpbTZpbTaprLbqLXb'
+            +'qLfaqrPdqbTdqrbdrLXfrLjdr7vcr7fgr77itr3ktsvmw8XowM7pydTrz9fu'
+            +'0tzx2ODy3P///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAAHcA'
+            +'If8LSW1hZ2VNYWdpY2sKZ2FtbWE9MC40NQAsAAAAABAAEAAAB6SAd4KDhIWG'
+            +'dzg2KyOHgzlWb3JxaC4VhzlrdW5dVWZwPhGFOWV0VUxGUVNObC4PhEhzWVBD'
+            +'dnZBMjVsDoM3aF9FQi+1GCcgVEcLgittU0C1z3YeMlwIgiRnRD3QtR4qXAWC'
+            +'Ik1QNDAT3B4eSTwDgxRnMSEn3BkdYgmEEixjxR4Z9WAuBCgEwUSZJSlQKBEj'
+            +'8BCDBj+wWNlxYGCjOwkMEBBwseOgQAA7')
+     return img
+
+def cross():
+     img = tk.PhotoImage(format='gif',data=
+             'R0lGODlhEAAQAPYAAOQiJOYqLOktL+ovMekyNes0Nuw8Pu49P+0+QO0/QfE/'
+            +'Qe5AQu5BQ+9DRu9ER+9FSPJFR/BGSPBGSfRISvZKTPJMT/RNUPVOUPNRVPdV'
+            +'V/9UV/ZVWPVWWPZWWf9WWfZYWvZYW/ZZW/ZaXPZaXfdbXfdcXv9YW/9bXvdd'
+            +'YPdfYfheYfhfYvphY/9iY/hhZPhiZPpiZfljZvpjZvpkZ/9naPloavtpbPpq'
+            +'bfxrbvpsbvttb/9sbvttcP9ucP9wcf9wcv9wc/1xdP5xdP9xdP9ydPxzdv10'
+            +'d/90dv52ef92ef93ef93ev95e/15fP95fP95ff56ff96ff97fv98fv9+gP5+'
+            +'gf9+gf+Chv+HigAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+            +'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+            +'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAAFkA'
+            +'If8LSW1hZ2VNYWdpY2sKZ2FtbWE9MC40NQAsAAAAABAAEAAAB32AWYKDhIWG'
+            +'h4dLS4YvNRiES1ZWQoQrPFMrhEJQWFA3gis3UCkShThCV0IvKTdMKQ+HMTxW'
+            +'U0xLJQ6IWSNQJyZCDbpZJUseGj+liCMxQj89OxkGhyMvQh8MBhY0FgWF1D8Z'
+            +'DIIEEC0UAoQbLBsIhAEKFAOFFe2FAPLC+fpZgQA7')
+     return img

@@ -32,9 +32,11 @@ from core import Table
 from data import TableModel
 from prefs import Preferences
 import images as images
+from dialogs import MultipleValDialog
 
 class ViewerApp(Frame):
-    """pandastable viewer app"""
+    """Pandastable viewer application"""
+
     def __init__(self,parent=None, data=None, projfile=None):
         "Initialize the application."
 
@@ -75,6 +77,7 @@ class ViewerApp(Frame):
         return
 
     def setupGUI(self):
+        """Add all GUI elements"""
 
         self.m = PanedWindow(self.main, orient=HORIZONTAL)
         self.m.pack(fill=BOTH,expand=1)
@@ -85,6 +88,7 @@ class ViewerApp(Frame):
 
     def createSidePane(self, width=200):
         """Side panel for various dialogs is tabbed notebook"""
+
         self.closeSidePane()
         self.sidepane = Frame(self.m)
         self.m.add(self.sidepane, weight=3)
@@ -92,6 +96,7 @@ class ViewerApp(Frame):
 
     def closeSidePane(self):
         """Destroy sidepine"""
+
         if hasattr(self, 'sidepane'):
             self.m.forget(self.sidepane)
             self.sidepane.destroy()
@@ -99,6 +104,7 @@ class ViewerApp(Frame):
 
     def createMenuBar(self):
         """Create the menu bar for the application. """
+
         self.menu=Menu(self.main)
         self.proj_menu={'01New':{'cmd':self.newProject},
                         '02Open':{'cmd':self.openProject},
@@ -111,7 +117,7 @@ class ViewerApp(Frame):
         self.proj_menu=self.createPulldown(self.menu,self.proj_menu)
         self.menu.add_cascade(label='Project',menu=self.proj_menu['var'])
 
-        self.sheet_menu={'01Add Sheet':{'cmd':self.addSheet},
+        self.sheet_menu={'01Add Sheet':{'cmd': lambda: self.addSheet(select=True)},
                          '02Remove Sheet':{'cmd':self.deleteSheet},
                          '03Copy Sheet':{'cmd':self.copySheet},
                          '04Rename Sheet':{'cmd':self.renameSheet},
@@ -119,11 +125,16 @@ class ViewerApp(Frame):
         self.sheet_menu=self.createPulldown(self.menu,self.sheet_menu)
         self.menu.add_cascade(label='Sheet',menu=self.sheet_menu['var'])
 
-        self.tools_menu={'01Load sample data':{'cmd':self.sampleData},
-                         '03Load Iris data':{'cmd':self.getIrisData},
-                         '03Load Tips data':{'cmd':self.getTipsData}}
+        self.tools_menu={'01Merge Tables':{'cmd':self.merge},
+                         '02Concat Tables':{'cmd':self.concat}}
         self.tools_menu=self.createPulldown(self.menu,self.tools_menu)
         self.menu.add_cascade(label='Tools',menu=self.tools_menu['var'])
+
+        self.dataset_menu={'01Load sample data':{'cmd':self.sampleData},
+                         '03Load Iris data':{'cmd':self.getIrisData},
+                         '03Load Tips data':{'cmd':self.getTipsData}}
+        self.dataset_menu=self.createPulldown(self.menu,self.dataset_menu)
+        self.menu.add_cascade(label='Datasets',menu=self.dataset_menu['var'])
 
         self.help_menu={'01Online Help':{'cmd':self.online_documentation},
                         '02About':{'cmd':self.about}}
@@ -135,6 +146,7 @@ class ViewerApp(Frame):
 
     def getBestGeometry(self):
         """Calculate optimal geometry from screen size"""
+
         ws = self.main.winfo_screenwidth()
         hs = self.main.winfo_screenheight()
         self.w=w=ws/1.4; h=hs*0.7
@@ -166,9 +178,15 @@ class ViewerApp(Frame):
         dict['var']=var
         return dict
 
-    def newProject(self, data=None):
+    def newProject(self, data=None, current=False):
         """Create a new project"""
 
+        if current == True:
+            w = messagebox.askyesno("Save current?",
+                                    "Save current project?",
+                                    parent=self.master)
+            if w == True:
+                self.saveProject()
         self.sheets={}
         for n in self.nb.tabs():
             self.nb.forget(n)
@@ -180,6 +198,8 @@ class ViewerApp(Frame):
         return
 
     def openProject(self, filename=None):
+        """Open project file"""
+
         if filename == None:
             filename = filedialog.askopenfilename(defaultextension='.dexpl"',
                                                     initialdir=os.getcwd(),
@@ -193,6 +213,8 @@ class ViewerApp(Frame):
         return
 
     def saveProject(self):
+        """Save project"""
+
         if not hasattr(self, 'filename') or self.filename == None:
             self.saveasProject()
         else:
@@ -201,6 +223,7 @@ class ViewerApp(Frame):
 
     def saveasProject(self):
         """Save as a new filename"""
+
         filename = filedialog.asksaveasfilename(parent=self.main,
                                                 defaultextension='.dexpl',
                                                 initialdir=self.defaultsavedir,
@@ -213,6 +236,7 @@ class ViewerApp(Frame):
 
     def doSaveProject(self, filename):
         """Save sheets as dict in msgpack"""
+
         data={}
         for i in self.sheets:
             data[i] = self.sheets[i].model.df
@@ -221,12 +245,19 @@ class ViewerApp(Frame):
         return
 
     def closeProject(self):
+        """Close"""
+
+        w = messagebox.askyesno("Are you sure?",
+                                "Do you want to close?",
+                                parent=self.master)
+        if w==False:
+            return
         for n in self.nb.tabs():
             self.nb.forget(n)
         self.filename = None
         return
 
-    def addSheet(self, sheetname=None, df=None):
+    def addSheet(self, sheetname=None, df=None, select=False):
         """Add a new sheet"""
 
         names = [self.nb.tab(i, "text") for i in self.nb.tabs()]
@@ -244,7 +275,8 @@ class ViewerApp(Frame):
                                                 initialvalue='sheet'+str(noshts+1))
         if sheetname == None:
             return
-        checkName(sheetname)
+        if checkName(sheetname) == 0:
+            return
         #Create the table
         main = PanedWindow(orient=HORIZONTAL)
         self.nb.add(main, text=sheetname)
@@ -258,6 +290,10 @@ class ViewerApp(Frame):
         self.saved = 0
         self.currenttable = table
         self.sheets[sheetname] = table
+        if select == True:
+            ind = self.nb.index('end')-1
+            s = self.nb.tabs()[ind]
+            self.nb.select(s)
         return sheetname
 
     def deleteSheet(self):
@@ -280,6 +316,7 @@ class ViewerApp(Frame):
 
     def renameSheet(self):
         """Rename a sheet"""
+
         s = self.nb.tab(self.nb.select(), 'text')
         newname = simpledialog.askstring("New sheet name?",
                                           "Enter new sheet name:",
@@ -290,8 +327,40 @@ class ViewerApp(Frame):
         self.deleteSheet()
         return
 
+    def merge(self):
+
+        return
+
+    def concat(self):
+        """Concat 2 tables"""
+        vals = list(self.sheets.keys())
+        if len(vals)<=1:
+            return
+        d = MultipleValDialog(title='Concat',
+                                initialvalues=(vals,vals,vals,vals),
+                                labels=('Table 1','Table 2'),
+                                types=('list','list'),
+                                parent = self.master)
+        if d.result == None:
+            return
+        else:
+            s1 = d.results[0]
+            s2 = d.results[1]
+        if s1 == s2:
+            return
+        df1 = self.sheets[s1].model.df
+        df2 = self.sheets[s2].model.df
+        m = pd.concat([df1,df2])
+        self.addSheet('concat-%s-%s' %(s1,s2),m)
+        return
+
+    def clean(self):
+
+        return
+
     def sampleData(self):
         """Load sample table"""
+
         df = TableModel.getSampleData()
         name='sample'
         i=1
@@ -302,18 +371,22 @@ class ViewerApp(Frame):
         return
 
     def getIrisData(self):
+        """Get iris data"""
+
         df = TableModel.getIrisData()
         self.addSheet(sheetname='iris', df=df)
         return
 
     def getTipsData(self):
         """Get R tips data"""
+
         df = pd.read_csv("https://raw.github.com/mwaskom/seaborn/master/examples/tips.csv")
         self.addSheet(sheetname='tips', df=df)
         return
 
     def about(self):
         """About dialog"""
+
         abwin = Toplevel()
         abwin.geometry('+200+350')
         abwin.title('About')
@@ -323,7 +396,7 @@ class ViewerApp(Frame):
         label.image = logo
         label.grid(row=0,column=0,sticky='ew',padx=4,pady=4)
         style = Style()
-        style.configure("BW.TLabel", font='arial 11 bold')
+        style.configure("BW.TLabel", font='arial 10 bold')
 
         text='DataExplore (pandastable library)\n'\
                 +'Copyright (C) Damien Farrell 2014-\n'\

@@ -3,6 +3,16 @@ CHANGES
 =======
 
 ------
+0.3.0
+------
+
+Added ability to create sub/child table
+Merge, concat and join with sub table
+Removed row/col buttons from toolbar to prevent clutter
+Added filtering using string queries; pandas query()
+Rendering and handling of empty tables
+
+------
 0.2.0
 ------
 

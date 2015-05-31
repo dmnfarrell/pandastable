@@ -73,7 +73,9 @@ class Table(Canvas):
         self.mode = 'normal'
         self.editable = True
         self.filtered = False
-
+        self.child = None
+        self.queryrow = 4
+        self.childrow = 5
         self.loadPrefs()
         #set any options passed in kwargs to overwrite defaults and prefs
         for key in kwargs:
@@ -231,9 +233,9 @@ class Table(Canvas):
 
     def getVisibleRegion(self):
         x1, y1 = self.canvasx(0), self.canvasy(0)
-        w, h = self.winfo_width(), self.winfo_height()
-        if w <= 1.0 or h <= 1.0:
-            w, h = self.master.winfo_width(), self.master.winfo_height()
+        #w, h = self.winfo_width(), self.winfo_height()
+        #if w <= 1.0 or h <= 1.0:
+        w, h = self.master.winfo_width(), self.master.winfo_height()
         x2, y2 = self.canvasx(w), self.canvasy(h)
         return x1, y1, x2, y2
 
@@ -285,6 +287,7 @@ class Table(Canvas):
             self.delete('entry')
             self.delete('rowrect')
             self.delete('currentrect')
+            self.delete('gridline','text')
             return
         self.tablewidth = (self.cellwidth) * self.cols
         self.configure(bg=self.cellbackgr)
@@ -478,7 +481,6 @@ class Table(Canvas):
             return
         keys = self.model.autoAddRows(num)
         self.redraw()
-        self.setSelectedRow(self.model.getRecordIndex(keys[0]))
         return
 
     def addColumn(self, newname=None):
@@ -560,10 +562,16 @@ class Table(Canvas):
 
     def clearData(self, evt=None):
         """Delete cells from gui event"""
-        print (self.focus_get())
         rows = self.multiplerowlist
         cols = self.multiplecollist
         self.deleteCells(rows, cols)
+        return
+
+    def clearTable(self):
+        """Make an empty table"""
+        model = TableModel(pd.DataFrame())
+        self.updateModel(model)
+        self.redraw()
         return
 
     def autoAddColumns(self, numcols=None):
@@ -653,7 +661,7 @@ class Table(Canvas):
         if hasattr(self, 'qframe') and self.qframe != None:
             return
         qf = self.qframe = Frame(self.parentframe)
-        self.qframe.grid(row=4,column=1,sticky='news')
+        self.qframe.grid(row=self.queryrow,column=1,sticky='news')
         self.queryvar = StringVar()
         e = Entry(qf, textvariable=self.queryvar, font="Courier 12 bold")
         e.bind('<Return>', self.query)
@@ -1218,26 +1226,65 @@ class Table(Canvas):
         self.createChildTable(p, 'pivot-%s-%s' %(index,column), index=True)
         return
 
-    def merge(self, table):
-        """Merge with another table"""
+    def merge(self):
+        """Merge with another table. Requires a child table"""
+        if self.child == None:
+            return
+        df1 = self.model.df
+        df2 = self.child.model.df
+        cols1 = list(df1.columns)
+        cols2 = list(df2.columns)
+        how=['inner','outer','left','right']
+        d = MultipleValDialog(title='Merge',
+                                initialvalues=(cols1,cols2,how),
+                                labels=('Columns left','Columns right','how'),
+                                types=('list','list','list'),
+                                parent = self.master)
+        if d.result == None:
+            return
+        else:
+            c1 = d.results[0]
+            c2 = d.results[1]
+            how = d.results[2]
+
+        new = pd.merge(df1,df2,left_on=c1,right_on=c2,how=how)
+        model = TableModel(new)
+        self.updateModel(model)
         return
 
     def describe(self):
+        """Create table summary"""
         g = self.model.df.describe()
         self.createChildTable(g)
         return
 
-    def createChildTable(self, df, title=None, index=False):
-        win = Toplevel()
-        x,y,w,h = self.getGeometry(self.master)
-        win.geometry('+%s+%s' %(int(x+w/2),int(y+h/2)))
-        if title != None:
-            win.title(title)
-        newtable = self.__class__(win, dataframe=df, showtoolbar=1, showstatusbar=1)
+    def createChildTable(self, df, title=None, index=False, out=False):
+        """Add the child table"""
+
+        if self.child != None:
+            self.child.destroy()
+        if out == True:
+            win = Toplevel()
+            x,y,w,h = self.getGeometry(self.master)
+            win.geometry('+%s+%s' %(int(x+w/2),int(y+h/2)))
+            if title != None:
+                win.title(title)
+        else:
+            win = Frame(self.parentframe)
+            win.grid(row=self.childrow,column=0,columnspan=2,sticky='news')
+        self.childframe = win
+        newtable = self.__class__(win, dataframe=df, showtoolbar=0, showstatusbar=1)
         newtable.adjustColumnWidths()
         newtable.show()
+        self.child = newtable
         if index==True:
             newtable.showIndex()
+        return
+
+    def closeChildTable(self):
+        if self.child != None:
+            self.child.destroy()
+        self.childframe.destroy()
         return
 
     def tableFromSelection(self):
@@ -1264,7 +1311,7 @@ class Table(Canvas):
                         "Clear Data" : lambda: self.deleteCells(rows, cols),
                         "Select All" : self.select_All,
                         "Auto Fit Columns" : self.autoResizeColumns,
-                        #"Filter Records" : self.showFilteringBar,
+                        "Filter Records" : self.queryBar,
                         "New": self.new,
                         "Load": self.load,
                         "Save": self.save,
@@ -1274,8 +1321,8 @@ class Table(Canvas):
                         "Preferences" : self.showPrefs}
 
         main = ["Copy", "Paste", "Fill Down","Fill Right",
-                "Clear Data", "Add Row(s)" , "Delete Row(s)"]
-        general = ["Select All", "Auto Fit Columns", "Preferences"]
+                "Clear Data", "Delete Row(s)"]
+        general = ["Add Row(s)", "Select All", "Filter Records", "Auto Fit Columns", "Preferences"]
 
         filecommands = ['New','Load','Import Text','Save','Save as']
         plotcommands = ['Plot Selected']
@@ -2017,7 +2064,9 @@ class Table(Canvas):
             print('file does not exist')
             return
         if filename:
-            self.model.load(filename)
+            model = TableModel()
+            model.load(filename)
+            self.updateModel(model)
             self.filename = filename
             self.adjustColumnWidths()
             self.redraw()
@@ -2559,6 +2608,8 @@ class RowHeader(Canvas):
         return
 
     def toggleIndex(self):
+        """Toggle index display"""
+
         if self.showindex == True:
             self.showindex = False
         else:
@@ -2577,7 +2628,6 @@ class RowHeader(Canvas):
                          "Select All" : self.table.select_All}
         main = ["Sort by index","Reset index","Toggle index","Copy index"]
 
-        #row = self.get_row_clicked(event)
         popupmenu = Menu(self, tearoff = 0)
         def popupFocusOut(event):
             popupmenu.unpost()
@@ -2658,14 +2708,6 @@ class ToolBar(Frame):
         self.addButton('Import', func, img, 'import csv')
         img = images.excel()
         self.addButton('Load excel', self.parentapp.loadExcel, img, 'load excel file')
-        img = images.add_row()
-        self.addButton('Add record', self.parentapp.addRow, img, 'add row')
-        img = images.add_col()
-        self.addButton('Add col', self.parentapp.addColumn, img, 'add column')
-        img = images.del_row()
-        self.addButton('Delete record', self.parentapp.deleteRow, img, 'delete row')
-        img = images.del_col()
-        self.addButton('Delete col', self.parentapp.deleteColumn, img, 'delete column')
         img = images.plot()
         self.addButton('Plot', self.parentapp.plotSelected, img, 'plot selected')
         img = images.transpose()
@@ -2674,13 +2716,15 @@ class ToolBar(Frame):
         self.addButton('Aggregate', self.parentapp.aggregate, img, 'aggregate')
         img = images.pivot()
         self.addButton('Pivot', self.parentapp.pivot, img, 'pivot')
-        #img = images.merge()
-        #self.addButton('Merge', self.parentapp.merge, img, 'merge')
+        img = images.add()
+        self.addButton('Merge', self.parentapp.merge, img, 'merge, concat or join')
         img = images.table_multiple()
         self.addButton('Table from selection', self.parentapp.tableFromSelection,
                     img, 'new table from selection')
         img = images.filtering()
         self.addButton('Query', self.parentapp.queryBar, img, 'filtering')
+        img = images.cross()
+        self.addButton('Clear', self.parentapp.clearTable, img, 'clear table')
         img = images.prefs()
         self.addButton('Prefs', self.parentapp.showPrefs, img, 'table preferences')
         return

@@ -123,11 +123,18 @@ class TableModel(object):
         self.df = df[cols]
         return
 
+    def autoAddRows(self, num):
+        """Not efficient"""
+        ind = self.df.index.max()
+        for i in range(num):
+            self.addRow(i+ind)
+        return
+
     def addRow(self, rowindex):
         """Inserts a row at the required index by append/concat"""
         df = self.df
         a, b = df[:rowindex], df[rowindex:]
-        a=a.append(pd.Series(), ignore_index=1)
+        a = a.append(pd.Series(), ignore_index=1)
         self.df = pd.concat([a,b])
         #self.df.loc[rowindex] = pd.Series()
         return
