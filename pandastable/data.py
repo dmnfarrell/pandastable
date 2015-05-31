@@ -125,6 +125,12 @@ class TableModel(object):
 
     def autoAddRows(self, num):
         """Not efficient"""
+        df = self.df
+        if len(df) == 0:
+            self.df = pd.DataFrame(pd.Series(range(num)))
+            print (df)
+            return
+
         ind = self.df.index.max()
         for i in range(num):
             self.addRow(i+ind)
@@ -136,7 +142,7 @@ class TableModel(object):
         a, b = df[:rowindex], df[rowindex:]
         a = a.append(pd.Series(), ignore_index=1)
         self.df = pd.concat([a,b])
-        #self.df.loc[rowindex] = pd.Series()
+
         return
 
     def deleteRow(self, rowindex=None, update=True):

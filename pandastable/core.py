@@ -1308,6 +1308,7 @@ class Table(Canvas):
                         "Fill Right" : lambda: self.fillAcross(cols, rows),
                         "Add Row(s)" : lambda: self.addRows(),
                         "Delete Row(s)" : lambda: self.deleteRow(),
+                        "Add Column(s)" : lambda: self.addColumn(),
                         "Clear Data" : lambda: self.deleteCells(rows, cols),
                         "Select All" : self.select_All,
                         "Auto Fit Columns" : self.autoResizeColumns,
@@ -1322,7 +1323,7 @@ class Table(Canvas):
 
         main = ["Copy", "Paste", "Fill Down","Fill Right",
                 "Clear Data", "Delete Row(s)"]
-        general = ["Add Row(s)", "Select All", "Filter Records", "Auto Fit Columns", "Preferences"]
+        general = ["Add Row(s)", "Add Column(s)", "Select All", "Filter Records", "Auto Fit Columns", "Preferences"]
 
         filecommands = ['New','Load','Import Text','Save','Save as']
         plotcommands = ['Plot Selected']
@@ -2311,6 +2312,8 @@ class ColumnHeader(Canvas):
     def handle_mouse_move(self, event):
         """Handle mouse moved in header, if near divider draw resize symbol"""
 
+        if len(self.model.df.columns) == 0:
+            return
         self.delete('resizesymbol')
         w=self.table.cellwidth
         h=self.height
