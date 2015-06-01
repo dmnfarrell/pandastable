@@ -186,15 +186,6 @@ class Table(Canvas):
         self.focus_set()
         return
 
-    def getModel(self):
-        """Get the current table model"""
-        return self.model
-
-    def setModel(self, model):
-        """Set a new model - requires redraw to reflect changes"""
-        self.model = model
-        return
-
     def show(self, callback=None):
         """Adds column header and scrollbars and combines them with
            the current table adding all to the master frame provided in constructor.
@@ -231,7 +222,13 @@ class Table(Canvas):
         self.redraw(callback=callback)
         return
 
+    def remove(self):
+        """Close table frame"""
+        self.parentframe.destroy()
+        return
+
     def getVisibleRegion(self):
+        """Get visible region of canvas"""
         x1, y1 = self.canvasx(0), self.canvasy(0)
         #w, h = self.winfo_width(), self.winfo_height()
         #if w <= 1.0 or h <= 1.0:
@@ -240,6 +237,7 @@ class Table(Canvas):
         return x1, y1, x2, y2
 
     def getRowPosition(self, y):
+        """Set row position"""
         h = self.rowheight
         y_start = self.y_start
         row = (int(y)-y_start)/h
@@ -546,7 +544,8 @@ class Table(Canvas):
             self.setSelectedCol(0)
             self.redraw()
             self.drawSelectedCol()
-            self.pf.updateData()
+            if hasattr(self, 'pf'):
+                self.pf.updateData()
         return
 
     def deleteCells(self, rows, cols):
@@ -569,6 +568,11 @@ class Table(Canvas):
 
     def clearTable(self):
         """Make an empty table"""
+        n =  messagebox.askyesno("Clear Confirm",
+                                   "This will clear the entire table.\nAre you sure?",
+                                   parent=self.parentframe)
+        if not n:
+            return
         model = TableModel(pd.DataFrame())
         self.updateModel(model)
         self.redraw()
@@ -1226,30 +1230,30 @@ class Table(Canvas):
         self.createChildTable(p, 'pivot-%s-%s' %(index,column), index=True)
         return
 
-    def merge(self):
-        """Merge with another table. Requires a child table"""
+    def doCombine(self):
+        """Do combine operation"""
+
         if self.child == None:
             return
-        df1 = self.model.df
-        df2 = self.child.model.df
-        cols1 = list(df1.columns)
-        cols2 = list(df2.columns)
-        how=['inner','outer','left','right']
-        d = MultipleValDialog(title='Merge',
-                                initialvalues=(cols1,cols2,how),
-                                labels=('Columns left','Columns right','how'),
-                                types=('list','list','list'),
-                                parent = self.master)
-        if d.result == None:
+        from dialogs import CombineDialog
+        cdlg = CombineDialog(self, df1=self.model.df, df2=self.child.model.df)
+        df = cdlg.merged
+        if df is None:
             return
-        else:
-            c1 = d.results[0]
-            c2 = d.results[1]
-            how = d.results[2]
+        model = TableModel(dataframe=df)
+        self.updateModel(model)
+        self.redraw()
+        return
 
+    def merge(self, table):
+        """Merge with another table."""
+
+        df1 = self.model.df
+        df2 = table.model.df
         new = pd.merge(df1,df2,left_on=c1,right_on=c2,how=how)
         model = TableModel(new)
         self.updateModel(model)
+        self.redraw()
         return
 
     def describe(self):
@@ -1276,6 +1280,8 @@ class Table(Canvas):
         newtable = self.__class__(win, dataframe=df, showtoolbar=0, showstatusbar=1)
         newtable.adjustColumnWidths()
         newtable.show()
+        toolbar = ChildToolBar(win, newtable)
+        toolbar.grid(row=0,column=3,rowspan=2,sticky='news')
         self.child = newtable
         if index==True:
             newtable.showIndex()
@@ -1319,6 +1325,7 @@ class Table(Canvas):
                         "Save as": self.saveAs,
                         "Import Text": lambda: self.doImport(dialog=True),
                         "Plot Selected" : self.plotSelected,
+                        "Hide plot" : self.hidePlot,
                         "Preferences" : self.showPrefs}
 
         main = ["Copy", "Paste", "Fill Down","Fill Right",
@@ -1326,7 +1333,7 @@ class Table(Canvas):
         general = ["Add Row(s)", "Add Column(s)", "Select All", "Filter Records", "Auto Fit Columns", "Preferences"]
 
         filecommands = ['New','Load','Import Text','Save','Save as']
-        plotcommands = ['Plot Selected']
+        plotcommands = ['Plot Selected','Hide plot']
 
         def createSubMenu(parent, label, commands):
             menu = Menu(parent, tearoff = 0)
@@ -1428,6 +1435,13 @@ class Table(Canvas):
             self.pf = PlotViewer(table=self, parent=parent)
         return self.pf
 
+    def hidePlot(self):
+        """Hide plot frame"""
+        if hasattr(self, 'pf'):
+            self.pf.quit()
+            self.pf = None
+        return
+
     def getSelectedDataFrame(self):
         """Return a sub-dataframe of the selected cells"""
         df = self.model.df
@@ -1451,7 +1465,7 @@ class Table(Canvas):
     def plotSelected(self):
         """Plot the selected data in the associated plotviewer"""
 
-        if not hasattr(self, 'pf'):
+        if not hasattr(self, 'pf') or self.pf == None:
             self.pf = PlotViewer(table=self)
         else:
             if type(self.pf.main) is tkinter.Toplevel:
@@ -1719,39 +1733,6 @@ class Table(Canvas):
                              outline=self.boxoutlinecolor, width=w,
                              tag='multicellrect')
 
-        return
-
-    def drawTooltip(self, row, col):
-        """Draw a tooltip showing contents of cell"""
-
-        '''x1,y1,x2,y2 = self.getCellCoords(row,col)
-        w=x2-x1
-        text = self.model.getValueAt(row,col)
-        if isinstance(text, dict):
-            if 'link' in text:
-                text = text['link']
-
-
-        # If text is a number we make it a string
-        if type(text) is float or type is int:
-            text=str(text)
-        if text == NoneType or text == '' or len(str(text))<=3:
-            return
-
-        sfont = tkinter.font.Font (family='Arial', size=12,weight='bold')
-        obj = self.create_text(x1+w/1.5,y2,text=text,
-                                anchor='w',
-                                font=sfont,tag='tooltip')
-
-        box = self.bbox(obj)
-        x1=box[0]-1
-        y1=box[1]-1
-        x2=box[2]+1
-        y2=box[3]+1
-
-        rect = self.create_rectangle(x1+1,y1+1,x2+1,y2+1,tag='tooltip',fill='black')
-        rect2 = self.create_rectangle(x1,y1,x2,y2,tag='tooltip',fill='lightyellow')
-        self.lift(obj)'''
         return
 
     def setcellbackgr(self):
@@ -2171,7 +2152,7 @@ class ColumnHeader(Canvas):
         if table != None:
             self.table = table
             self.height = 20
-            self.model = self.table.getModel()
+            self.model = self.table.model
             self.config(width=self.table.width)
             #self.colnames = self.model.columnNames
             self.columnlabels = self.model.df.columns
@@ -2199,7 +2180,8 @@ class ColumnHeader(Canvas):
         self.delete('rect')
         self.delete('dragrect')
         self.atdivider = None
-
+        align = 'w'
+        pad = 5
         h=self.height
         x_start = self.table.x_start
         if cols == 0:
@@ -2211,16 +2193,21 @@ class ColumnHeader(Canvas):
             else:
                 w = self.table.cellwidth
             x = self.table.col_positions[col]
-
+            if align == 'w':
+                xt = x+pad
+            elif align == 'e':
+                xt = x+w-pad
+            elif align == 'center':
+                xt = x-w/2
             if len(str(colname)) > w/10:
                 colname = colname[0:int(w/10)]+'.'
             line = self.create_line(x, 0, x, h, tag=('gridline', 'vertline'),
                                  fill='white', width=1)
-            self.create_text(x+w/2,h/2,
+            self.create_text(xt,h/2,
                                 text=colname,
                                 fill='white',
                                 font=self.thefont,
-                                tag='text')
+                                tag='text', anchor=align)
 
         x = self.table.col_positions[col+1]
         self.create_line(x,0, x,h, tag='gridline',
@@ -2470,7 +2457,7 @@ class RowHeader(Canvas):
             self.showindex = False
             self.config(height = self.table.height)
             self.startrow = self.endrow = None
-            self.model = self.table.getModel()
+            self.model = self.table.model
             self.bind('<Button-1>',self.handle_left_click)
             self.bind("<ButtonRelease-1>", self.handle_left_release)
             self.bind("<Control-Button-1>", self.handle_left_ctrl_click)
@@ -2719,14 +2706,14 @@ class ToolBar(Frame):
         self.addButton('Aggregate', self.parentapp.aggregate, img, 'aggregate')
         img = images.pivot()
         self.addButton('Pivot', self.parentapp.pivot, img, 'pivot')
-        img = images.add()
-        self.addButton('Merge', self.parentapp.merge, img, 'merge, concat or join')
+        img = images.merge()
+        self.addButton('Merge', self.parentapp.doCombine, img, 'merge, concat or join')
         img = images.table_multiple()
         self.addButton('Table from selection', self.parentapp.tableFromSelection,
-                    img, 'new table from selection')
+                    img, 'sub-table from selection')
         img = images.filtering()
         self.addButton('Query', self.parentapp.queryBar, img, 'filtering')
-        img = images.cross()
+        img = images.table_delete()
         self.addButton('Clear', self.parentapp.clearTable, img, 'clear table')
         img = images.prefs()
         self.addButton('Prefs', self.parentapp.showPrefs, img, 'table preferences')
@@ -2742,6 +2729,23 @@ class ToolBar(Frame):
         b.pack(side=TOP)
         if tooltip != None:
             ToolTip.createToolTip(b, tooltip)
+        return
+
+class ChildToolBar(ToolBar):
+    """Smaller toolbar for child table"""
+    def __init__(self, parent=None, parentapp=None):
+        Frame.__init__(self, parent, width=600, height=40)
+        self.parentframe = parent
+        self.parentapp = parentapp
+        img = images.open_proj()
+        self.addButton('Load table', self.parentapp.load, img, 'load table')
+        img = images.importcsv()
+        func = lambda: self.parentapp.doImport(dialog=1)
+        self.addButton('Import', func, img, 'import csv')
+        img = images.table_delete()
+        self.addButton('Clear', self.parentapp.clearTable, img, 'clear table')
+        img = images.cross()
+        self.addButton('Close', self.parentapp.remove, img, 'close')
         return
 
 class statusBar(Frame):

@@ -38,10 +38,11 @@ colormaps = sorted(m for m in plt.cm.datad if not m.endswith("_r"))
 class PlotViewer(Frame):
     """Provides a frame for figure canvas and MPL settings"""
 
-    def __init__(self,table,parent=None):
+    def __init__(self, table, parent=None):
 
         self.parent=parent
         self.table=table
+        self.table.pf = self #opaque ref
         self.mode = 0
         if self.parent != None:
             Frame.__init__(self, parent)
@@ -369,7 +370,9 @@ class PlotViewer(Frame):
         return
 
     def quit(self):
-        self.main.withdraw()
+        #self.main.withdraw()
+        self.table.pf = None
+        self.main.destroy()
         return
 
 class animator(Frame):

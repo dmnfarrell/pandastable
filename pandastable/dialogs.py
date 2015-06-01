@@ -287,3 +287,103 @@ class ImportDialog(Frame):
         self.main.destroy()
         return
 
+class CombineDialog(Frame):
+    """Provides a frame for setting up combine operations"""
+
+    def __init__(self, parent=None, df1=None, df2=None):
+
+        self.parent = parent
+        self.main = Toplevel()
+        self.master = self.main
+        self.main.title('Merge/Join/Concat')
+        self.main.protocol("WM_DELETE_WINDOW", self.quit)
+        self.main.grab_set()
+        self.main.transient(parent)
+        self.df1 = df1
+        self.df2 = df2
+        self.merged = None
+
+        f = Frame(self.main)
+        f.pack(side=TOP,fill=BOTH)
+        ops = ['merge','concat']
+        self.opvar = StringVar()
+        w = Combobox(f, values=ops,
+                 textvariable=self.opvar,width=14 )
+        w.set('merge')
+        Label(f,text='operation:').pack()
+        w.pack()
+
+        #buttons to add for each op.
+        #merge: left, right, how, suff1, suff2
+        #concat assumes homogeneous dfs
+        how = ['inner','outer','left','right']
+        grps = {'merge': ['left_on','right_on','suffix1','suffix2','how']}
+                #'concat options': ['join']}
+        self.grps = grps = OrderedDict(sorted(grps.items()))
+        cols1 = list(df1.columns)
+        cols2 = list(df2.columns)
+        opts = self.opts = {'left_on':{'type':'combobox','default':'',
+                            'items':cols1, 'tooltip':'left column'},
+                            'right_on':{'type':'combobox','default':'',
+                            'items':cols2, 'tooltip':'right column'},
+                            'suffix1':{'type':'entry','default':'_1','label':'left suffix'},
+                            'suffix2':{'type':'entry','default':'_2','label':'right suffix'},
+                            'how':{'type':'combobox','default':'inner',
+                            'items':how, 'tooltip':'how to merge'},
+                            #'join':{'type':'combobox','default':'inner',
+                            #'items':['inner','outer'], 'tooltip':'how to join'},
+                             }
+        optsframe, self.tkvars, w = dialogFromOptions(self.main, opts, grps)
+        optsframe.pack(side=TOP,fill=BOTH)
+
+        bf = Frame(self.main)
+        bf.pack(side=TOP,fill=BOTH)
+        b = Button(bf, text="Apply", command=self.apply)
+        b.pack(side=LEFT,fill=X,expand=1,pady=1)
+        b = Button(bf, text="Cancel", command=self.quit)
+        b.pack(side=LEFT,fill=X,expand=1,pady=1)
+        b = Button(bf, text="Help", command=self.help)
+        b.pack(side=LEFT,fill=X,expand=1,pady=1)
+        self.main.wait_window()
+        return
+
+    def apply(self):
+        """Apply operation"""
+        kwds = {}
+        method = self.opvar.get()
+        for i in self.opts:
+            if i not in self.grps[method]:
+                continue
+            val = self.tkvars[i].get()
+            if val == '':
+                val=None
+            kwds[i] = val
+        print (kwds)
+        s=(kwds['suffix1'],kwds['suffix2'])
+        del kwds['suffix1']
+        del kwds['suffix2']
+        if method == 'merge':
+            m = pd.merge(self.df1,self.df2,on=None,suffixes=s, **kwds)
+            print (m)
+
+        #if successful ask user to replace table and close
+        if len(m) > 0:
+            n = messagebox.askyesno("Merge done",
+                                     "Merge success.\nReplace table with new data?",
+                                     parent=self.parent)
+            if n == True:
+                self.merged = m
+                self.quit()
+            else:
+                self.merged = None
+        return
+
+    def help(self):
+        import webbrowser
+        link='http://pandas.pydata.org/pandas-docs/stable/merging.html'
+        webbrowser.open(link,autoraise=1)
+        return
+
+    def quit(self):
+        self.main.destroy()
+        return

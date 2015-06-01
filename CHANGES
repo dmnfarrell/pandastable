@@ -7,10 +7,11 @@ CHANGES
 ------
 
 Added ability to create sub/child table
-Merge, concat and join with sub table
+Merge and concat with sub tables
 Removed row/col buttons from toolbar to prevent clutter
 Added filtering using string queries; pandas query()
 Rendering and handling of empty tables
+Can now hide plot viewer in dataexplore app
 
 ------
 0.2.0
