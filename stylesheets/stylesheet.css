@@ -538,7 +538,7 @@ a.button {
 }
 a.button small {
   display: block;
-  font-size: 11px;
+  font-size: 14px;
 }
 header a.button {
   position: absolute;
@@ -554,8 +554,8 @@ header a.logo {
 }
 aside a.button {
   display: block;
-  width: 138px;
-  padding-left: 64px;
+  width: 148px;
+  padding-left: 74px;
   margin-bottom: 20px;
   font-size: 21px;
   background: transparent url(../images/download-button.png) 0 0 no-repeat;
