@@ -125,8 +125,8 @@ class ViewerApp(Frame):
         self.sheet_menu=self.createPulldown(self.menu,self.sheet_menu)
         self.menu.add_cascade(label='Sheet',menu=self.sheet_menu['var'])
 
-        self.tools_menu={'01Merge Tables':{'cmd':self.merge},
-                         '02Concat Tables':{'cmd':self.concat}}
+        self.tools_menu={#'01Merge Tables':{'cmd':self.merge},}
+                         '01Concatenate Tables':{'cmd':self.concat}}
         self.tools_menu=self.createPulldown(self.menu,self.tools_menu)
         self.menu.add_cascade(label='Tools',menu=self.tools_menu['var'])
 
@@ -337,7 +337,7 @@ class ViewerApp(Frame):
         if len(vals)<=1:
             return
         d = MultipleValDialog(title='Concat',
-                                initialvalues=(vals,vals,vals,vals),
+                                initialvalues=(vals,vals),
                                 labels=('Table 1','Table 2'),
                                 types=('list','list'),
                                 parent = self.master)

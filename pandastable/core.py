@@ -171,6 +171,7 @@ class Table(Canvas):
         #self.bind_all("<Control-n>", self.addRow)
         self.bind("<Delete>", self.clearData)
         self.bind("<Control-v>", self.paste)
+        self.bind("<Control-a>", self.selectAll)
 
         self.bind("<Right>", self.handle_arrow_keys)
         self.bind("<Left>", self.handle_arrow_keys)
@@ -822,7 +823,7 @@ class Table(Canvas):
         """Get currently selected column"""
         return self.currentcol
 
-    def select_All(self):
+    def selectAll(self, evt=None):
         """Select all rows and cells"""
         self.startrow = 0
         self.endrow = self.rows
@@ -846,7 +847,6 @@ class Table(Canvas):
         y_start=self.y_start
 
         #get nearest rect co-ords for that row/col
-        #x1=x_start+w*col
         x1=self.col_positions[col]
         y1=y_start+h*row
         x2=x1+w
@@ -1316,14 +1316,14 @@ class Table(Canvas):
                         "Delete Row(s)" : lambda: self.deleteRow(),
                         "Add Column(s)" : lambda: self.addColumn(),
                         "Clear Data" : lambda: self.deleteCells(rows, cols),
-                        "Select All" : self.select_All,
+                        "Select All" : self.selectAll,
                         "Auto Fit Columns" : self.autoResizeColumns,
                         "Filter Records" : self.queryBar,
                         "New": self.new,
                         "Load": self.load,
                         "Save": self.save,
                         "Save as": self.saveAs,
-                        "Import Text": lambda: self.doImport(dialog=True),
+                        "Import csv": lambda: self.doImport(dialog=True),
                         "Plot Selected" : self.plotSelected,
                         "Hide plot" : self.hidePlot,
                         "Preferences" : self.showPrefs}
@@ -1332,7 +1332,7 @@ class Table(Canvas):
                 "Clear Data", "Delete Row(s)"]
         general = ["Add Row(s)", "Add Column(s)", "Select All", "Filter Records", "Auto Fit Columns", "Preferences"]
 
-        filecommands = ['New','Load','Import Text','Save','Save as']
+        filecommands = ['New','Load','Import csv','Save','Save as']
         plotcommands = ['Plot Selected','Hide plot']
 
         def createSubMenu(parent, label, commands):
@@ -2475,18 +2475,18 @@ class RowHeader(Canvas):
         self.delete('rect')
 
         v=self.table.visiblerows
+        scale = self.table.getScale()
         if self.showindex == True:
             ind = self.model.df.index[v]
             dtype = ind.dtype
-            #print (ind)
             rows = ind.astype('object').astype('str')
             l = rows.str.len().max()
-            scale = self.table.getScale()
             w = l * scale + 6
         else:
             rows = v
             rows = [i+1 for i in rows]
-            w = 40
+            w = 45
+            #w = len(str(max(rows))) * scale + 6
 
         if self.width != w:
             self.config(width=w)
@@ -2615,7 +2615,7 @@ class RowHeader(Canvas):
                          "Reset index" : lambda: self.table.resetIndex(),
                          "Toggle index" : lambda: self.toggleIndex(),
                          "Copy index" : lambda: self.copy(rows, cols),
-                         "Select All" : self.table.select_All}
+                         "Select All" : self.table.selectAll}
         main = ["Sort by index","Reset index","Toggle index","Copy index"]
 
         popupmenu = Menu(self, tearoff = 0)

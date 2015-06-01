@@ -149,7 +149,8 @@ class PlotViewer(Frame):
         valid = {'line': ['alpha', 'colormap', 'grid', 'legend', 'linestyle',
                           'linewidth', 'marker', 'subplots', 'rot', 'logx', 'logy',
                            'sharey', 'use_index', 'kind'],
-                    'scatter': ['alpha', 'grid', 'linewidth', 'marker', 's', 'legend', 'colormap'],
+                    'scatter': ['alpha', 'grid', 'linewidth', 'marker', 's', 'legend',
+                            'colormap','logx', 'logy', 'use_index'],
                     'pie': ['colormap', 'legend', 'kind','subplots'],
                     'hexbin': ['alpha', 'colormap', 'grid', 'linewidth'],
                     'bootstrap': ['grid'],
@@ -205,7 +206,8 @@ class PlotViewer(Frame):
                 print ('too many rows to plot')
                 return
         if kind == 'scatter':
-            axs = self.scatter(data, ax, kwdargs)
+            axs = self.scatter(data, ax, **kwdargs)
+            #axs = data.plot(kind='scatter',ax=ax,**kwdargs)
         elif kind == 'boxplot':
             axs = data.boxplot(ax=ax)
         elif kind == 'histogram':
@@ -239,24 +241,27 @@ class PlotViewer(Frame):
         self.canvas.draw()
         return
 
-    def scatter(self, df, ax, kwds):
+    def scatter(self, df, ax, alpha=0.8, marker='o', **kwds):
         """A more custom scatter plot"""
+        print (kwds)
         if len(df.columns)<2:
             return
+        df = df._get_numeric_data()
         cols = df.columns
+        x = df[cols[0]]
+        s=1
         plots = len(cols)
         cmap = plt.cm.get_cmap(kwds['colormap'])
-        if kwds['marker'] == '':
-            kwds['marker'] = 'o'
-        for i in range(1,plots):
-            x = df[cols[0]]
+        if marker == '':
+            marker = 'o'
+        for i in range(s,plots):
             y = df[cols[i]]
             c = cmap(float(i)/(plots))
-            if kwds['marker'] in ['x','+']:
+            if marker in ['x','+']:
                 ec=c
             else:
                 ec='black'
-            ax.scatter(x, y, marker=kwds['marker'], alpha=kwds['alpha'],
+            ax.scatter(x, y, marker=marker, alpha=alpha,
                        s=kwds['s'], color=c, edgecolor=ec)
         if kwds['grid'] == 1:
             ax.grid()

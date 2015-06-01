@@ -317,8 +317,8 @@ class CombineDialog(Frame):
         #merge: left, right, how, suff1, suff2
         #concat assumes homogeneous dfs
         how = ['inner','outer','left','right']
-        grps = {'merge': ['left_on','right_on','suffix1','suffix2','how']}
-                #'concat options': ['join']}
+        grps = {'merge': ['left_on','right_on','suffix1','suffix2','how'],
+                'concat': ['join','ignore_index']}
         self.grps = grps = OrderedDict(sorted(grps.items()))
         cols1 = list(df1.columns)
         cols2 = list(df2.columns)
@@ -330,8 +330,10 @@ class CombineDialog(Frame):
                             'suffix2':{'type':'entry','default':'_2','label':'right suffix'},
                             'how':{'type':'combobox','default':'inner',
                             'items':how, 'tooltip':'how to merge'},
-                            #'join':{'type':'combobox','default':'inner',
-                            #'items':['inner','outer'], 'tooltip':'how to join'},
+                            'join':{'type':'combobox','default':'inner',
+                            'items':['inner','outer'], 'tooltip':'how to join'},
+                            'ignore_index':{'type':'checkbutton','default':0,'label':'ignore index',
+                             'tooltip':'do not use the index values on the concatenation axis'},
                              }
         optsframe, self.tkvars, w = dialogFromOptions(self.main, opts, grps)
         optsframe.pack(side=TOP,fill=BOTH)
@@ -359,17 +361,18 @@ class CombineDialog(Frame):
                 val=None
             kwds[i] = val
         print (kwds)
-        s=(kwds['suffix1'],kwds['suffix2'])
-        del kwds['suffix1']
-        del kwds['suffix2']
         if method == 'merge':
+            s=(kwds['suffix1'],kwds['suffix2'])
+            del kwds['suffix1']
+            del kwds['suffix2']
             m = pd.merge(self.df1,self.df2,on=None,suffixes=s, **kwds)
-            print (m)
-
+        elif method == 'concat':
+            m = pd.concat([self.df1,self.df2], **kwds)
+        print (m)
         #if successful ask user to replace table and close
         if len(m) > 0:
-            n = messagebox.askyesno("Merge done",
-                                     "Merge success.\nReplace table with new data?",
+            n = messagebox.askyesno("Join done",
+                                     "Merge/concat success.\nReplace table with new data?",
                                      parent=self.parent)
             if n == True:
                 self.merged = m
