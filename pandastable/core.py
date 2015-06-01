@@ -30,12 +30,12 @@ import platform
 import pylab as plt
 import numpy as np
 import pandas as pd
-from data import TableModel
-from plotting import MPLBaseOptions, PlotViewer
-from prefs import Preferences
-from dialogs import ImportDialog
-import images
-from dialogs import *
+from .data import TableModel
+from .plotting import MPLBaseOptions, PlotViewer
+from .prefs import Preferences
+from .dialogs import ImportDialog
+from . import images
+from .dialogs import *
 
 class Table(Canvas):
     """A tkinter class for providing table functionality"""

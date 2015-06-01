@@ -28,11 +28,11 @@ matplotlib.use('TkAgg')
 import pandas as pd
 import re, os, platform
 import time
-from core import Table
-from data import TableModel
-from prefs import Preferences
-import images as images
-from dialogs import MultipleValDialog
+from .core import Table
+from .data import TableModel
+from .prefs import Preferences
+from . import images
+from .dialogs import MultipleValDialog
 
 class ViewerApp(Frame):
     """Pandastable viewer application"""

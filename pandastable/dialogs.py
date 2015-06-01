@@ -25,7 +25,7 @@ from tkinter.ttk import *
 import types
 from collections import OrderedDict
 import pandas as pd
-from data import TableModel
+from .data import TableModel
 
 class MultipleValDialog(simpledialog.Dialog):
     """Simple dialog to get multiple values"""
