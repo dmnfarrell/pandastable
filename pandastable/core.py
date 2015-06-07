@@ -485,9 +485,7 @@ class Table(Canvas):
     def addColumn(self, newname=None):
         """Add a new column"""
         if newname == None:
-            from dialogs import MultipleValDialog
             coltypes = ['object','float64']
-
             d = MultipleValDialog(title='New Column',
                                     initialvalues=(coltypes, ''),
                                     labels=('Column Type','Name'),
@@ -702,7 +700,7 @@ class Table(Canvas):
             parent.geometry('+%s+%s' %(x,y+h))
         if fields == None:
             fields = list(self.model.df.columns)
-        from filtering import Filterer
+        from .filtering import Filterer
         self.filterframe = Filterer(parent, fields,
                                        self.doFilter, self.closeFilterBar)
         self.filterframe.grid(row=4,column=1,sticky='news') #pack()
@@ -1185,7 +1183,7 @@ class Table(Canvas):
 
     def aggregate(self):
         """Do aggregate operation"""
-        from dialogs import MultipleValDialog
+
         df = self.model.df
         cols = list(df.columns)
         funcs = ['mean','sum','size','count','std','first','last','min','max']
@@ -1213,7 +1211,6 @@ class Table(Canvas):
 
     def pivot(self):
         """Pivot table"""
-        from dialogs import MultipleValDialog
         df = self.model.df
         cols = list(df.columns)
         d = MultipleValDialog(title='Pivot',
@@ -1235,7 +1232,7 @@ class Table(Canvas):
 
         if self.child == None:
             return
-        from dialogs import CombineDialog
+        from .dialogs import CombineDialog
         cdlg = CombineDialog(self, df1=self.model.df, df2=self.child.model.df)
         df = cdlg.merged
         if df is None:
@@ -1283,6 +1280,7 @@ class Table(Canvas):
         toolbar = ChildToolBar(win, newtable)
         toolbar.grid(row=0,column=3,rowspan=2,sticky='news')
         self.child = newtable
+        newtable.pf = self.pf
         if index==True:
             newtable.showIndex()
         return
@@ -2020,7 +2018,6 @@ class Table(Canvas):
     def new(self):
         """Clears all the data and makes a new table"""
 
-        from dialogs import MultipleValDialog
         mpDlg = MultipleValDialog(title='Create new table',
                                     initialvalues=(50, 10),
                                     labels=('rows','columns'),
@@ -2162,6 +2159,7 @@ class ColumnHeader(Canvas):
             self.bind('<Motion>', self.handle_mouse_move)
             self.bind('<Shift-Button-1>', self.handle_left_shift_click)
             self.bind('<Control-Button-1>', self.handle_left_ctrl_click)
+            self.bind("<Double-Button-1>",self.handle_double_click)
             if self.table.ostyp=='mac':
                 #For mac we bind Shift, left-click to right click
                 self.bind("<Button-2>", self.handle_right_click)
@@ -2363,6 +2361,13 @@ class ColumnHeader(Canvas):
         for c in self.table.multiplecollist:
             self.drawRect(c, delete=0)
             self.table.drawSelectedCol(c, delete=0)
+        return
+
+    def handle_double_click(self, event):
+        """Double click sorts by this column. """
+
+        colclicked = self.table.get_col_clicked(event)
+        self.table.sortTable(columnIndex=colclicked)
         return
 
     def popupMenu(self, event):
@@ -2742,6 +2747,8 @@ class ChildToolBar(ToolBar):
         img = images.importcsv()
         func = lambda: self.parentapp.doImport(dialog=1)
         self.addButton('Import', func, img, 'import csv')
+        img = images.plot()
+        self.addButton('Plot', self.parentapp.plotSelected, img, 'plot selected')
         img = images.table_delete()
         self.addButton('Clear', self.parentapp.clearTable, img, 'clear table')
         img = images.cross()

@@ -97,13 +97,16 @@ class PlotViewer(Frame):
         self.plotCurrent()
         return
 
-    def addFigure(self, parent):
+    def addFigure(self, parent, figure=None):
         """Add the tk figure canvas"""
         from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
         from matplotlib.figure import Figure
-        #if hasattr(self,'canvas'):
-        #    self.canvas._tkcanvas.destroy()
-        self.fig = f = Figure(figsize=(5,4), dpi=100)
+        if hasattr(self,'canvas'):
+            self.canvas._tkcanvas.destroy()
+        if figure == None:
+            self.fig = f = Figure(figsize=(5,4), dpi=100)
+        else:
+            self.fig = f = figure
         a = f.add_subplot(111)
         canvas = FigureCanvasTkAgg(f, master=parent)
         canvas.show()
@@ -139,13 +142,19 @@ class PlotViewer(Frame):
             self.plot3D()
         return
 
+    def _checkNumeric(self, df):
+        x = df.convert_objects()._get_numeric_data()
+        if x.empty==True:
+            return False
+
     def plot2D(self):
         """Draw method for current data. Relies on pandas plot functionality
-           if possible. There is some messy code here to make sure only the valid
+           if possible. There is some temporary code here to make sure only the valid
            plot options are passed for each plot kind."""
 
         if not hasattr(self, 'data'):
             return
+        #needs cleaning up
         valid = {'line': ['alpha', 'colormap', 'grid', 'legend', 'linestyle',
                           'linewidth', 'marker', 'subplots', 'rot', 'logx', 'logy',
                            'sharey', 'use_index', 'kind'],
@@ -159,7 +168,7 @@ class PlotViewer(Frame):
                     'barh': ['alpha', 'colormap', 'grid', 'legend', 'linewidth', 'subplots',
                             'stacked', 'rot', 'kind'],
                     'histogram': ['alpha', 'linewidth','grid','stacked','subplots','colormap',
-                             'sharey','rot'],
+                             'sharey','rot','bins'],
                     'heatmap': ['colormap','rot'],
                     'area': ['alpha','colormap','grid','linewidth','legend','stacked',
                              'kind','rot','logx'],
@@ -171,78 +180,116 @@ class PlotViewer(Frame):
 
         from pandas.tools import plotting
         data = self.data
-        cols = data.columns
+        if self._checkNumeric(data) == False:
+            self.showWarning('no numeric data to plot')
+            return
         kwds = self.mplopts.kwds
         kind = kwds['kind']
+        by = kwds['by']
+        by2 = kwds['by2']
         #valid kwd args for this plot type
-        kwdargs = dict((k, kwds[k]) for k in valid[kind])
-        rows = int(np.sqrt(len(data.columns)))
+        kwargs = dict((k, kwds[k]) for k in valid[kind])
         self.fig.clear()
         self.ax = ax = self.fig.add_subplot(111)
 
-        if kwds['by'] != '':
-            layout=(rows,-1)
-            data = data.groupby(kwds['by'])
-            axs = data.plot(layout=layout, **kwdargs)
+        if by != '':
+            '''print (plotting._Options())
+            g = data.groupby(kwds['by'])
+            axs = g.plot(**kwargs)
+            print (axs)
             for i in axs:
-                print (i.get_figure())
-            self.setFigure(i.get_figure())
-            self.canvas.draw()
-            return
+                f = i.get_figure()
+            self.addFigure(f)'''
 
-        if len(data.columns)==1:
-            kwdargs['subplots'] = 0
+            #groupby needs to be handled per group so we can control the axes..
+            if by not in data.columns:
+                self.showWarning('groupby column not in selected data')
+                return
+            if by2 != '' and by2 in data.columns:
+                by = [by,by2]
+            g = data.groupby(by)
+            if len(g) >25:
+                self.showWarning('too many groups to plot')
+                return
+            self.ax.set_visible(False)
+            kwargs['subplots'] = False
+            size = len(g)
+            nrows = round(np.sqrt(size),0)
+            ncols = np.ceil(size/nrows)
+            i=1
+            for n,df in g:
+                ax = self.fig.add_subplot(nrows,ncols,i)
+                kwargs['legend'] = False #remove axis legends
+                self._doplot(df, ax, kind, False, kwargs)
+                ax.set_title(n)
+                handles, labels = ax.get_legend_handles_labels()
+                i+=1
+            self.fig.legend(handles, labels, 'lower right')
+            self.fig.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1, hspace=.25)
+            self.canvas.draw()
+
+        else:
+            axs = self._doplot(data, ax, kind, kwds['subplots'], kwargs)
+            if type(axs) is np.ndarray:
+                self.ax = axs.flat[0]
+            self.fig.suptitle(kwds['title'])
+            if kwds['xlabel'] != '':
+                self.ax.set_xlabel(kwds['xlabel'])
+            if kwds['ylabel'] != '':
+                self.ax.set_ylabel(kwds['ylabel'])
+            self.ax.xaxis.set_visible(kwds['showxlabels'])
+            self.ax.yaxis.set_visible(kwds['showylabels'])
+            try:
+                self.fig.tight_layout()
+            except:
+                print ('tight_layout failed')
+            self.canvas.draw()
+        return
+
+    def _doplot(self, data, ax, kind, subplots, kwargs):
+        """Do actual plotting"""
+
+        cols = data.columns
+        rows = int(np.sqrt(len(data.columns)))
+        if len(data.columns) == 1:
+            kwargs['subplots'] = 0
         if kind == 'pie':
-            kwdargs['subplots'] = True
-        if kwds['subplots'] == 0:
+            kwargs['subplots'] = True
+        if subplots == 0:
             layout=None
         else:
             layout=(rows,-1)
-
         if kind == 'bar':
             if len(data) > 50:
-                self.ax.get_xaxis().set_visible(False)
+                ax.get_xaxis().set_visible(False)
             if len(data) > 500:
                 print ('too many rows to plot')
                 return
         if kind == 'scatter':
-            axs = self.scatter(data, ax, **kwdargs)
-            #axs = data.plot(kind='scatter',ax=ax,**kwdargs)
+            axs = self.scatter(data, ax, **kwargs)
+            #axs = data.plot(kind='scatter',ax=ax,**kwargs)
         elif kind == 'boxplot':
             axs = data.boxplot(ax=ax)
         elif kind == 'histogram':
-            bins = int(kwds['bins'])
-            axs = data.plot(kind='hist', bins=bins,layout=layout, ax=ax, **kwdargs)
+            bins = int(kwargs['bins'])
+            axs = data.plot(kind='hist',layout=layout, ax=ax, **kwargs)
         elif kind == 'heatmap':
-            axs = self.heatmap(data, ax, kwdargs)
+            axs = self.heatmap(data, ax, kwargs)
         elif kind == 'bootstrap':
             axs = plotting.bootstrap_plot(data)
         elif kind == 'scatter_matrix':
-            axs = pd.scatter_matrix(data, ax=ax, **kwdargs)
+            axs = pd.scatter_matrix(data, ax=ax, **kwargs)
         elif kind == 'hexbin':
             x = cols[0]
             y = cols[1]
-            axs = data.plot(x,y,ax=ax,kind='hexbin',gridsize=20,**kwdargs)
+            axs = data.plot(x,y,ax=ax,kind='hexbin',gridsize=20,**kwargs)
         else:
-            axs = data.plot(ax=ax, layout=layout, **kwdargs)
-        if type(axs) is np.ndarray:
-            self.ax = axs.flat[0]
-        self.fig.suptitle(kwds['title'])
-        if kwds['xlabel'] != '':
-            self.ax.set_xlabel(kwds['xlabel'])
-        if kwds['ylabel'] != '':
-            self.ax.set_ylabel(kwds['ylabel'])
-        self.ax.xaxis.set_visible(kwds['showxlabels'])
-        self.ax.yaxis.set_visible(kwds['showylabels'])
-        try:
-            self.fig.tight_layout()
-        except:
-            print ('tight_layout failed')
-        self.canvas.draw()
-        return
+            axs = data.plot(ax=ax, layout=layout, **kwargs)
+        return axs
 
     def scatter(self, df, ax, alpha=0.8, marker='o', **kwds):
         """A more custom scatter plot"""
+
         print (kwds)
         if len(df.columns)<2:
             return
@@ -261,22 +308,24 @@ class PlotViewer(Frame):
                 ec=c
             else:
                 ec='black'
-            ax.scatter(x, y, marker=marker, alpha=alpha,
+            ax.scatter(x, y, marker=marker, alpha=alpha, linewidth=kwds['linewidth'],
                        s=kwds['s'], color=c, edgecolor=ec)
         if kwds['grid'] == 1:
             ax.grid()
         if kwds['legend'] == 1:
             ax.legend(cols[1:])
-        return
+        return ax
 
     def heatmap(self, df, ax, kwds):
         """Plot heatmap"""
-        hm = ax.pcolor(df, cmap=kwds['colormap'])
+
+        X = df._get_numeric_data()
+        hm = ax.pcolor(X, cmap=kwds['colormap'])
         self.fig.colorbar(hm, ax=ax)
-        ax.set_xticks(np.arange(0.5, len(df.columns)))
-        ax.set_yticks(np.arange(0.5, len(df.index)))
-        ax.set_xticklabels(df.columns, minor=False)
-        ax.set_yticklabels(df.index, minor=False)
+        ax.set_xticks(np.arange(0.5, len(X.columns)))
+        ax.set_yticks(np.arange(0.5, len(X.index)))
+        ax.set_xticklabels(X.columns, minor=False)
+        ax.set_yticklabels(X.index, minor=False)
         return
 
     def plot3D(self):
@@ -325,6 +374,7 @@ class PlotViewer(Frame):
 
     def factorPlot(self):
         """Seaborn facet grid plots"""
+
         import seaborn as sns
         if not hasattr(self, 'data'):
             return
@@ -372,6 +422,13 @@ class PlotViewer(Frame):
 
         df = self.table.model.df
         self.mplopts.update(df)
+        return
+
+    def showWarning(self, s='plot error'):
+        self.ax.clear()
+        self.ax.text(.5, .5, s,transform=self.ax.transAxes,
+                       horizontalalignment='center', color='blue', fontsize=16)
+        self.canvas.draw()
         return
 
     def quit(self):
@@ -440,12 +497,13 @@ class MPLBaseOptions(object):
         self.parent = parent
         df = self.parent.table.model.df
         datacols = list(df.columns)
+        datacols.insert(0,'')
         fonts = self.getFonts()
-        grps = {'data':['bins','by','by2'],
+        grps = {'data':['bins','by','by2','use_index'],
                 'styles':['font','colormap','alpha','grid'],
                 'sizes':['fontsize','s','linewidth'],
                 'formats':['kind','marker','linestyle','stacked','subplots'],
-                'axes':['showxlabels','showylabels','use_index','sharey','logx','logy','rot'],
+                'axes':['showxlabels','showylabels','sharex','sharey','logx','logy','rot'],
                 'labels':['title','xlabel','ylabel','legend']}
         order = ['data','formats','sizes','axes','styles','labels']
         self.groups = OrderedDict(sorted(grps.items()))
@@ -461,6 +519,7 @@ class MPLBaseOptions(object):
                 'use_index':{'type':'checkbutton','default':1,'label':'use index'},
                 'showxlabels':{'type':'checkbutton','default':1,'label':'x tick labels'},
                 'showylabels':{'type':'checkbutton','default':1,'label':'y tick labels'},
+                'sharex':{'type':'checkbutton','default':0,'label':'share x'},
                 'sharey':{'type':'checkbutton','default':0,'label':'share y'},
                 'legend':{'type':'checkbutton','default':1,'label':'legend'},
                 'kind':{'type':'combobox','default':'line','items':self.kinds,'label':'kind'},
@@ -473,8 +532,8 @@ class MPLBaseOptions(object):
                 'subplots':{'type':'checkbutton','default':0,'label':'multiple subplots'},
                 'colormap':{'type':'combobox','default':'jet','items':colormaps},
                 'bins':{'type':'entry','default':20,'width':10},
-                'by':{'type':'combobox','default':'','items':datacols},
-                'by2':{'type':'combobox','default':'','items':datacols},
+                'by':{'type':'combobox','items':datacols,'label':'group by','default':''},
+                'by2':{'type':'combobox','items':datacols,'label':'group by 2','default':''},
                 }
         return
 
@@ -483,9 +542,16 @@ class MPLBaseOptions(object):
 
         kwds = {}
         for i in self.opts:
-            kwds[i] = self.tkvars[i].get()
+            if self.opts[i]['type'] == 'listbox':
+                items = self.widgets[i].curselection()
+                kwds[i] = [self.widgets[i].get(j) for j in items]
+                print (items, kwds[i])
+            else:
+                kwds[i] = self.tkvars[i].get()
         self.kwds = kwds
-        plt.rc("font", family=kwds['font'], size=kwds['fontsize'])
+        size = kwds['fontsize']
+        plt.rc("font", family=kwds['font'], size=size)
+        plt.rc('legend', fontsize=size-1)
         return
 
     def apply(self):
@@ -499,9 +565,6 @@ class MPLBaseOptions(object):
            and return the frame"""
 
         dialog, self.tkvars, self.widgets = dialogFromOptions(parent, self.opts, self.groups)
-        #disable until this works
-        #self.widgets['by'].configure(state='disabled')
-        self.widgets['by2'].configure(state='disabled')
         self.applyOptions()
         return dialog
 
@@ -517,7 +580,7 @@ class MPLBaseOptions(object):
         """Update data widget(s)"""
 
         cols = df.columns
-
+        cols += ''
         return
 
 class MPL3DOptions(object):
@@ -535,7 +598,7 @@ class MPL3DOptions(object):
         opts = self.opts = {'font':{'type':'combobox','default':'Arial','items':fonts},
                 'fontsize':{'type':'scale','default':12,'range':(5,40),'interval':1,'label':'font size'},
                 'kind':{'type':'combobox','default':'scatter','items':self.kinds,'label':'kind'},
-                'alpha':{'type':'scale','default':0.7,'range':(0,1),'interval':0.1,'label':'alpha'},
+                'alpha':{'type':'scale','default':0.8,'range':(0,1),'interval':0.1,'label':'alpha'},
                 'title':{'type':'entry','default':'','width':25},
                 'xlabel':{'type':'entry','default':'','width':25},
                 'ylabel':{'type':'entry','default':'','width':25},
@@ -573,6 +636,7 @@ class FactorPlotter(object):
     """Provides seaborn factor plots"""
     def __init__(self, data=None):
         """Setup variables"""
+
         self.data=data
         #self.setDefaultStyle()
         self.groups = grps = {'formats':['style','despine','palette'],

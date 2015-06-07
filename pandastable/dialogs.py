@@ -167,7 +167,11 @@ def dialogFromOptions(parent, opts, groups=None, callback=None):
                 w = Checkbutton(frame,text=opt['label'],
                          variable=v)
             elif opt['type'] == 'combobox':
-                Label(frame,text=i).pack()
+                if 'label' in opt:
+                   label=opt['label']
+                else:
+                    label = i
+                Label(frame,text=label).pack()
                 tkvars[i] = v = StringVar()
                 v.set(opts[i]['default'])
                 w = Combobox(frame, values=opt['items'],
@@ -176,6 +180,16 @@ def dialogFromOptions(parent, opts, groups=None, callback=None):
                 w.set(opt['default'])
                 if 'tooltip' in opt:
                     ToolTip.createToolTip(w, opt['tooltip'])
+            elif opt['type'] == 'radio':
+                Label(frame,text=label).pack()
+                if 'label' in opt:
+                   label=opt['label']
+                else:
+                    label = i
+                Label(frame,text=label).pack()
+                tkvars[i] = v = StringVar()
+                for item in opt['items']:
+                    w = Radiobutton(frame, text=item, variable=v, value=item).pack()
             elif opt['type'] == 'scale':
                 fr,to=opt['range']
                 tkvars[i] = v = DoubleVar()

@@ -125,14 +125,14 @@ class ViewerApp(Frame):
         self.sheet_menu=self.createPulldown(self.menu,self.sheet_menu)
         self.menu.add_cascade(label='Sheet',menu=self.sheet_menu['var'])
 
-        self.tools_menu={#'01Merge Tables':{'cmd':self.merge},}
-                         '01Concatenate Tables':{'cmd':self.concat}}
+        self.tools_menu={'01Describe Table':{'cmd':self.describe},
+                         '02Concatenate Tables':{'cmd':self.concat}}
         self.tools_menu=self.createPulldown(self.menu,self.tools_menu)
         self.menu.add_cascade(label='Tools',menu=self.tools_menu['var'])
 
-        self.dataset_menu={'01Load sample data':{'cmd':self.sampleData},
-                         '03Load Iris data':{'cmd':self.getIrisData},
-                         '03Load Tips data':{'cmd':self.getTipsData}}
+        self.dataset_menu={'01Load Sample Data':{'cmd':self.sampleData},
+                         '03Load Iris Data':{'cmd':self.getIrisData},
+                         '03Load Tips Data':{'cmd':self.getTipsData}}
         self.dataset_menu=self.createPulldown(self.menu,self.dataset_menu)
         self.menu.add_cascade(label='Datasets',menu=self.dataset_menu['var'])
 
@@ -206,6 +206,8 @@ class ViewerApp(Frame):
                                                     filetypes=[("project","*.dexpl"),
                                                                ("All files","*.*")],
                                                     parent=self.main)
+        if not filename:
+            return
         if os.path.isfile(filename):
             data = pd.read_msgpack(filename)
         self.newProject(data)
@@ -325,6 +327,16 @@ class ViewerApp(Frame):
             return
         self.copySheet(newname)
         self.deleteSheet()
+        return
+
+    def describe(self):
+        """Describe dataframe"""
+        s = self.nb.index(self.nb.select())
+        name = self.nb.tab(s, 'text')
+        table = self.sheets[name]
+        df = table.model.df
+        d = df.describe()
+        table.createChildTable(d,index=True)
         return
 
     def merge(self):

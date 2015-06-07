@@ -54,12 +54,13 @@ class TableModel(object):
     def getSampleData(self, rows=400, cols=5):
         """Generate sample data"""
         colnames = list(string.ascii_lowercase[:cols])
-        n = np.array([np.random.normal(i,.5,cols) for i in np.random.normal(2,1,rows)])
+        coldata = [np.random.normal(x,1,rows) for x in np.random.normal(5,3,cols)]
+        n = np.array(coldata).T
         df = pd.DataFrame(n, columns=colnames)
         df = np.round(df, 3)
         df = df.astype('object')
-        cats = ['green','blue','red','orange']
-        df['label'] = [cats[i] for i in np.random.randint(0,3,rows)]
+        cats = ['green','blue','red','orange','yellow']
+        df['label'] = [cats[i] for i in np.random.randint(0,5,rows)]
         df['date'] = pd.date_range('1/1/2015', periods=rows, freq='H')
         return df
 
