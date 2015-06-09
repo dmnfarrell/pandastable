@@ -75,7 +75,7 @@ class PlotViewer(Frame):
         #self.factorplotter = FactorPlotter()
         #w3 = self.factorplotter.showDialog(self.nb)
         #self.nb.add(w3, text='factor plots', sticky='news')
-        self.mplopts3d = MPL3DOptions()
+        self.mplopts3d = MPL3DOptions(parent=self)
         w2 = self.mplopts3d.showDialog(self.nb)
         self.nb.add(w2, text='3D plot', sticky='news')
         #self.table.add_callback()
@@ -347,6 +347,7 @@ class PlotViewer(Frame):
         self.fig.suptitle(kwds['title'])
         self.ax.set_xlabel(kwds['xlabel'])
         self.ax.set_ylabel(kwds['ylabel'])
+        self.ax.set_zlabel(kwds['zlabel'])
         self.canvas.draw()
         return
 
@@ -361,14 +362,19 @@ class PlotViewer(Frame):
             i+=1
 
     def scatter3D(self, data, ax, kwds):
+        """3D scatter plot"""
+
+        #print (kwds['by'])
+        data = data._get_numeric_data()
+        l = len(data.columns)
+        if l<3: return
         X = data.values
-        plots=len(data.columns)
         cmap = plt.cm.get_cmap(kwds['colormap'])
         x = X[:,0]
-        for i in range(1,plots-1,2):
+        for i in range(1,l-1):
             y = X[:,i]
             z = X[:,i+1]
-            c = cmap(float(i)/(plots))
+            c = cmap(float(i)/(l))
             ax.scatter(x, y, z, color=c)
         return
 
@@ -588,12 +594,17 @@ class MPL3DOptions(object):
 
     kinds = ['scatter', 'bar', 'bar3d', 'surface', 'contour']
 
-    def __init__(self):
+    def __init__(self, parent=None):
         """Setup variables"""
 
+        self.parent = parent
+        df = self.parent.table.model.df
+        datacols = list(df.columns)
+        datacols.insert(0,'')
         fonts = self.getFonts()
         self.groups = grps = {'styles':['font','fontsize','colormap','alpha'],
-                            'formats':['kind','subplots','title','xlabel','ylabel']}
+                            'formats':['kind','title','xlabel','ylabel','zlabel'],}
+                            #'data':['by','subplots']}
 
         opts = self.opts = {'font':{'type':'combobox','default':'Arial','items':fonts},
                 'fontsize':{'type':'scale','default':12,'range':(5,40),'interval':1,'label':'font size'},
@@ -602,8 +613,10 @@ class MPL3DOptions(object):
                 'title':{'type':'entry','default':'','width':25},
                 'xlabel':{'type':'entry','default':'','width':25},
                 'ylabel':{'type':'entry','default':'','width':25},
-                'subplots':{'type':'checkbutton','default':0,'label':'multiple subplots'},
-                'colormap':{'type':'combobox','default':'jet','items': colormaps}
+                'zlabel':{'type':'entry','default':'','width':25},
+                #'subplots':{'type':'checkbutton','default':0,'label':'multiple subplots'},
+                'colormap':{'type':'combobox','default':'jet','items': colormaps},
+                #'by':{'type':'combobox','items':datacols,'label':'group by','default':''},
                  }
 
     def applyOptions(self):

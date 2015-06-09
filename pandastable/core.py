@@ -422,14 +422,17 @@ class Table(Canvas):
             print(g)
         return
 
-    def setindex(self, colindex):
-        self.model.setindex(colindex)
+    def setindex(self):
+        """Set indexes"""
+        cols = self.multiplecollist
+        self.model.setindex(cols)
         self.setSelectedCol(0)
         self.redraw()
         self.drawSelectedCol()
         return
 
     def resetIndex(self):
+        """Reset index and redraw row header"""
         df = self.model.df
         if df.index.name == None:
             drop = True
@@ -442,7 +445,6 @@ class Table(Canvas):
 
     def showIndex(self):
         self.tablerowheader.showindex = True
-        #self.redraw()
         return
 
     def set_xviews(self,*args):
@@ -484,6 +486,7 @@ class Table(Canvas):
 
     def addColumn(self, newname=None):
         """Add a new column"""
+
         if newname == None:
             coltypes = ['object','float64']
             d = MultipleValDialog(title='New Column',
@@ -510,6 +513,7 @@ class Table(Canvas):
 
     def deleteRow(self):
         """Delete a row"""
+
         if len(self.multiplerowlist)>1:
             n = messagebox.askyesno("Delete",
                                       "Delete selected rows?",
@@ -549,6 +553,7 @@ class Table(Canvas):
 
     def deleteCells(self, rows, cols):
         """Clear the cell contents"""
+
         n =  messagebox.askyesno("Clear Confirm",
                                    "Clear this data?",
                                    parent=self.parentframe)
@@ -2383,9 +2388,8 @@ class ColumnHeader(Canvas):
         popupmenu.add_command(label="Sort by "+ colname +' (descending)',
             command=lambda : self.table.sortTable(currcol,ascending=0))
         #popupmenu.add_command(label="Group by "+ colname, command=lambda : self.table.groupby(currcol))
-        popupmenu.add_command(label="Set %s as Index" %colname, command=lambda : self.table.setindex(currcol))
+        popupmenu.add_command(label="Set %s as Index" %colname, command=self.table.setindex)
         popupmenu.add_command(label="Delete Column(s)", command=self.table.deleteColumn)
-
         popupmenu.bind("<FocusOut>", popupFocusOut)
         #self.bind("<Button-3>", popupFocusOut)
         popupmenu.focus_set()
@@ -2456,7 +2460,6 @@ class RowHeader(Canvas):
         if table != None:
             self.table = table
             self.width = width
-            self.x_start = 0
             self.inset = 1
             self.color = '#C8C8C8'
             self.showindex = False
@@ -2471,6 +2474,13 @@ class RowHeader(Canvas):
             #self.bind('<Shift-Button-1>', self.handle_left_shift_click)
         return
 
+    def _check_multiindex(self, index):
+        """Check if multiindex"""
+        if isinstance(index, pd.core.index.MultiIndex):
+            return 1
+        else:
+            return 0
+
     def redraw(self, align='w', showkeys=False):
         """Redraw row header"""
 
@@ -2479,41 +2489,54 @@ class RowHeader(Canvas):
         self.delete('rowheader','text')
         self.delete('rect')
 
-        v=self.table.visiblerows
+        xstart = 1
+        pad = 3
+        v = self.table.visiblerows
         scale = self.table.getScale()
         if self.showindex == True:
-            ind = self.model.df.index[v]
-            dtype = ind.dtype
-            rows = ind.astype('object').astype('str')
-            l = rows.str.len().max()
-            w = l * scale + 6
+            if self._check_multiindex(self.model.df.index) == 1:
+                ind = self.model.df.index.values[v]
+                cols = [pd.Series(i) for i in list(zip(*ind))]
+                l = [r.str.len().max() for r in cols]
+                widths = [i * scale + 6 for i in l]
+                #print (widths)
+                xpos = [0]+list(np.cumsum(widths))[:-1]
+            else:
+                ind = self.model.df.index[v]
+                dtype = ind.dtype
+                r = ind.astype('object').astype('str')
+                l = r.str.len().max()
+                widths = [l * scale + 6]
+                cols = [r]
+                xpos = [xstart]
+            w = np.sum(widths)
         else:
-            rows = v
-            rows = [i+1 for i in rows]
-            w = 45
-            #w = len(str(max(rows))) * scale + 6
+            rows = [i+1 for i in v]
+            cols = [rows]
+            w=45
+            widths = [w]
+            xpos = [xstart]
 
         if self.width != w:
             self.config(width=w)
             self.width = w
         h = self.table.rowheight
-        x = self.x_start+w/2
-        if align == 'w':
-            x = x-w/2+3
-        elif align == 'e':
-            x = x+w/2-3
 
-        r=v[0]
-        for row in rows:
-            text = row
-            x1,y1,x2,y2 = self.table.getCellCoords(r,0)
-            self.create_rectangle(0,y1,w-1,y2, fill=self.color,
-                                    outline='white', width=1,
-                                    tag='rowheader')
-            self.create_text(x,y1+h/2, text=text,
-                              fill='black', font=self.table.thefont,
-                              tag='text', anchor=align)
-            r+=1
+        i=0
+        for col in cols:
+            r=v[0]
+            x = xpos[i]
+            i+=1
+            for row in col:
+                text = row
+                x1,y1,x2,y2 = self.table.getCellCoords(r,0)
+                self.create_rectangle(x,y1,w-1,y2, fill=self.color,
+                                        outline='white', width=1,
+                                        tag='rowheader')
+                self.create_text(x+pad,y1+h/2, text=text,
+                                  fill='black', font=self.table.thefont,
+                                  tag='text', anchor=align)
+                r+=1
         return
 
     def setWidth(self, w):

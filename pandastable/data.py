@@ -185,7 +185,7 @@ class TableModel(object):
     def setindex(self, colindex):
         """Index setting behaviour"""
         df = self.df
-        colnames = df.columns[colindex]
+        colnames = list(df.columns[colindex])
         if df.index.name != None:
             df.reset_index(inplace=True)
         df.set_index(colnames, inplace=True)

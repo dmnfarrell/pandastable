@@ -4,7 +4,7 @@ home=os.path.expanduser('~')
 
 setup(
     name = 'pandastable',
-    version = '0.3.1',
+    version = '0.4.0',
     description = 'Library for embedding tables in Tkinter using pandas DataFrames',
     url='https://github.com/dmnfarrell/pandastable',
     license='GPL v3',
