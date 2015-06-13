@@ -72,14 +72,23 @@ class PlotViewer(Frame):
         self.mplopts = MPLBaseOptions(parent=self)
         w1 = self.mplopts.showDialog(self.nb)
         self.nb.add(w1, text='base plot options', sticky='news')
-        #self.factorplotter = FactorPlotter()
-        #w3 = self.factorplotter.showDialog(self.nb)
-        #self.nb.add(w3, text='factor plots', sticky='news')
         self.mplopts3d = MPL3DOptions(parent=self)
         w2 = self.mplopts3d.showDialog(self.nb)
         self.nb.add(w2, text='3D plot', sticky='news')
-        #self.table.add_callback()
+        if self._importSeaborn() == 1:
+            self.factorplotter = FactorPlotter()
+            w3 = self.factorplotter.showDialog(self.nb)
+            self.nb.add(w3, text='factor plots', sticky='news')
         return
+
+    def _importSeaborn(self):
+        """Try to import seaborn. If not installed return false"""
+        try:
+            import seaborn as sns
+            return 1
+        except:
+            print('seaborn not installed')
+            return 0
 
     def setMode(self, evt=None):
         """Set the plot mode based on selected tab"""
@@ -90,10 +99,10 @@ class PlotViewer(Frame):
         """Apply the current plotter/options"""
         if self.mode == 0:
             self.mplopts.applyOptions()
-        #elif self.mode == 1:
-        #    self.factorplotter.applyOptions()
         elif self.mode == 1:
             self.mplopts3d.applyOptions()
+        elif self.mode == 2:
+            self.factorplotter.applyOptions()
         self.plotCurrent()
         return
 
@@ -135,11 +144,11 @@ class PlotViewer(Frame):
         if self.mode == 0:
             #self.setFigure()
             self.plot2D()
-        #elif self.mode == 1:
-        #    self.factorplotter.data = self.data
-        #    self.factorPlot()
         elif self.mode == 1:
             self.plot3D()
+        elif self.mode == 2:
+            self.factorplotter.data = self.data
+            self.factorPlot()
         return
 
     def _checkNumeric(self, df):
@@ -193,17 +202,10 @@ class PlotViewer(Frame):
         self.ax = ax = self.fig.add_subplot(111)
 
         if by != '':
-            '''print (plotting._Options())
-            g = data.groupby(kwds['by'])
-            axs = g.plot(**kwargs)
-            print (axs)
-            for i in axs:
-                f = i.get_figure()
-            self.addFigure(f)'''
-
-            #groupby needs to be handled per group so we can control the axes..
+            #groupby needs to be handled per group so we can add all the axes to
+            #our figure correctly
             if by not in data.columns:
-                self.showWarning('groupby column not in selected data')
+                self.showWarning('the grouping column must be in selected data')
                 return
             if by2 != '' and by2 in data.columns:
                 by = [by,by2]
@@ -416,7 +418,7 @@ class PlotViewer(Frame):
         print (g.fig)
         #rotateLabels(g)
         self.fig.clear()
-        self.figure.canvas = self.canvas
+        self.fig.canvas = self.canvas
         self.canvas.figure = g.fig
         self.canvas._tkcanvas.config('state')
         self.canvas.draw()
@@ -651,7 +653,7 @@ class FactorPlotter(object):
         """Setup variables"""
 
         self.data=data
-        #self.setDefaultStyle()
+        self.setDefaultStyle()
         self.groups = grps = {'formats':['style','despine','palette'],
                 'factors':['kind','hue','x']}
         styles = ['darkgrid', 'whitegrid', 'dark', 'white', 'ticks']
@@ -675,7 +677,7 @@ class FactorPlotter(object):
         """Auto create tk vars, widgets for corresponding options and
            and return the frame"""
 
-        dialog, self.tkvars = dialogFromOptions(parent, self.opts, self.groups)
+        dialog, self.tkvars, w = dialogFromOptions(parent, self.opts, self.groups)
         #self.applyOptions()
         return dialog
 
@@ -694,6 +696,6 @@ class FactorPlotter(object):
     def setDefaultStyle(self):
         import seaborn as sns
         sns.set_style("ticks", {'axes.facecolor': '#F7F7F7','legend.frameon': True})
-        sns.set_context("paper", rc={'legend.fontsize':18,'xtick.labelsize':14,
-                        'ytick.labelsize':16,'axes.labelsize':20,'axes.titlesize':20})
+        sns.set_context("paper", rc={'legend.fontsize':16,'xtick.labelsize':12,
+                        'ytick.labelsize':12,'axes.labelsize':14,'axes.titlesize':16})
         return

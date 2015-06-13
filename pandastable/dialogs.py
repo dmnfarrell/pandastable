@@ -218,7 +218,7 @@ class ImportDialog(Frame):
 
     def __init__(self, parent=None, filename=None):
 
-        from core import Table
+        from .core import Table
         self.parent = parent
         self.filename = filename
         self.df = None

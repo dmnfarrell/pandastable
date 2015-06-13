@@ -23,7 +23,7 @@ import sys, os
 from tkinter import *
 from tkinter.ttk import *
 import pandas as pd
-from core import Table
+from .core import Table
 
 class App(Frame):
     def __init__(self, parent=None):
@@ -36,7 +36,7 @@ class App(Frame):
         pt = Table(f)
         pt.show()
         pt.load('test.mpk')
-        #pt.doImport('test.csv')
+        #pt.importCSV('test.csv')
 
 def main():
     "Run the application"

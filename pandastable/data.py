@@ -61,7 +61,7 @@ class TableModel(object):
         df = df.astype('object')
         cats = ['green','blue','red','orange','yellow']
         df['label'] = [cats[i] for i in np.random.randint(0,5,rows)]
-        df['date'] = pd.date_range('1/1/2015', periods=rows, freq='H')
+        df['date'] = pd.date_range('1/1/2014', periods=rows, freq='H')
         return df
 
     @classmethod
@@ -182,6 +182,16 @@ class TableModel(object):
         self.df.iloc[rows,cols] = np.nan
         return
 
+    def resetIndex(self):
+        """Reset index behaviour"""
+        df = self.df
+        if df.index.name != None or df.index.names[0] != None:
+            drop = False
+        else:
+            drop = True
+        df.reset_index(drop=drop,inplace=True)
+        return
+
     def setindex(self, colindex):
         """Index setting behaviour"""
         df = self.df
@@ -192,6 +202,7 @@ class TableModel(object):
         return
 
     def groupby(self, cols):
+        """Group by cols"""
         df = self.df
         colnames = df.columns[cols]
         grps = df.groupby(colnames)
