@@ -3,6 +3,14 @@ CHANGES
 =======
 
 ------
+0.4.0
+------
+
+Can now display and add multiindexes
+Added function evaluation tool
+Grouped plots now work
+
+------
 0.3.1
 ------
 

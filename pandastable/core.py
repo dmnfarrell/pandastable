@@ -670,7 +670,7 @@ class Table(Canvas):
         qf = self.qframe = Frame(self.parentframe)
         self.qframe.grid(row=self.queryrow,column=1,sticky='news')
         self.queryvar = StringVar()
-        e = Entry(qf, textvariable=self.queryvar, font="Courier 12 bold")
+        e = Entry(qf, textvariable=self.queryvar, font="Courier 12 bold")#, validatecommand=self.query)
         e.bind('<Return>', self.query)
         e.pack(fill=BOTH,side=LEFT,expand=1,padx=2,pady=2)
         b = Button(qf,text='find',width=5,command=self.query)
@@ -679,54 +679,45 @@ class Table(Canvas):
         b.pack(fill=BOTH,side=LEFT,padx=2,pady=2)
         return
 
-    def doFilter(self, event=None):
-        """Filter the table display by some column values.
-        We simply pass the model search function to the the filtering
-        class and that handles everything else.
-        See filtering frame class for how searching is done.
-        """
-        if self.model==None:
+    def applyFunction(self, evt=None):
+        """Apply a string based function to create new columns"""
+
+        s = self.evalvar.get()
+        if s=='':
             return
-        names = self.filterframe.doFiltering(searchfunc=self.model.filterBy)
-        #create a list of filtered recs
-        self.model.filteredrecs = names
-        self.filtered = True
+        df = self.model.df
+        e = df.eval(s)
+        if type(e) is pd.DataFrame:
+            self.model.df = e
         self.redraw()
+        #keep a copy?
+        #self.dataframe = self.model.df.copy()
         return
 
-    def createFilteringBar(self, parent=None, fields=None):
-        """Add a filter frame"""
+    def evalBar(self, evt=None):
+        """Use pd.eval to apply a function."""
 
-        if parent == None:
-            parent = Toplevel()
-            parent.title('Filter Table')
-            x,y,w,h = self.getGeometry(self.master)
-            parent.geometry('+%s+%s' %(x,y+h))
-        if fields == None:
-            fields = list(self.model.df.columns)
-        from .filtering import Filterer
-        self.filterframe = Filterer(parent, fields,
-                                       self.doFilter, self.closeFilterBar)
-        self.filterframe.grid(row=4,column=1,sticky='news') #pack()
-        return parent
-
-    def showFilteringBar(self):
-        if not hasattr(self, 'filterframe') or self.filterframe == None:
-            self.filterwin = self.createFilteringBar(self.parentframe)
-            #self.filterwin.protocol("WM_DELETE_WINDOW", self.closeFilterBar)
-        else:
-            self.filterwin.lift()
-        return
-
-    def closeFilterBar(self):
-        """Callback for closing filter frame"""
-        self.filterframe.destroy()
-        self.filterframe = None
-        self.showAll()
+        def reset():
+            self.evalframe.destroy()
+            self.evalframe = None
+            self.showAll()
+        if hasattr(self, 'evalframe') and self.evalframe != None:
+            return
+        ef = self.evalframe = Frame(self.parentframe)
+        ef.grid(row=self.queryrow,column=1,sticky='news')
+        self.evalvar = StringVar()
+        e = Entry(ef, textvariable=self.evalvar, font="Courier 13 bold")
+        e.bind('<Return>', self.applyFunction)
+        e.pack(fill=BOTH,side=LEFT,expand=1,padx=2,pady=2)
+        b = Button(ef,text='apply',width=5,command=self.applyFunction)
+        b.pack(fill=BOTH,side=LEFT,padx=2,pady=2)
+        b = Button(ef,text='close',width=5,command=reset)
+        b.pack(fill=BOTH,side=LEFT,padx=2,pady=2)
         return
 
     def resizeColumn(self, col, width):
         """Resize a column by dragging"""
+
         colname = self.model.getColumnName(col)
         self.model.columnwidths[colname] = width
         self.setColPositions()
@@ -764,6 +755,7 @@ class Table(Canvas):
 
     def get_row_clicked(self, event):
         """get row where event on canvas occurs"""
+
         h=self.rowheight
         #get coord on canvas, not window, need this if scrolling
         y = int(self.canvasy(event.y))
@@ -773,6 +765,7 @@ class Table(Canvas):
 
     def get_col_clicked(self,event):
         """get col where event on canvas occurs"""
+
         w=self.cellwidth
         x = int(self.canvasx(event.x))
         x_start=self.x_start
@@ -791,6 +784,7 @@ class Table(Canvas):
 
     def setSelectedRow(self, row):
         """Set currently selected row and reset multiple row list"""
+
         self.currentrow = row
         self.multiplerowlist = []
         self.multiplerowlist.append(row)
@@ -798,6 +792,7 @@ class Table(Canvas):
 
     def setSelectedCol(self, col):
         """Set currently selected column"""
+
         self.currentcol = col
         self.multiplecollist = []
         self.multiplecollist.append(col)
@@ -805,6 +800,7 @@ class Table(Canvas):
 
     def setSelectedCells(self, startrow, endrow, startcol, endcol):
         """Set a block of cells selected"""
+
         self.currentrow = startrow
         self.currentcol = startcol
         if startrow < 0 or startcol < 0:
@@ -827,6 +823,7 @@ class Table(Canvas):
 
     def selectAll(self, evt=None):
         """Select all rows and cells"""
+
         self.startrow = 0
         self.endrow = self.rows
         self.multiplerowlist = list(range(self.startrow,self.endrow))
@@ -1317,6 +1314,7 @@ class Table(Canvas):
                         "Add Row(s)" : lambda: self.addRows(),
                         "Delete Row(s)" : lambda: self.deleteRow(),
                         "Add Column(s)" : lambda: self.addColumn(),
+                        "Delete Column(s)" : lambda: self.deleteColumn(),
                         "Clear Data" : lambda: self.deleteCells(rows, cols),
                         "Select All" : self.selectAll,
                         "Auto Fit Columns" : self.autoResizeColumns,
@@ -1331,7 +1329,7 @@ class Table(Canvas):
                         "Preferences" : self.showPrefs}
 
         main = ["Copy", "Paste", "Fill Down","Fill Right",
-                "Clear Data", "Delete Row(s)"]
+                "Clear Data", "Delete Row(s)", "Delete Column(s)"]
         general = ["Add Row(s)", "Add Column(s)", "Select All", "Filter Records", "Auto Fit Columns", "Preferences"]
 
         filecommands = ['New','Load','Import csv','Save','Save as']
@@ -2189,7 +2187,9 @@ class ToolBar(Frame):
         self.addButton('Table from selection', self.parentapp.tableFromSelection,
                     img, 'sub-table from selection')
         img = images.filtering()
-        self.addButton('Query', self.parentapp.queryBar, img, 'filtering')
+        self.addButton('Query', self.parentapp.queryBar, img, 'filter table')
+        img = images.function()
+        self.addButton('Evaluate function', self.parentapp.evalBar, img, 'apply a function')
         img = images.table_delete()
         self.addButton('Clear', self.parentapp.clearTable, img, 'clear table')
         img = images.prefs()

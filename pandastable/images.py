@@ -1183,3 +1183,15 @@ def table_delete():
             +'Y86ZPGZkCfAhy8EAPS3mwHnjhs2aNAU2YGiwQMFCFipSnCgxAsQHCxEoMEhA'
             +'wJAhAAMW6gkEADs=')
      return img
+
+def function():
+     img = tk.PhotoImage(format='gif',data=
+             'R0lGODlhEAAQAPUAACYmJikpKSoqKi0tLS4uLi8vLzExMTIyMjQ0NDU1NTc3'
+            +'Nzo6OkBAQEVFRUdHR0hISElJSUxMTE5OTk9PT1FRUVJSUlVVVVZWVlhYWF1d'
+            +'XWNjY2RkZGZmZmhoaGpqam1tbW9vb3JycnNzc3Z2dnd3d3t7e35+foGBgYuL'
+            +'i5CQkJubm5+fn76+vgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+            +'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAAC0AIf8LSW1hZ2VNYWdp'
+            +'Y2sOZ2FtbWE9MC40NTQ1NDUALAAAAAAQABAAAAZEwJZwSCwaj8iTqVQSfTob'
+            +'pIklckIzyBYqRcRkW6vod7hRjbuVc8uSPlsmkCEiCycSkJOGcGEgCJANDAsI'
+            +'fQIAaoiJX0EAOw==')
+     return img

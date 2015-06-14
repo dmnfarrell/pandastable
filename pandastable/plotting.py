@@ -252,7 +252,7 @@ class PlotViewer(Frame):
         """Do actual plotting"""
 
         cols = data.columns
-        rows = int(np.sqrt(len(data.columns)))
+        rows = int(round(np.sqrt(len(data.columns)),0))
         if len(data.columns) == 1:
             kwargs['subplots'] = 0
         if kind == 'pie':
