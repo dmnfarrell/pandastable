@@ -40,6 +40,7 @@ class ColumnHeader(Canvas):
             self.config(width=self.table.width)
             #self.colnames = self.model.columnNames
             self.columnlabels = self.model.df.columns
+            self.draggedcol = None
             self.bind('<Button-1>',self.handle_left_click)
             self.bind("<ButtonRelease-1>", self.handle_left_release)
             self.bind('<B1-Motion>', self.handle_mouse_drag)
@@ -157,7 +158,12 @@ class ColumnHeader(Canvas):
     def handle_right_click(self, event):
         """respond to a right click"""
 
-        self.handle_left_click(event)
+        colclicked = self.table.get_col_clicked(event)
+        multicollist = self.table.multiplecollist
+        if len(multicollist) > 1:
+            pass
+        else:
+            self.handle_left_click(event)
         self.rightmenu = self.popupMenu(event)
         return
 
@@ -249,6 +255,8 @@ class ColumnHeader(Canvas):
                 multicollist.append(colclicked)
             else:
                 multicollist.remove(colclicked)
+        self.table.delete('colrect')
+        self.delete('rect')
         for c in self.table.multiplecollist:
             self.drawRect(c, delete=0)
             self.table.drawSelectedCol(c, delete=0)
@@ -266,15 +274,18 @@ class ColumnHeader(Canvas):
 
         colname = str(self.model.df.columns[self.table.currentcol])
         currcol = self.table.currentcol
+        multicols = self.table.multiplecollist
+        colnames = list(self.table.model.df.columns[multicols])
+        colnames = ','.join(colnames)
         popupmenu = Menu(self, tearoff = 0)
         def popupFocusOut(event):
             popupmenu.unpost()
         popupmenu.add_command(label="Rename Column", command=self.renameColumn)
-        popupmenu.add_command(label="Sort by "+ colname, command=lambda : self.table.sortTable(currcol))
-        popupmenu.add_command(label="Sort by "+ colname +' (descending)',
-            command=lambda : self.table.sortTable(currcol,ascending=0))
-        #popupmenu.add_command(label="Group by "+ colname, command=lambda : self.table.groupby(currcol))
-        popupmenu.add_command(label="Set %s as Index" %colname, command=self.table.setindex)
+        popupmenu.add_command(label="Sort by " + colnames,
+                    command=lambda : self.table.sortTable(ascending=[1 for i in multicols]))
+        popupmenu.add_command(label="Sort by " + colnames + ' (descending)',
+            command=lambda : self.table.sortTable(ascending=[0 for i in multicols]))
+        popupmenu.add_command(label="Set %s as Index" %colnames, command=self.table.setindex)
         popupmenu.add_command(label="Delete Column(s)", command=self.table.deleteColumn)
         popupmenu.bind("<FocusOut>", popupFocusOut)
         #self.bind("<Button-3>", popupFocusOut)

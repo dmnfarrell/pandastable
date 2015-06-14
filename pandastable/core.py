@@ -404,15 +404,17 @@ class Table(Canvas):
         self.tablewidth = self.col_positions[len(self.col_positions)-1]
         return
 
-    def sortTable(self, columnIndex=0, columnName=None, ascending=1, index=False):
+    def sortTable(self, columnIndex=None, ascending=1, index=False):
         """Set up sort order dict based on currently selected field"""
 
+        if columnIndex==None:
+            columnIndex = self.multiplecollist
         df = self.model.df
         if index == True:
             df.sort_index(inplace=True)
         else:
-            colname = df.columns[columnIndex]
-            df.sort(colname, inplace=True, ascending=ascending)
+            colnames = list(df.columns[columnIndex])
+            df.sort(colnames, inplace=True, ascending=ascending)
         self.redraw()
         return
 
