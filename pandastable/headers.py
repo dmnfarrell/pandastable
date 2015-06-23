@@ -266,7 +266,7 @@ class ColumnHeader(Canvas):
         """Double click sorts by this column. """
 
         colclicked = self.table.get_col_clicked(event)
-        self.table.sortTable(columnIndex=colclicked)
+        self.table.sortTable()
         return
 
     def popupMenu(self, event):
@@ -287,6 +287,7 @@ class ColumnHeader(Canvas):
             command=lambda : self.table.sortTable(ascending=[0 for i in multicols]))
         popupmenu.add_command(label="Set %s as Index" %colnames, command=self.table.setindex)
         popupmenu.add_command(label="Delete Column(s)", command=self.table.deleteColumn)
+        popupmenu.add_command(label="Set Column Type", command=self.table.setColumnType)
         popupmenu.bind("<FocusOut>", popupFocusOut)
         #self.bind("<Button-3>", popupFocusOut)
         popupmenu.focus_set()

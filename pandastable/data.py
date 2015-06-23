@@ -88,6 +88,8 @@ class TableModel(object):
             self.df.to_excel(filename)
         elif ftype == '.csv':
             self.df.to_csv(filename)
+        elif ftype == '.html':
+            self.df.to_html(filename)
         return
 
     def load(self, filename):

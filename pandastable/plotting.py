@@ -75,10 +75,10 @@ class PlotViewer(Frame):
         self.mplopts3d = MPL3DOptions(parent=self)
         w2 = self.mplopts3d.showDialog(self.nb)
         self.nb.add(w2, text='3D plot', sticky='news')
-        if self._importSeaborn() == 1:
+        '''if self._importSeaborn() == 1:
             self.factorplotter = FactorPlotter()
             w3 = self.factorplotter.showDialog(self.nb)
-            self.nb.add(w3, text='factor plots', sticky='news')
+            self.nb.add(w3, text='factor plots', sticky='news')'''
         return
 
     def _importSeaborn(self):
@@ -101,8 +101,8 @@ class PlotViewer(Frame):
             self.mplopts.applyOptions()
         elif self.mode == 1:
             self.mplopts3d.applyOptions()
-        elif self.mode == 2:
-            self.factorplotter.applyOptions()
+        #elif self.mode == 2:
+        #    self.factorplotter.applyOptions()
         self.plotCurrent()
         return
 
@@ -134,9 +134,13 @@ class PlotViewer(Frame):
         if f == None:
             self.fig = f = Figure(figsize=(5,4), dpi=100)
             self.ax = f.add_subplot(111)
+        a = self.fig.get_size_inches()
+        f.set_size_inches(a,forward=True)
         self.canvas.figure = f
         f.canvas = self.canvas
-        self.canvas.show()
+        self.canvas.draw()
+        #mng = plt.get_current_fig_manager()
+        self.canvas._tkcanvas.config('state')
         return
 
     def plotCurrent(self):
@@ -146,9 +150,9 @@ class PlotViewer(Frame):
             self.plot2D()
         elif self.mode == 1:
             self.plot3D()
-        elif self.mode == 2:
-            self.factorplotter.data = self.data
-            self.factorPlot()
+        #elif self.mode == 2:
+        #    self.factorplotter.data = self.data
+        #    self.factorPlot()
         return
 
     def _checkNumeric(self, df):
@@ -415,14 +419,11 @@ class PlotViewer(Frame):
         g = sns.factorplot('label','x',data=tm, hue=hue, row=row, col=col,
                                 col_wrap=wrap, kind=kind,size=3, aspect=float(aspect),
                                 legend_out=True,sharey=False,palette='Spectral')
-        print (g.fig)
+
         #rotateLabels(g)
         self.fig.clear()
-        self.fig.canvas = self.canvas
-        self.canvas.figure = g.fig
-        self.canvas._tkcanvas.config('state')
-        self.canvas.draw()
-
+        #need to reset the current figure
+        self.setFigure(g.fig)
         return
 
     def updateData(self):

@@ -126,7 +126,10 @@ class ViewerApp(Frame):
         self.menu.add_cascade(label='Sheet',menu=self.sheet_menu['var'])
 
         self.tools_menu={'01Describe Table':{'cmd':self.describe},
-                         '02Concatenate Tables':{'cmd':self.concat}}
+                         '02Convert Column Names':{'cmd':self.convertColumns},
+                         '03Convert Numeric':{'cmd':self.convertNumeric},
+                         '04Concatenate Tables':{'cmd':self.concat},
+                         '05Table to Text':{'cmd':self.printTable}}
         self.tools_menu=self.createPulldown(self.menu,self.tools_menu)
         self.menu.add_cascade(label='Tools',menu=self.tools_menu['var'])
 
@@ -329,14 +332,35 @@ class ViewerApp(Frame):
         self.deleteSheet()
         return
 
-    def describe(self):
-        """Describe dataframe"""
+    def getCurrentTable(self):
         s = self.nb.index(self.nb.select())
         name = self.nb.tab(s, 'text')
         table = self.sheets[name]
+        return table
+
+    def describe(self):
+        """Describe dataframe"""
+
+        table = self.getCurrentTable()
         df = table.model.df
         d = df.describe()
         table.createChildTable(d,index=True)
+        return
+
+    def printTable(self):
+        """Print table"""
+        table = self.getCurrentTable()
+        table.showasText()
+        return
+
+    def convertColumns(self):
+        table = self.getCurrentTable()
+        table.convertColumnNames()
+        return
+
+    def convertNumeric(self):
+        table = self.getCurrentTable()
+        table.convertNumeric()
         return
 
     def merge(self):
@@ -345,6 +369,7 @@ class ViewerApp(Frame):
 
     def concat(self):
         """Concat 2 tables"""
+
         vals = list(self.sheets.keys())
         if len(vals)<=1:
             return
@@ -402,15 +427,18 @@ class ViewerApp(Frame):
         abwin = Toplevel()
         abwin.geometry('+200+350')
         abwin.title('About')
-        abwin.transient()
+        abwin.transient(self)
+        abwin.grab_set()
         logo = images.tableapp_logo()
         label = Label(abwin,image=logo,anchor=CENTER)
         label.image = logo
         label.grid(row=0,column=0,sticky='ew',padx=4,pady=4)
         style = Style()
-        style.configure("BW.TLabel", font='arial 10 bold')
+        style.configure("BW.TLabel", font='arial 11')
+        from . import __version__
 
-        text='DataExplore (pandastable library)\n'\
+        text='DataExplore Application\n'\
+                +'pandastable version '+__version__+'\n'\
                 +'Copyright (C) Damien Farrell 2014-\n'\
                 +'This program is free software; you can redistribute it and/or\n'\
                 +'modify it under the terms of the GNU General Public License\n'\
@@ -419,7 +447,7 @@ class ViewerApp(Frame):
         row=1
         #for line in text:
         tmp = Label(abwin, text=text, style="BW.TLabel")
-        tmp.grid(row=row,column=0,sticky='news',padx=4)
+        tmp.grid(row=row,column=0,sticky='news',pady=2,padx=4)
 
         return
 

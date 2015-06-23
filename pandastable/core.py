@@ -77,6 +77,7 @@ class Table(Canvas):
         self.queryrow = 4
         self.childrow = 5
         self.loadPrefs()
+        self.currentdir = os.path.expanduser('~')
         #set any options passed in kwargs to overwrite defaults and prefs
         for key in kwargs:
             self.__dict__[key] = kwargs[key]
@@ -167,7 +168,8 @@ class Table(Canvas):
         self.bind('<B1-Motion>', self.handle_mouse_drag)
         self.bind('<Motion>', self.handle_motion)
 
-        self.bind("<Control-x>", self.deleteRow)
+        self.bind("<Control-c>", self.copy)
+        #self.bind("<Control-x>", self.deleteRow)
         #self.bind_all("<Control-n>", self.addRow)
         self.bind("<Delete>", self.clearData)
         self.bind("<Control-v>", self.paste)
@@ -594,6 +596,28 @@ class Table(Canvas):
         self.redraw()
         return
 
+    def setColumnType(self):
+        """Change the column dtype"""
+
+        df = self.model.df
+        col = df.columns[self.currentcol]
+        coltypes = ['object','str','int','float64','datetime64[ns]']
+        curr = df[col].dtype
+        d = MultipleValDialog(title='current type is %s' %curr,
+                                initialvalues=[coltypes],
+                                labels=['Type:'],
+                                types=['list'],
+                                parent = self.parentframe)
+        if d.result == None:
+            return
+        t = d.results[0]
+        try:
+            self.model.df[col] = df[col].astype(t)
+            self.redraw()
+        except:
+            print('failed')
+        return
+
     def findValue(self, searchstring=None, findagain=None):
         """Return the row/col for the input value"""
         if searchstring == None:
@@ -684,6 +708,7 @@ class Table(Canvas):
     def applyFunction(self, evt=None):
         """Apply a string based function to create new columns"""
 
+        self.convertNumeric()
         s = self.evalvar.get()
         if s=='':
             return
@@ -692,6 +717,8 @@ class Table(Canvas):
         if type(e) is pd.DataFrame:
             self.model.df = e
         self.redraw()
+        if hasattr(self, 'pf'):
+            self.plotSelected()
         #keep a copy?
         #self.dataframe = self.model.df.copy()
         return
@@ -1131,51 +1158,24 @@ class Table(Canvas):
 
     def paste(self, event=None):
         """Copy from clipboard"""
-
+        df = pd.read_clipboard()
         return
 
     def copy(self, rows, cols=None):
-        """Copy cell contents to a temp internal clipboard"""
+        """Copy cell contents to clipboard"""
         rows = self.multiplerowlist
         if len(rows)<=1:
             rows = list(range(self.rows))
         cols = self.multiplecollist
         df = self.model.df
         data = df.iloc[rows,cols]
-        data.to_clipboard()
+        try:
+            data.to_clipboard()
+        except:
+            messagebox.showwarning("Warning",
+                                    "No clipboard. Install xclip",
+                                    parent=self.parentframe)
         return
-
-    def pasteCell(self, rows, cols=None):
-        """Paste cell from internal clipboard"""
-        row = rows[0]; col = cols[0]
-        val = self.clipboard
-        self.model.setValueAt(val, row, col)
-        self.redraw()
-        return
-
-    def copyColumns(self):
-        """Copy current selected cols"""
-        M = self.model
-        coldata = {}
-        for col in self.multiplecollist:
-            name = M.columnNames[col]
-            coldata[name] = M.getColumnData(columnName=name)
-        return coldata
-
-    def pasteColumns(self, coldata):
-        """Paste new cols, overwrites existing names"""
-        M = self.model
-        for name in coldata:
-            if name not in M.columnNames:
-                M.addColumn(name)
-            for r in range(len(coldata[name])):
-                val = coldata[name][r]
-                col = M.columnNames.index(name)
-                if r >= self.rows:
-                    break
-                M.setValueAt(val, r, col)
-        self.redraw()
-        return coldata
 
     def transpose(self):
         """Transpose table"""
@@ -1262,6 +1262,28 @@ class Table(Canvas):
         self.createChildTable(g)
         return
 
+    def convertColumnNames(self, s='_'):
+        """Convert col names so we can use numexpr"""
+
+        d = MultipleValDialog(title='Convert col names',
+                                initialvalues=['_'],
+                                labels=['replace spaces with:'],
+                                types=('string'),
+                                parent = self.parentframe)
+        if d.result == None:
+            return
+        sep = d.results[0]
+        df = self.model.df
+        df.columns = [i.replace(' ',sep) for i in df.columns]
+        self.redraw()
+        return
+
+    def convertNumeric(self):
+        df = self.model.df
+        self.model.df = df.convert_objects(convert_numeric='force')
+        self.redraw()
+        return
+
     def createChildTable(self, df, title=None, index=False, out=False):
         """Add the child table"""
 
@@ -1302,6 +1324,33 @@ class Table(Canvas):
         self.createChildTable(df, 'selection')
         return
 
+    def showasText(self):
+        """Get table as formatted text - for printing"""
+
+        d = MultipleValDialog(title='Table to Text',
+                                initialvalues=(['left','right'],[0,1],[0,1],''),
+                                labels=['justify:','include index:','sparsify:','na_rep:'],
+                                types=('list','boolean','boolean','string'),
+                                parent = self.parentframe)
+        if d.result == None:
+            return
+        justify = d.results[0]
+        index = d.results[1]
+        sparsify = d.results[2]
+        na_rep = d.results[3]
+
+        df = self.model.df
+        s = df.to_string(justify=justify,index=index,sparsify=sparsify,na_rep=na_rep)
+        from tkinter.scrolledtext import ScrolledText
+        from .dialogs import SimpleEditor
+        w = Toplevel(self.parentframe)
+        w.grab_set()
+        w.transient(self)
+        ed = SimpleEditor(w)
+        ed.pack(in_=w, fill=BOTH, expand=Y)
+        ed.text.insert(END, s)
+        return
+
     # --- Some cell specific actions here ---
 
     def popupMenu(self, event, rows=None, cols=None, outside=None):
@@ -1310,16 +1359,17 @@ class Table(Canvas):
 
         defaultactions = {
                         "Copy" : lambda: self.copy(rows, cols),
-                        "Paste" : lambda: self.paste(rows, cols),
-                        "Fill Down" : lambda: self.fillDown(rows, cols),
-                        "Fill Right" : lambda: self.fillAcross(cols, rows),
+                        #"Paste" : lambda: self.paste(rows, cols),
+                        #"Fill Down" : lambda: self.fillDown(rows, cols),
+                        #"Fill Right" : lambda: self.fillAcross(cols, rows),
                         "Add Row(s)" : lambda: self.addRows(),
                         "Delete Row(s)" : lambda: self.deleteRow(),
                         "Add Column(s)" : lambda: self.addColumn(),
                         "Delete Column(s)" : lambda: self.deleteColumn(),
                         "Clear Data" : lambda: self.deleteCells(rows, cols),
                         "Select All" : self.selectAll,
-                        "Auto Fit Columns" : self.autoResizeColumns,
+                        #"Auto Fit Columns" : self.autoResizeColumns,
+                        "Show as Text" : self.showasText,
                         "Filter Records" : self.queryBar,
                         "New": self.new,
                         "Load": self.load,
@@ -1330,9 +1380,10 @@ class Table(Canvas):
                         "Hide plot" : self.hidePlot,
                         "Preferences" : self.showPrefs}
 
-        main = ["Copy", "Paste", "Fill Down","Fill Right",
+        main = ["Copy", #"Fill Down","Fill Right",
                 "Clear Data", "Delete Row(s)", "Delete Column(s)"]
-        general = ["Add Row(s)", "Add Column(s)", "Select All", "Filter Records", "Auto Fit Columns", "Preferences"]
+        general = ["Add Row(s)", "Add Column(s)", "Select All", "Filter Records",
+                    "Show as Text", "Preferences"]
 
         filecommands = ['New','Load','Import csv','Save','Save as']
         plotcommands = ['Plot Selected','Hide plot']
@@ -2039,7 +2090,7 @@ class Table(Canvas):
         """load from a file"""
         if filename == None:
             filename = filedialog.askopenfilename(parent=self.master,
-                                                      defaultextension='.table',
+                                                      defaultextension='.mpk',
                                                       initialdir=os.getcwd(),
                                                       filetypes=[("msgpack","*.mpk"),
                                                         ("All files","*.*")])
@@ -2056,20 +2107,21 @@ class Table(Canvas):
         return
 
     def saveAs(self, filename=None):
-        """Save model to pickle file"""
+        """Save dataframe to file"""
+
         if filename == None:
             filename = filedialog.asksaveasfilename(parent=self.master,
-                                                        defaultextension='.mpk',
-                                                        initialdir = os.getcwd(),
-                                                        filetypes=[("msgpack","*.mpk"),
-                                                                    ("pickle","*.pkl"),
+                                                     #defaultextension='.mpk',
+                                                     initialdir = self.currentdir,
+                                                     filetypes=[("msgpack","*.mpk"),
                                                                     ("csv","*.csv"),
                                                                     ("excel","*.xls"),
-                                                         ("All files","*.*")])
-
+                                                                    ("html","*.html"),
+                                                      ("All files","*.*")])
         if filename:
             self.model.save(filename)
             self.filename = filename
+            self.currentdir = os.path.basename(filename)
         return
 
     def save(self):

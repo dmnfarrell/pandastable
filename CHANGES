@@ -6,9 +6,14 @@ CHANGES
 0.4.0
 ------
 
-Can now display and add multiindexes
+Can now display and set row multiindexes
 Added function evaluation tool
 Grouped plots now work
+Can now sort by multiple columns
+Can set column dtype
+Show table as formatted text
+Fixed copy to clipboard
+Fix to import dialog error
 
 ------
 0.3.1

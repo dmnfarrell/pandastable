@@ -19,6 +19,7 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 """
 
+import sys,os
 import tkinter
 from tkinter import *
 from tkinter.ttk import *
@@ -54,7 +55,7 @@ class MultipleValDialog(simpledialog.Dialog):
 
             if self.types[i] == 'list':
                 choices = self.initialvalues[i]
-                self.vrs[i].set(self.initialvalues[i][0])
+                self.vrs[i].set(choices[0])
                 w = Combobox(master, values=choices,
                          textvariable=self.vrs[i],width=14)
                 self.entries.append(w)
@@ -65,7 +66,7 @@ class MultipleValDialog(simpledialog.Dialog):
                 self.entries.append(w)
             else:
                 self.vrs[i].set(self.initialvalues[i])
-                self.entries.append(Entry(master, textvariable=self.vrs[i], show=s))
+                self.entries.append(Entry(master, textvariable=self.vrs[i], width=10, show=s))
             self.entries[i].grid(row=r, column=1,padx=2,pady=2)
             r+=1
 
@@ -404,3 +405,43 @@ class CombineDialog(Frame):
     def quit(self):
         self.main.destroy()
         return
+
+class SimpleEditor(Frame):
+
+    def __init__(self, parent=None, width=100, height=40):
+
+        from tkinter.scrolledtext import ScrolledText
+        Frame.__init__(self, parent)
+        st = self.text = ScrolledText(self, width=width, height=height)
+        st.pack(in_=self, fill=BOTH, expand=Y)
+        st.config(font='monospace 12')
+        btnform = Frame(self)
+        btnform.pack()
+        Button(btnform, text='Save',  command=self.onSave).pack(side=LEFT)
+        #Button(frm, text='Cut',   command=self.onCut).pack(side=LEFT)
+        #Button(frm, text='Paste', command=self.onPaste).pack(side=LEFT)
+        Button(btnform, text='Find',  command=self.onFind).pack(side=LEFT)
+        self.target=''
+        return
+
+    def onSave(self):
+        filename = filedialog.asksaveasfilename(defaultextension='.txt',
+                                    initialdir=os.path.expanduser('~'),
+                                     filetypes=(('Text files', '*.txt'),
+                                                ('All files', '*.*')))
+        if filename:
+            with open(filename, 'w') as stream:
+                stream.write(self.text.get('1.0',END))
+        return
+
+    def onFind(self):
+        self.target = simpledialog.askstring('SimpleEditor', 'Search String?',
+                                initialvalue=self.target)
+        if self.target:
+            where = self.text.search(self.target, INSERT, END, nocase=True)
+            if where:
+                pastit = '{}+{}c'.format(where, len(self.target))
+                self.text.tag_add(SEL, where, pastit)
+                self.text.mark_set(INSERT, pastit)
+                self.text.see(INSERT)
+                self.text.focus()
