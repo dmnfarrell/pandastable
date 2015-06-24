@@ -122,11 +122,13 @@ def dialogFromOptions(parent, opts, groups=None, callback=None):
 class MultipleValDialog(simpledialog.Dialog):
     """Simple dialog to get multiple values"""
 
-    def __init__(self, parent, title=None, initialvalues=None, labels=None, types=None):
+    def __init__(self, parent, title=None, initialvalues=None, labels=None,
+                    types=None, tooltips=None):
         if labels != None and types is not None:
             self.initialvalues = initialvalues
             self.labels = labels
             self.types = types
+            self.tooltips = tooltips
         simpledialog.Dialog.__init__(self, parent, title)
         return
 
@@ -164,6 +166,8 @@ class MultipleValDialog(simpledialog.Dialog):
                 self.vrs[i].set(self.initialvalues[i])
                 self.entries.append(Entry(master, textvariable=self.vrs[i], width=10, show=s))
             self.entries[i].grid(row=r, column=1,padx=2,pady=2)
+            if self.tooltips != None:
+                ToolTip.createToolTip(self.entries[i], self.tooltips[i])
             r+=1
 
         return self.entries[0] # initial focus

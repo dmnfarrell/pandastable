@@ -72,6 +72,18 @@ class TableModel(object):
         df = pd.read_csv(os.path.join(path,'iris.data'),names=cols)
         return df
 
+    @classmethod
+    def getStackedData(self):
+        """Get a dataframe to pivot test"""
+
+        import pandas.util.testing as tm; tm.N = 4
+        frame = tm.makeTimeDataFrame()
+        N, K = frame.shape
+        data = {'value' : frame.values.ravel('F'),
+                'variable' : np.asarray(frame.columns).repeat(N),
+                'date' : np.tile(np.asarray(frame.index), K)}
+        return pd.DataFrame(data, columns=['date', 'variable', 'value'])
+
     def initialiseFields(self):
         """Create meta data fields"""
         self.meta = {}

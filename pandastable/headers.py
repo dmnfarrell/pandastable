@@ -26,6 +26,13 @@ import os, types, string
 import numpy as np
 import pandas as pd
 
+def check_multiindex(index):
+    """Check if multiindex"""
+    if isinstance(index, pd.core.index.MultiIndex):
+        return 1
+    else:
+        return 0
+
 class ColumnHeader(Canvas):
     """Class that takes it's size and rendering from a parent table
         and column names from the table model."""
@@ -73,6 +80,9 @@ class ColumnHeader(Canvas):
         x_start = self.table.x_start
         if cols == 0:
             return
+
+        #if check_multiindex(self.model.df.columns) == 1:
+        #    cols = df.columns.get_level_values(1)
         for col in self.table.visiblecols:
             colname = self.model.df.columns[col]
             if colname in self.model.columnwidths:
@@ -86,8 +96,10 @@ class ColumnHeader(Canvas):
                 xt = x+w-pad
             elif align == 'center':
                 xt = x-w/2
-            if len(str(colname)) > w/10:
-                colname = colname[0:int(w/10)]+'.'
+            if type(colname) == 'tuple':
+                colname = ','.join(colname)
+            if len(colname) > w/10:
+                colname = str(colname)[0:int(w/10)]+'.'
             line = self.create_line(x, 0, x, h, tag=('gridline', 'vertline'),
                                  fill='white', width=1)
             self.create_text(xt,h/2,
@@ -373,13 +385,6 @@ class RowHeader(Canvas):
             #self.bind('<Shift-Button-1>', self.handle_left_shift_click)
         return
 
-    def _check_multiindex(self, index):
-        """Check if multiindex"""
-        if isinstance(index, pd.core.index.MultiIndex):
-            return 1
-        else:
-            return 0
-
     def redraw(self, align='w', showkeys=False):
         """Redraw row header"""
 
@@ -393,7 +398,7 @@ class RowHeader(Canvas):
         v = self.table.visiblerows
         scale = self.table.getScale()
         if self.showindex == True:
-            if self._check_multiindex(self.model.df.index) == 1:
+            if check_multiindex(self.model.df.index) == 1:
                 ind = self.model.df.index.values[v]
                 cols = [pd.Series(i) for i in list(zip(*ind))]
                 l = [r.str.len().max() for r in cols]

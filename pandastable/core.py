@@ -1228,11 +1228,12 @@ class Table(Canvas):
         df = self.model.df
         cols = list(df.columns)
         valcols = list(df.select_dtypes(include=[np.float64,np.int32]))
-        valcols.insert(0,'')
         d = MultipleValDialog(title='Pivot',
                                 initialvalues=(cols,cols,valcols),
                                 labels=('Index:', 'Column:', 'Values:'),
-                                types=('combobox','listbox','combobox'),
+                                types=('combobox','combobox','listbox'),
+                                tooltips=('a unique index to reshape on','column with variables',
+                                    'selecting no values uses all remaining cols'),
                                 parent = self.parentframe)
         if d.result == None:
             return
@@ -1240,9 +1241,9 @@ class Table(Canvas):
         column = d.results[1]
         values = d.results[2]
         if values == '': values = None
-        print(index,column,values)
+        elif len(values) == 1: values = values[0]
 
-        p = pd.pivot_table(df, index, column, values)
+        p = pd.pivot_table(df, index=index, columns=column, values=values)
         print (p)
         if type(p) is pd.Series:
             p = pd.DataFrame(p)

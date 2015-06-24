@@ -136,7 +136,8 @@ class ViewerApp(Frame):
 
         self.dataset_menu={'01Load Sample Data':{'cmd':self.sampleData},
                          '03Load Iris Data':{'cmd':self.getIrisData},
-                         '03Load Tips Data':{'cmd':self.getTipsData}}
+                         '03Load Tips Data':{'cmd':self.getTipsData},
+                         '04Load Stacked Data':{'cmd':self.getStackedData}}
         self.dataset_menu=self.createPulldown(self.menu,self.dataset_menu)
         self.menu.add_cascade(label='Datasets',menu=self.dataset_menu['var'])
 
@@ -420,6 +421,11 @@ class ViewerApp(Frame):
 
         df = pd.read_csv("https://raw.github.com/mwaskom/seaborn/master/examples/tips.csv")
         self.addSheet(sheetname='tips', df=df)
+        return
+
+    def getStackedData(self):
+        df = TableModel.getStackedData()
+        self.addSheet(sheetname='stacked-data', df=df)
         return
 
     def about(self):
