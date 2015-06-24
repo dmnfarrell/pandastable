@@ -203,6 +203,14 @@ class TableModel(object):
         df.set_index(colnames, inplace=True)
         return
 
+    def copyIndex(self):
+        """Copy index to a column"""
+        df = self.df
+        name = df.index.name
+        if name == None: name='index'
+        df[name] = df.index
+        return
+
     def groupby(self, cols):
         """Group by cols"""
         df = self.df

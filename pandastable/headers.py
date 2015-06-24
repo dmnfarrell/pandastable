@@ -520,10 +520,6 @@ class RowHeader(Canvas):
             self.table.drawMultipleRows(self.table.multiplerowlist)
         return
 
-    def copy(self):
-        """Copy index"""
-        return
-
     def toggleIndex(self):
         """Toggle index display"""
 
@@ -541,9 +537,9 @@ class RowHeader(Canvas):
         defaultactions = {"Sort by index" : lambda: self.table.sortTable(index=True),
                          "Reset index" : lambda: self.table.resetIndex(),
                          "Toggle index" : lambda: self.toggleIndex(),
-                         "Copy index" : lambda: self.copy(rows, cols),
+                         "Copy index to column" : lambda: self.table.copyIndex(),
                          "Select All" : self.table.selectAll}
-        main = ["Sort by index","Reset index","Toggle index","Copy index"]
+        main = ["Sort by index","Reset index","Toggle index","Copy index to column"]
 
         popupmenu = Menu(self, tearoff = 0)
         def popupFocusOut(event):

@@ -28,6 +28,13 @@ from collections import OrderedDict
 import pandas as pd
 from .data import TableModel
 
+def getParentGeometry(parent):
+    x = parent.winfo_rootx()
+    y = parent.winfo_rooty()
+    w = parent.winfo_width()
+    h = parent.winfo_height()
+    return x,y,w,h
+
 def dialogFromOptions(parent, opts, groups=None, callback=None):
     """Auto create tk vars and widgets for corresponding options and
        and return the enclosing frame"""
@@ -121,6 +128,7 @@ class MultipleValDialog(simpledialog.Dialog):
             self.labels = labels
             self.types = types
         simpledialog.Dialog.__init__(self, parent, title)
+        return
 
     def body(self, master):
 
@@ -500,7 +508,7 @@ class SimpleEditor(Frame):
         st.pack(in_=self, fill=BOTH, expand=Y)
         st.config(font='monospace 12')
         btnform = Frame(self)
-        btnform.pack()
+        btnform.pack(fill=BOTH, expand=Y)
         Button(btnform, text='Save',  command=self.onSave).pack(side=LEFT)
         #Button(frm, text='Cut',   command=self.onCut).pack(side=LEFT)
         #Button(frm, text='Paste', command=self.onPaste).pack(side=LEFT)

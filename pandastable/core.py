@@ -446,6 +446,12 @@ class Table(Canvas):
             self.pf.updateData()
         return
 
+    def copyIndex(self):
+        """Copy index to a column"""
+        self.model.copyIndex()
+        self.redraw()
+        return
+
     def showIndex(self):
         self.tablerowheader.showindex = True
         return
@@ -1148,6 +1154,7 @@ class Table(Canvas):
 
     def movetoSelectedRow(self, row=None, recname=None):
         """Move to selected row, updating table"""
+
         row=self.model.getRecordIndex(recname)
         self.setSelectedRow(row)
         self.drawSelectedRow()
@@ -1163,6 +1170,7 @@ class Table(Canvas):
 
     def copy(self, rows, cols=None):
         """Copy cell contents to clipboard"""
+
         rows = self.multiplerowlist
         if len(rows)<=1:
             rows = list(range(self.rows))
@@ -1173,12 +1181,13 @@ class Table(Canvas):
             data.to_clipboard()
         except:
             messagebox.showwarning("Warning",
-                                    "No clipboard. Install xclip",
+                                    "No clipboard software.\nInstall xclip",
                                     parent=self.parentframe)
         return
 
     def transpose(self):
         """Transpose table"""
+
         self.model.transpose()
         self.updateModel(self.model)
         self.redraw()
@@ -1214,10 +1223,14 @@ class Table(Canvas):
 
     def pivot(self):
         """Pivot table"""
+
+        self.convertNumeric()
         df = self.model.df
         cols = list(df.columns)
+        valcols = list(df.select_dtypes(include=[np.float64,np.int32]))
+        valcols.insert(0,'')
         d = MultipleValDialog(title='Pivot',
-                                initialvalues=(cols,cols,cols),
+                                initialvalues=(cols,cols,valcols),
                                 labels=('Index:', 'Column:', 'Values:'),
                                 types=('combobox','listbox','combobox'),
                                 parent = self.parentframe)
@@ -1226,8 +1239,13 @@ class Table(Canvas):
         index = d.results[0]
         column = d.results[1]
         values = d.results[2]
-        print(column)
-        p = df.pivot(index, column, values)
+        if values == '': values = None
+        print(index,column,values)
+
+        p = pd.pivot_table(df, index, column, values)
+        print (p)
+        if type(p) is pd.Series:
+            p = pd.DataFrame(p)
         self.createChildTable(p, 'pivot-%s-%s' %(index,column), index=True)
         return
 
@@ -1259,6 +1277,7 @@ class Table(Canvas):
 
     def describe(self):
         """Create table summary"""
+
         g = self.model.df.describe()
         self.createChildTable(g)
         return
@@ -1280,6 +1299,7 @@ class Table(Canvas):
         return
 
     def convertNumeric(self):
+        """Convert cols to numeric if possible"""
         df = self.model.df
         self.model.df = df.convert_objects(convert_numeric='force')
         self.redraw()
@@ -1288,8 +1308,7 @@ class Table(Canvas):
     def createChildTable(self, df, title=None, index=False, out=False):
         """Add the child table"""
 
-        if self.child != None:
-            self.child.destroy()
+        self.closeChildTable()
         if out == True:
             win = Toplevel()
             x,y,w,h = self.getGeometry(self.master)
@@ -1312,13 +1331,17 @@ class Table(Canvas):
         return
 
     def closeChildTable(self):
+        """Close the child table"""
+
         if self.child != None:
             self.child.destroy()
-        self.childframe.destroy()
+        if hasattr(self, 'childframe'):
+            self.childframe.destroy()
         return
 
     def tableFromSelection(self):
         """Create a new table from the selected cells"""
+
         df = self.getSelectedDataFrame()
         if len(df) <=1:
             return

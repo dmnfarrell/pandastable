@@ -32,6 +32,7 @@ from .core import Table
 from .data import TableModel
 from .prefs import Preferences
 from . import images
+from . import dialogs
 from .dialogs import MultipleValDialog
 
 class ViewerApp(Frame):
@@ -425,7 +426,8 @@ class ViewerApp(Frame):
         """About dialog"""
 
         abwin = Toplevel()
-        abwin.geometry('+200+350')
+        x,y,w,h = dialogs.getParentGeometry(self.main)
+        abwin.geometry('+%d+%d' %(x+w/2-200,y+h/2-200))
         abwin.title('About')
         abwin.transient(self)
         abwin.grab_set()
