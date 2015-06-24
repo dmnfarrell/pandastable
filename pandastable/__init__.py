@@ -1,3 +1,3 @@
 from .core import *
 from .data import *
-__version__ = '0.4.0pre'
+__version__ = '0.4.0'

@@ -495,7 +495,7 @@ class Table(Canvas):
             d = MultipleValDialog(title='New Column',
                                     initialvalues=(coltypes, ''),
                                     labels=('Column Type','Name'),
-                                    types=('list','string'),
+                                    types=('combobox','string'),
                                     parent = self.parentframe)
             if d.result == None:
                 return
@@ -606,7 +606,7 @@ class Table(Canvas):
         d = MultipleValDialog(title='current type is %s' %curr,
                                 initialvalues=[coltypes],
                                 labels=['Type:'],
-                                types=['list'],
+                                types=['combobox'],
                                 parent = self.parentframe)
         if d.result == None:
             return
@@ -1193,7 +1193,7 @@ class Table(Canvas):
         d = MultipleValDialog(title='Aggregate',
                                 initialvalues=(cols,funcs,[0,1]),
                                 labels=('Group by:','Function:','Replace:'),
-                                types=('list','list','boolean'),
+                                types=('listbox','combobox','checkbutton'),
                                 parent = self.parentframe)
         if d.result == None:
             return
@@ -1219,13 +1219,14 @@ class Table(Canvas):
         d = MultipleValDialog(title='Pivot',
                                 initialvalues=(cols,cols,cols),
                                 labels=('Index:', 'Column:', 'Values:'),
-                                types=('list','list','list'),
+                                types=('combobox','listbox','combobox'),
                                 parent = self.parentframe)
         if d.result == None:
             return
         index = d.results[0]
         column = d.results[1]
         values = d.results[2]
+        print(column)
         p = df.pivot(index, column, values)
         self.createChildTable(p, 'pivot-%s-%s' %(index,column), index=True)
         return
@@ -1330,7 +1331,7 @@ class Table(Canvas):
         d = MultipleValDialog(title='Table to Text',
                                 initialvalues=(['left','right'],[0,1],[0,1],''),
                                 labels=['justify:','include index:','sparsify:','na_rep:'],
-                                types=('list','boolean','boolean','string'),
+                                types=('combobox','checkbutton','checkbutton','string'),
                                 parent = self.parentframe)
         if d.result == None:
             return

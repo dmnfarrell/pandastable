@@ -376,7 +376,7 @@ class ViewerApp(Frame):
         d = MultipleValDialog(title='Concat',
                                 initialvalues=(vals,vals),
                                 labels=('Table 1','Table 2'),
-                                types=('list','list'),
+                                types=('combobox','combobox'),
                                 parent = self.master)
         if d.result == None:
             return

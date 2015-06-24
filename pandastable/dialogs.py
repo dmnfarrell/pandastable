@@ -28,107 +28,6 @@ from collections import OrderedDict
 import pandas as pd
 from .data import TableModel
 
-class MultipleValDialog(simpledialog.Dialog):
-    """Simple dialog to get multiple values"""
-
-    def __init__(self, parent, title=None, initialvalues=None, labels=None, types=None):
-        if labels != None and types is not None:
-            self.initialvalues = initialvalues
-            self.labels = labels
-            self.types = types
-        simpledialog.Dialog.__init__(self, parent, title)
-
-    def body(self, master):
-
-        r=0
-        self.vrs=[];self.entries=[]
-        for i in range(len(self.labels)):
-            Label(master, text=self.labels[i]).grid(row=r,column=0,sticky='news')
-            if self.types[i] in ['int','boolean']:
-                self.vrs.append(IntVar())
-            else:
-                self.vrs.append(StringVar())
-            if self.types[i] == 'password':
-                s='*'
-            else:
-                s=None
-
-            if self.types[i] == 'list':
-                choices = self.initialvalues[i]
-                self.vrs[i].set(choices[0])
-                w = Combobox(master, values=choices,
-                         textvariable=self.vrs[i],width=14)
-                self.entries.append(w)
-            elif self.types[i] == 'boolean':
-                self.vrs[i].set(self.initialvalues[i][0])
-                w = Checkbutton(master, text='',
-                         variable=self.vrs[i])
-                self.entries.append(w)
-            else:
-                self.vrs[i].set(self.initialvalues[i])
-                self.entries.append(Entry(master, textvariable=self.vrs[i], width=10, show=s))
-            self.entries[i].grid(row=r, column=1,padx=2,pady=2)
-            r+=1
-
-        return self.entries[0] # initial focus
-
-    def apply(self):
-        self.result = True
-        self.results = []
-        for i in range(len(self.labels)):
-            self.results.append(self.vrs[i].get())
-        return
-
-class ToolTip(object):
-    """Tooltip class for tkinter widgets"""
-    def __init__(self, widget):
-        self.widget = widget
-        self.tipwindow = None
-        self.id = None
-        self.x = self.y = 0
-
-    def showtip(self, text):
-        "Display text in tooltip window"
-        self.text = text
-        if self.tipwindow or not self.text:
-            return
-        x, y, cx, cy = self.widget.bbox("insert")
-        x = x + self.widget.winfo_rootx() + 25
-        y = y + cy + self.widget.winfo_rooty() +25
-        self.tipwindow = tw = Toplevel(self.widget)
-        tw.wm_overrideredirect(1)
-        tw.wm_geometry("+%d+%d" % (x, y))
-        try:
-            # For Mac OS
-            tw.tk.call("::tk::unsupported::MacWindowStyle",
-                       "style", tw._w,
-                       "help", "noActivates")
-        except TclError:
-            pass
-        label = Label(tw, text=self.text, justify=LEFT,
-                      background="#ffffe0", relief=SOLID, borderwidth=1,
-                      font=("tahoma", "8", "normal"))
-        label.pack(ipadx=1)
-
-    def hidetip(self):
-        """Hide tooltip"""
-        tw = self.tipwindow
-        self.tipwindow = None
-        if tw:
-            tw.destroy()
-
-    @classmethod
-    def createToolTip(self, widget, text):
-        """Create a tooltip for a widget"""
-        toolTip = ToolTip(widget)
-        def enter(event):
-            toolTip.showtip(text)
-        def leave(event):
-            toolTip.hidetip()
-        widget.bind('<Enter>', enter)
-        widget.bind('<Leave>', leave)
-        return
-
 def dialogFromOptions(parent, opts, groups=None, callback=None):
     """Auto create tk vars and widgets for corresponding options and
        and return the enclosing frame"""
@@ -181,6 +80,12 @@ def dialogFromOptions(parent, opts, groups=None, callback=None):
                 w.set(opt['default'])
                 if 'tooltip' in opt:
                     ToolTip.createToolTip(w, opt['tooltip'])
+            elif opt['type'] == 'listbox':
+                if 'label' in opt:
+                   label=opt['label']
+                else:
+                    label = i
+
             elif opt['type'] == 'radio':
                 Label(frame,text=label).pack()
                 if 'label' in opt:
@@ -206,6 +111,114 @@ def dialogFromOptions(parent, opts, groups=None, callback=None):
             row+=1
         c+=1
     return dialog, tkvars, widgets
+
+class MultipleValDialog(simpledialog.Dialog):
+    """Simple dialog to get multiple values"""
+
+    def __init__(self, parent, title=None, initialvalues=None, labels=None, types=None):
+        if labels != None and types is not None:
+            self.initialvalues = initialvalues
+            self.labels = labels
+            self.types = types
+        simpledialog.Dialog.__init__(self, parent, title)
+
+    def body(self, master):
+
+        r=0
+        self.vrs=[];self.entries=[]
+        for i in range(len(self.labels)):
+            Label(master, text=self.labels[i]).grid(row=r,column=0,sticky='news')
+            if self.types[i] in ['int','checkbutton']:
+                self.vrs.append(IntVar())
+            else:
+                self.vrs.append(StringVar())
+            if self.types[i] == 'password':
+                s='*'
+            else:
+                s=None
+
+            if self.types[i] == 'combobox':
+                choices = self.initialvalues[i]
+                self.vrs[i].set(choices[0])
+                w = Combobox(master, values=choices,
+                         textvariable=self.vrs[i],width=14)
+                self.entries.append(w)
+            elif self.types[i] == 'listbox':
+                f,w = addListBox(master, values=self.initialvalues[i],width=14)
+                self.entries.append(f)
+                self.vrs[i] = w #add widget instead of var
+            elif self.types[i] == 'checkbutton':
+                self.vrs[i].set(self.initialvalues[i][0])
+                w = Checkbutton(master, text='',
+                         variable=self.vrs[i])
+                self.entries.append(w)
+            else:
+                self.vrs[i].set(self.initialvalues[i])
+                self.entries.append(Entry(master, textvariable=self.vrs[i], width=10, show=s))
+            self.entries[i].grid(row=r, column=1,padx=2,pady=2)
+            r+=1
+
+        return self.entries[0] # initial focus
+
+    def apply(self):
+        self.result = True
+        self.results = []
+        for i in range(len(self.labels)):
+            if self.types[i] == 'listbox':
+                self.results.append(self.vrs[i].getSelectedItem())
+            else:
+                self.results.append(self.vrs[i].get())
+        return
+
+class ToolTip(object):
+    """Tooltip class for tkinter widgets"""
+    def __init__(self, widget):
+        self.widget = widget
+        self.tipwindow = None
+        self.id = None
+        self.x = self.y = 0
+
+    def showtip(self, text):
+        "Display text in tooltip window"
+        self.text = text
+        if self.tipwindow or not self.text:
+            return
+        x, y, cx, cy = self.widget.bbox("insert")
+        x = x + self.widget.winfo_rootx() + 25
+        y = y + cy + self.widget.winfo_rooty() +25
+        self.tipwindow = tw = Toplevel(self.widget)
+        tw.wm_overrideredirect(1)
+        tw.wm_geometry("+%d+%d" % (x, y))
+        try:
+            # For Mac OS
+            tw.tk.call("::tk::unsupported::MacWindowStyle",
+                       "style", tw._w,
+                       "help", "noActivates")
+        except TclError:
+            pass
+        label = Label(tw, text=self.text, justify=LEFT,
+                      background="#ffffe0", relief=SOLID, borderwidth=1,
+                      font=("tahoma", "8", "normal"))
+        label.pack(ipadx=1)
+
+    def hidetip(self):
+        """Hide tooltip"""
+        tw = self.tipwindow
+        self.tipwindow = None
+        if tw:
+            tw.destroy()
+
+    @classmethod
+    def createToolTip(self, widget, text):
+        """Create a tooltip for a widget"""
+        toolTip = ToolTip(widget)
+        def enter(event):
+            toolTip.showtip(text)
+        def leave(event):
+            toolTip.hidetip()
+        widget.bind('<Enter>', enter)
+        widget.bind('<Leave>', leave)
+        return
 
 class ProgressDialog(Toplevel):
     def __init__(self):
@@ -405,6 +418,77 @@ class CombineDialog(Frame):
     def quit(self):
         self.main.destroy()
         return
+
+def addListBox(parent, values=[], width=10):
+    frame=Frame(parent)
+    yScroll = Scrollbar(frame, orient = VERTICAL)
+    yScroll.grid(row = 0, column = 1, sticky = N+S)
+    listItemSelected = lambda index: index
+    lbx = EasyListbox(frame, width, 6, yScroll.set, listItemSelected)
+    lbx.grid(row = 0, column = 0, sticky = N+S+E+W)
+    frame.columnconfigure(0, weight = 1)
+    frame.rowconfigure(0, weight = 1)
+    yScroll["command"] = lbx.yview
+    for i in values:
+        lbx.insert(END, i)
+    return frame, lbx
+
+class EasyListbox(Listbox):
+    """Customised list box"""
+
+    def __init__(self, parent, width, height, yscrollcommand, listItemSelected):
+        self._listItemSelected = listItemSelected
+        Listbox.__init__(self, parent,
+                                 width = width, height = height,
+                                 yscrollcommand = yscrollcommand,
+                                 selectmode = MULTIPLE, exportselection=0)
+        self.bind("<<ListboxSelect>>", self.triggerListItemSelected)
+
+    def triggerListItemSelected(self, event):
+        """Strategy method to respond to an item selection in the list box.
+        Runs the client's listItemSelected method with the selected index if
+        there is one."""
+        if self.size() == 0: return
+        widget = event.widget
+        indexes = widget.curselection()
+        #self._listItemSelected(index)
+
+    def getSelectedIndex(self):
+        """Returns the index of the selected item or -1 if no item
+        is selected."""
+        tup = self.curselection()
+        if len(tup) == 0:
+            return -1
+        else:
+            return tup
+
+    def getSelectedItem(self):
+        """Returns the selected item or the empty string if no item
+        is selected."""
+        index = self.getSelectedIndex()
+        if index == -1:
+            return ""
+        else:
+            return [self.get(i) for i in index]
+
+    def setSelectedIndex(self, index):
+        """Selects the item at the index if it's in the range."""
+        if index < 0 or index >= self.size(): return
+        self.selection_set(index, index)
+
+    def clear(self):
+        """Deletes all items from the list box."""
+        while self.size() > 0:
+            self.delete(0)
+
+    def getIndex(self, item):
+        """Returns the index of item if it's in the list box,
+        or -1 otherwise."""
+        tup = self.get(0, self.size() - 1)
+        if item in tup:
+            return tup.index(item)
+        else:
+            return -1
 
 class SimpleEditor(Frame):
 
