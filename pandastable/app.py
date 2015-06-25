@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-    Sample App to illustrate table functionality.
+    DataExplore Application based on pandastable.
     Created January 2014
     Copyright (C) Damien Farrell
 
