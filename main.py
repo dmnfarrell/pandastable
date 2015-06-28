@@ -24,19 +24,22 @@ from pandastable.app import ViewerApp
 def main():
     """Run the application from outside the module - used for
        deploying as frozen app"""
-    
+
     import sys, os
     from optparse import OptionParser
     parser = OptionParser()
-    parser.add_option("-f", "--file", dest="projfile",
-                        help="Open a dataframe viewer project file", metavar="FILE")
+    parser.add_option("-f", "--file", dest="msgpack",
+                        help="Open a dataframe as msgpack", metavar="FILE")
+    parser.add_option("-p", "--project", dest="projfile",
+                        help="Open a dataexplore project file", metavar="FILE")
     opts, remainder = parser.parse_args()
     if opts.projfile != None:
         app = ViewerApp(projfile=opts.projfile)
+    elif opts.msgpack != None:
+        app = ViewerApp(msgpack=opts.msgpack)
     else:
         app = ViewerApp()
     app.mainloop()
-    return
 
 if __name__ == '__main__':
     main()

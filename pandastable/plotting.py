@@ -181,7 +181,7 @@ class PlotViewer(Frame):
                     'barh': ['alpha', 'colormap', 'grid', 'legend', 'linewidth', 'subplots',
                             'stacked', 'rot', 'kind'],
                     'histogram': ['alpha', 'linewidth','grid','stacked','subplots','colormap',
-                             'sharey','rot','bins'],
+                             'sharey','rot','bins', 'logx', 'logy'],
                     'heatmap': ['colormap','rot'],
                     'area': ['alpha','colormap','grid','linewidth','legend','stacked',
                              'kind','rot','logx'],
@@ -316,6 +316,10 @@ class PlotViewer(Frame):
                 ec='black'
             ax.scatter(x, y, marker=marker, alpha=alpha, linewidth=kwds['linewidth'],
                        s=kwds['s'], color=c, edgecolor=ec)
+            if kwds['logx'] == 1:
+                ax.set_xscale('log')
+            if kwds['logy'] == 1:
+                ax.set_yscale('log')
         if kwds['grid'] == 1:
             ax.grid()
         if kwds['legend'] == 1:

@@ -38,7 +38,7 @@ from .dialogs import MultipleValDialog
 class ViewerApp(Frame):
     """Pandastable viewer application"""
 
-    def __init__(self,parent=None, data=None, projfile=None):
+    def __init__(self,parent=None, data=None, projfile=None, msgpack=None):
         "Initialize the application."
 
         self.parent=parent
@@ -71,6 +71,8 @@ class ViewerApp(Frame):
             self.new_project(data)
         elif projfile != None:
             self.openProject(projfile)
+        elif msgpack != None:
+            self.loadmsgpack(msgpack)
         else:
             self.newProject()
 
@@ -134,10 +136,15 @@ class ViewerApp(Frame):
         self.tools_menu=self.createPulldown(self.menu,self.tools_menu)
         self.menu.add_cascade(label='Tools',menu=self.tools_menu['var'])
 
-        self.dataset_menu={'01Load Sample Data':{'cmd':self.sampleData},
-                         '03Load Iris Data':{'cmd':self.getIrisData},
-                         '03Load Tips Data':{'cmd':self.getTipsData},
-                         '04Load Stacked Data':{'cmd':self.getStackedData}}
+        self.dataset_menu={'01Sample Data':{'cmd':self.sampleData},
+                         '03Iris Data':{'cmd': lambda: self.getData('iris.mpk')},
+                         '03Tips Data':{'cmd': lambda: self.getData('tips.mpk')},
+                         '04Stacked Data':{'cmd':self.getStackedData},
+                         '05CSO IE employment':
+                             {'cmd': lambda: self.getData('cso_employment.mpk')},
+                         '06Eurostat popdensity by NUTS':
+                             {'cmd':lambda: self.getData('eurostat_popdensity_by_NUTS.mpk')},
+                         }
         self.dataset_menu=self.createPulldown(self.menu,self.dataset_menu)
         self.menu.add_cascade(label='Datasets',menu=self.dataset_menu['var'])
 
@@ -262,6 +269,30 @@ class ViewerApp(Frame):
         for n in self.nb.tabs():
             self.nb.forget(n)
         self.filename = None
+        return
+
+    def loadmsgpack(self, filename):
+        """Load a msgpack file"""
+
+        df = pd.read_msgpack(filename)
+        name = os.path.splitext(os.path.basename(filename))[0]
+        if hasattr(self,'sheets'):
+            self.addSheet(sheetname=name, df=df)
+        else:
+            data = {name:df}
+            self.newProject(data)
+        return
+
+    def getData(self, name):
+        """Get predefined data from dataset folder"""
+
+        if getattr(sys, 'frozen', False):
+            #the application is frozen
+            path = os.path.dirname(sys.executable)
+        else:
+            path = os.path.dirname(__file__)
+        filename = os.path.join(path, 'datasets', name)
+        self.loadmsgpack(filename)
         return
 
     def addSheet(self, sheetname=None, df=None, select=False):
@@ -393,10 +424,6 @@ class ViewerApp(Frame):
         self.addSheet('concat-%s-%s' %(s1,s2),m)
         return
 
-    def clean(self):
-
-        return
-
     def sampleData(self):
         """Load sample table"""
 
@@ -407,20 +434,6 @@ class ViewerApp(Frame):
             name='sample'+str(i)
             i+=1
         self.addSheet(sheetname=name, df=df)
-        return
-
-    def getIrisData(self):
-        """Get iris data"""
-
-        df = TableModel.getIrisData()
-        self.addSheet(sheetname='iris', df=df)
-        return
-
-    def getTipsData(self):
-        """Get R tips data"""
-
-        df = pd.read_csv("https://raw.github.com/mwaskom/seaborn/master/examples/tips.csv")
-        self.addSheet(sheetname='tips', df=df)
         return
 
     def getStackedData(self):
@@ -477,11 +490,15 @@ def main():
     import sys, os
     from optparse import OptionParser
     parser = OptionParser()
-    parser.add_option("-f", "--file", dest="projfile",
-                        help="Open a dataframe viewer project file", metavar="FILE")
+    parser.add_option("-f", "--file", dest="msgpack",
+                        help="Open a dataframe as msgpack", metavar="FILE")
+    parser.add_option("-p", "--project", dest="projfile",
+                        help="Open a dataexplore project file", metavar="FILE")
     opts, remainder = parser.parse_args()
     if opts.projfile != None:
         app = ViewerApp(projfile=opts.projfile)
+    elif opts.msgpack != None:
+        app = ViewerApp(msgpack=opts.msgpack)
     else:
         app = ViewerApp()
     app.mainloop()

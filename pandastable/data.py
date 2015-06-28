@@ -69,7 +69,7 @@ class TableModel(object):
         """Get iris dataset"""
         path = os.path.dirname(__file__)
         cols = ['sepal length','sepal width','petal length','petal width','class']
-        df = pd.read_csv(os.path.join(path,'iris.data'),names=cols)
+        df = pd.read_csv(os.path.join(path,'datasets','iris.data'),names=cols)
         return df
 
     @classmethod

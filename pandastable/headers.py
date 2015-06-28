@@ -67,6 +67,7 @@ class ColumnHeader(Canvas):
     def redraw(self):
         """Redraw column header"""
 
+        df = self.model.df
         cols = self.model.getColumnCount()
         self.tablewidth=self.table.tablewidth
         self.configure(scrollregion=(0,0, self.table.tablewidth+self.table.x_start, self.height))
@@ -84,7 +85,7 @@ class ColumnHeader(Canvas):
         #if check_multiindex(self.model.df.columns) == 1:
         #    cols = df.columns.get_level_values(1)
         for col in self.table.visiblecols:
-            colname = self.model.df.columns[col]
+            colname = df.columns[col]
             if colname in self.model.columnwidths:
                 w = self.model.columnwidths[colname]
             else:
@@ -98,7 +99,7 @@ class ColumnHeader(Canvas):
                 xt = x-w/2
             if type(colname) == 'tuple':
                 colname = ','.join(colname)
-            if len(colname) > w/10:
+            if len(str(colname)) > w/10:
                 colname = str(colname)[0:int(w/10)]+'.'
             line = self.create_line(x, 0, x, h, tag=('gridline', 'vertline'),
                                  fill='white', width=1)

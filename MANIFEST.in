@@ -1,1 +1,1 @@
-include pandastable/*.data
+include pandastable/datasets/*

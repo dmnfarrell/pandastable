@@ -1287,15 +1287,26 @@ class Table(Canvas):
         """Convert col names so we can use numexpr"""
 
         d = MultipleValDialog(title='Convert col names',
-                                initialvalues=['_'],
-                                labels=['replace spaces with:'],
-                                types=('string'),
+                                initialvalues=['','',[0,1],[0,1]],
+                                labels=['replace spaces with:','add symbol to start',
+                                        'make lowercase','make uppercase'],
+                                types=('string','string','checkbutton','checkbutton'),
                                 parent = self.parentframe)
         if d.result == None:
             return
         sep = d.results[0]
+        start = d.results[1]
+        lower = d.results[2]
+        upper = d.results[3]
         df = self.model.df
-        df.columns = [i.replace(' ',sep) for i in df.columns]
+        if start != '':
+            df.columns = start + df.columns
+        if sep != '':
+            df.columns = [i.replace(' ',sep) for i in df.columns]
+        if lower == 1:
+            df.columns = df.columns.str.lower()
+        elif upper == 1:
+            df.columns = df.columns.str.upper()
         self.redraw()
         return
 
@@ -2160,6 +2171,7 @@ class Table(Canvas):
                                                           defaultextension='.csv',
                                                           initialdir=os.getcwd(),
                                                           filetypes=[("csv","*.csv"),
+                                                                     ("tsv","*.tsv"),
                                                                      ("txt","*.txt"),
                                                             ("All files","*.*")])
         if not filename:

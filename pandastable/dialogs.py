@@ -35,7 +35,7 @@ def getParentGeometry(parent):
     h = parent.winfo_height()
     return x,y,w,h
 
-def dialogFromOptions(parent, opts, groups=None, callback=None):
+def dialogFromOptions(parent, opts, groups=None, callback=None, sticky='news'):
     """Auto create tk vars and widgets for corresponding options and
        and return the enclosing frame"""
 
@@ -47,7 +47,7 @@ def dialogFromOptions(parent, opts, groups=None, callback=None):
     c=0
     for g in groups:
         frame = LabelFrame(dialog, text=g)
-        frame.grid(row=0,column=c,sticky='news')
+        frame.grid(row=0,column=c,sticky=sticky)
         row=0; col=0
         for i in groups[g]:
             w=None
@@ -92,7 +92,9 @@ def dialogFromOptions(parent, opts, groups=None, callback=None):
                    label=opt['label']
                 else:
                     label = i
-
+                Label(frame,text=label).pack()
+                w,v = addListBox(frame, values=opt['items'],width=12)
+                tkvars[i] = v #add widget instead of var
             elif opt['type'] == 'radio':
                 Label(frame,text=label).pack()
                 if 'label' in opt:
@@ -255,12 +257,13 @@ class ImportDialog(Frame):
         self.main.grab_set()
         self.main.transient(parent)
 
+        delimiters = [',','\t',' ',';','/','&','|','^','+','-']
         grps = {'formats':['delimiter','decimal','comment'],
                 'data':['header','skiprows','index_col'],
                 'other':['skipinitialspace','skip_blank_lines','parse_dates']}
         grps = OrderedDict(sorted(grps.items()))
         opts = self.opts = {'delimiter':{'type':'combobox','default':',',
-                        'items':[',',' ',';'], 'tooltip':'seperator'},
+                        'items':delimiters, 'tooltip':'seperator'},
                      'header':{'type':'entry','default':0,'label':'header',
                                'tooltip':'position of column header'},
                      'index_col':{'type':'entry','default':'','label':'index col',
@@ -319,7 +322,7 @@ class ImportDialog(Frame):
         return
 
     def doImport(self):
-        self.df = pd.read_csv(self.filename)
+        self.df = pd.read_csv(self.filename, **self.kwds)
         self.quit()
         return
 
@@ -358,13 +361,13 @@ class CombineDialog(Frame):
         #concat assumes homogeneous dfs
         how = ['inner','outer','left','right']
         grps = {'merge': ['left_on','right_on','suffix1','suffix2','how'],
-                'concat': ['join','ignore_index']}
+                'concat': ['join','ignore_index','verify_integrity']}
         self.grps = grps = OrderedDict(sorted(grps.items()))
         cols1 = list(df1.columns)
         cols2 = list(df2.columns)
-        opts = self.opts = {'left_on':{'type':'combobox','default':'',
+        opts = self.opts = {'left_on':{'type':'listbox','default':'',
                             'items':cols1, 'tooltip':'left column'},
-                            'right_on':{'type':'combobox','default':'',
+                            'right_on':{'type':'listbox','default':'',
                             'items':cols2, 'tooltip':'right column'},
                             'suffix1':{'type':'entry','default':'_1','label':'left suffix'},
                             'suffix2':{'type':'entry','default':'_2','label':'right suffix'},
@@ -373,9 +376,11 @@ class CombineDialog(Frame):
                             'join':{'type':'combobox','default':'inner',
                             'items':['inner','outer'], 'tooltip':'how to join'},
                             'ignore_index':{'type':'checkbutton','default':0,'label':'ignore index',
-                             'tooltip':'do not use the index values on the concatenation axis'},
+                                'tooltip':'do not use the index values on the concatenation axis'},
+                            'verify_integrity':{'type':'checkbutton','default':0,'label':'check duplicates'},
+
                              }
-        optsframe, self.tkvars, w = dialogFromOptions(self.main, opts, grps)
+        optsframe, self.tkvars, w = dialogFromOptions(self.main, opts, grps, sticky='new')
         optsframe.pack(side=TOP,fill=BOTH)
 
         bf = Frame(self.main)
@@ -396,7 +401,10 @@ class CombineDialog(Frame):
         for i in self.opts:
             if i not in self.grps[method]:
                 continue
-            val = self.tkvars[i].get()
+            if self.opts[i]['type'] == 'listbox':
+                val = self.tkvars[i].getSelectedItem()
+            else:
+                val = self.tkvars[i].get()
             if val == '':
                 val=None
             kwds[i] = val
