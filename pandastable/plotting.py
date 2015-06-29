@@ -58,7 +58,7 @@ class PlotViewer(Frame):
                 self.nb.pack_forget()
             else:
                 self.nb.pack(side=TOP,fill=BOTH)
-        bf = Frame(self.main)
+        bf = Frame(self.main, padding=2)
         bf.pack(side=TOP,fill=BOTH)
         b = Button(bf, text="Apply", command=self.applyPlotoptions)
         b.pack(side=LEFT,fill=X,expand=1)

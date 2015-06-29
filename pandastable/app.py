@@ -128,11 +128,16 @@ class ViewerApp(Frame):
         self.sheet_menu=self.createPulldown(self.menu,self.sheet_menu)
         self.menu.add_cascade(label='Sheet',menu=self.sheet_menu['var'])
 
-        self.tools_menu={'01Describe Table':{'cmd':self.describe},
+        self.table_menu={'01Describe Table':{'cmd':self.describe},
                          '02Convert Column Names':{'cmd':self.convertColumns},
                          '03Convert Numeric':{'cmd':self.convertNumeric},
                          '04Concatenate Tables':{'cmd':self.concat},
                          '05Table to Text':{'cmd':self.printTable}}
+        self.table_menu=self.createPulldown(self.menu,self.table_menu)
+        self.menu.add_cascade(label='Table',menu=self.table_menu['var'])
+
+        self.tools_menu={'01Batch Rename':{'cmd':self.fileRename},
+                         }
         self.tools_menu=self.createPulldown(self.menu,self.tools_menu)
         self.menu.add_cascade(label='Tools',menu=self.tools_menu['var'])
 
@@ -439,6 +444,13 @@ class ViewerApp(Frame):
     def getStackedData(self):
         df = TableModel.getStackedData()
         self.addSheet(sheetname='stacked-data', df=df)
+        return
+
+    def fileRename(self):
+        """Start file renaming util"""
+        from .rename import BatchRenameApp
+        br = BatchRenameApp(self.master)
+
         return
 
     def about(self):

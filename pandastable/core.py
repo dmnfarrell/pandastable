@@ -1364,19 +1364,20 @@ class Table(Canvas):
         """Get table as formatted text - for printing"""
 
         d = MultipleValDialog(title='Table to Text',
-                                initialvalues=(['left','right'],[0,1],[0,1],''),
-                                labels=['justify:','include index:','sparsify:','na_rep:'],
-                                types=('combobox','checkbutton','checkbutton','string'),
+                                initialvalues=(['left','right'],[1,0],[1,0],[0,1],''),
+                                labels=['justify:','header ','include index:','sparsify:','na_rep:'],
+                                types=('combobox','checkbutton','checkbutton','checkbutton','string'),
                                 parent = self.parentframe)
         if d.result == None:
             return
         justify = d.results[0]
-        index = d.results[1]
-        sparsify = d.results[2]
-        na_rep = d.results[3]
+        header = d.results[0]
+        index = d.results[2]
+        sparsify = d.results[3]
+        na_rep = d.results[4]
 
         df = self.model.df
-        s = df.to_string(justify=justify,index=index,sparsify=sparsify,na_rep=na_rep)
+        s = df.to_string(justify=justify,header=header,index=index,sparsify=sparsify,na_rep=na_rep)
         from tkinter.scrolledtext import ScrolledText
         from .dialogs import SimpleEditor
         w = Toplevel(self.parentframe)
