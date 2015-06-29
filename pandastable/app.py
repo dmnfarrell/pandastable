@@ -60,8 +60,8 @@ class ViewerApp(Frame):
         if pf == 'linux':
             self.style.theme_use('default')
 
-        self.style.configure("TButton", padding=2, relief="raised")
-        self.style.configure("TEntry", padding=2)
+        self.style.configure("TButton", padding=(3, 3, 3, 3), relief="raised")
+        self.style.configure("TEntry", padding=(3, 3, 3, 3))
         self.main.title('DataExplore')
         self.createMenuBar()
         self.setupGUI()

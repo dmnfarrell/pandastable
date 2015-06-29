@@ -27,7 +27,7 @@ import tkinter
 from tkinter import *
 from tkinter.ttk import *
 from tkinter import filedialog, messagebox, simpledialog
-from .dialogs import EasyListbox
+from tkinter.scrolledtext import ScrolledText
 
 def doRename(files=None, wildcard=None, pattern='', replacement='', rename=False):
     """Rename all files in a directory using replacement"""
@@ -91,61 +91,39 @@ class BatchRenameApp(Frame):
 
         self.m = PanedWindow(self.main,
                            orient=HORIZONTAL)
-        self.m.pack(side=TOP,fill=BOTH,expand=1)
-        '''self.listbox = Pmw.ScrolledListBox(self.m,
-                labelpos='n',
-                label_text='File names',
-                listbox_height = 8,
-                usehullsize = 1,
-                hull_width = 400)
-        self.listbox.component('listbox').configure(selectmode=EXTENDED)
-        self.m.add(self.listbox)
-        self.preview = Pmw.ScrolledListBox(self.m,
-                labelpos='n',
-                label_text='New names',
-                usehullsize = 1,
-                hull_width = 200)
-        self.m.add(self.preview)'''
+        self.m.pack(side=LEFT,fill=BOTH,expand=1)
 
-        #w,v = addListBox(self.m, values=opt['items'],width=12)
-
-        fr=Frame(self.main, padding=4)
+        self.fileslist = ScrolledText(self.m, width=50, height=20)
+        self.m.add(self.fileslist)
+        self.preview = ScrolledText(self.m, width=20, height=20)
+        self.m.add(self.preview)
+        fr=Frame(self.main, padding=(4,4), width=90)
         b=Button(fr,text='Add Folder',command=self.addFolder)
-        b.pack(side=LEFT,fill=BOTH,)
+        b.pack(side=TOP,fill=BOTH,pady=2)
         b=Button(fr,text='Clear',command=self.clear)
-        b.pack(side=LEFT,fill=BOTH)
+        b.pack(side=TOP,fill=BOTH,pady=2)
 
         self.patternvar = StringVar()
-        self.filepattern = Entry(fr, text='*.*', textvariable=self.patternvar)
-        self.filepattern.pack(side=LEFT,fill=BOTH)
-
-        '''self.filepattern = Pmw.EntryField(fr,
-                labelpos = 'w',
-                value = '*.*',
-                label_text = 'Wildcard:',
-                command = self.refresh)
-        self.filepattern.pack(side=LEFT,fill=BOTH)
-        self.filepattern.component("entry").configure(width=8)
-        self.findtext = Pmw.EntryField(fr,
-                labelpos = 'w',
-                value = ' ',
-                label_text = 'Find:',
-                command = self.refresh)
-        self.findtext.pack(side=LEFT,fill=BOTH)
-        self.findtext.component("entry").configure(width=8)
-        self.replacetext = Pmw.EntryField(fr,
-                labelpos = 'w',
-                value = '.',
-                label_text = 'Replace With:',
-                command = self.refresh)
-        self.replacetext.pack(side=LEFT,fill=BOTH)
-        self.replacetext.component("entry").configure(width=8)'''
+        self.patternvar.set('*.*')
+        self.filepattern = Entry(fr, textvariable=self.patternvar)
+        Label(fr,text='Wildcard:').pack(side=TOP)
+        self.filepattern.pack(side=TOP,fill=BOTH,pady=2)
+        self.findvar = StringVar()
+        self.findvar.set(' ')
+        self.findtext = Entry(fr, textvariable=self.findvar)
+        Label(fr,text='Find:').pack(side=TOP)
+        self.findtext.pack(side=TOP,fill=BOTH,pady=2)
+        self.replacevar = StringVar()
+        self.replacevar.set('.')
+        self.replacetext = Entry(fr, textvariable=self.replacevar)
+        Label(fr,text='Replace With:').pack(side=TOP)
+        self.replacetext.pack(side=TOP,fill=BOTH,pady=2)
 
         b=Button(fr,text='Preview',command=self.dopreview)
-        b.pack(side=LEFT,fill=BOTH)
+        b.pack(side=TOP,fill=BOTH,pady=2)
         b=Button(fr,text='Execute',command=self.execute)
-        b.pack(side=LEFT,fill=BOTH)
-        fr.pack(side=TOP,fill=BOTH)
+        b.pack(side=TOP,fill=BOTH,pady=2)
+        fr.pack(side=LEFT,fill=BOTH)
         return
 
     def addFolder(self,path=None):
@@ -157,34 +135,39 @@ class BatchRenameApp(Frame):
                                             title='Select folder')
         if path:
             self.path = path
-            self.refresh()
+            #self.refresh()
+            self.dopreview()
             self.currentdir = path
         return
 
     def refresh(self):
-        fp = self.filepattern.getvalue()
+        """Load files list"""
+
+        self.fileslist.delete('1.0',END)
+        fp = self.patternvar.get()
         flist = glob.glob(os.path.join(self.path,fp))
-        self.listbox.setlist(flist)
-        self.dopreview()
+        filestr = '\n'.join(flist)
+        self.fileslist.insert(END, filestr)
         return
 
     def dopreview(self):
         """Preview update"""
 
-        self.preview.delete(0,END)
-        flist = self.listbox.get()
-        find=self.findtext.getvalue()
-        repl=self.replacetext.getvalue()
+        self.refresh()
+        self.preview.delete('1.0',END)
+        flist = self.fileslist.get('1.0',END)
+        flist = flist.split('\n')
+        find = self.findvar.get()
+        repl = self.replacevar.get()
         new = doFindReplace(files=flist, find=find, replace=repl)
-        for f in zip(flist,new):
-            if f[0] != f[1]:
-                self.preview.insert(END,f[1])
+        new = '\n'.join(new)
+        self.preview.insert(END,new)
         return
 
     def clear(self):
 
-        self.listbox.delete(0,END)
-        self.preview.delete(0,END)
+        self.fileslist.delete('1.0',END)
+        self.preview.delete('1.0',END)
         self.path = None
         return
 
@@ -196,9 +179,9 @@ class BatchRenameApp(Frame):
                                   parent=self.master)
         if not n:
             return
-        flist = self.listbox.get()
-        find=self.findtext.getvalue()
-        repl=self.replacetext.getvalue()
+        flist = self.fileslist.get('1.0',END).split('\n')
+        find = self.findvar.get()
+        repl = self.replacevar.get()
         doFindReplace(files=flist, find=find, replace=repl, rename=True)
         self.refresh()
         return

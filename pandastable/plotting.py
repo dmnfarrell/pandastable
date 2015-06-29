@@ -435,6 +435,7 @@ class PlotViewer(Frame):
 
         df = self.table.model.df
         self.mplopts.update(df)
+
         return
 
     def showWarning(self, s='plot error'):
@@ -592,8 +593,10 @@ class MPLBaseOptions(object):
     def update(self, df):
         """Update data widget(s)"""
 
-        cols = df.columns
+        cols = list(df.columns)
         cols += ''
+        self.widgets['by']['values'] = cols
+        self.widgets['by2']['values'] = cols
         return
 
 class MPL3DOptions(object):

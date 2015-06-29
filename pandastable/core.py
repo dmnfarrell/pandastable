@@ -2187,6 +2187,8 @@ class Table(Canvas):
         model = TableModel(dataframe=df)
         self.updateModel(model)
         self.redraw()
+        if hasattr(self, 'pf'):
+            self.pf.updateData()
         return
 
     def loadExcel(self, filename=None):
