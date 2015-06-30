@@ -148,7 +148,7 @@ class ViewerApp(Frame):
                          '05CSO IE employment':
                              {'cmd': lambda: self.getData('cso_employment.mpk')},
                          '06Eurostat popdensity by NUTS':
-                             {'cmd':lambda: self.getData('eurostat_popdensity_by_NUTS.mpk')},
+                             {'cmd':lambda: self.getData('eurostat_popdensity_by_NUTS.mpk')}
                          }
         self.dataset_menu=self.createPulldown(self.menu,self.dataset_menu)
         self.menu.add_cascade(label='Datasets',menu=self.dataset_menu['var'])

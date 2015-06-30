@@ -19,11 +19,11 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 """
 
-import sys,os
+import sys,os,types
 import tkinter
 from tkinter import *
 from tkinter.ttk import *
-import types
+from tkinter.scrolledtext import ScrolledText
 from collections import OrderedDict
 import pandas as pd
 from .data import TableModel
@@ -35,7 +35,8 @@ def getParentGeometry(parent):
     h = parent.winfo_height()
     return x,y,w,h
 
-def dialogFromOptions(parent, opts, groups=None, callback=None, sticky='news'):
+def dialogFromOptions(parent, opts, groups=None, callback=None,
+                        sticky='news', horizontal=True):
     """Auto create tk vars and widgets for corresponding options and
        and return the enclosing frame"""
 
@@ -45,10 +46,15 @@ def dialogFromOptions(parent, opts, groups=None, callback=None, sticky='news'):
     if groups == None:
         groups = {'options': opts.keys()}
     c=0
+    row=0
     for g in groups:
+        if horizontal==True:
+            row=0; c+=1
+        else:
+            c=0; row+=1
         frame = LabelFrame(dialog, text=g)
-        frame.grid(row=0,column=c,sticky=sticky)
-        row=0; col=0
+        frame.grid(row=row,column=c,sticky=sticky)
+
         for i in groups[g]:
             w=None
             opt = opts[i]
@@ -118,7 +124,7 @@ def dialogFromOptions(parent, opts, groups=None, callback=None, sticky='news'):
                 w.pack(fill=BOTH,expand=1)
                 widgets[i] = w
             row+=1
-        c+=1
+
     return dialog, tkvars, widgets
 
 class MultipleValDialog(simpledialog.Dialog):
@@ -258,9 +264,10 @@ class ImportDialog(Frame):
         self.main.transient(parent)
 
         delimiters = [',','\t',' ',';','/','&','|','^','+','-']
+        encodings = ['utf-8','ascii','iso8859_15','big5']
         grps = {'formats':['delimiter','decimal','comment'],
                 'data':['header','skiprows','index_col'],
-                'other':['skipinitialspace','skip_blank_lines','parse_dates']}
+                'other':['skipinitialspace','skip_blank_lines','encoding']}
         grps = OrderedDict(sorted(grps.items()))
         opts = self.opts = {'delimiter':{'type':'combobox','default':',',
                         'items':delimiters, 'tooltip':'seperator'},
@@ -272,40 +279,54 @@ class ImportDialog(Frame):
                                 'tooltip':'decimal point symbol'},
                      'comment':{'type':'entry','default':'#','label':'comment',
                                 'tooltip':'comment symbol'},
-                     'skipinitialspace':{'type':'checkbutton','default':0,'label':'skipinitialspace',
+                     'skipinitialspace':{'type':'checkbutton','default':0,'label':'skip initial space',
                                 'tooltip':'skip initial space'},
                      'skiprows':{'type':'entry','default':0,'label':'skiprows',
                                 'tooltip':'rows to skip'},
-                     'skip_blank_lines':  {'type':'checkbutton','default':0,'label':'skipblanklines',
+                     'skip_blank_lines':  {'type':'checkbutton','default':0,'label':'skip blank lines',
                                 'tooltip':'do not use blank lines'},
-                     'parse_dates':{'type':'entry','default':'','label':'parse date',
-                                'tooltip':''},
+                     'encoding':{'type':'combobox','default':'utf-8','items':encodings,
+                                'tooltip':'file encoding'},
                      #'prefix':{'type':'entry','default':None,'label':'prefix',
                      #           'tooltip':''}
                      #'nrows':{'type':'entry','default':None,'label':'number of rows',
                      #           'tooltip':'rows to read'},
                      }
-        optsframe, self.tkvars, w = dialogFromOptions(self.main, opts, grps)
+        bf = Frame(self.main)
+        bf.pack(side=LEFT,fill=BOTH)
+        optsframe, self.tkvars, w = dialogFromOptions(bf, opts, grps,
+                                    sticky='nwe', horizontal=False)
 
+        self.m = PanedWindow(self.main, orient=VERTICAL)
+        self.m.pack(side=LEFT,fill=BOTH,expand=1)
+        self.textpreview = ScrolledText(self.main, width=80, height=10)
+        self.m.add(self.textpreview, weight=3)
         tf = Frame(self.main)
-        tf.pack(side=TOP,fill=BOTH,expand=1)
+        self.m.add(tf, weight=1)
         self.previewtable = Table(tf,rows=0,columns=0)
         self.previewtable.show()
         self.update()
 
         optsframe.pack(side=TOP,fill=BOTH)
-        bf = Frame(self.main)
-        bf.pack(side=TOP,fill=BOTH)
         b = Button(bf, text="Update preview", command=self.update)
-        b.pack(side=LEFT,fill=X,expand=1,pady=1)
+        b.pack(side=TOP,fill=X,pady=2)
         b = Button(bf, text="Import", command=self.doImport)
-        b.pack(side=LEFT,fill=X,expand=1,pady=1)
+        b.pack(side=TOP,fill=X,pady=2)
         b = Button(bf, text="Cancel", command=self.quit)
-        b.pack(side=LEFT,fill=X,expand=1,pady=1)
+        b.pack(side=TOP,fill=X,pady=2)
         self.main.wait_window()
         return
 
+    def showText(self):
+        """show text contents"""
+        with open(self.filename, 'r') as stream:
+            text = stream.read()
+        self.textpreview.delete('1.0', END)
+        self.textpreview.insert('1.0', text)
+        return
+
     def update(self):
+        """Reload previews"""
         kwds = {}
         for i in self.opts:
             val = self.tkvars[i].get()
@@ -313,8 +334,15 @@ class ImportDialog(Frame):
                 val=None
             kwds[i] = val
         self.kwds = kwds
-        f = pd.read_csv(self.filename, chunksize=100, **kwds)
-        df = f.get_chunk(100)
+
+        self.showText()
+        f = pd.read_csv(self.filename, chunksize=100, error_bad_lines=False, **kwds)
+        try:
+            df = f.get_chunk()
+        except pd.parser.CParserError:
+            print ('parser error')
+            df = pd.DataFrame()
+
         model = TableModel(dataframe=df)
         self.previewtable.updateModel(model)
         self.previewtable.showIndex()
@@ -511,10 +539,9 @@ class EasyListbox(Listbox):
             return -1
 
 class SimpleEditor(Frame):
-
+    """Simple text editor"""
     def __init__(self, parent=None, width=100, height=40):
 
-        from tkinter.scrolledtext import ScrolledText
         Frame.__init__(self, parent)
         st = self.text = ScrolledText(self, width=width, height=height)
         st.pack(in_=self, fill=BOTH, expand=Y)

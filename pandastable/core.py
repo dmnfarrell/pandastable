@@ -2102,8 +2102,8 @@ class Table(Canvas):
         self.rows = self.model.getRowCount()
         self.cols = self.model.getColumnCount()
         self.tablewidth = (self.cellwidth)*self.cols
-        self.tablecolheader = ColumnHeader(self.parentframe, self)
-        self.tablerowheader = RowHeader(self.parentframe, self)
+        self.tablecolheader.destroy()
+        self.tablerowheader.destroy()
         self.show()
         return
 
