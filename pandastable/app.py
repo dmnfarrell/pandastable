@@ -49,6 +49,16 @@ class ViewerApp(Frame):
             self.main=Toplevel()
             self.master=self.main
 
+        if getattr(sys, 'frozen', False):
+            #the application is frozen
+            self.modulepath = os.path.dirname(sys.executable)
+        else:
+            self.modulepath = os.path.dirname(__file__)
+
+        icon = os.path.join(self.modulepath,'dataexplore.gif')
+        img = PhotoImage(file=icon)
+        self.main.tk.call('wm', 'iconphoto', self.main._w, img)
+
         # Get platform into a variable
         self.currplatform=platform.system()
         if not hasattr(self,'defaultsavedir'):
@@ -291,12 +301,7 @@ class ViewerApp(Frame):
     def getData(self, name):
         """Get predefined data from dataset folder"""
 
-        if getattr(sys, 'frozen', False):
-            #the application is frozen
-            path = os.path.dirname(sys.executable)
-        else:
-            path = os.path.dirname(__file__)
-        filename = os.path.join(path, 'datasets', name)
+        filename = os.path.join(self.modulepath, 'datasets', name)
         self.loadmsgpack(filename)
         return
 

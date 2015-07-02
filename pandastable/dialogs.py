@@ -264,7 +264,7 @@ class ImportDialog(Frame):
         self.main.transient(parent)
 
         delimiters = [',','\t',' ',';','/','&','|','^','+','-']
-        encodings = ['utf-8','ascii','iso8859_15','big5']
+        encodings = ['utf-8','ascii','iso8859_15','cp037','cp1252','big5','euc_jp']
         grps = {'formats':['delimiter','decimal','comment'],
                 'data':['header','skiprows','index_col'],
                 'other':['skipinitialspace','skip_blank_lines','encoding']}
@@ -319,6 +319,7 @@ class ImportDialog(Frame):
 
     def showText(self):
         """show text contents"""
+
         with open(self.filename, 'r') as stream:
             text = stream.read()
         self.textpreview.delete('1.0', END)
@@ -327,16 +328,22 @@ class ImportDialog(Frame):
 
     def update(self):
         """Reload previews"""
+
         kwds = {}
         for i in self.opts:
             val = self.tkvars[i].get()
             if val == '':
                 val=None
+            elif type(self.opts[i]['default']) != int:
+                try:
+                    val=int(val)
+                except:
+                    pass
             kwds[i] = val
         self.kwds = kwds
 
         self.showText()
-        f = pd.read_csv(self.filename, chunksize=100, error_bad_lines=False, **kwds)
+        f = pd.read_csv(self.filename, chunksize=200, error_bad_lines=False, **kwds)
         try:
             df = f.get_chunk()
         except pd.parser.CParserError:
@@ -350,6 +357,12 @@ class ImportDialog(Frame):
         return
 
     def doImport(self):
+        """Do the import"""
+
+        '''pw = Toplevel(self.main)
+        pb = Progressbar(pw, orient='horizontal', mode='indeterminate')
+        pb.pack(expand=True, fill=BOTH, side=TOP)
+        pb.start(500)'''
         self.df = pd.read_csv(self.filename, **self.kwds)
         self.quit()
         return
