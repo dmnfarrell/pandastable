@@ -226,30 +226,34 @@ class PlotViewer(Frame):
             for n,df in g:
                 ax = self.fig.add_subplot(nrows,ncols,i)
                 kwargs['legend'] = False #remove axis legends
-                self._doplot(df, ax, kind, False, kwargs)
+                d=df.drop(by,1) #remove grouping columns
+                self._doplot(d, ax, kind, False, kwargs)
                 ax.set_title(n)
                 handles, labels = ax.get_legend_handles_labels()
                 i+=1
             self.fig.legend(handles, labels, 'lower right')
             self.fig.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1, hspace=.25)
-            self.canvas.draw()
-
+            axs = self.fig.get_axes()
+            #self.canvas.draw()
         else:
             axs = self._doplot(data, ax, kind, kwds['subplots'], kwargs)
-            if type(axs) is np.ndarray:
-                self.ax = axs.flat[0]
-            self.fig.suptitle(kwds['title'])
-            if kwds['xlabel'] != '':
-                self.ax.set_xlabel(kwds['xlabel'])
-            if kwds['ylabel'] != '':
-                self.ax.set_ylabel(kwds['ylabel'])
-            self.ax.xaxis.set_visible(kwds['showxlabels'])
-            self.ax.yaxis.set_visible(kwds['showylabels'])
-            try:
-                self.fig.tight_layout()
-            except:
-                print ('tight_layout failed')
-            self.canvas.draw()
+
+        if type(axs) is np.ndarray:
+            self.ax = axs.flat[0]
+        elif type(axs) is list:
+            self.ax = axs[0]
+        self.fig.suptitle(kwds['title'])
+        if kwds['xlabel'] != '':
+            self.ax.set_xlabel(kwds['xlabel'])
+        if kwds['ylabel'] != '':
+            self.ax.set_ylabel(kwds['ylabel'])
+        self.ax.xaxis.set_visible(kwds['showxlabels'])
+        self.ax.yaxis.set_visible(kwds['showylabels'])
+        try:
+            self.fig.tight_layout()
+        except:
+            print ('tight_layout failed')
+        self.canvas.draw()
         return
 
     def _doplot(self, data, ax, kind, subplots, kwargs):
