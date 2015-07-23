@@ -62,6 +62,12 @@ class PlotViewer(Frame):
         bf.pack(side=TOP,fill=BOTH)
         b = Button(bf, text="Apply", command=self.applyPlotoptions)
         b.pack(side=LEFT,fill=X,expand=1)
+        #general options here?
+        self.dpivar = IntVar()
+        self.dpivar.set(80)
+        Label(bf, text='dpi:').pack(side=LEFT,fill=X,padx=2)
+        e = Entry(bf, textvariable=self.dpivar, width=5)
+        e.pack(side=LEFT,padx=2)
         hidevar = IntVar()
         c = Checkbutton(bf,text='Hide Options', command=hide, variable=hidevar)
         c.pack(side=LEFT,fill=X,expand=1)
@@ -103,6 +109,9 @@ class PlotViewer(Frame):
             self.mplopts3d.applyOptions()
         #elif self.mode == 2:
         #    self.factorplotter.applyOptions()
+        #other opts?
+        print (self.dpivar.get())
+        mpl.rcParams['savefig.dpi'] = self.dpivar.get()
         self.plotCurrent()
         return
 
@@ -439,7 +448,25 @@ class PlotViewer(Frame):
 
         df = self.table.model.df
         self.mplopts.update(df)
+        return
 
+    def savePlot(self):
+        """Save the current plot"""
+
+        ftypes = ['png','jpg','tif','pdf','eps','ps','svg']
+        d = MultipleValDialog(title='Save plot',
+                                initialvalues=('',[80,120,150,300,600],ftypes),
+                                labels=('File name:','dpi:','type:'),
+                                types=('filename','combobox','combobox'),
+                                parent = self)
+        if d.result == None:
+            return
+        fname = d.results[0]
+        dpi = int(d.results[1])
+        ftype = d.results[2]
+        filename = fname + '.'+ ftype
+        self.fig.savefig(filename, dpi=dpi)
+        self.currfilename = filename
         return
 
     def showWarning(self, s='plot error'):

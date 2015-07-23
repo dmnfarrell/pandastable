@@ -170,10 +170,13 @@ class MultipleValDialog(simpledialog.Dialog):
                 w = Checkbutton(master, text='',
                          variable=self.vrs[i])
                 self.entries.append(w)
+            #elif self.types[i] == 'filename':
+            #    w = Button(master, text="Browse", command=self.loadfile, width=10)
+            #    self.entries.append(w)
             else:
                 self.vrs[i].set(self.initialvalues[i])
                 self.entries.append(Entry(master, textvariable=self.vrs[i], width=10, show=s))
-            self.entries[i].grid(row=r, column=1,padx=2,pady=2)
+            self.entries[i].grid(row=r, column=1,padx=2,pady=2,sticky='ew')
             if self.tooltips != None:
                 ToolTip.createToolTip(self.entries[i], self.tooltips[i])
             r+=1
@@ -189,6 +192,7 @@ class MultipleValDialog(simpledialog.Dialog):
             else:
                 self.results.append(self.vrs[i].get())
         return
+
 
 class ToolTip(object):
     """Tooltip class for tkinter widgets"""
@@ -266,8 +270,9 @@ class ImportDialog(Frame):
         delimiters = [',','\t',' ',';','/','&','|','^','+','-']
         encodings = ['utf-8','ascii','iso8859_15','cp037','cp1252','big5','euc_jp']
         grps = {'formats':['delimiter','decimal','comment'],
-                'data':['header','skiprows','index_col'],
-                'other':['skipinitialspace','skip_blank_lines','encoding']}
+                'data':['header','skiprows','index_col','skipinitialspace',
+                        'skip_blank_lines','encoding','names'],
+                'other':['rowsperfile']}
         grps = OrderedDict(sorted(grps.items()))
         opts = self.opts = {'delimiter':{'type':'combobox','default':',',
                         'items':delimiters, 'tooltip':'seperator'},
@@ -289,8 +294,10 @@ class ImportDialog(Frame):
                                 'tooltip':'file encoding'},
                      #'prefix':{'type':'entry','default':None,'label':'prefix',
                      #           'tooltip':''}
-                     #'nrows':{'type':'entry','default':None,'label':'number of rows',
-                     #           'tooltip':'rows to read'},
+                     'rowsperfile':{'type':'entry','default':'','label':'rows per file',
+                                'tooltip':'rows to read'},
+                     'names':{'type':'entry','default':'','label':'column names',
+                                'tooltip':'col labels'},
                      }
         bf = Frame(self.main)
         bf.pack(side=LEFT,fill=BOTH)
@@ -330,8 +337,14 @@ class ImportDialog(Frame):
         """Reload previews"""
 
         kwds = {}
+        other = ['rowsperfile']
         for i in self.opts:
-            val = self.tkvars[i].get()
+            if i in other:
+                continue
+            try:
+                val = self.tkvars[i].get()
+            except:
+                val=None
             if val == '':
                 val=None
             elif type(self.opts[i]['default']) != int:
@@ -343,7 +356,8 @@ class ImportDialog(Frame):
         self.kwds = kwds
 
         self.showText()
-        f = pd.read_csv(self.filename, chunksize=200, error_bad_lines=False, **kwds)
+        f = pd.read_csv(self.filename, chunksize=400, error_bad_lines=False,
+                        warn_bad_lines=False, **kwds)
         try:
             df = f.get_chunk()
         except pd.parser.CParserError:
