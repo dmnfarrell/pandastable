@@ -180,8 +180,8 @@ class PlotViewer(Frame):
         valid = {'line': ['alpha', 'colormap', 'grid', 'legend', 'linestyle',
                           'linewidth', 'marker', 'subplots', 'rot', 'logx', 'logy',
                            'sharey', 'use_index', 'kind'],
-                    'scatter': ['alpha', 'grid', 'linewidth', 'marker', 's', 'legend',
-                            'colormap','logx', 'logy', 'use_index'],
+                    'scatter': ['alpha', 'grid', 'linewidth', 'marker', 'subplots', 's',
+                            'legend', 'colormap','sharey', 'logx', 'logy', 'use_index'],
                     'pie': ['colormap', 'legend', 'kind','subplots'],
                     'hexbin': ['alpha', 'colormap', 'grid', 'linewidth'],
                     'bootstrap': ['grid'],
@@ -275,18 +275,21 @@ class PlotViewer(Frame):
         if kind == 'pie':
             kwargs['subplots'] = True
         if subplots == 0:
-            layout=None
+            layout = None
         else:
             layout=(rows,-1)
         if kind == 'bar':
             if len(data) > 50:
                 ax.get_xaxis().set_visible(False)
-            if len(data) > 500:
-                print ('too many rows to plot')
+            if len(data) > 400:
+                print ('too many bars to plot')
                 return
         if kind == 'scatter':
             axs = self.scatter(data, ax, **kwargs)
-            #axs = data.plot(kind='scatter',ax=ax,**kwargs)
+            if kwargs['sharey'] == 1:
+                lims = self.fig.axes[0].get_ylim()
+                for a in self.fig.axes:
+                    a.set_ylim(lims)
         elif kind == 'boxplot':
             axs = data.boxplot(ax=ax)
         elif kind == 'histogram':
@@ -307,9 +310,10 @@ class PlotViewer(Frame):
         return axs
 
     def scatter(self, df, ax, alpha=0.8, marker='o', **kwds):
-        """A more custom scatter plot"""
+        """A custom scatter plot rather than the pandas one. By default this
+        plots the first column selected versus the others"""
 
-        print (kwds)
+        #print (kwds)
         if len(df.columns)<2:
             return
         df = df._get_numeric_data()
@@ -320,6 +324,12 @@ class PlotViewer(Frame):
         cmap = plt.cm.get_cmap(kwds['colormap'])
         if marker == '':
             marker = 'o'
+        if kwds['subplots'] == 1:
+            size=plots-1
+            nrows = round(np.sqrt(size),0)
+            ncols = np.floor(size/nrows)
+            print (plots,nrows,ncols)
+            self.fig.clear()
         for i in range(s,plots):
             y = df[cols[i]]
             c = cmap(float(i)/(plots))
@@ -327,15 +337,20 @@ class PlotViewer(Frame):
                 ec=c
             else:
                 ec='black'
+            if kwds['subplots'] == 1:
+                ax = self.fig.add_subplot(nrows,ncols,i)
             ax.scatter(x, y, marker=marker, alpha=alpha, linewidth=kwds['linewidth'],
                        s=kwds['s'], color=c, edgecolor=ec)
+            ax.set_xlabel(cols[0])
             if kwds['logx'] == 1:
                 ax.set_xscale('log')
             if kwds['logy'] == 1:
                 ax.set_yscale('log')
-        if kwds['grid'] == 1:
-            ax.grid()
-        if kwds['legend'] == 1:
+            if kwds['grid'] == 1:
+                ax.grid()
+            if kwds['subplots'] == 1:
+                ax.set_title(cols[i])
+        if kwds['legend'] == 1 and kwds['subplots'] == 0:
             ax.legend(cols[1:])
         return ax
 
