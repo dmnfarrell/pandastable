@@ -327,7 +327,7 @@ class PlotViewer(Frame):
         if kwds['subplots'] == 1:
             size=plots-1
             nrows = round(np.sqrt(size),0)
-            ncols = np.floor(size/nrows)
+            ncols = np.ceil(size/nrows)
             print (plots,nrows,ncols)
             self.fig.clear()
         for i in range(s,plots):
