@@ -3,6 +3,14 @@ CHANGES
 =======
 
 ------
+0.4.2
+------
+
+Added plot save dpi entry
+Fixed missing data files for setuptools install
+Updated scatter to allow multiple subplots
+
+------
 0.4.1
 ------
 

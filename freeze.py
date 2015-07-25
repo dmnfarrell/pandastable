@@ -18,7 +18,7 @@ base = None
 if sys.platform == "win32":
     base = "Win32GUI"
 
-executables = [Executable("main.py", base=base,                          
+executables = [Executable("main.py", base=base,
                           copyDependentFiles = True,
                           targetName='DataExplore.exe',
                           shortcutName="DataExplore",
@@ -26,7 +26,7 @@ executables = [Executable("main.py", base=base,
                           icon="img/dataexplore.ico")]
 
 setup(  name = "DataExplore",
-        version = "0.4",
+        version = "0.4.2",
         description = "Data analysis and plotter",
         options = {"build_exe": build_exe_options},
         executables = executables)
