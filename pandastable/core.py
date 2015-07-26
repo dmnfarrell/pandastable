@@ -2346,4 +2346,3 @@ class statusBar(Frame):
         self.rowsvar.set(len(model.df))
         self.colsvar.set(len(model.df.columns))
         return
-

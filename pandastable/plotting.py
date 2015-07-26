@@ -196,7 +196,7 @@ class PlotViewer(Frame):
                              'kind','rot','logx'],
                     'density': ['alpha', 'colormap', 'grid', 'legend', 'linestyle',
                                  'linewidth', 'marker', 'subplots', 'rot', 'kind'],
-                    'boxplot': ['alpha', 'linewidth', 'rot', 'grid'],
+                    'boxplot': ['rot', 'grid', 'logy'],
                     'scatter_matrix':['alpha', 'linewidth', 'marker', 'grid', 's'],
                     }
 
@@ -291,7 +291,10 @@ class PlotViewer(Frame):
                 for a in self.fig.axes:
                     a.set_ylim(lims)
         elif kind == 'boxplot':
-            axs = data.boxplot(ax=ax)
+            axs = data.boxplot(ax=ax, rot=kwargs['rot'], grid=kwargs['grid'])
+            #boxplot won't accept required kwargs?
+            if kwargs['logy'] == 1:
+                ax.set_yscale('log')
         elif kind == 'histogram':
             bins = int(kwargs['bins'])
             axs = data.plot(kind='hist',layout=layout, ax=ax, **kwargs)
@@ -567,7 +570,7 @@ class MPLBaseOptions(object):
                 'labels':['title','xlabel','ylabel','legend']}
         order = ['data','formats','sizes','axes','styles','labels']
         self.groups = OrderedDict(sorted(grps.items()))
-        opts = self.opts = {'font':{'type':'combobox','default':'Arial','items':fonts},
+        opts = self.opts = {'font':{'type':'combobox','default':'fixed','items':fonts},
                 'fontsize':{'type':'scale','default':12,'range':(5,40),'interval':1,'label':'font size'},
                 'marker':{'type':'combobox','default':'','items':self.markers},
                 'linestyle':{'type':'combobox','default':'-','items':self.linestyles},

@@ -119,7 +119,7 @@ class ViewerApp(Frame):
         """Create the menu bar for the application. """
 
         self.menu=Menu(self.main)
-        self.proj_menu={'01New':{'cmd':self.newProject},
+        self.proj_menu={'01New':{'cmd': lambda : self.newProject(current=True)},
                         '02Open':{'cmd':self.openProject},
                         '03Close':{'cmd':self.closeProject},
                         '04Save':{'cmd':self.saveProject},
@@ -355,7 +355,9 @@ class ViewerApp(Frame):
 
     def copySheet(self, newname=None):
         """Copy a sheet"""
-        newdata = self.currenttable.model.df
+
+        currenttable = self.getCurrentTable()
+        newdata = currenttable.model.df
         if newname == None:
             self.addSheet(None, newdata)
         else:
@@ -376,6 +378,7 @@ class ViewerApp(Frame):
         return
 
     def getCurrentTable(self):
+
         s = self.nb.index(self.nb.select())
         name = self.nb.tab(s, 'text')
         table = self.sheets[name]
