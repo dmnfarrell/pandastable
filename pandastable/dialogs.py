@@ -48,6 +48,8 @@ def dialogFromOptions(parent, opts, groups=None, callback=None,
     c=0
     row=0
     for g in groups:
+        if g == 'hidden':
+            continue
         if horizontal==True:
             row=0; c+=1
         else:

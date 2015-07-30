@@ -729,6 +729,43 @@ class Table(Canvas):
         #self.dataframe = self.model.df.copy()
         return
 
+    def functionsBar(self, evt=None):
+        """Apply python functions from a pre-defined set, this is
+        for stuff that can't be done with eval strings"""
+
+        def reset():
+            self.evalframe.destroy()
+            self.evalframe = None
+            self.showAll()
+
+        def apply():
+            self.convertNumeric()
+            f = self.funcvar.get()
+            print (f)
+            df = self.model.df
+            z = df['filename'].apply(lambda x: x.replace('fa',''))
+            print (z)
+            return
+
+        if hasattr(self, 'funcsframe') and self.funcsframe != None:
+            return
+        ef = self.funcsframe = Frame(self.parentframe)
+        ef.grid(row=self.queryrow,column=1,sticky='news')
+        #self.evalvar = StringVar()
+        #e = Entry(ef, textvariable=self.evalvar, font="Courier 13 bold")
+        #e.bind('<Return>', self.applyFunction)
+        funcs = ['replace']
+        self.funcvar = StringVar()
+        f = Combobox(ef, values=funcs,
+                       textvariable=self.funcvar)
+        f.pack(fill=BOTH,side=LEFT,expand=1,padx=2,pady=2)
+        b = Button(ef,text='apply',width=5,command=apply)
+        b.pack(fill=BOTH,side=LEFT,padx=2,pady=2)
+        b = Button(ef,text='close',width=5,command=reset)
+        b.pack(fill=BOTH,side=LEFT,padx=2,pady=2)
+
+        return
+
     def evalBar(self, evt=None):
         """Use pd.eval to apply a function."""
 
@@ -1479,6 +1516,7 @@ class Table(Canvas):
 
     def fillDown(self, rowlist, collist):
         """Fill down a column, or multiple columns"""
+
         model = self.model
         #remove first element as we don't want to overwrite it
         rowlist.remove(rowlist[0])
@@ -1497,6 +1535,7 @@ class Table(Canvas):
 
     def getSelectionValues(self):
         """Get values for current multiple cell selection"""
+
         if len(self.multiplerowlist) == 0 or len(self.multiplecollist) == 0:
             return None
         rows = self.multiplerowlist
@@ -1521,12 +1560,25 @@ class Table(Canvas):
         return lists
 
     def showPlotViewer(self, parent=None):
+        """Show plot frame"""
+
         if not hasattr(self, 'pf'):
             self.pf = PlotViewer(table=self, parent=parent)
         return self.pf
 
+    def statsViewer(self):
+        """Show model fitting dialog"""
+
+        from .stats import StatsViewer
+        if not hasattr(self, 'sv'):
+            sf = self.statsframe = Frame(self.parentframe)
+            sf.grid(row=self.queryrow,column=1,sticky='news')
+            self.sv = StatsViewer(table=self,parent=sf)
+        return self.sv
+
     def hidePlot(self):
         """Hide plot frame"""
+
         if hasattr(self, 'pf'):
             self.pf.quit()
             self.pf = None
@@ -1534,6 +1586,7 @@ class Table(Canvas):
 
     def getSelectedDataFrame(self):
         """Return a sub-dataframe of the selected cells"""
+
         df = self.model.df
         rows = self.multiplerowlist
         if len(rows)<=1:
@@ -1544,6 +1597,7 @@ class Table(Canvas):
 
     def getPlotData(self):
         """Plot data from selection"""
+
         data = self.getSelectedDataFrame()
         #data.sort(inplace=True)
         #if the first col is text we try to use it as an index
@@ -2284,6 +2338,9 @@ class ToolBar(Frame):
         self.addButton('Query', self.parentapp.queryBar, img, 'filter table')
         img = images.function()
         self.addButton('Evaluate function', self.parentapp.evalBar, img, 'apply a function')
+        img = images.fit()
+        self.addButton('Stats models', self.parentapp.statsViewer, img, 'model fitting')
+
         img = images.table_delete()
         self.addButton('Clear', self.parentapp.clearTable, img, 'clear table')
         img = images.prefs()

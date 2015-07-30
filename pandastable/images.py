@@ -837,6 +837,23 @@ def plotprefs():
             +'GCgGqOCjB8KAADs=')
     return img
 
+def fit():
+    img = tk.PhotoImage(format='gif',data=
+             'R0lGODlhEAAQAPYAADd1LTh1K/8CBv0NEfwOEvsWGvsXG/kZHPkhJPcrLvkq'
+            +'LesqOfYzNvUyOPY2OeExRfU+QfRAQ/FIS+5KUPFNUPJPUu9XWe9YWvBRUzaE'
+            +'KziCLD6SL0CKMUGIMkGJMkCPMUSfNUWdNkiaN0abOEiZOUmkOkukPEqiQD1O'
+            +'uihjqyhkrChkrShlrillrilmrypmrypmsCposSpositosytptC1qti1rty5t'
+            +'uS9uuzBvvTBxvmdgrxFh3hBi3zJywDJzwjNzwzR0xDR1xTR2xiRy3idz3gBX'
+            +'4AJX4ANX4ABY4Aph4Bt24SBv4Cx/4DN/4KZbiDeB3zmC3zyG3z+J3j6I3zCB'
+            +'4E+S3UuT4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+            +'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+            +'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAAFgA'
+            +'If8LSW1hZ2VNYWdpY2sKZ2FtbWE9MC40NQAsAAAAABAAEAAAB4aAWIKDhIWC'
+            +'Q4aJh1hWgxcXFomIU4IVlhiYhYhNVRARhBITV4M/WEs7DQ6DVVVRUpRYpVgL'
+            +'D4NMRERYDE+CpQUHKEpYPDyDCgmCOlgEBElIz4UIgjlYAoQnJiWDBdOFJCLg'
+            +'2oQ3gxzmgx8bhDVYAQABhhoZg+yKhjQx+DD7KjAq/ylU2FMUCAA7')
+    return img
+
 def start():
      img = tk.PhotoImage(format='gif',data=
              'R0lGODlhGAAYAKUAAP///+bm/+Xl/uPj/OHh++Df+d7d993d99vb9dvb9NnZ'
