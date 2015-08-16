@@ -29,6 +29,12 @@ from collections import OrderedDict
 import operator
 from .dialogs import *
 
+try:
+    import statsmodels.formula.api as smf
+    import statsmodels.api as sm
+except:
+    print('no statsmodel')
+
 class StatsViewer(Frame):
     """Provides a frame for model viewing interaction"""
 
@@ -54,46 +60,99 @@ class StatsViewer(Frame):
         ctrls = Frame(self.main)
         ctrls.pack(fill=BOTH,expand=1)
         self.formulavar = StringVar()
-        self.formulavar.set('a ~ b')
+        self.formulavar.set('b ~ a')
+        Label(ctrls,text='formula:').pack(side=TOP,fill=BOTH)
         e = Entry(ctrls, textvariable=self.formulavar, font="Courier 13 bold")
         e.pack(side=TOP,fill=BOTH,expand=1)
         bf = Frame(ctrls, padding=2)
         bf.pack(side=TOP,fill=BOTH)
-        self.fitvar = StringVar()
-        c = Combobox(bf, values=['ols'],
-                       textvariable=self.fitvar)
+        self.plotvar = StringVar()
+        self.plotvar.set('fitline')
+        c = Combobox(bf, values=['fitline','abline','leverage'],
+                       textvariable=self.plotvar)
         c.pack(side=LEFT,fill=Y,expand=1)
+
         b = Button(bf, text="Fit", command=self.doFit)
+        b.pack(side=LEFT,fill=X,expand=1)
+        b = Button(bf, text="Summary", command=self.summary)
         b.pack(side=LEFT,fill=X,expand=1)
         b = Button(bf, text="Close", command=self.quit)
         b.pack(side=LEFT,fill=X,expand=1)
+        return
+
+    def guessFormula(self):
+        """Suggest a start formula"""
 
         return
 
     def doFit(self):
-        """Do model fit"""
+        """Do model fit on selected subset of rows. Will only use
+        the currently selected rows for the fit and can plot the remainder
+        versus a fit line."""
 
-        import statsmodels.formula.api as smf
         df = self.table.getSelectedDataFrame()
         df = df.convert_objects(convert_numeric='force')
-
         formula = self.formulavar.get()
-        mod = smf.ols(formula=formula, data=df)
-        fit = mod.fit(subset=df[:20])
-        #print (fit.summary())
-        df['fit'] = fit.fittedvalues
+        self.model = mod = smf.ols(formula=formula, data=df)
+        self.fit = fit = mod.fit(subset=df[:20])
 
-        #df['fit'] = fit.predict(df)
-        data = df[['a','b','fit']]
         pf = self.table.pf
-        #print (pf.mplopts.kwds)
-        #pf.plotFit(data, fit)
+        fig = pf.fig
+        fig.clear()
+        ax = fig.add_subplot(111)
+        kwds = pf.mplopts.kwds
 
-        import statsmodels.api as sm
-        pf.fig.clear()
-        ax = pf.fig.add_subplot(111)
-        sm.graphics.plot_fit(fit, "b", ax=ax)
-        pf.canvas.draw()
+        kind = self.plotvar.get()
+        if kind == 'fitline':
+            self.plotFit(fit, df, ax, **kwds)
+        elif kind == 'leverage':
+            from statsmodels.graphics.regressionplots import plot_leverage_resid2
+            plot_leverage_resid2(fit, ax=ax)
+        elif kind == 'abline':
+            sm.graphics.abline_plot(model_results=fit, ax=ax)
+        #sm.graphics.plot_fit(fit, "b", ax=ax)
+        fig.canvas.draw()
+        return
+
+    def plotFit(self, fit, df, ax, **kwds):
+
+        import pylab as plt
+        X1 = pd.DataFrame({'a': np.linspace(df.a.min(), df.a.max(), 100)})
+        X1 = sm.add_constant(X1)
+        #predict out of sample
+        y1 = fit.predict(X1)
+        #confidence intervals
+        from statsmodels.sandbox.regression.predstd import wls_prediction_std
+        prstd, iv_l, iv_u = wls_prediction_std(fit)
+
+        cmap = plt.cm.get_cmap(kwds['colormap'])
+        ax.scatter(df.a, df.b, alpha=0.7, color=cmap(.2))  # Plot the raw data
+        ax.set_xlabel("a")
+        ax.set_ylabel("b")
+        #print (X1)
+        x1 = X1['a']
+        ax.plot(x1, y1, 'r', lw=2, alpha=0.9, color=cmap(.8))
+        print(fit.params)
+        i=0.95
+        for p in fit.params:
+            ax.text(0.8,i, round(p,3), ha='right', va='top', transform=ax.transAxes)
+            i-=.05
+        #ax.plot(df.a, iv_u, 'r--')
+        #ax.plot(x1, iv_l, 'r--')
+        #plt.tight_layout()
+        return
+
+    def summary(self):
+        """Fit summary"""
+
+        s = self.fit.summary()
+        from .dialogs import SimpleEditor
+        w = Toplevel(self.parent)
+        w.grab_set()
+        w.transient(self)
+        ed = SimpleEditor(w, height=25, font='monospace 10')
+        ed.pack(in_=w, fill=BOTH, expand=Y)
+        ed.text.insert(END, s)
         return
 
     def _import_statsmodels(self):

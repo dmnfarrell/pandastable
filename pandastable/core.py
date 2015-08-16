@@ -1415,7 +1415,7 @@ class Table(Canvas):
 
         df = self.model.df
         s = df.to_string(justify=justify,header=header,index=index,sparsify=sparsify,na_rep=na_rep)
-        from tkinter.scrolledtext import ScrolledText
+        #from tkinter.scrolledtext import ScrolledText
         from .dialogs import SimpleEditor
         w = Toplevel(self.parentframe)
         w.grab_set()

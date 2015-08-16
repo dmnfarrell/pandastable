@@ -569,14 +569,14 @@ class EasyListbox(Listbox):
 
 class SimpleEditor(Frame):
     """Simple text editor"""
-    def __init__(self, parent=None, width=100, height=40):
+    def __init__(self, parent=None, width=100, height=40, font='monospace 12'):
 
         Frame.__init__(self, parent)
         st = self.text = ScrolledText(self, width=width, height=height)
-        st.pack(in_=self, fill=BOTH, expand=Y)
-        st.config(font='monospace 12')
+        st.pack(in_=self, fill=BOTH, expand=1)
+        st.config(font=font)
         btnform = Frame(self)
-        btnform.pack(fill=BOTH, expand=Y)
+        btnform.pack(fill=BOTH)
         Button(btnform, text='Save',  command=self.onSave).pack(side=LEFT)
         #Button(frm, text='Cut',   command=self.onCut).pack(side=LEFT)
         #Button(frm, text='Paste', command=self.onPaste).pack(side=LEFT)

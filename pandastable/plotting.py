@@ -397,33 +397,6 @@ class PlotViewer(Frame):
         ax.set_ylim(0, len(X.index))
         return
 
-    def plotFit(self, df, fit):
-        """Special method to plot model fits"""
-
-        self.fig.clear()
-        ax = self.fig.add_subplot(111)
-        kwds = self.mplopts.kwds
-        if len(df.columns)<2:
-            return
-        df = df._get_numeric_data()
-        cols = df.columns
-        cmap = plt.cm.get_cmap(kwds['colormap'])
-        lw = kwds['linewidth']
-        df = df.sort(cols[0])
-        print (df)
-        x = df[cols[0]]
-        y = df[cols[1]]
-        y1 = df['fit']
-        x1 = np.linspace(x.min(), x.max(), 2)
-        #y1 = fit.predict(x1)
-
-        ax.scatter(x, y, marker='o', alpha=0.8, lw=1,
-                     s=kwds['s'], edgecolor='black', color=cmap(.2))
-        ax.plot(x, y1, '-', lw=lw, color=cmap(.8))
-
-        self.canvas.draw()
-        return
-
     def plot3D(self):
         """3D plots"""
         if not hasattr(self, 'data'):
