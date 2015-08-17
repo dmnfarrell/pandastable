@@ -33,13 +33,13 @@ class TableModel(object):
 
     keywords = {'colors':'colors'}
 
-    def __init__(self, dataframe=None, rows=50, columns=10):
+    def __init__(self, dataframe=None, rows=20, columns=5):
         """Constructor"""
         self.initialiseFields()
         self.setup(dataframe, rows, columns)
         return
 
-    def setup(self, dataframe, rows=50, columns=10):
+    def setup(self, dataframe, rows=20, columns=5):
         """Create table model"""
         if not dataframe is None:
             self.df = dataframe

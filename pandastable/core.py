@@ -42,7 +42,7 @@ class Table(Canvas):
 
     def __init__(self, parent=None, model=None, dataframe=None,
                    width=None, height=None,
-                   rows=50, cols=10, showtoolbar=False, showstatusbar=False,
+                   rows=20, cols=5, showtoolbar=False, showstatusbar=False,
                    **kwargs):
         Canvas.__init__(self, parent, bg='white',
                          width=width, height=height,
@@ -1572,7 +1572,7 @@ class Table(Canvas):
         from .stats import StatsViewer
         if not hasattr(self, 'sv'):
             sf = self.statsframe = Frame(self.parentframe)
-            sf.grid(row=self.queryrow,column=1,sticky='news')
+            sf.grid(row=self.queryrow,column=0,columnspan=3,sticky='news')
             self.sv = StatsViewer(table=self,parent=sf)
         return self.sv
 
