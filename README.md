@@ -36,7 +36,7 @@ or
 * basic table manipulations like aggregate and pivot
 * filter table using built in dataframe functionality
 * graphical way to perform split-apply-combine operations
-* 
+
 ## Future features
 * present/manipulate time series data since pandas deals well with this
 * advanced categorical plots using Seaborn
