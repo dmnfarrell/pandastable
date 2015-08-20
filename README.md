@@ -1,22 +1,17 @@
-# pandastable [![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.20660.svg)](http://dx.doi.org/10.5281/zenodo.20660)
+# pandastable
 
 ## Introduction
 
-Pandas is an open source Python library providing high-performance data structures 
-and data analysis tools. Tkinter is the standard GUI toolkit for python. The pandastable
-library provides a GUI frontend to the pandas DataFrame class. It is intended for the
-following uses:
+The pandastable library provides a table widget for Tkinter with plotting and data manipulation functionality. 
+It uses the pandas DataFrame class to store table data. Pandas is an open source Python library providing high-performance data structures and data analysis tools. Tkinter is the standard GUI toolkit for python. It is intended for the following uses:
 
-* for developers who want to include a table in their application that can store and process
+* for python/tkinter GUI developers who want to include a table in their application that can store and process
 large amounts of data
 * for non-programmers who are not familiar with Python or the pandas API and want to use
-the included table viewer application to manipulate/view their data
-* it may also be useful for programmers who want to get an interactive look at their dataframes
+the included DataExplore application to manipulate/view their data
+* it may also be useful for data analysts and programmers who want to get an initial interactive look at their tabular data without coding
 
-The dataframe Viewer application using these classes is included in the distribution. 
-Currently this focuses on providing a spreadsheet like interface for table manipulation with 
-configurable 2D/3D plotting. A windows standalone installer will be provided to allow this
-application to be used without any python knowledge.
+The DataExplore application using these classes is included in the distribution and is a self-contained application for educational and research use. Currently this focuses on providing a spreadsheet like interface for table manipulation withconfigurable 2D/3D plotting. A windows standalone installer is available that does not require Python installation.
 
 ## Installation
 
@@ -39,11 +34,13 @@ or
 * rendering of very large tables is only memory limited
 * interactive plots with matplotlib, mostly using the pandas plot functions
 * basic table manipulations like aggregate and pivot
-
-## Potential features
 * filter table using built in dataframe functionality
-* present/manipulate time series data since pandas deals well with this
 * graphical way to perform split-apply-combine operations
+
+## Future features
+* present/manipulate time series data since pandas deals well with this
+* advanced categorical plots using Seaborn
+* statistical modelling using statsmodels
 
 ## FAQ
 
