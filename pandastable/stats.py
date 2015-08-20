@@ -78,8 +78,8 @@ class StatsViewer(Frame):
         c.pack(side=LEFT,fill=BOTH)
         Label(bf,text='indep. variable:').pack(side=LEFT)
         self.indvar = StringVar()
-        c = Combobox(bf, values=list(df.columns), width=8,
-                       textvariable=self.indvar)
+        self.indvarwidget = c = Combobox(bf, values=list(df.columns), width=8,
+                                     textvariable=self.indvar)
         c.pack(side=LEFT,fill=BOTH,expand=1)
         Label(bf,text='model type:').pack(side=LEFT)
         self.modelvar = StringVar()
@@ -96,6 +96,7 @@ class StatsViewer(Frame):
         b.pack(side=LEFT,fill=X,expand=1)
         b = Button(bf, text="Close", command=self.quit)
         b.pack(side=LEFT,fill=X,expand=1)
+        self.updateData()
         return
 
     def guessFormula(self):
@@ -115,29 +116,35 @@ class StatsViewer(Frame):
         the currently selected rows for the fit and can plot the remainder
         versus a fit line."""
 
-        df = self.table.getSelectedDataFrame()
-        df = df.convert_objects(convert_numeric='force')
-        if len(df) == 0 or len(df.columns)<1:
+        #out of sample data
+        df = self.table.model.df
+        #sub sample to fit
+        s = self.table.getSelectedDataFrame()
+        s = s.convert_objects(convert_numeric='force')
+        if len(s) == 0 or len(s.columns)<1:
             return
+
         formula = self.formulavar.get()
-        self.model = mod = smf.ols(formula=formula, data=df)
-        self.fit = fit = mod.fit(subset=df[:20])
+        self.model = mod = smf.ols(formula=formula, data=s)
+        self.fit = fit = mod.fit()
 
         pf = self.table.pf
         fig = pf.fig
         fig.clear()
         ax = fig.add_subplot(111)
+        #plotframe options
         kwds = pf.mplopts.kwds
 
         kind = self.plotvar.get()
         indvar = self.indvar.get()
+        if indvar == '':
+            indvar = self.model.exog_names[1]
         if kind == 'fit line':
-            self.plotFit(fit, df, indvar, ax=ax, **kwds)
+            self.plotFit(fit, df, s, indvar, ax=ax, **kwds)
         elif kind == 'fit line2':
             sm.graphics.plot_fit(fit, indvar, ax=ax)
         elif kind == 'regression plots':
             fig.clear()
-            indvar = self.model.exog_names[1]
             sm.graphics.plot_regress_exog(fit, indvar, fig=fig)
         elif kind == 'influence':
             sm.graphics.influence_plot(fit, ax=ax, criterion="cooks")
@@ -154,34 +161,45 @@ class StatsViewer(Frame):
         fig.canvas.draw()
         return
 
-    def plotFit(self, fit, df, indvar, ax, **kwds):
+    def plotFit(self, fit, data, sub, indvar, ax, **kwds):
         """Plot custom statsmodels fit result"""
 
         depvar = self.model.endog_names
         if indvar == '':
             indvar = self.model.exog_names[1]
+        #df = df.sort(indvar)
+        #out of sample points
+        out = data.ix[-data.index.isin(sub.index)]
+        print (out)
+        x = sub[indvar]
+        y = sub[depvar]
+        xout = out[indvar]
+        yout = out[depvar]
+        X1 = pd.DataFrame({indvar : np.linspace(xout.min(), xout.max(), 100)})
 
-        x = df[indvar]
-        y = df[depvar]
-        X1 = pd.DataFrame({indvar : np.linspace(x.min(), x.max(), 100)})
+        for i, r in data.iterrows():
+            vals = np.linspace(r.min(), r.max(), 100)
+
         X1 = sm.add_constant(X1)
         #predict out of sample
         y1 = fit.predict(X1)
-        #confidence intervals
-        from statsmodels.sandbox.regression.predstd import wls_prediction_std
-        prstd, iv_l, iv_u = wls_prediction_std(fit)
 
+        marker=kwds['marker']
+        if marker == '':
+            marker='o'
+        s=kwds['s']
         cmap = plt.cm.get_cmap(kwds['colormap'])
-        ax.scatter(x, y, alpha=0.7, color=cmap(.2), label='data')
-        ax.set_xlabel("a")
+        ax.scatter(x, y, alpha=0.7, color=cmap(.2), label='fitted data',
+                    marker=marker,s=s)
+        ax.scatter(xout, yout, alpha=0.3, color='gray', label='out of sample',
+                   marker=marker,s=s)
+        ax.set_xlabel(indvar)
         ax.set_ylabel(depvar)
         #print (X1)
         x1 = X1[indvar]
         ax.plot(x1, y1, 'r', lw=2, alpha=0.9, color=cmap(.8), label='fit')
-
-        print(fit.params)
+        #print(fit.params)
         i=0.05
-
         for k,p in fit.params.iteritems():
             ax.text(0.9,i, k+': '+ str(round(p,3)), ha='right',
                         va='top', transform=ax.transAxes)
@@ -190,6 +208,10 @@ class StatsViewer(Frame):
                         va='top', transform=ax.transAxes)
         ax.legend()
         ax.set_title('fitted versus %s' %indvar)
+
+        #confidence intervals
+        from statsmodels.sandbox.regression.predstd import wls_prediction_std
+        prstd, iv_l, iv_u = wls_prediction_std(fit)
         #ax.plot(x1, iv_u, 'r--')
         #ax.plot(x1, iv_l, 'r--')
         #plt.tight_layout()
@@ -226,7 +248,7 @@ class StatsViewer(Frame):
         """Update data widgets"""
 
         df = self.table.model.df
-        self.indvar['values'] = list(df.columns)
+        self.indvarwidget['values'] = list(df.columns)
         return
 
     def quit(self):

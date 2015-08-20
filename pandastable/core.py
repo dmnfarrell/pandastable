@@ -624,6 +624,16 @@ class Table(Canvas):
             print('failed')
         return
 
+    def getCategorical(self):
+        """Get a categorical column from selected"""
+
+        df = self.model.df
+        col = df.columns[self.currentcol]
+        name = col+'_ord'
+        df[name] = pd.Categorical(df[col]).codes
+        self.redraw()
+        return
+
     def findValue(self, searchstring=None, findagain=None):
         """Return the row/col for the input value"""
         if searchstring == None:
@@ -1352,6 +1362,12 @@ class Table(Canvas):
         df = self.model.df
         self.model.df = df.convert_objects(convert_numeric='force')
         self.redraw()
+        return
+
+    def corrMatrix(self):
+        df = self.model.df
+        corr = df.corr()
+        self.createChildTable(corr)
         return
 
     def createChildTable(self, df, title=None, index=False, out=False):

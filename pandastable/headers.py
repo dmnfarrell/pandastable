@@ -301,6 +301,7 @@ class ColumnHeader(Canvas):
         popupmenu.add_command(label="Set %s as Index" %colnames, command=self.table.setindex)
         popupmenu.add_command(label="Delete Column(s)", command=self.table.deleteColumn)
         popupmenu.add_command(label="Set Column Type", command=self.table.setColumnType)
+        popupmenu.add_command(label="Create Categorical", command=self.table.getCategorical)
         popupmenu.bind("<FocusOut>", popupFocusOut)
         #self.bind("<Button-3>", popupFocusOut)
         popupmenu.focus_set()

@@ -141,8 +141,9 @@ class ViewerApp(Frame):
         self.table_menu={'01Describe Table':{'cmd':self.describe},
                          '02Convert Column Names':{'cmd':self.convertColumns},
                          '03Convert Numeric':{'cmd':self.convertNumeric},
-                         '04Concatenate Tables':{'cmd':self.concat},
-                         '05Table to Text':{'cmd':self.printTable}}
+                         '04Correlation Matrix':{'cmd':self.corrMatrix},
+                         '05Concatenate Tables':{'cmd':self.concat},
+                         '06Table to Text':{'cmd':self.printTable}}
         self.table_menu=self.createPulldown(self.menu,self.table_menu)
         self.menu.add_cascade(label='Table',menu=self.table_menu['var'])
 
@@ -155,8 +156,8 @@ class ViewerApp(Frame):
                          '03Iris Data':{'cmd': lambda: self.getData('iris.mpk')},
                          '03Tips Data':{'cmd': lambda: self.getData('tips.mpk')},
                          '04Stacked Data':{'cmd':self.getStackedData},
-                         '05CSO IE employment':
-                             {'cmd': lambda: self.getData('cso_employment.mpk')},
+                         '05Pima Diabetes':
+                             {'cmd': lambda: self.getData('pima.mpk')},
                          '06Eurostat popdensity by NUTS':
                              {'cmd':lambda: self.getData('eurostat_popdensity_by_NUTS.mpk')}
                          }
@@ -407,6 +408,11 @@ class ViewerApp(Frame):
     def convertNumeric(self):
         table = self.getCurrentTable()
         table.convertNumeric()
+        return
+
+    def corrMatrix(self):
+        table = self.getCurrentTable()
+        table.corrMatrix()
         return
 
     def merge(self):
