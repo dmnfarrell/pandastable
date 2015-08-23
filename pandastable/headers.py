@@ -302,6 +302,7 @@ class ColumnHeader(Canvas):
         popupmenu.add_command(label="Delete Column(s)", command=self.table.deleteColumn)
         popupmenu.add_command(label="Set Column Type", command=self.table.setColumnType)
         popupmenu.add_command(label="Create Categorical", command=self.table.getCategorical)
+        popupmenu.add_command(label="Apply Function", command=self.table.applyFunction)
         popupmenu.bind("<FocusOut>", popupFocusOut)
         #self.bind("<Button-3>", popupFocusOut)
         popupmenu.focus_set()
@@ -396,19 +397,25 @@ class RowHeader(Canvas):
         self.delete('rect')
 
         xstart = 1
-        pad = 3
+        pad = 5
         v = self.table.visiblerows
         scale = self.table.getScale()
+        h = self.table.rowheight
+        index = self.model.df.index
+        names = index.names
+
         if self.showindex == True:
-            if check_multiindex(self.model.df.index) == 1:
-                ind = self.model.df.index.values[v]
-                cols = [pd.Series(i) for i in list(zip(*ind))]
-                l = [r.str.len().max() for r in cols]
+            if check_multiindex(index) == 1:
+                ind = index.values[v]
+                cols = [pd.Series(i).astype('object').astype(str) for i in list(zip(*ind))]
+                nl = [len(n) for n in names]
+                l = [c.str.len().max() for c in cols]
+                #pick higher of index names and row data
+                l = list(np.maximum(l,nl))
                 widths = [i * scale + 6 for i in l]
-                #print (widths)
                 xpos = [0]+list(np.cumsum(widths))[:-1]
             else:
-                ind = self.model.df.index[v]
+                ind = index[v]
                 dtype = ind.dtype
                 r = ind.astype('object').astype('str')
                 l = r.str.len().max()
@@ -426,7 +433,6 @@ class RowHeader(Canvas):
         if self.width != w:
             self.config(width=w)
             self.width = w
-        h = self.table.rowheight
 
         i=0
         for col in cols:
@@ -491,7 +497,6 @@ class RowHeader(Canvas):
         """respond to a right click"""
 
         self.delete('tooltip')
-        #self.tablerowheader.clearSelected()
         if hasattr(self, 'rightmenu'):
             self.rightmenu.destroy()
         #rowclicked = self.get_row_clicked(event)
@@ -594,4 +599,53 @@ class RowHeader(Canvas):
                                       width=w,
                                       tag=tag)
         self.lift('text')
+        return
+
+class IndexHeader(Canvas):
+    """Class that displays the row index headings."""
+
+    def __init__(self, parent=None, table=None, width=40, height=20):
+        Canvas.__init__(self, parent, bg='gray75', width=width, height=height)
+        if table != None:
+            self.table = table
+            self.width = width
+            self.height = height
+            self.color = '#C8C8C8'
+            self.startrow = self.endrow = None
+            self.model = self.table.model
+            self.bind('<Button-1>',self.handle_left_click)
+        return
+
+    def redraw(self, align='w'):
+        """Redraw row index header"""
+
+        rowheader = self.table.rowheader
+        if rowheader.showindex == False:
+            return
+        self.delete('text','rect')
+        xstart = 1
+        pad = 5
+        scale = self.table.getScale()
+        h = self.table.rowheight
+        index = self.model.df.index
+        names = index.names
+        if names[0] == None:
+            widths = [self.width]
+        else:
+            l = [len(n) for n in names]
+            widths = [i * scale + 6 for i in l]
+
+        i=0; x=1; y=2
+        for name in names:
+            if name != None:
+                self.create_text(x+pad,y+h/2,text=name,
+                                    fill='white', font=self.table.thefont,
+                                    tag='text', anchor=align)
+                x=x+widths[i]
+                i+=1
+        return
+
+    def handle_left_click(self, event):
+        """Handle mouse left mouse click"""
+        self.table.selectAll()
         return

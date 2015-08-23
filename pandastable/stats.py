@@ -230,7 +230,7 @@ class StatsViewer(Frame):
         ed.text.insert(END, s)
         return
 
-    def _import_statsmodels(self):
+    def _doimport(self):
         """Try to import statsmodels. If not installed return false"""
         try:
             import statsmodels

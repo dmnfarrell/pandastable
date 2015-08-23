@@ -139,15 +139,16 @@ class ViewerApp(Frame):
         self.menu.add_cascade(label='Sheet',menu=self.sheet_menu['var'])
 
         self.table_menu={'01Describe Table':{'cmd':self.describe},
-                         '02Convert Column Names':{'cmd':self.convertColumns},
-                         '03Convert Numeric':{'cmd':self.convertNumeric},
-                         '04Correlation Matrix':{'cmd':self.corrMatrix},
-                         '05Concatenate Tables':{'cmd':self.concat},
-                         '06Table to Text':{'cmd':self.printTable}}
+                         '02Convert Column Names':{'cmd':lambda: self._call('convertColumnNames')},
+                         '03Convert Numeric':{'cmd': lambda: self._call('convertNumeric')},
+                         '04Clean Data': {'cmd': lambda: self._call('cleanData')},
+                         '05Correlation Matrix':{'cmd': lambda: self._call('corrMatrix')},
+                         '06Concatenate Tables':{'cmd':self.concat},
+                         '07Table to Text':{'cmd': lambda: self._call('showasText')}}
         self.table_menu=self.createPulldown(self.menu,self.table_menu)
         self.menu.add_cascade(label='Table',menu=self.table_menu['var'])
 
-        self.tools_menu={'01Batch Rename':{'cmd':self.fileRename},
+        self.tools_menu={'01Batch File Rename':{'cmd':self.fileRename},
                          }
         self.tools_menu=self.createPulldown(self.menu,self.tools_menu)
         self.menu.add_cascade(label='Tools',menu=self.tools_menu['var'])
@@ -396,31 +397,6 @@ class ViewerApp(Frame):
         table.createChildTable(d,index=True)
         return
 
-    def printTable(self):
-        """Print table"""
-        table = self.getCurrentTable()
-        table.showasText()
-        return
-
-    def convertColumns(self):
-        table = self.getCurrentTable()
-        table.convertColumnNames()
-        return
-
-    def convertNumeric(self):
-        table = self.getCurrentTable()
-        table.convertNumeric()
-        return
-
-    def corrMatrix(self):
-        table = self.getCurrentTable()
-        table.corrMatrix()
-        return
-
-    def merge(self):
-
-        return
-
     def concat(self):
         """Concat 2 tables"""
 
@@ -467,6 +443,12 @@ class ViewerApp(Frame):
         from .rename import BatchRenameApp
         br = BatchRenameApp(self.master)
 
+        return
+
+    def _call(self, func):
+        """Call a table function from it's string name"""
+        table = self.getCurrentTable()
+        getattr(table, func)()
         return
 
     def about(self):

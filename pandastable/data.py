@@ -111,6 +111,7 @@ class TableModel(object):
 
     def getlongestEntry(self, colindex):
         """Get the longest cell entry in the col"""
+
         df = self.df
         col = df.columns[colindex]
         if df.dtypes[col] == 'float64':
@@ -124,6 +125,7 @@ class TableModel(object):
 
     def getRecordAtRow(self, rowIndex):
         """Get the entire record at the specifed row."""
+
         name = self.getRecName(rowIndex)
         record = self.df.ix[name]
         return record
@@ -140,7 +142,8 @@ class TableModel(object):
         return
 
     def autoAddRows(self, num):
-        """Not efficient"""
+        """Aut add n rows. Not efficient"""
+
         df = self.df
         if len(df) == 0:
             self.df = pd.DataFrame(pd.Series(range(num)))
@@ -154,6 +157,7 @@ class TableModel(object):
 
     def addRow(self, rowindex):
         """Inserts a row at the required index by append/concat"""
+
         df = self.df
         a, b = df[:rowindex], df[rowindex:]
         a = a.append(pd.Series(), ignore_index=1)
@@ -163,12 +167,14 @@ class TableModel(object):
 
     def deleteRow(self, rowindex=None, update=True):
         """Delete a row"""
+
         df = self.df
         df.drop(df.index[rowindex],inplace=True)
         return
 
     def deleteRows(self, rowlist=None):
         """Delete multiple or all rows"""
+
         df = self.df
         df.drop(df.index[rowlist],inplace=True)
         return
@@ -188,6 +194,7 @@ class TableModel(object):
 
     def deleteColumns(self, cols=None):
         """Remove all cols or list provided"""
+
         df = self.df
         colnames = df.columns[cols]
         df.drop(colnames, axis=1, inplace=True)
@@ -199,6 +206,7 @@ class TableModel(object):
 
     def resetIndex(self):
         """Reset index behaviour"""
+
         df = self.df
         if df.index.name != None or df.index.names[0] != None:
             drop = False
@@ -209,15 +217,18 @@ class TableModel(object):
 
     def setindex(self, colindex):
         """Index setting behaviour"""
+
         df = self.df
         colnames = list(df.columns[colindex])
-        if df.index.name != None:
+        indnames = df.index.names
+        if indnames[0] != None:
             df.reset_index(inplace=True)
         df.set_index(colnames, inplace=True)
         return
 
     def copyIndex(self):
         """Copy index to a column"""
+
         df = self.df
         name = df.index.name
         if name == None: name='index'
@@ -226,6 +237,7 @@ class TableModel(object):
 
     def groupby(self, cols):
         """Group by cols"""
+
         df = self.df
         colnames = df.columns[cols]
         grps = df.groupby(colnames)
@@ -293,7 +305,7 @@ class TableModel(object):
     def setValueAt(self, value, rowindex, colindex):
         """Changed the dictionary when cell is updated by user"""
         if value == '':
-            value = 'Nan'
+            value = np.nan
         self.df.iloc[rowindex,colindex] = value
         return
 
