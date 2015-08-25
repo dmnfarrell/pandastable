@@ -152,31 +152,29 @@ class MultipleValDialog(simpledialog.Dialog):
                 self.vrs.append(IntVar())
             else:
                 self.vrs.append(StringVar())
+            default = self.initialvalues[i]
             if self.types[i] == 'password':
                 s='*'
             else:
                 s=None
-
             if self.types[i] == 'combobox':
-                choices = self.initialvalues[i]
-                self.vrs[i].set(choices[0])
-                w = Combobox(master, values=choices,
+                self.vrs[i].set(default[0])
+                w = Combobox(master, values=default,
                          textvariable=self.vrs[i],width=14)
                 self.entries.append(w)
             elif self.types[i] == 'listbox':
-                f,w = addListBox(master, values=self.initialvalues[i],width=14)
+                f,w = addListBox(master, values=default,width=14)
                 self.entries.append(f)
                 self.vrs[i] = w #add widget instead of var
             elif self.types[i] == 'checkbutton':
-                self.vrs[i].set(self.initialvalues[i][0])
+                self.vrs[i].set(default)
                 w = Checkbutton(master, text='',
                          variable=self.vrs[i])
                 self.entries.append(w)
-            #elif self.types[i] == 'filename':
-            #    w = Button(master, text="Browse", command=self.loadfile, width=10)
-            #    self.entries.append(w)
             else:
-                self.vrs[i].set(self.initialvalues[i])
+                if default == None:
+                    default=''
+                self.vrs[i].set(default)
                 self.entries.append(Entry(master, textvariable=self.vrs[i], width=10, show=s))
             self.entries[i].grid(row=r, column=1,padx=2,pady=2,sticky='ew')
             if self.tooltips != None:
@@ -195,6 +193,20 @@ class MultipleValDialog(simpledialog.Dialog):
                 self.results.append(self.vrs[i].get())
         return
 
+    def getResults(self, null=None):
+        """Return a dict of options/values"""
+
+        res = dict(zip(self.labels,self.results))
+        #replace null values with None
+        if null != None:
+            for r in res:
+                if res[r] == null: res[r] = None
+        for r in res:
+            try:
+                res[r] = int(res[r])
+            except:
+                pass
+        return res
 
 class ToolTip(object):
     """Tooltip class for tkinter widgets"""

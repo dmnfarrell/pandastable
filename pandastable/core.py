@@ -104,7 +104,7 @@ class Table(Canvas):
     def set_defaults(self):
         """Set default settings"""
 
-        self.cellwidth=100
+        self.cellwidth=50
         self.maxcellwidth=300
         self.rowheight=20
         self.horizlines=1
@@ -118,11 +118,11 @@ class Table(Canvas):
         self.rowheaderwidth=40
         self.showkeynamesinheader=False
         self.thefont = ('Arial',12)
-        self.cellbackgr = '#F7F7FA'
+        self.cellbackgr = '#F4F4F3'
         self.entrybackgr = 'white'
         self.grid_color = '#ABB1AD'
         #self.selectedcolor = '#F3F781'
-        self.rowselectedcolor = '#CCCCFF'
+        self.rowselectedcolor = '#E4DED4'
         self.multipleselectioncolor = '#E0F2F7'
         self.boxoutlinecolor = '#084B8A'
         return
@@ -685,13 +685,12 @@ class Table(Canvas):
         df = self.model.df
         cols = list(df.columns[self.multiplecollist])
 
-        funcs = {'value counts': pd.value_counts, 'rolling mean':pd.rolling_mean,
-                 'rolling count':pd.rolling_count}
-        params = {'rolling mean':{'window':10}, 'rolling count':{'window':10}}
-        funcnames = list(funcs.keys())
+        funcs = ['value_counts','rolling_mean','rolling_count','expanding_mean','asfreq',
+                 'resample','to_timestamp','pivot']
+
         d = MultipleValDialog(title='Apply Function',
-                                initialvalues=(funcnames,'',[0,1],[0,1]),
-                                labels=('Function:','Function name:',
+                                initialvalues=(funcs,'',False,False),
+                                labels=('Function:','or Function name:',
                                         'Add as new column(s):',
                                         'Replace table:'),
                                 types=('combobox','string','checkbutton',
@@ -702,17 +701,16 @@ class Table(Canvas):
                                 parent = self.parentframe)
         if d.result == None:
             return
-        f = d.results[0]
-        func = funcs[f]
-        p={}
-        if f in params:
-            p=params[f]
+
         funcname = d.results[1]
         addcols = d.results[2]
         replace = d.results[3]
-        #print (getattr(pd, funcname))
+        if funcname == '':
+            funcname = d.results[0]
 
-        new = df[cols].apply(func, **p)
+        new = self._callFunction(df[cols], funcname)
+        if new is None:
+            return
         if addcols == True:
             new = df.merge(new, left_index=1,right_index=1,suffixes=['','_x'])
         if replace == True:
@@ -722,6 +720,56 @@ class Table(Canvas):
         else:
             self.createChildTable(new, index=True)
         return
+
+    def _callFunction(self, df, funcname):
+        """Get function from a string as a module level or dataframe method and
+        apply it to the dataframe. Also pops up a dialog allowing entry of arguments as some
+        functions will not run without non kw args.
+        Returns the new DataFrame"""
+
+        import inspect
+        if hasattr(pd, funcname):
+            func = getattr(pd, funcname)
+            parent = pd
+        elif hasattr(df, funcname):
+            func = getattr(df, funcname)
+            parent = df
+        else:
+            return
+
+        a = inspect.getfullargspec(func)
+        print(a)
+        args = a.args
+        defaults = list(a.defaults)
+        defaults.insert(0,a.varargs)
+        print(defaults)
+        labels = a.args[-len(defaults):]
+        types=[]
+        for d in defaults:
+            if isinstance(d, bool):
+                t='checkbutton'
+            elif isinstance(d, int):
+                t='int'
+            else:
+                t='string'
+            types.append(t)
+
+        #print(labels)
+        print(types)
+        #auto populate a dialog with function parameters
+        d = MultipleValDialog(title='Parameters',
+                              initialvalues=defaults,
+                              labels=labels,
+                              types=types,
+                              parent = self.parentframe)
+        p = d.getResults(null='')
+        print(p)
+
+        if parent is pd:
+            new = df.apply(func, **p)
+        else:
+            new = func(**p)
+        return new
 
     def findValue(self, searchstring=None, findagain=None):
         """Return the row/col for the input value"""

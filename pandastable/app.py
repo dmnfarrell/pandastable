@@ -161,8 +161,6 @@ class ViewerApp(Frame):
                              {'cmd': lambda: self.getData('pima.mpk')},
                          '06Titanic':
                              {'cmd': lambda: self.getData('titanic3.mpk')},
-                         '07Eurostat popdensity by NUTS':
-                             {'cmd':lambda: self.getData('eurostat_popdensity_by_NUTS.mpk')}
                          }
         self.dataset_menu=self.createPulldown(self.menu,self.dataset_menu)
         self.menu.add_cascade(label='Datasets',menu=self.dataset_menu['var'])
