@@ -635,7 +635,7 @@ class Table(Canvas):
         cols = df.columns
         fillopts = ['','fill scalar','ffill','bfill','interpolate']
         d = MultipleValDialog(title='Clean Data',
-                                initialvalues=(fillopts,'-','10',[0,1],[0,1],['any','all']),
+                                initialvalues=(fillopts,'-','10',0,0,['any','all']),
                                 labels=('Fill missing method:',
                                         'Fill symbol:',
                                         'Limit gaps:',
@@ -686,7 +686,7 @@ class Table(Canvas):
         cols = list(df.columns[self.multiplecollist])
 
         funcs = ['value_counts','rolling_mean','rolling_count','expanding_mean','asfreq',
-                 'resample','to_timestamp','pivot']
+                 'resample','to_timestamp','describe','drop_duplicates','transpose']
 
         d = MultipleValDialog(title='Apply Function',
                                 initialvalues=(funcs,'',False,False),
@@ -723,8 +723,9 @@ class Table(Canvas):
 
     def _callFunction(self, df, funcname):
         """Get function from a string as a module level or dataframe method and
-        apply it to the dataframe. Also pops up a dialog allowing entry of arguments as some
-        functions will not run without non kw args.
+        apply it to the dataframe. Pops up a dialog allowing entry of arguments as some
+        functions will not run without non kw args. This is meant to be a general
+        solution to applying functions without the need to custom dialogs.
         Returns the new DataFrame"""
 
         import inspect
@@ -740,77 +741,41 @@ class Table(Canvas):
         a = inspect.getfullargspec(func)
         print(a)
         args = a.args
-        defaults = list(a.defaults)
-        defaults.insert(0,a.varargs)
-        print(defaults)
-        labels = a.args[-len(defaults):]
-        types=[]
-        for d in defaults:
-            if isinstance(d, bool):
-                t='checkbutton'
-            elif isinstance(d, int):
-                t='int'
-            else:
-                t='string'
-            types.append(t)
+        if a.defaults is None:
+            p={}
+        else:
+            defaults = list(a.defaults)
+            print (args[0])
+            if args[0] not in ['values','self']:
+                defaults.insert(0,a.varargs)
+            print(defaults)
+            labels = a.args[-len(defaults):]
+            types=[]
+            for d in defaults:
+                if isinstance(d, bool):
+                    t='checkbutton'
+                elif isinstance(d, int):
+                    t='int'
+                else:
+                    t='string'
+                types.append(t)
 
-        #print(labels)
-        print(types)
-        #auto populate a dialog with function parameters
-        d = MultipleValDialog(title='Parameters',
-                              initialvalues=defaults,
-                              labels=labels,
-                              types=types,
-                              parent = self.parentframe)
-        p = d.getResults(null='')
-        print(p)
+            #print(labels)
+            print(types)
+            #auto populate a dialog with function parameters
+            d = MultipleValDialog(title='Parameters',
+                                  initialvalues=defaults,
+                                  labels=labels,
+                                  types=types,
+                                  parent = self.parentframe)
+            p = d.getResults(null='')
+            print(p)
 
         if parent is pd:
             new = df.apply(func, **p)
         else:
             new = func(**p)
         return new
-
-    def findValue(self, searchstring=None, findagain=None):
-        """Return the row/col for the input value"""
-
-        if searchstring == None:
-            searchstring = simpledialog.askstring("Search table.",
-                                               "Enter search value",
-                                               parent=self.parentframe)
-        found=0
-        if findagain == None or not hasattr(self,'foundlist'):
-            self.foundlist=[]
-        if self.model!=None:
-            for row in range(self.rows):
-                for col in range(self.cols):
-                    text = str(self.model.getValueAt(row,col))
-                    if text=='' or text==None:
-                        continue
-                    cell=row,col
-                    if findagain == 1 and cell in self.foundlist:
-                        continue
-                    if text.lower().find(searchstring.lower())!=-1:
-                        print('found in',row,col)
-                        found=1
-                        #highlight cell
-                        self.delete('searchrect')
-                        self.drawRect(row, col, color='red', tag='searchrect', delete=0)
-                        self.lift('searchrect')
-                        self.lift('celltext'+str(col)+'_'+str(row))
-                        #add row/col to foundlist
-                        self.foundlist.append(cell)
-                        #need to scroll to centre the cell here..
-                        x,y = self.getCanvasPos(row, col)
-                        self.xview('moveto', x)
-                        self.yview('moveto', y)
-                        self.tablecolheader.xview('moveto', x)
-                        self.rowheader.yview('moveto', y)
-                        return row, col
-        if found==0:
-            self.delete('searchrect')
-            print('nothing found')
-            return None
 
     def showAll(self):
         """Re-show unfiltered"""
@@ -1380,20 +1345,20 @@ class Table(Canvas):
         return
 
     def aggregate(self):
-        """Do aggregate operation"""
+        """Show aggregate dialog"""
 
         df = self.model.df
         cols = list(df.columns)
         funcs = ['mean','sum','size','count','std','first','last',
                  'min','max','var']
         d = MultipleValDialog(title='Aggregate',
-                                initialvalues=(cols,funcs,[0,1]),
+                                initialvalues=(cols,funcs,0),
                                 labels=('Group by:','Function:','Replace:'),
-                                types=('listbox','combobox','checkbutton'),
+                                types=('listbox','listbox','checkbutton'),
                                 parent = self.parentframe)
         if d.result == None:
             return
-        #apply func
+        #apply funcions
         grp = d.results[0]
         func = d.results[1]
         replace = d.results[2]
@@ -1473,7 +1438,7 @@ class Table(Canvas):
         """Convert col names so we can use numexpr"""
 
         d = MultipleValDialog(title='Convert col names',
-                                initialvalues=['','',[0,1],[0,1]],
+                                initialvalues=['','',0,0],
                                 labels=['replace spaces with:','add symbol to start',
                                         'make lowercase','make uppercase'],
                                 types=('string','string','checkbutton','checkbutton'),
@@ -1556,7 +1521,7 @@ class Table(Canvas):
         """Get table as formatted text - for printing"""
 
         d = MultipleValDialog(title='Table to Text',
-                                initialvalues=(['left','right'],[1,0],[1,0],[0,1],''),
+                                initialvalues=(['left','right'],1,1,0,''),
                                 labels=['justify:','header ','include index:','sparsify:','na_rep:'],
                                 types=('combobox','checkbutton','checkbutton','checkbutton','string'),
                                 parent = self.parentframe)

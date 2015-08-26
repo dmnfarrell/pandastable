@@ -82,8 +82,10 @@ class ColumnHeader(Canvas):
         if cols == 0:
             return
 
-        #if check_multiindex(self.model.df.columns) == 1:
-        #    cols = df.columns.get_level_values(1)
+        if check_multiindex(self.model.df.columns) == 1:
+            cols = df.columns.get_level_values(1)
+            print (cols)
+
         for col in self.table.visiblecols:
             colname = df.columns[col]
             if colname in self.model.columnwidths:
