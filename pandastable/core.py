@@ -36,6 +36,7 @@ from .prefs import Preferences
 from .dialogs import ImportDialog
 from . import images
 from .dialogs import *
+from . import util
 
 class Table(Canvas):
     """A tkinter class for providing table functionality"""
@@ -284,6 +285,7 @@ class Table(Canvas):
         """Redraw the visible portion of the canvas"""
 
         model = self.model
+        self.scratch = Canvas()
         self.rows = len(self.model.df.index)
         self.cols = len(self.model.df.columns)
         if self.cols == 0 or self.rows == 0:
@@ -1925,16 +1927,19 @@ class Table(Canvas):
         elif align == 'e':
             x1 = x1+w/2-pad
 
-        fontsize = self.fontsize
         colname = self.model.getColumnName(col)
+
         #scaling between canvas and text normalised to about font 14
+        '''fontsize = self.fontsize
         scale = 8.5 * float(fontsize)/12
         size = length * scale
         if size > w:
             newlength = w / scale
             #print w, size, length, newlength
-            celltxt = celltxt[0:int(math.floor(newlength))]
+            celltxt = celltxt[0:int(math.floor(newlength))]'''
 
+        length = util.getTextLength(celltxt, w-10, self.scratch)
+        celltxt = celltxt[0:length]
         rect = self.create_text(x1+w/2,y1+h/2,
                                   text=celltxt,
                                   fill=fgcolor,

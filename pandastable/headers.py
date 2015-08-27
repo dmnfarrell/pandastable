@@ -25,6 +25,7 @@ import math, time
 import os, types, string
 import numpy as np
 import pandas as pd
+from . import util
 
 def check_multiindex(index):
     """Check if multiindex"""
@@ -32,6 +33,18 @@ def check_multiindex(index):
         return 1
     else:
         return 0
+
+def getTextLength(text, w):
+    """Get correct canvas text size (chars) according to a given width"""
+
+    scratch = Canvas() #temp canvas to get bbox
+    length = len(str(text))
+    t = scratch.create_text((0,0), text=text)
+    b = scratch.bbox(t)
+    tw = b[2]-b[0]
+    ratio = length/tw
+    length = math.floor(w*ratio)-1
+    return length
 
 class ColumnHeader(Canvas):
     """Class that takes it's size and rendering from a parent table
@@ -55,6 +68,7 @@ class ColumnHeader(Canvas):
             self.bind('<Shift-Button-1>', self.handle_left_shift_click)
             self.bind('<Control-Button-1>', self.handle_left_ctrl_click)
             self.bind("<Double-Button-1>",self.handle_double_click)
+            self.bind('<Leave>', self.leave)
             if self.table.ostyp=='mac':
                 #For mac we bind Shift, left-click to right click
                 self.bind("<Button-2>", self.handle_right_click)
@@ -82,10 +96,8 @@ class ColumnHeader(Canvas):
         if cols == 0:
             return
 
-        if check_multiindex(self.model.df.columns) == 1:
-            cols = df.columns.get_level_values(1)
-            print (cols)
-
+        #if check_multiindex(self.model.df.columns) == 1:
+        #    cols = df.columns.get_level_values(1)
         for col in self.table.visiblecols:
             colname = df.columns[col]
             if colname in self.model.columnwidths:
@@ -99,17 +111,20 @@ class ColumnHeader(Canvas):
                 xt = x+w-pad
             elif align == 'center':
                 xt = x-w/2
-            if type(colname) == 'tuple':
-                colname = ','.join(colname)
-            if len(str(colname)) > w/10:
-                colname = str(colname)[0:int(w/10)]+'.'
+            if isinstance(colname, tuple):
+                colname = '.'.join(colname)
+
+            length = util.getTextLength(colname, w-pad)-1
+            colname = colname[0:length]
             line = self.create_line(x, 0, x, h, tag=('gridline', 'vertline'),
                                  fill='white', width=1)
             self.create_text(xt,h/2,
                                 text=colname,
                                 fill='white',
                                 font=self.thefont,
-                                tag='text', anchor=align)
+                                tag='text', anchor=align,)
+                                #width=w-pad)
+
 
         x = self.table.col_positions[col+1]
         self.create_line(x,0, x,h, tag='gridline',
@@ -212,6 +227,11 @@ class ColumnHeader(Canvas):
             if abs(val-v) <= d:
                 return 1
         return 0
+
+    def leave(self, event):
+        """Mouse left canvas event"""
+        self.delete('resizesymbol')
+        return
 
     def handle_mouse_move(self, event):
         """Handle mouse moved in header, if near divider draw resize symbol"""
