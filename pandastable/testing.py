@@ -24,26 +24,21 @@ from tkinter import *
 from tkinter.ttk import *
 import pandas as pd
 from .core import Table
+from .app import ViewerApp
+import unittest
+import unittest.mock
 
-class App(Frame):
-    def __init__(self, parent=None):
-        self.parent=parent
-        Frame.__init__(self)
-        self.main = self.master
-        self.main.geometry('600x400+200+100')
-        f=Frame(self.main)
-        f.pack(fill=BOTH,expand=1)
-        pt = Table(f)
-        pt.show()
-        pt.load('test.mpk')
-        #pt.importCSV('test.csv')
-
-def main():
-    "Run the application"
-    app=App()
-    app.mainloop()
-
-    return
+class BasicTest(unittest.TestCase):
+    def setUp(self):
+        return
+    def test(self):
+        app = ViewerApp()
+        app.deleteSheet()
+        app.sampleData()
+        table = app.getCurrentTable()
+        table.selectAll()
+        table.plotSelected()
+        app.quit()
 
 if __name__ == '__main__':
-    main()
+    unittest.main()

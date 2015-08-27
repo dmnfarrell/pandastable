@@ -199,9 +199,9 @@ class ViewerApp(Frame):
                 command=None
                 if 'cmd' in dict[item]:
                     command=dict[item]['cmd']
-
                 if 'sc' in dict[item]:
-                    var.add_command(label='%-25s %9s' %(item[2:],dict[item]['sc']),command=command)
+                    var.add_command(label='%-25s %9s' %(item[2:],dict[item]['sc']),
+                                    command=command)
                 else:
                     var.add_command(label='%-25s' %(item[2:]),command=command)
         dict['var']=var
@@ -440,7 +440,6 @@ class ViewerApp(Frame):
         """Start file renaming util"""
         from .rename import BatchRenameApp
         br = BatchRenameApp(self.master)
-
         return
 
     def _call(self, func):

@@ -1928,24 +1928,23 @@ class Table(Canvas):
             x1 = x1+w/2-pad
 
         colname = self.model.getColumnName(col)
-
-        #scaling between canvas and text normalised to about font 14
-        '''fontsize = self.fontsize
-        scale = 8.5 * float(fontsize)/12
-        size = length * scale
-        if size > w:
-            newlength = w / scale
-            #print w, size, length, newlength
-            celltxt = celltxt[0:int(math.floor(newlength))]'''
-
-        length = util.getTextLength(celltxt, w-10, self.scratch)
-        celltxt = celltxt[0:length]
-        rect = self.create_text(x1+w/2,y1+h/2,
+        length = len(colname)
+        newlength = util.getTextLength(celltxt, w-10, self.scratch)
+        '''if h>=40 and newlength<length:
+            width=w
+            anchor='nw'
+            y=y1+2
+        else:'''
+        width=0
+        celltxt = celltxt[0:newlength]
+        y=y1+h/2
+        rect = self.create_text(x1+w/2,y,
                                   text=celltxt,
                                   fill=fgcolor,
                                   font=self.thefont,
                                   anchor=align,
-                                  tag=('text','celltext'+str(col)+'_'+str(row)))
+                                  tag=('text','celltext'+str(col)+'_'+str(row)),
+                                  width=width)
         return
 
     def drawSelectedRow(self):

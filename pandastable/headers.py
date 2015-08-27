@@ -104,6 +104,8 @@ class ColumnHeader(Canvas):
                 w = self.model.columnwidths[colname]
             else:
                 w = self.table.cellwidth
+            if w<=8:
+                continue
             x = self.table.col_positions[col]
             if align == 'w':
                 xt = x+pad
@@ -122,17 +124,14 @@ class ColumnHeader(Canvas):
                                 text=colname,
                                 fill='white',
                                 font=self.thefont,
-                                tag='text', anchor=align,)
-                                #width=w-pad)
-
-
+                                tag='text', anchor=align)
         x = self.table.col_positions[col+1]
         self.create_line(x,0, x,h, tag='gridline',
                         fill='white', width=2)
         return
 
     def handle_left_click(self,event):
-        """Does cell selection when mouse is clicked"""
+        """Does cell selection when left mouse button is clicked"""
 
         self.delete('rect')
         self.table.delete('entry')
@@ -143,7 +142,6 @@ class ColumnHeader(Canvas):
         #set all rows selected
         self.table.allrows = True
         self.table.setSelectedCol(colclicked)
-
         if self.atdivider == 1:
             return
         self.drawRect(self.table.currentcol)
