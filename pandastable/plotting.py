@@ -101,10 +101,10 @@ class PlotViewer(Frame):
         self.mplopts3d = MPL3DOptions(parent=self)
         w2 = self.mplopts3d.showDialog(self.nb)
         self.nb.add(w2, text='3D plot', sticky='news')
-        '''if self._importSeaborn() == 1:
-            self.factorplotter = FactorPlotter()
+        if self._importSeaborn() == 1:
+            self.factorplotter = FactorPlotter(parent=self)
             w3 = self.factorplotter.showDialog(self.nb)
-            self.nb.add(w3, text='factor plots', sticky='news')'''
+            self.nb.add(w3, text='factor plots', sticky='news')
         return
 
     def _importSeaborn(self):
@@ -128,10 +128,9 @@ class PlotViewer(Frame):
             self.mplopts.applyOptions()
         elif self.mode == 1:
             self.mplopts3d.applyOptions()
-        #elif self.mode == 2:
-        #    self.factorplotter.applyOptions()
+        elif self.mode == 2:
+            self.factorplotter.applyOptions()
         #other opts?
-        print (self.dpivar.get())
         mpl.rcParams['savefig.dpi'] = self.dpivar.get()
         self.plotCurrent()
         return
@@ -183,9 +182,9 @@ class PlotViewer(Frame):
             self.plot2D()
         elif self.mode == 1:
             self.plot3D()
-        #elif self.mode == 2:
-        #    self.factorplotter.data = self.data
-        #    self.factorPlot()
+        elif self.mode == 2:
+            self.factorplotter.data = self.data
+            self.factorPlot()
         return
 
     def _checkNumeric(self, df):
@@ -453,35 +452,40 @@ class PlotViewer(Frame):
         import seaborn as sns
         if not hasattr(self, 'data'):
             return
+        kwds = self.factorplotter.kwds
+        print (kwds)
         df = self.data
-        labels = list(df.columns)
-        dtypes = list(df.dtypes)
-        x='id'
-        print (labels)
-        hue='label'
-        col='var'
-        row=None
-        wrap=2
-        kind='auto'
-        aspect = 1.0
 
+        dtypes = list(df.dtypes)
+        col = kwds['col']
+        hue = kwds['hue']
+        wrap=2
+        kind = kwds['kind']
+        x = kwds['x']
+        aspect = 1.0
+        labels = list(df.columns)
+        labels.remove(x)
+        print(labels)
         print (df[:10])
-        tm = pd.melt(df,id_vars=['label'],
-                     var_name='var',value_name='x')
-        print (tm[:10])
+        tm = pd.melt(df,id_vars=labels,
+                     var_name='var',value_name='value')
+        print (tm[10:20])
 
         '''plots = len(df[col].unique())
         wrap=int(wrap)
         if plots == 1 or wrap==1:
             row=col
             col=None
-            wrap=None
+            wrap=None'''
+
         if hue == '':
-            hue=None'''
+            hue=None
+        if col == '':
+            col=None
         plt.clf()
-        g = sns.factorplot('label','x',data=tm, hue=hue, row=row, col=col,
-                                col_wrap=wrap, kind=kind,size=3, aspect=float(aspect),
-                                legend_out=True,sharey=False,palette='Spectral')
+        g = sns.factorplot(x='var',y='value',data=tm, hue=hue, col=col,
+                            col_wrap=wrap, kind=kind,size=3, aspect=float(aspect),
+                            legend_out=True,sharey=False,palette='Spectral')
 
         #rotateLabels(g)
         self.fig.clear()
@@ -494,6 +498,7 @@ class PlotViewer(Frame):
 
         df = self.table.model.df
         self.mplopts.update(df)
+        self.factorplotter.update(df)
         return
 
     def savePlot(self):
@@ -720,27 +725,28 @@ class MPL3DOptions(object):
 
 class FactorPlotter(object):
     """Provides seaborn factor plots"""
-    def __init__(self, data=None):
+    def __init__(self, parent=None):
         """Setup variables"""
 
-        self.data=data
+        self.parent = parent
+        df = self.parent.table.model.df
+        datacols = list(df.columns)
         self.setDefaultStyle()
         self.groups = grps = {'formats':['style','despine','palette'],
-                'factors':['kind','hue','x']}
+                'factors':['kind','hue','col','x']}
         styles = ['darkgrid', 'whitegrid', 'dark', 'white', 'ticks']
-        kinds = ['auto','bar']
+        kinds = ['point', 'bar', 'count', 'box', 'violin', 'strip']
         palettes = ['Spectral','cubehelix','hls','hot','coolwarm','copper',
                     'winter','spring','summer','autumn','Greys','Blues','Reds',
-                    'Set1','Accent']
-        if self.data is not None:
-            cols = self.data.columns
+                    'Set1','Set2','Accent']
 
         self.opts = {'style': {'type':'combobox','default':'whitegrid','items':styles},
                      'despine': {'type':'checkbutton','default':0,'label':'despine'},
                      'palette': {'type':'combobox','default':'Spectral','items':palettes},
-                     'kind': {'type':'combobox','default':'auto','items':kinds},
-                     'x': {'type':'combobox','default':'auto','items':kinds},
-                     'hue': {'type':'combobox','default':'auto','items':kinds},
+                     'kind': {'type':'combobox','default':'bar','items':kinds},
+                     'col': {'type':'combobox','default':'','items':datacols},
+                     'hue': {'type':'combobox','default':'','items':datacols},
+                     'x': {'type':'combobox','default':'','items':datacols},
                         }
         return
 
@@ -748,7 +754,7 @@ class FactorPlotter(object):
         """Auto create tk vars, widgets for corresponding options and
            and return the frame"""
 
-        dialog, self.tkvars, w = dialogFromOptions(parent, self.opts, self.groups)
+        dialog, self.tkvars, self.widgets = dialogFromOptions(parent, self.opts, self.groups)
         #self.applyOptions()
         return dialog
 
@@ -757,6 +763,9 @@ class FactorPlotter(object):
         import seaborn as sns
         kwds = {}
         for i in self.opts:
+            if self.opts[i]['type'] == 'listbox':
+                items = self.widgets[i].curselection()
+                kwds[i] = [self.widgets[i].get(j) for j in items]
             kwds[i] = self.tkvars[i].get()
         self.kwds = kwds
         sns.set_style(self.kwds['style'])
@@ -769,6 +778,16 @@ class FactorPlotter(object):
         sns.set_style("ticks", {'axes.facecolor': '#F7F7F7','legend.frameon': True})
         sns.set_context("paper", rc={'legend.fontsize':16,'xtick.labelsize':12,
                         'ytick.labelsize':12,'axes.labelsize':14,'axes.titlesize':16})
+        return
+
+    def update(self, df):
+        """Update data widget(s)"""
+
+        cols = list(df.columns)
+        cols += ''
+        self.widgets['hue']['values'] = cols
+        self.widgets['col']['values'] = cols
+        self.widgets['x']['values'] = cols
         return
 
 def getFonts():

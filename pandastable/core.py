@@ -111,7 +111,7 @@ class Table(Canvas):
         self.horizlines=1
         self.vertlines=1
         self.alternaterows=0
-        self.autoresizecols = 0
+        self.autoresizecols = 1
         self.inset=2
         self.x_start=0
         self.y_start=1
@@ -691,15 +691,17 @@ class Table(Canvas):
                  'resample','to_timestamp','describe','drop_duplicates','transpose']
 
         d = MultipleValDialog(title='Apply Function',
-                                initialvalues=(funcs,'',False,False),
+                                initialvalues=(funcs,'',False,False,'_x'),
                                 labels=('Function:','or Function name:',
                                         'Add as new column(s):',
-                                        'Replace table:'),
+                                        'Replace table:',
+                                        'New column suffix:'),
                                 types=('combobox','string','checkbutton',
-                                       'checkbutton'),
+                                       'checkbutton','string'),
                                 tooltips=(None,'Manually enter a pandas function name',
                                           'Add the result to the table',
-                                          'Replace current table or open in subtable'),
+                                          'Replace current table or open in subtable',
+                                          'suffix for new columns'),
                                 parent = self.parentframe)
         if d.result == None:
             return
@@ -707,6 +709,7 @@ class Table(Canvas):
         funcname = d.results[1]
         addcols = d.results[2]
         replace = d.results[3]
+        suffix = d.results[4]
         if funcname == '':
             funcname = d.results[0]
 
@@ -714,7 +717,7 @@ class Table(Canvas):
         if new is None:
             return
         if addcols == True:
-            new = df.merge(new, left_index=1,right_index=1,suffixes=['','_x'])
+            new = df.merge(new, left_index=1,right_index=1,suffixes=['',suffix])
         if replace == True:
             self.model.df = new
             self.showIndex()
@@ -2064,7 +2067,7 @@ class Table(Canvas):
         Checkbutton(frame1, text="Show vertical lines", variable=self.vertlinesvar,
                     onvalue=1, offvalue=0).grid(row=row,column=0, columnspan=2, sticky='news')
         row=row+1
-        Checkbutton(frame1, text="Alternate Row Color", variable=self.alternaterowsvar,
+        Checkbutton(frame1, text="Auto resize columns", variable=self.autoresizecolsvar,
                     onvalue=1, offvalue=0).grid(row=row,column=0, columnspan=2, sticky='news')
         row=row+1
         lblrowheight = Label(frame1,text='Row Height:')
@@ -2163,17 +2166,15 @@ class Table(Canvas):
 
     def loadPrefs(self, prefs=None):
         """Load table specific prefs from the prefs instance used
-           if they are ntafa99
-           ot present, create them."""
+           if they are not present, create them."""
 
         if prefs==None:
             prefs=Preferences('Table',{'check_for_update':1})
         self.prefs = prefs
         defaultprefs = {'horizlines':self.horizlines, 'vertlines':self.vertlines,
-                        'alternaterows':self.alternaterows,
                         'rowheight':self.rowheight,
                         'cellwidth':80,
-                        'autoresizecols': 0,
+                        'autoresizecols': self.autoresizecols,
                         'align': 'w',
                         'celltextsize':10, 'celltextfont':'Arial',
                         'cellbackgr': self.cellbackgr, 'grid_color': self.grid_color,
@@ -2206,8 +2207,8 @@ class Table(Canvas):
         self.horizlinesvar.set(self.prefs.get('horizlines'))
         self.vertlinesvar = IntVar()
         self.vertlinesvar.set(self.prefs.get('vertlines'))
-        self.alternaterowsvar = IntVar()
-        self.alternaterowsvar.set(self.prefs.get('alternaterows'))
+        self.autoresizecolsvar = IntVar()
+        self.autoresizecolsvar.set(self.prefs.get('autoresizecols'))
         self.celltextsizevar = IntVar()
         self.celltextsizevar.set(self.prefs.get('celltextsize'))
         self.cellbackgr = self.prefs.get('cellbackgr')
@@ -2227,8 +2228,8 @@ class Table(Canvas):
             self.horizlines = self.horizlinesvar.get()
             self.prefs.set('vertlines', self.vertlinesvar.get())
             self.vertlines = self.vertlinesvar.get()
-            self.prefs.set('alternaterows', self.alternaterowsvar.get())
-            self.alternaterows = self.alternaterowsvar.get()
+            self.prefs.set('autoresizecols', self.autoresizecolsvar.get())
+            self.autoresizecols = self.autoresizecolsvar.get()
             self.prefs.set('rowheight', self.rowheightvar.get())
             self.rowheight = self.rowheightvar.get()
             self.prefs.set('cellwidth', self.cellwidthvar.get())
