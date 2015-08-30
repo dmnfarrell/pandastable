@@ -34,7 +34,7 @@ try:
     import statsmodels.formula.api as smf
     import statsmodels.api as sm
 except:
-    print('no statsmodel')
+    print('statsmodel not installed')
 
 class StatsViewer(Frame):
     """Provides a frame for model viewing interaction"""
@@ -76,15 +76,15 @@ class StatsViewer(Frame):
                                  'all regressors','leverage','influence'], width=15,
                        textvariable=self.plotvar)
         c.pack(side=LEFT,fill=BOTH)
-        Label(bf,text='indep. variable:').pack(side=LEFT)
+        Label(bf,text='plot indep. variable:').pack(side=LEFT)
         self.indvar = StringVar()
         self.indvarwidget = c = Combobox(bf, values=list(df.columns), width=8,
                                      textvariable=self.indvar)
         c.pack(side=LEFT,fill=BOTH,expand=1)
         Label(bf,text='model type:').pack(side=LEFT)
         self.modelvar = StringVar()
-        self.modelvar.set('OLS')
-        c = Combobox(bf, values=['OLS','GLS','WLS'], width=4,
+        self.modelvar.set('ols')
+        c = Combobox(bf, values=['ols','gls','logit'], width=4,
                        textvariable=self.modelvar)
         c.pack(side=LEFT,fill=BOTH,expand=1)
 
@@ -111,10 +111,19 @@ class StatsViewer(Frame):
             formula = None
         return formula
 
+    def getModel(self, formula, s, kind='ols'):
+        if kind == 'ols':
+            model = smf.ols(formula=formula, data=s)
+        elif kind == 'gls':
+            model = smf.gls(formula=formula, data=s)
+        elif kind == 'logit':
+            model = smf.logit(formula=formula, data=s, missing='drop')
+        return model
+
     def doFit(self):
         """Do model fit on selected subset of rows. Will only use
-        the currently selected rows for the fit and can plot the remainder
-        versus a fit line."""
+        the currently selected rows for fitting. Also plots the results if
+        ols fit."""
 
         #out of sample data
         df = self.table.model.df
@@ -123,26 +132,37 @@ class StatsViewer(Frame):
         s = s.convert_objects(convert_numeric='force')
         if len(s) == 0 or len(s.columns)<1:
             return
-
-        formula = self.formulavar.get()
-        self.model = mod = smf.ols(formula=formula, data=s)
-        self.fit = fit = mod.fit()
-
-        pf = self.table.pf
+        self.pf = pf = self.table.pf
         fig = pf.fig
         fig.clear()
         ax = fig.add_subplot(111)
+        formula = self.formulavar.get()
+        kind = self.modelvar.get()
+
+        try:
+            self.model = mod = self.getModel(formula, s, kind)
+        except NameError:
+            self.pf.showWarning('are variables in selected data?',ax=ax)
+        self.fit = fit = mod.fit()
+        self.summary()
+
         #plotframe options
         kwds = pf.mplopts.kwds
-
         kind = self.plotvar.get()
         indvar = self.indvar.get()
         if indvar == '':
             indvar = self.model.exog_names[1]
+
+        if isinstance(mod, smf.Logit ):
+            plotLogit(fit)
+            return
         if kind == 'fit line':
             self.plotFit(fit, df, s, indvar, ax=ax, **kwds)
         elif kind == 'fit line2':
-            sm.graphics.plot_fit(fit, indvar, ax=ax)
+            try:
+                sm.graphics.plot_fit(fit, indvar, ax=ax)
+            except ValueError:
+                pf.showWarning('%s is not an independent variable' %indvar,ax=ax)
         elif kind == 'regression plots':
             fig.clear()
             sm.graphics.plot_regress_exog(fit, indvar, fig=fig)
@@ -162,7 +182,7 @@ class StatsViewer(Frame):
         return
 
     def plotFit(self, fit, data, sub, indvar, ax, **kwds):
-        """Plot custom statsmodels fit result"""
+        """Plot custom statsmodels fit result for linear regression"""
 
         depvar = self.model.endog_names
         if indvar == '':
@@ -210,11 +230,16 @@ class StatsViewer(Frame):
         ax.set_title('fitted versus %s' %indvar)
 
         #confidence intervals
-        from statsmodels.sandbox.regression.predstd import wls_prediction_std
-        prstd, iv_l, iv_u = wls_prediction_std(fit)
+        #from statsmodels.sandbox.regression.predstd import wls_prediction_std
+        #prstd, iv_l, iv_u = wls_prediction_std(fit)
         #ax.plot(x1, iv_u, 'r--')
         #ax.plot(x1, iv_l, 'r--')
         #plt.tight_layout()
+        return
+
+    def plotLogit(self):
+        """Plot Logit results"""
+
         return
 
     def summary(self):
@@ -223,8 +248,8 @@ class StatsViewer(Frame):
         s = self.fit.summary()
         from .dialogs import SimpleEditor
         w = Toplevel(self.parent)
-        w.grab_set()
-        w.transient(self)
+        #w.grab_set()
+        #w.transient(self)
         ed = SimpleEditor(w, height=25, font='monospace 10')
         ed.pack(in_=w, fill=BOTH, expand=Y)
         ed.text.insert(END, s)

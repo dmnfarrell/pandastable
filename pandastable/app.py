@@ -75,6 +75,7 @@ class ViewerApp(Frame):
         self.main.title('DataExplore')
         self.createMenuBar()
         self.setupGUI()
+        self.clipboarddf = None
 
         if data != None:
             self.data = data
@@ -137,6 +138,13 @@ class ViewerApp(Frame):
                          }
         self.sheet_menu=self.createPulldown(self.menu,self.sheet_menu)
         self.menu.add_cascade(label='Sheet',menu=self.sheet_menu['var'])
+
+        self.edit_menu={'01Copy Table':{'cmd': self.copyTable},
+                        '02Paste Table':{'cmd':self.pasteTable},
+                        '03Paste as Subtable':{'cmd': lambda: self.pasteTable(subtable=True)}
+                         }
+        self.edit_menu = self.createPulldown(self.menu,self.edit_menu)
+        self.menu.add_cascade(label='Edit',menu=self.edit_menu['var'])
 
         self.table_menu={'01Describe Table':{'cmd':self.describe},
                          '02Convert Column Names':{'cmd':lambda: self._call('convertColumnNames')},
@@ -440,6 +448,27 @@ class ViewerApp(Frame):
         """Start file renaming util"""
         from .rename import BatchRenameApp
         br = BatchRenameApp(self.master)
+        return
+
+    def copyTable(self):
+        """Copy current table dataframe"""
+        table = self.getCurrentTable()
+        self.clipboarddf = table.model.df.copy()
+        return
+
+    def pasteTable(self, subtable=False):
+        """Paste copied dataframe into current table"""
+
+        #add warning?
+        if self.clipboarddf is None:
+            return
+        df = self.clipboarddf
+        table = self.getCurrentTable()
+        if subtable == True:
+            table.createChildTable(df)
+        else:
+            model = TableModel(df)
+            table.updateModel(model)
         return
 
     def _call(self, func):

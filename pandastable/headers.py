@@ -34,18 +34,6 @@ def check_multiindex(index):
     else:
         return 0
 
-def getTextLength(text, w):
-    """Get correct canvas text size (chars) according to a given width"""
-
-    scratch = Canvas() #temp canvas to get bbox
-    length = len(str(text))
-    t = scratch.create_text((0,0), text=text)
-    b = scratch.bbox(t)
-    tw = b[2]-b[0]
-    ratio = length/tw
-    length = math.floor(w*ratio)-1
-    return length
-
 class ColumnHeader(Canvas):
     """Class that takes it's size and rendering from a parent table
         and column names from the table model."""
@@ -105,7 +93,7 @@ class ColumnHeader(Canvas):
             else:
                 w = self.table.cellwidth
             if w<=8:
-                continue
+                colname=''
             x = self.table.col_positions[col]
             if align == 'w':
                 xt = x+pad
@@ -116,7 +104,7 @@ class ColumnHeader(Canvas):
             if isinstance(colname, tuple):
                 colname = '.'.join(colname)
 
-            length = util.getTextLength(colname, w-pad)-1
+            length = util.getTextLength(colname, w-pad)
             colname = colname[0:length]
             line = self.create_line(x, 0, x, h, tag=('gridline', 'vertline'),
                                  fill='white', width=1)
@@ -309,6 +297,7 @@ class ColumnHeader(Canvas):
         currcol = self.table.currentcol
         multicols = self.table.multiplecollist
         colnames = list(self.table.model.df.columns[multicols])
+        colnames = [str(i) for i in colnames]
         colnames = ','.join(colnames)
         popupmenu = Menu(self, tearoff = 0)
         def popupFocusOut(event):
@@ -330,15 +319,19 @@ class ColumnHeader(Canvas):
         return popupmenu
 
     def renameColumn(self):
+        """Rename column"""
+
         col = self.table.currentcol
-        new = simpledialog.askstring("New column name?", "Enter new name:")
+        df = self.model.df
+        name = df.columns[col]
+        new = simpledialog.askstring("New column name?", "Enter new name:",
+                                     initialvalue=name)
         if new !=None:
             if new == '':
                 messagebox.showwarning("Error", "Name should not be blank.")
                 return
             else:
-                #self.model.renameColumn(col, ans)
-                df = self.model.df
+
                 df.rename(columns={df.columns[col]: new}, inplace=True)
                 self.redraw()
         return

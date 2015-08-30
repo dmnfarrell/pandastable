@@ -101,10 +101,10 @@ class PlotViewer(Frame):
         self.mplopts3d = MPL3DOptions(parent=self)
         w2 = self.mplopts3d.showDialog(self.nb)
         self.nb.add(w2, text='3D plot', sticky='news')
-        if self._importSeaborn() == 1:
+        '''if self._importSeaborn() == 1:
             self.factorplotter = FactorPlotter(parent=self)
             w3 = self.factorplotter.showDialog(self.nb)
-            self.nb.add(w3, text='factor plots', sticky='news')
+            self.nb.add(w3, text='factor plots', sticky='news')'''
         return
 
     def _importSeaborn(self):
@@ -128,8 +128,8 @@ class PlotViewer(Frame):
             self.mplopts.applyOptions()
         elif self.mode == 1:
             self.mplopts3d.applyOptions()
-        elif self.mode == 2:
-            self.factorplotter.applyOptions()
+        #elif self.mode == 2:
+        #    self.factorplotter.applyOptions()
         #other opts?
         mpl.rcParams['savefig.dpi'] = self.dpivar.get()
         self.plotCurrent()
@@ -182,9 +182,9 @@ class PlotViewer(Frame):
             self.plot2D()
         elif self.mode == 1:
             self.plot3D()
-        elif self.mode == 2:
-            self.factorplotter.data = self.data
-            self.factorPlot()
+        #elif self.mode == 2:
+        #    self.factorplotter.data = self.data
+        #    self.factorPlot()
         return
 
     def _checkNumeric(self, df):
@@ -447,15 +447,16 @@ class PlotViewer(Frame):
         return
 
     def factorPlot(self):
-        """Seaborn facet grid plots"""
+        """Seaborn facet grid plots for categorical plotting. Uses pandas
+        melt method to convert the dataframe into a format where one or more
+        columns are identifier variables (id_vars), while all other columns
+        measured variables (value_vars), unpivoted to the row axis."""
 
         import seaborn as sns
         if not hasattr(self, 'data'):
             return
         kwds = self.factorplotter.kwds
-        print (kwds)
         df = self.data
-
         dtypes = list(df.dtypes)
         col = kwds['col']
         hue = kwds['hue']
@@ -463,30 +464,23 @@ class PlotViewer(Frame):
         kind = kwds['kind']
         x = kwds['x']
         aspect = 1.0
-        labels = list(df.columns)
-        labels.remove(x)
+        palette=kwds['palette']
+        print (df.dtypes)
+        labels = list(df.select_dtypes(include=['object','category']).columns)
         print(labels)
-        print (df[:10])
-        tm = pd.melt(df,id_vars=labels,
+        #print (df[:10])
+        t = pd.melt(df,id_vars=labels,
                      var_name='var',value_name='value')
-        print (tm[10:20])
-
-        '''plots = len(df[col].unique())
-        wrap=int(wrap)
-        if plots == 1 or wrap==1:
-            row=col
-            col=None
-            wrap=None'''
-
+        print (t[10:20])
         if hue == '':
             hue=None
         if col == '':
             col=None
         plt.clf()
-        g = sns.factorplot(x='var',y='value',data=tm, hue=hue, col=col,
-                            col_wrap=wrap, kind=kind,size=3, aspect=float(aspect),
-                            legend_out=True,sharey=False,palette='Spectral')
 
+        g = sns.factorplot(x=x,y='value',data=t, hue=hue, col=col,
+                            col_wrap=wrap, kind=kind,size=3, aspect=float(aspect),
+                            legend_out=True,sharey=False,palette=palette)
         #rotateLabels(g)
         self.fig.clear()
         #need to reset the current figure
@@ -498,7 +492,8 @@ class PlotViewer(Frame):
 
         df = self.table.model.df
         self.mplopts.update(df)
-        self.factorplotter.update(df)
+        if hasattr(self, 'factorplotter'):
+            self.factorplotter.update(df)
         return
 
     def savePlot(self):
@@ -520,9 +515,11 @@ class PlotViewer(Frame):
         self.currfilename = filename
         return
 
-    def showWarning(self, s='plot error'):
-        self.ax.clear()
-        self.ax.text(.5, .5, s,transform=self.ax.transAxes,
+    def showWarning(self, s='plot error', ax=None):
+        if ax==None:
+            ax=self.ax
+        ax.clear()
+        ax.text(.5, .5, s,transform=self.ax.transAxes,
                        horizontalalignment='center', color='blue', fontsize=16)
         self.canvas.draw()
         return
@@ -740,7 +737,7 @@ class FactorPlotter(object):
                     'winter','spring','summer','autumn','Greys','Blues','Reds',
                     'Set1','Set2','Accent']
 
-        self.opts = {'style': {'type':'combobox','default':'whitegrid','items':styles},
+        self.opts = {'style': {'type':'combobox','default':'white','items':styles},
                      'despine': {'type':'checkbutton','default':0,'label':'despine'},
                      'palette': {'type':'combobox','default':'Spectral','items':palettes},
                      'kind': {'type':'combobox','default':'bar','items':kinds},

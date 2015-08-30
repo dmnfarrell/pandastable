@@ -613,7 +613,7 @@ class Table(Canvas):
 
         df = self.model.df
         col = df.columns[self.currentcol]
-        coltypes = ['object','str','int','float64','datetime64[ns]']
+        coltypes = ['object','str','int','float64','datetime64[ns]','category']
         curr = df[col].dtype
         d = MultipleValDialog(title='current type is %s' %curr,
                                 initialvalues=[coltypes],
@@ -637,15 +637,16 @@ class Table(Canvas):
         cols = df.columns
         fillopts = ['','fill scalar','ffill','bfill','interpolate']
         d = MultipleValDialog(title='Clean Data',
-                                initialvalues=(fillopts,'-','10',0,0,['any','all']),
+                                initialvalues=(fillopts,'-','10',0,0,['any','all'],0),
                                 labels=('Fill missing method:',
                                         'Fill symbol:',
                                         'Limit gaps:',
                                         'Drop columns with null data:',
                                         'Drop rows with null data:',
-                                        'Drop method:'),
+                                        'Drop method:',
+                                        'Drop duplicates:'),
                                 types=('combobox','string','string','checkbutton',
-                                       'checkbutton','combobox'),
+                                       'checkbutton','combobox','checkbutton'),
                                 parent = self.parentframe)
         if d.result == None:
             return
@@ -655,6 +656,7 @@ class Table(Canvas):
         dropcols = d.results[3]
         droprows = d.results[4]
         how = d.results[5]
+        dropdups = d.results[6]
         if method == '':
             pass
         elif method == 'fill scalar':
@@ -667,6 +669,8 @@ class Table(Canvas):
             df = df.dropna(axis=1,how=how)
         if droprows == 1:
             df = df.dropna(axis=0,how=how)
+        if dropdups == 1:
+            df = df.drop_duplicates()
         self.model.df = df
         self.redraw()
         return
@@ -676,8 +680,31 @@ class Table(Canvas):
 
         df = self.model.df
         col = df.columns[self.currentcol]
-        name = col+'_ord'
-        df[name] = pd.Categorical(df[col]).codes
+
+        d = MultipleValDialog(title='Categorical data',
+                                initialvalues=(0,'',0,''),
+                                labels=('Convert to integer codes:','Name:','Get dummies:','Prefix:'),
+                                types=('checkbutton','string','checkbutton','string'),
+                                tooltips=(None, 'name of new column',
+                                         'get dummy columns for fitting',None),
+                                parent = self.parentframe)
+        if d.result == None:
+            return
+        convert = d.results[0]
+        name = d.results[1]
+        dummies = d.results[2]
+        prefix = d.results[3]
+        if name == '':
+            name = col+'_ord'
+        if prefix == '':
+            prefix=None
+        if dummies == 1:
+            new = pd.get_dummies(df[col], prefix=prefix)
+            self.model.df = pd.concat([df,new],1)
+        elif convert == 1:
+            df[name] = pd.Categorical(df[col]).codes
+        else:
+            df[name] = df[col].astype('category')
         self.redraw()
         return
 
@@ -687,8 +714,8 @@ class Table(Canvas):
         df = self.model.df
         cols = list(df.columns[self.multiplecollist])
 
-        funcs = ['value_counts','rolling_mean','rolling_count','expanding_mean','asfreq',
-                 'resample','to_timestamp','describe','drop_duplicates','transpose']
+        funcs = ['value_counts','rolling_mean','rolling_count',
+                 'resample','to_timestamp']
 
         d = MultipleValDialog(title='Apply Function',
                                 initialvalues=(funcs,'',False,False,'_x'),
@@ -716,6 +743,8 @@ class Table(Canvas):
         new = self._callFunction(df[cols], funcname)
         if new is None:
             return
+        #if isinstance(new, pd.Series):
+        #    new = pd.DataFrame(new)
         if addcols == True:
             new = df.merge(new, left_index=1,right_index=1,suffixes=['',suffix])
         if replace == True:
@@ -733,13 +762,18 @@ class Table(Canvas):
         solution to applying functions without the need to custom dialogs.
         Returns the new DataFrame"""
 
+        col = df.columns[0]
         import inspect
         if hasattr(pd, funcname):
             func = getattr(pd, funcname)
-            parent = pd
+            obj = pd
         elif hasattr(df, funcname):
             func = getattr(df, funcname)
-            parent = df
+            obj = df
+        elif hasattr(df[col].str, funcname):
+            #string methods object
+            func = getattr(df[col].str, funcname)
+            obj = df[col].str
         else:
             return
 
@@ -751,7 +785,7 @@ class Table(Canvas):
         else:
             defaults = list(a.defaults)
             print (args[0])
-            if args[0] not in ['values','self']:
+            if args[0] not in ['values','self','data']:
                 defaults.insert(0,a.varargs)
             print(defaults)
             labels = a.args[-len(defaults):]
@@ -776,8 +810,11 @@ class Table(Canvas):
             p = d.getResults(null='')
             print(p)
 
-        if parent is pd:
+        print (obj)
+        if obj is pd:
             new = df.apply(func, **p)
+        elif obj is df:
+            new = func(**p)
         else:
             new = func(**p)
         return new
@@ -1701,7 +1738,7 @@ class Table(Canvas):
                                     parent=self.parentframe)
             return
 
-        if not hasattr(self, 'sv'):
+        if not hasattr(self, 'sv') or self.sv == None:
             sf = self.statsframe = Frame(self.parentframe)
             sf.grid(row=self.queryrow,column=0,columnspan=3,sticky='news')
             self.sv = StatsViewer(table=self,parent=sf)
@@ -2300,7 +2337,6 @@ class Table(Canvas):
                                     labels=('rows','columns'),
                                     types=('int','int'),
                                     parent=self.parentframe)
-
         if mpDlg.result == True:
             rows = mpDlg.results[0]
             cols = mpDlg.results[1]
