@@ -411,6 +411,7 @@ class RowHeader(Canvas):
 
         xstart = 1
         pad = 5
+        maxw = 300
         v = self.table.visiblerows
         scale = self.table.getScale()
         h = self.table.rowheight
@@ -436,6 +437,8 @@ class RowHeader(Canvas):
                 cols = [r]
                 xpos = [xstart]
             w = np.sum(widths)
+            if w>maxw:
+                w=maxw
         else:
             rows = [i+1 for i in v]
             cols = [rows]

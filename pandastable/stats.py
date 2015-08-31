@@ -44,6 +44,7 @@ class StatsViewer(Frame):
         self.parent = parent
         self.table = table
         self.table.sv = self
+        self.fit = None
         if self.parent != None:
             Frame.__init__(self, parent)
             self.main = self.master
@@ -67,35 +68,42 @@ class StatsViewer(Frame):
         Label(ef,text='formula:').pack(side=LEFT)
         e = Entry(ef, textvariable=self.formulavar, font="Courier 13 bold")
         e.pack(side=LEFT,fill=BOTH,expand=1)
+
         bf = Frame(self.main, padding=2)
         bf.pack(side=TOP,fill=BOTH)
-        Label(bf,text='plot:').pack(side=LEFT)
-        self.plotvar = StringVar()
-        self.plotvar.set('fit line')
-        c = Combobox(bf, values=['fit line','fit line2','regression plots','qqplot',
-                                 'all regressors','leverage','influence'], width=15,
-                       textvariable=self.plotvar)
-        c.pack(side=LEFT,fill=BOTH)
-        Label(bf,text='plot indep. variable:').pack(side=LEFT)
-        self.indvar = StringVar()
-        self.indvarwidget = c = Combobox(bf, values=list(df.columns), width=8,
-                                     textvariable=self.indvar)
-        c.pack(side=LEFT,fill=BOTH,expand=1)
-        Label(bf,text='model type:').pack(side=LEFT)
+        Label(bf,text='model type:').pack(side=LEFT,padx=2)
         self.modelvar = StringVar()
         self.modelvar.set('ols')
         c = Combobox(bf, values=['ols','gls','logit'], width=4,
                        textvariable=self.modelvar)
         c.pack(side=LEFT,fill=BOTH,expand=1)
 
-        bf = Frame(self.main, padding=2)
-        bf.pack(side=TOP,fill=BOTH)
-        b = Button(bf, text="Fit", command=self.doFit)
+        f = Frame(self.main, padding=2)
+        f.pack(side=TOP,fill=BOTH)
+        b = Button(f, text="Fit", command=self.doFit)
         b.pack(side=LEFT,fill=X,expand=1)
-        b = Button(bf, text="Summary", command=self.summary)
+        b = Button(f, text="Summary", command=self.summary)
         b.pack(side=LEFT,fill=X,expand=1)
-        b = Button(bf, text="Close", command=self.quit)
+        b = Button(f, text="Close", command=self.quit)
         b.pack(side=LEFT,fill=X,expand=1)
+
+        f = LabelFrame(self.main, text='plots', padding=2)
+        f.pack(side=TOP,fill=BOTH)
+        Label(f,text='plot type:').pack(side=LEFT)
+        self.plotvar = StringVar()
+        self.plotvar.set('fit line')
+        c = Combobox(f, values=['fit line','fit line2','regression plots','qqplot',
+                                 'all regressors','leverage','influence'], width=15,
+                       textvariable=self.plotvar)
+        c.pack(side=LEFT,fill=BOTH)
+        Label(f,text='plot indep. variable:').pack(side=LEFT,padx=2)
+        self.indvar = StringVar()
+        self.indvarwidget = c = Combobox(f, values=list(df.columns), width=8,
+                                     textvariable=self.indvar)
+        c.pack(side=LEFT,fill=BOTH,expand=1)
+        b = Button(f, text="Plot", command=self.showPlot)
+        b.pack(side=LEFT,fill=X,expand=1)
+
         self.updateData()
         return
 
@@ -112,6 +120,8 @@ class StatsViewer(Frame):
         return formula
 
     def getModel(self, formula, s, kind='ols'):
+        """Select model to use"""
+
         if kind == 'ols':
             model = smf.ols(formula=formula, data=s)
         elif kind == 'gls':
@@ -122,20 +132,16 @@ class StatsViewer(Frame):
 
     def doFit(self):
         """Do model fit on selected subset of rows. Will only use
-        the currently selected rows for fitting. Also plots the results if
-        ols fit."""
+        the currently selected rows for fitting."""
 
         #out of sample data
         df = self.table.model.df
         #sub sample to fit
-        s = self.table.getSelectedDataFrame()
+        self.sub = s = self.table.getSelectedDataFrame()
         s = s.convert_objects(convert_numeric='force')
         if len(s) == 0 or len(s.columns)<1:
             return
-        self.pf = pf = self.table.pf
-        fig = pf.fig
-        fig.clear()
-        ax = fig.add_subplot(111)
+
         formula = self.formulavar.get()
         kind = self.modelvar.get()
 
@@ -143,8 +149,26 @@ class StatsViewer(Frame):
             self.model = mod = self.getModel(formula, s, kind)
         except NameError:
             self.pf.showWarning('are variables in selected data?',ax=ax)
+            raise
+            return
         self.fit = fit = mod.fit()
         self.summary()
+        return
+
+    def showPlot(self):
+        """Do plots"""
+
+        self.pf = pf = self.table.pf
+        fit = self.fit
+        if fit == None:
+            pf.showWarning('no fitted model')
+            return
+        df = self.table.model.df
+        s = self.sub
+
+        fig = pf.fig
+        fig.clear()
+        ax = fig.add_subplot(111)
 
         #plotframe options
         kwds = pf.mplopts.kwds
@@ -153,11 +177,12 @@ class StatsViewer(Frame):
         if indvar == '':
             indvar = self.model.exog_names[1]
 
-        if isinstance(mod, smf.Logit ):
-            plotLogit(fit)
-            return
+        #if isinstance(mod, smf.Logit):
+        #    self.plotLogit(fit, df, ax)
+        #    return
+
         if kind == 'fit line':
-            self.plotFit(fit, df, s, indvar, ax=ax, **kwds)
+            self.plotRegression(fit, df, s, indvar, ax=ax, **kwds)
         elif kind == 'fit line2':
             try:
                 sm.graphics.plot_fit(fit, indvar, ax=ax)
@@ -181,7 +206,7 @@ class StatsViewer(Frame):
         fig.canvas.draw()
         return
 
-    def plotFit(self, fit, data, sub, indvar, ax, **kwds):
+    def plotRegression(self, fit, data, sub, indvar, ax, **kwds):
         """Plot custom statsmodels fit result for linear regression"""
 
         depvar = self.model.endog_names
@@ -237,9 +262,12 @@ class StatsViewer(Frame):
         #plt.tight_layout()
         return
 
-    def plotLogit(self):
+    def plotLogit(self, fit, df, ax):
         """Plot Logit results"""
 
+        #X1 = sm.add_constant(X1)
+        #predict out of sample
+        #y1 = fit.predict(X1)
         return
 
     def summary(self):
@@ -247,14 +275,20 @@ class StatsViewer(Frame):
 
         s = self.fit.summary()
         from .dialogs import SimpleEditor
-        w = Toplevel(self.parent)
-        #w.grab_set()
-        #w.transient(self)
-        ed = SimpleEditor(w, height=25, font='monospace 10')
-        ed.pack(in_=w, fill=BOTH, expand=Y)
-        ed.text.insert(END, s)
+        if not hasattr(self, 'fitinfo') or self.fitinfo == None:
+            self.w = w = Toplevel(self.parent)
+            def deletewin():
+                self.fitinfo = None
+                self.w.destroy()
+            w.protocol("WM_DELETE_WINDOW", deletewin)
+            self.fitinfo = SimpleEditor(w, height=25, width=80, font='monospace 10')
+            self.fitinfo.pack(in_=w, fill=BOTH, expand=Y)
+
+        self.fitinfo.text.insert(END, s)
+        self.fitinfo.text.see(END)
         return
 
+    @classmethod
     def _doimport(self):
         """Try to import statsmodels. If not installed return false"""
         try:

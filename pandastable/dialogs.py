@@ -581,6 +581,7 @@ class EasyListbox(Listbox):
 
 class SimpleEditor(Frame):
     """Simple text editor"""
+
     def __init__(self, parent=None, width=100, height=40, font='monospace 12'):
 
         Frame.__init__(self, parent)
@@ -593,10 +594,13 @@ class SimpleEditor(Frame):
         #Button(frm, text='Cut',   command=self.onCut).pack(side=LEFT)
         #Button(frm, text='Paste', command=self.onPaste).pack(side=LEFT)
         Button(btnform, text='Find',  command=self.onFind).pack(side=LEFT)
+        Button(btnform, text='Clear',  command=self.onClear).pack(side=LEFT)
         self.target=''
         return
 
     def onSave(self):
+        """Save text"""
+
         filename = filedialog.asksaveasfilename(defaultextension='.txt',
                                     initialdir=os.path.expanduser('~'),
                                      filetypes=(('Text files', '*.txt'),
@@ -604,6 +608,11 @@ class SimpleEditor(Frame):
         if filename:
             with open(filename, 'w') as stream:
                 stream.write(self.text.get('1.0',END))
+        return
+
+    def onClear(self):
+        """Clear text"""
+        self.text.delete('1.0',END)
         return
 
     def onFind(self):

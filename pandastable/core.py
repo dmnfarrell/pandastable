@@ -683,9 +683,10 @@ class Table(Canvas):
 
         d = MultipleValDialog(title='Categorical data',
                                 initialvalues=(0,'',0,''),
-                                labels=('Convert to integer codes:','Name:','Get dummies:','Prefix:'),
+                                labels=('Convert to integer codes:','Name:',
+                                        'Get dummies:','Dummies prefix:'),
                                 types=('checkbutton','string','checkbutton','string'),
-                                tooltips=(None, 'name of new column',
+                                tooltips=(None, 'name if new column',
                                          'get dummy columns for fitting',None),
                                 parent = self.parentframe)
         if d.result == None:
@@ -695,7 +696,7 @@ class Table(Canvas):
         dummies = d.results[2]
         prefix = d.results[3]
         if name == '':
-            name = col+'_ord'
+            name = col
         if prefix == '':
             prefix=None
         if dummies == 1:
@@ -1559,6 +1560,22 @@ class Table(Canvas):
         self.createChildTable(df, 'selection')
         return
 
+    def showInfo(self):
+        """Show dataframe info"""
+
+        df = self.model.df
+        import io
+        buf = io.StringIO()
+        df.info(verbose=True,buf=buf,memory_usage=True)
+        from .dialogs import SimpleEditor
+        w = Toplevel(self.parentframe)
+        w.grab_set()
+        w.transient(self)
+        ed = SimpleEditor(w, height=25, font='monospace 12')
+        ed.pack(in_=w, fill=BOTH, expand=Y)
+        ed.text.insert(END, buf.getvalue())
+        return
+
     def showasText(self):
         """Get table as formatted text - for printing"""
 
@@ -1605,8 +1622,9 @@ class Table(Canvas):
                         "Clear Data" : lambda: self.deleteCells(rows, cols),
                         "Select All" : self.selectAll,
                         #"Auto Fit Columns" : self.autoResizeColumns,
+                        "Table Info" : self.showInfo,
                         "Show as Text" : self.showasText,
-                        "Filter Records" : self.queryBar,
+                        "Filter Rows" : self.queryBar,
                         "New": self.new,
                         "Load": self.load,
                         "Save": self.save,
@@ -1618,8 +1636,8 @@ class Table(Canvas):
 
         main = ["Copy", #"Fill Down","Fill Right",
                 "Clear Data", "Delete Row(s)", "Delete Column(s)"]
-        general = ["Add Row(s)", "Add Column(s)", "Select All", "Filter Records",
-                    "Show as Text", "Preferences"]
+        general = ["Add Row(s)", "Add Column(s)", "Select All", "Filter Rows",
+                    "Show as Text", "Table Info", "Preferences"]
 
         filecommands = ['New','Load','Import csv','Save','Save as']
         plotcommands = ['Plot Selected','Hide plot']
@@ -1732,7 +1750,7 @@ class Table(Canvas):
         """Show model fitting dialog"""
 
         from .stats import StatsViewer
-        if StatsViewer._doimport == 0:
+        if StatsViewer._doimport() == 0:
             messagebox.showwarning("no such module",
                                     "statsmodels is not installed.",
                                     parent=self.parentframe)

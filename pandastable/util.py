@@ -37,6 +37,6 @@ def getTextLength(text, w, scratch=None):
     t = scratch.create_text((0,0), text=text)
     b = scratch.bbox(t)
     twidth = b[2]-b[0]
-    ratio = length/twidth * 0.8
+    ratio = length/twidth * 0.85
     length = math.floor(w*ratio)
     return length
