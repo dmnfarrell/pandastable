@@ -30,19 +30,20 @@ import platform
 import numpy as np
 import pandas as pd
 from .data import TableModel
-from .headers import ColumnHeader, RowHeader
+from .headers import ColumnHeader, RowHeader, IndexHeader
 from .plotting import MPLBaseOptions, PlotViewer
 from .prefs import Preferences
 from .dialogs import ImportDialog
 from . import images
 from .dialogs import *
+from . import util
 
 class Table(Canvas):
     """A tkinter class for providing table functionality"""
 
     def __init__(self, parent=None, model=None, dataframe=None,
                    width=None, height=None,
-                   rows=50, cols=10, showtoolbar=False, showstatusbar=False,
+                   rows=20, cols=5, showtoolbar=False, showstatusbar=False,
                    **kwargs):
         Canvas.__init__(self, parent, bg='white',
                          width=width, height=height,
@@ -104,13 +105,13 @@ class Table(Canvas):
     def set_defaults(self):
         """Set default settings"""
 
-        self.cellwidth=100
+        self.cellwidth=50
         self.maxcellwidth=300
         self.rowheight=20
         self.horizlines=1
         self.vertlines=1
         self.alternaterows=0
-        self.autoresizecols = 0
+        self.autoresizecols = 1
         self.inset=2
         self.x_start=0
         self.y_start=1
@@ -118,11 +119,11 @@ class Table(Canvas):
         self.rowheaderwidth=40
         self.showkeynamesinheader=False
         self.thefont = ('Arial',12)
-        self.cellbackgr = '#F7F7FA'
+        self.cellbackgr = '#F4F4F3'
         self.entrybackgr = 'white'
         self.grid_color = '#ABB1AD'
         #self.selectedcolor = '#F3F781'
-        self.rowselectedcolor = '#CCCCFF'
+        self.rowselectedcolor = '#E4DED4'
         self.multipleselectioncolor = '#E0F2F7'
         self.boxoutlinecolor = '#084B8A'
         return
@@ -140,12 +141,12 @@ class Table(Canvas):
 
         if event.num == 5 or event.delta == -120:
             event.widget.yview_scroll(1, UNITS)
-            self.tablerowheader.yview_scroll(1, UNITS)
+            self.rowheader.yview_scroll(1, UNITS)
         if event.num == 4 or event.delta == 120:
             if self.canvasy(0) < 0:
                 return
             event.widget.yview_scroll(-1, UNITS)
-            self.tablerowheader.yview_scroll(-1, UNITS)
+            self.rowheader.yview_scroll(-1, UNITS)
         self.redrawVisible()
         return
 
@@ -195,8 +196,9 @@ class Table(Canvas):
            Table is then redrawn."""
 
         #Add the table and header to the frame
-        self.tablerowheader = RowHeader(self.parentframe, self, width=self.rowheaderwidth)
+        self.rowheader = RowHeader(self.parentframe, self, width=self.rowheaderwidth)
         self.tablecolheader = ColumnHeader(self.parentframe, self)
+        self.rowindexheader = IndexHeader(self.parentframe, self)
         self.Yscrollbar = AutoScrollbar(self.parentframe,orient=VERTICAL,command=self.set_yviews)
         self.Yscrollbar.grid(row=1,column=2,rowspan=1,sticky='news',pady=0,ipady=0)
         self.Xscrollbar = AutoScrollbar(self.parentframe,orient=HORIZONTAL,command=self.set_xviews)
@@ -204,12 +206,13 @@ class Table(Canvas):
         self['xscrollcommand'] = self.Xscrollbar.set
         self['yscrollcommand'] = self.Yscrollbar.set
         self.tablecolheader['xscrollcommand'] = self.Xscrollbar.set
-        self.tablerowheader['yscrollcommand'] = self.Yscrollbar.set
+        self.rowheader['yscrollcommand'] = self.Yscrollbar.set
         self.parentframe.rowconfigure(1,weight=1)
         self.parentframe.columnconfigure(1,weight=1)
 
+        self.rowindexheader.grid(row=0,column=0,rowspan=1,sticky='news')
         self.tablecolheader.grid(row=0,column=1,rowspan=1,sticky='news')
-        self.tablerowheader.grid(row=1,column=0,rowspan=1,sticky='news')
+        self.rowheader.grid(row=1,column=0,rowspan=1,sticky='news')
         self.grid(row=1,column=1,rowspan=1,sticky='news',pady=0,ipady=0)
 
         self.adjustColumnWidths()
@@ -282,6 +285,7 @@ class Table(Canvas):
         """Redraw the visible portion of the canvas"""
 
         model = self.model
+        self.scratch = Canvas()
         self.rows = len(self.model.df.index)
         self.cols = len(self.model.df.columns)
         if self.cols == 0 or self.rows == 0:
@@ -320,11 +324,12 @@ class Table(Canvas):
                 self.drawText(row, col, text, align)
 
         self.tablecolheader.redraw()
-        self.tablerowheader.redraw(align=self.align)
+        self.rowheader.redraw(align=self.align)
+        self.rowindexheader.redraw()
         self.drawSelectedRow()
         self.drawSelectedRect(self.currentrow, self.currentcol)
         if len(self.multiplerowlist)>1:
-            self.tablerowheader.drawSelectedRows(self.multiplerowlist)
+            self.rowheader.drawSelectedRows(self.multiplerowlist)
             self.drawMultipleRows(self.multiplerowlist)
             self.drawMultipleCells()
         return
@@ -421,13 +426,13 @@ class Table(Canvas):
         return
 
     def groupby(self, colindex):
+        """Group by"""
         grps = self.model.groupby(colindex)
-        for i,g in grps:
-            print(g)
         return
 
     def setindex(self):
         """Set indexes"""
+
         cols = self.multiplecollist
         self.model.setindex(cols)
         self.setSelectedCol(0)
@@ -439,6 +444,7 @@ class Table(Canvas):
 
     def resetIndex(self):
         """Reset index and redraw row header"""
+
         self.model.resetIndex()
         self.redraw()
         self.drawSelectedCol()
@@ -453,7 +459,7 @@ class Table(Canvas):
         return
 
     def showIndex(self):
-        self.tablerowheader.showindex = True
+        self.rowheader.showindex = True
         return
 
     def set_xviews(self,*args):
@@ -468,7 +474,7 @@ class Table(Canvas):
         """Set the xview of table and row header"""
 
         self.yview(*args)
-        self.tablerowheader.yview(*args)
+        self.rowheader.yview(*args)
         self.redrawVisible()
         return
 
@@ -607,7 +613,7 @@ class Table(Canvas):
 
         df = self.model.df
         col = df.columns[self.currentcol]
-        coltypes = ['object','str','int','float64','datetime64[ns]']
+        coltypes = ['object','str','int','float64','datetime64[ns]','category']
         curr = df[col].dtype
         d = MultipleValDialog(title='current type is %s' %curr,
                                 initialvalues=[coltypes],
@@ -624,45 +630,195 @@ class Table(Canvas):
             print('failed')
         return
 
-    def findValue(self, searchstring=None, findagain=None):
-        """Return the row/col for the input value"""
-        if searchstring == None:
-            searchstring = simpledialog.askstring("Search table.",
-                                               "Enter search value",
-                                               parent=self.parentframe)
-        found=0
-        if findagain == None or not hasattr(self,'foundlist'):
-            self.foundlist=[]
-        if self.model!=None:
-            for row in range(self.rows):
-                for col in range(self.cols):
-                    text = str(self.model.getValueAt(row,col))
-                    if text=='' or text==None:
-                        continue
-                    cell=row,col
-                    if findagain == 1 and cell in self.foundlist:
-                        continue
-                    if text.lower().find(searchstring.lower())!=-1:
-                        print('found in',row,col)
-                        found=1
-                        #highlight cell
-                        self.delete('searchrect')
-                        self.drawRect(row, col, color='red', tag='searchrect', delete=0)
-                        self.lift('searchrect')
-                        self.lift('celltext'+str(col)+'_'+str(row))
-                        #add row/col to foundlist
-                        self.foundlist.append(cell)
-                        #need to scroll to centre the cell here..
-                        x,y = self.getCanvasPos(row, col)
-                        self.xview('moveto', x)
-                        self.yview('moveto', y)
-                        self.tablecolheader.xview('moveto', x)
-                        self.tablerowheader.yview('moveto', y)
-                        return row, col
-        if found==0:
-            self.delete('searchrect')
-            print('nothing found')
-            return None
+    def cleanData(self):
+        """Deal with missing data"""
+
+        df = self.model.df
+        cols = df.columns
+        fillopts = ['','fill scalar','ffill','bfill','interpolate']
+        d = MultipleValDialog(title='Clean Data',
+                                initialvalues=(fillopts,'-','10',0,0,['any','all'],0),
+                                labels=('Fill missing method:',
+                                        'Fill symbol:',
+                                        'Limit gaps:',
+                                        'Drop columns with null data:',
+                                        'Drop rows with null data:',
+                                        'Drop method:',
+                                        'Drop duplicates:'),
+                                types=('combobox','string','string','checkbutton',
+                                       'checkbutton','combobox','checkbutton'),
+                                parent = self.parentframe)
+        if d.result == None:
+            return
+        method = d.results[0]
+        symbol = d.results[1]
+        limit = int(d.results[2])
+        dropcols = d.results[3]
+        droprows = d.results[4]
+        how = d.results[5]
+        dropdups = d.results[6]
+        if method == '':
+            pass
+        elif method == 'fill scalar':
+            df = df.fillna(symbol)
+        elif method == 'interpolate':
+            df = df.interpolate()
+        else:
+            df = df.fillna(method=method, limit=limit)
+        if dropcols == 1:
+            df = df.dropna(axis=1,how=how)
+        if droprows == 1:
+            df = df.dropna(axis=0,how=how)
+        if dropdups == 1:
+            df = df.drop_duplicates()
+        self.model.df = df
+        self.redraw()
+        return
+
+    def getCategorical(self):
+        """Get a categorical column from selected"""
+
+        df = self.model.df
+        col = df.columns[self.currentcol]
+
+        d = MultipleValDialog(title='Categorical data',
+                                initialvalues=(0,'',0,''),
+                                labels=('Convert to integer codes:','Name:',
+                                        'Get dummies:','Dummies prefix:'),
+                                types=('checkbutton','string','checkbutton','string'),
+                                tooltips=(None, 'name if new column',
+                                         'get dummy columns for fitting',None),
+                                parent = self.parentframe)
+        if d.result == None:
+            return
+        convert = d.results[0]
+        name = d.results[1]
+        dummies = d.results[2]
+        prefix = d.results[3]
+        if name == '':
+            name = col
+        if prefix == '':
+            prefix=None
+        if dummies == 1:
+            new = pd.get_dummies(df[col], prefix=prefix)
+            self.model.df = pd.concat([df,new],1)
+        elif convert == 1:
+            df[name] = pd.Categorical(df[col]).codes
+        else:
+            df[name] = df[col].astype('category')
+        self.redraw()
+        return
+
+    def applyFunction(self, evt=None):
+        """Apply row-wise functions on a column/Series"""
+
+        df = self.model.df
+        cols = list(df.columns[self.multiplecollist])
+
+        funcs = ['value_counts','rolling_mean','rolling_count',
+                 'resample','to_timestamp']
+
+        d = MultipleValDialog(title='Apply Function',
+                                initialvalues=(funcs,'',False,False,'_x'),
+                                labels=('Function:','or Function name:',
+                                        'Add as new column(s):',
+                                        'Replace table:',
+                                        'New column suffix:'),
+                                types=('combobox','string','checkbutton',
+                                       'checkbutton','string'),
+                                tooltips=(None,'Manually enter a pandas function name',
+                                          'Add the result to the table',
+                                          'Replace current table or open in subtable',
+                                          'suffix for new columns'),
+                                parent = self.parentframe)
+        if d.result == None:
+            return
+
+        funcname = d.results[1]
+        addcols = d.results[2]
+        replace = d.results[3]
+        suffix = d.results[4]
+        if funcname == '':
+            funcname = d.results[0]
+
+        new = self._callFunction(df[cols], funcname)
+        if new is None:
+            return
+        #if isinstance(new, pd.Series):
+        #    new = pd.DataFrame(new)
+        if addcols == True:
+            new = df.merge(new, left_index=1,right_index=1,suffixes=['',suffix])
+        if replace == True:
+            self.model.df = new
+            self.showIndex()
+            self.redraw()
+        else:
+            self.createChildTable(new, index=True)
+        return
+
+    def _callFunction(self, df, funcname):
+        """Get function from a string as a module level or dataframe method and
+        apply it to the dataframe. Pops up a dialog allowing entry of arguments as some
+        functions will not run without non kw args. This is meant to be a general
+        solution to applying functions without the need to custom dialogs.
+        Returns the new DataFrame"""
+
+        col = df.columns[0]
+        import inspect
+        if hasattr(pd, funcname):
+            func = getattr(pd, funcname)
+            obj = pd
+        elif hasattr(df, funcname):
+            func = getattr(df, funcname)
+            obj = df
+        elif hasattr(df[col].str, funcname):
+            #string methods object
+            func = getattr(df[col].str, funcname)
+            obj = df[col].str
+        else:
+            return
+
+        a = inspect.getfullargspec(func)
+        print(a)
+        args = a.args
+        if a.defaults is None:
+            p={}
+        else:
+            defaults = list(a.defaults)
+            print (args[0])
+            if args[0] not in ['values','self','data']:
+                defaults.insert(0,a.varargs)
+            print(defaults)
+            labels = a.args[-len(defaults):]
+            types=[]
+            for d in defaults:
+                if isinstance(d, bool):
+                    t='checkbutton'
+                elif isinstance(d, int):
+                    t='int'
+                else:
+                    t='string'
+                types.append(t)
+
+            #print(labels)
+            print(types)
+            #auto populate a dialog with function parameters
+            d = MultipleValDialog(title='Parameters',
+                                  initialvalues=defaults,
+                                  labels=labels,
+                                  types=types,
+                                  parent = self.parentframe)
+            p = d.getResults(null='')
+            print(p)
+
+        print (obj)
+        if obj is pd:
+            new = df.apply(func, **p)
+        elif obj is df:
+            new = func(**p)
+        else:
+            new = func(**p)
+        return new
 
     def showAll(self):
         """Re-show unfiltered"""
@@ -711,7 +867,8 @@ class Table(Canvas):
         b.pack(fill=BOTH,side=LEFT,padx=2,pady=2)
         return
 
-    def applyFunction(self, evt=None):
+
+    def evalFunction(self, evt=None):
         """Apply a string based function to create new columns"""
 
         self.convertNumeric()
@@ -729,6 +886,43 @@ class Table(Canvas):
         #self.dataframe = self.model.df.copy()
         return
 
+    def functionsBar(self, evt=None):
+        """Apply python functions from a pre-defined set, this is
+        for stuff that can't be done with eval strings"""
+
+        def reset():
+            self.evalframe.destroy()
+            self.evalframe = None
+            self.showAll()
+
+        def apply():
+            self.convertNumeric()
+            f = self.funcvar.get()
+            print (f)
+            df = self.model.df
+            z = df['filename'].apply(lambda x: x.replace('fa',''))
+            print (z)
+            return
+
+        if hasattr(self, 'funcsframe') and self.funcsframe != None:
+            return
+        ef = self.funcsframe = Frame(self.parentframe)
+        ef.grid(row=self.queryrow,column=1,sticky='news')
+        #self.evalvar = StringVar()
+        #e = Entry(ef, textvariable=self.evalvar, font="Courier 13 bold")
+        #e.bind('<Return>', self.evalFunction)
+        funcs = ['replace']
+        self.funcvar = StringVar()
+        f = Combobox(ef, values=funcs,
+                       textvariable=self.funcvar)
+        f.pack(fill=BOTH,side=LEFT,expand=1,padx=2,pady=2)
+        b = Button(ef,text='apply',width=5,command=apply)
+        b.pack(fill=BOTH,side=LEFT,padx=2,pady=2)
+        b = Button(ef,text='close',width=5,command=reset)
+        b.pack(fill=BOTH,side=LEFT,padx=2,pady=2)
+
+        return
+
     def evalBar(self, evt=None):
         """Use pd.eval to apply a function."""
 
@@ -742,9 +936,9 @@ class Table(Canvas):
         ef.grid(row=self.queryrow,column=1,sticky='news')
         self.evalvar = StringVar()
         e = Entry(ef, textvariable=self.evalvar, font="Courier 13 bold")
-        e.bind('<Return>', self.applyFunction)
+        e.bind('<Return>', self.evalFunction)
         e.pack(fill=BOTH,side=LEFT,expand=1,padx=2,pady=2)
-        b = Button(ef,text='apply',width=5,command=self.applyFunction)
+        b = Button(ef,text='apply',width=5,command=self.evalFunction)
         b.pack(fill=BOTH,side=LEFT,padx=2,pady=2)
         b = Button(ef,text='close',width=5,command=reset)
         b.pack(fill=BOTH,side=LEFT,padx=2,pady=2)
@@ -985,7 +1179,7 @@ class Table(Canvas):
             self.setSelectedCol(colclicked)
             self.drawSelectedRect(self.currentrow, self.currentcol)
             self.drawSelectedRow()
-            self.tablerowheader.drawSelectedRows(rowclicked)
+            self.rowheader.drawSelectedRows(rowclicked)
             self.tablecolheader.delete('rect')
         if hasattr(self, 'cellentry'):
             self.cellentry.destroy()
@@ -1045,7 +1239,7 @@ class Table(Canvas):
             else:
                 self.multiplerowlist=list(range(self.startrow, self.endrow+1))
             self.drawMultipleRows(self.multiplerowlist)
-            self.tablerowheader.drawSelectedRows(self.multiplerowlist)
+            self.rowheader.drawSelectedRows(self.multiplerowlist)
             #draw selected cells outline using row and col lists
             #print self.multiplerowlist
             self.drawMultipleCells()
@@ -1072,14 +1266,14 @@ class Table(Canvas):
                 return
             else:
                 #self.yview('moveto', y)
-                #self.tablerowheader.yview('moveto', y)
+                #self.rowheader.yview('moveto', y)
                 self.currentrow  = self.currentrow -1
         elif event.keysym == 'Down':
             if self.currentrow >= self.rows-1:
                 return
             else:
                 #self.yview('moveto', y)
-                #self.tablerowheader.yview('moveto', y)
+                #self.rowheader.yview('moveto', y)
                 self.currentrow  = self.currentrow +1
         elif event.keysym == 'Right' or event.keysym == 'Tab':
             if self.currentcol >= self.cols-1:
@@ -1112,7 +1306,7 @@ class Table(Canvas):
         """respond to a right click"""
 
         self.delete('tooltip')
-        self.tablerowheader.clearSelected()
+        self.rowheader.clearSelected()
         if hasattr(self, 'rightmenu'):
             self.rightmenu.destroy()
         rowclicked = self.get_row_clicked(event)
@@ -1194,24 +1388,24 @@ class Table(Canvas):
         return
 
     def aggregate(self):
-        """Do aggregate operation"""
+        """Show aggregate dialog"""
 
         df = self.model.df
         cols = list(df.columns)
-        funcs = ['mean','sum','size','count','std','first','last','min','max']
+        funcs = ['mean','sum','size','count','std','first','last',
+                 'min','max','var']
         d = MultipleValDialog(title='Aggregate',
-                                initialvalues=(cols,funcs,[0,1]),
+                                initialvalues=(cols,funcs,0),
                                 labels=('Group by:','Function:','Replace:'),
-                                types=('listbox','combobox','checkbutton'),
+                                types=('listbox','listbox','checkbutton'),
                                 parent = self.parentframe)
         if d.result == None:
             return
-        #apply func
+        #apply funcions
         grp = d.results[0]
         func = d.results[1]
         replace = d.results[2]
-        x = df.convert_objects(convert_dates='coerce', convert_numeric=True)
-        g = x.groupby(grp).agg(func)
+        g = df.groupby(grp).agg(func)
         #replace or make new table
         if replace == True:
             self.model.df = g
@@ -1287,7 +1481,7 @@ class Table(Canvas):
         """Convert col names so we can use numexpr"""
 
         d = MultipleValDialog(title='Convert col names',
-                                initialvalues=['','',[0,1],[0,1]],
+                                initialvalues=['','',0,0],
                                 labels=['replace spaces with:','add symbol to start',
                                         'make lowercase','make uppercase'],
                                 types=('string','string','checkbutton','checkbutton'),
@@ -1315,6 +1509,12 @@ class Table(Canvas):
         df = self.model.df
         self.model.df = df.convert_objects(convert_numeric='force')
         self.redraw()
+        return
+
+    def corrMatrix(self):
+        df = self.model.df
+        corr = df.corr()
+        self.createChildTable(corr)
         return
 
     def createChildTable(self, df, title=None, index=False, out=False):
@@ -1360,11 +1560,27 @@ class Table(Canvas):
         self.createChildTable(df, 'selection')
         return
 
+    def showInfo(self):
+        """Show dataframe info"""
+
+        df = self.model.df
+        import io
+        buf = io.StringIO()
+        df.info(verbose=True,buf=buf,memory_usage=True)
+        from .dialogs import SimpleEditor
+        w = Toplevel(self.parentframe)
+        w.grab_set()
+        w.transient(self)
+        ed = SimpleEditor(w, height=25, font='monospace 12')
+        ed.pack(in_=w, fill=BOTH, expand=Y)
+        ed.text.insert(END, buf.getvalue())
+        return
+
     def showasText(self):
         """Get table as formatted text - for printing"""
 
         d = MultipleValDialog(title='Table to Text',
-                                initialvalues=(['left','right'],[1,0],[1,0],[0,1],''),
+                                initialvalues=(['left','right'],1,1,0,''),
                                 labels=['justify:','header ','include index:','sparsify:','na_rep:'],
                                 types=('combobox','checkbutton','checkbutton','checkbutton','string'),
                                 parent = self.parentframe)
@@ -1378,7 +1594,7 @@ class Table(Canvas):
 
         df = self.model.df
         s = df.to_string(justify=justify,header=header,index=index,sparsify=sparsify,na_rep=na_rep)
-        from tkinter.scrolledtext import ScrolledText
+        #from tkinter.scrolledtext import ScrolledText
         from .dialogs import SimpleEditor
         w = Toplevel(self.parentframe)
         w.grab_set()
@@ -1406,8 +1622,9 @@ class Table(Canvas):
                         "Clear Data" : lambda: self.deleteCells(rows, cols),
                         "Select All" : self.selectAll,
                         #"Auto Fit Columns" : self.autoResizeColumns,
+                        "Table Info" : self.showInfo,
                         "Show as Text" : self.showasText,
-                        "Filter Records" : self.queryBar,
+                        "Filter Rows" : self.queryBar,
                         "New": self.new,
                         "Load": self.load,
                         "Save": self.save,
@@ -1419,8 +1636,8 @@ class Table(Canvas):
 
         main = ["Copy", #"Fill Down","Fill Right",
                 "Clear Data", "Delete Row(s)", "Delete Column(s)"]
-        general = ["Add Row(s)", "Add Column(s)", "Select All", "Filter Records",
-                    "Show as Text", "Preferences"]
+        general = ["Add Row(s)", "Add Column(s)", "Select All", "Filter Rows",
+                    "Show as Text", "Table Info", "Preferences"]
 
         filecommands = ['New','Load','Import csv','Save','Save as']
         plotcommands = ['Plot Selected','Hide plot']
@@ -1479,6 +1696,7 @@ class Table(Canvas):
 
     def fillDown(self, rowlist, collist):
         """Fill down a column, or multiple columns"""
+
         model = self.model
         #remove first element as we don't want to overwrite it
         rowlist.remove(rowlist[0])
@@ -1497,6 +1715,7 @@ class Table(Canvas):
 
     def getSelectionValues(self):
         """Get values for current multiple cell selection"""
+
         if len(self.multiplerowlist) == 0 or len(self.multiplecollist) == 0:
             return None
         rows = self.multiplerowlist
@@ -1521,12 +1740,31 @@ class Table(Canvas):
         return lists
 
     def showPlotViewer(self, parent=None):
+        """Show plot frame"""
+
         if not hasattr(self, 'pf'):
             self.pf = PlotViewer(table=self, parent=parent)
         return self.pf
 
+    def statsViewer(self):
+        """Show model fitting dialog"""
+
+        from .stats import StatsViewer
+        if StatsViewer._doimport() == 0:
+            messagebox.showwarning("no such module",
+                                    "statsmodels is not installed.",
+                                    parent=self.parentframe)
+            return
+
+        if not hasattr(self, 'sv') or self.sv == None:
+            sf = self.statsframe = Frame(self.parentframe)
+            sf.grid(row=self.queryrow,column=0,columnspan=3,sticky='news')
+            self.sv = StatsViewer(table=self,parent=sf)
+        return self.sv
+
     def hidePlot(self):
         """Hide plot frame"""
+
         if hasattr(self, 'pf'):
             self.pf.quit()
             self.pf = None
@@ -1534,6 +1772,7 @@ class Table(Canvas):
 
     def getSelectedDataFrame(self):
         """Return a sub-dataframe of the selected cells"""
+
         df = self.model.df
         rows = self.multiplerowlist
         if len(rows)<=1:
@@ -1544,6 +1783,7 @@ class Table(Canvas):
 
     def getPlotData(self):
         """Plot data from selection"""
+
         data = self.getSelectedDataFrame()
         #data.sort(inplace=True)
         #if the first col is text we try to use it as an index
@@ -1745,22 +1985,24 @@ class Table(Canvas):
         elif align == 'e':
             x1 = x1+w/2-pad
 
-        fontsize = self.fontsize
         colname = self.model.getColumnName(col)
-        #scaling between canvas and text normalised to about font 14
-        scale = 8.5 * float(fontsize)/12
-        size = length * scale
-        if size > w:
-            newlength = w / scale
-            #print w, size, length, newlength
-            celltxt = celltxt[0:int(math.floor(newlength))]
-
-        rect = self.create_text(x1+w/2,y1+h/2,
+        length = len(colname)
+        newlength = util.getTextLength(celltxt, w-10, self.scratch)
+        '''if h>=40 and newlength<length:
+            width=w
+            anchor='nw'
+            y=y1+2
+        else:'''
+        width=0
+        celltxt = celltxt[0:newlength]
+        y=y1+h/2
+        rect = self.create_text(x1+w/2,y,
                                   text=celltxt,
                                   fill=fgcolor,
                                   font=self.thefont,
                                   anchor=align,
-                                  tag=('text','celltext'+str(col)+'_'+str(row)))
+                                  tag=('text','celltext'+str(col)+'_'+str(row)),
+                                  width=width)
         return
 
     def drawSelectedRow(self):
@@ -1775,7 +2017,7 @@ class Table(Canvas):
                                   tag='rowrect')
         self.lower('rowrect')
         self.lower('fillrect')
-        self.tablerowheader.drawSelectedRows(self.currentrow)
+        self.rowheader.drawSelectedRows(self.currentrow)
         return
 
     def drawSelectedCol(self, col=None, delete=1):
@@ -1880,7 +2122,7 @@ class Table(Canvas):
         Checkbutton(frame1, text="Show vertical lines", variable=self.vertlinesvar,
                     onvalue=1, offvalue=0).grid(row=row,column=0, columnspan=2, sticky='news')
         row=row+1
-        Checkbutton(frame1, text="Alternate Row Color", variable=self.alternaterowsvar,
+        Checkbutton(frame1, text="Auto resize columns", variable=self.autoresizecolsvar,
                     onvalue=1, offvalue=0).grid(row=row,column=0, columnspan=2, sticky='news')
         row=row+1
         lblrowheight = Label(frame1,text='Row Height:')
@@ -1979,17 +2221,15 @@ class Table(Canvas):
 
     def loadPrefs(self, prefs=None):
         """Load table specific prefs from the prefs instance used
-           if they are ntafa99
-           ot present, create them."""
+           if they are not present, create them."""
 
         if prefs==None:
             prefs=Preferences('Table',{'check_for_update':1})
         self.prefs = prefs
         defaultprefs = {'horizlines':self.horizlines, 'vertlines':self.vertlines,
-                        'alternaterows':self.alternaterows,
                         'rowheight':self.rowheight,
                         'cellwidth':80,
-                        'autoresizecols': 0,
+                        'autoresizecols': self.autoresizecols,
                         'align': 'w',
                         'celltextsize':10, 'celltextfont':'Arial',
                         'cellbackgr': self.cellbackgr, 'grid_color': self.grid_color,
@@ -2022,8 +2262,8 @@ class Table(Canvas):
         self.horizlinesvar.set(self.prefs.get('horizlines'))
         self.vertlinesvar = IntVar()
         self.vertlinesvar.set(self.prefs.get('vertlines'))
-        self.alternaterowsvar = IntVar()
-        self.alternaterowsvar.set(self.prefs.get('alternaterows'))
+        self.autoresizecolsvar = IntVar()
+        self.autoresizecolsvar.set(self.prefs.get('autoresizecols'))
         self.celltextsizevar = IntVar()
         self.celltextsizevar.set(self.prefs.get('celltextsize'))
         self.cellbackgr = self.prefs.get('cellbackgr')
@@ -2043,8 +2283,8 @@ class Table(Canvas):
             self.horizlines = self.horizlinesvar.get()
             self.prefs.set('vertlines', self.vertlinesvar.get())
             self.vertlines = self.vertlinesvar.get()
-            self.prefs.set('alternaterows', self.alternaterowsvar.get())
-            self.alternaterows = self.alternaterowsvar.get()
+            self.prefs.set('autoresizecols', self.autoresizecolsvar.get())
+            self.autoresizecols = self.autoresizecolsvar.get()
             self.prefs.set('rowheight', self.rowheightvar.get())
             self.rowheight = self.rowheightvar.get()
             self.prefs.set('cellwidth', self.cellwidthvar.get())
@@ -2103,7 +2343,7 @@ class Table(Canvas):
         self.cols = self.model.getColumnCount()
         self.tablewidth = (self.cellwidth)*self.cols
         self.tablecolheader.destroy()
-        self.tablerowheader.destroy()
+        self.rowheader.destroy()
         self.show()
         return
 
@@ -2115,7 +2355,6 @@ class Table(Canvas):
                                     labels=('rows','columns'),
                                     types=('int','int'),
                                     parent=self.parentframe)
-
         if mpDlg.result == True:
             rows = mpDlg.results[0]
             cols = mpDlg.results[1]
@@ -2283,7 +2522,10 @@ class ToolBar(Frame):
         img = images.filtering()
         self.addButton('Query', self.parentapp.queryBar, img, 'filter table')
         img = images.function()
-        self.addButton('Evaluate function', self.parentapp.evalBar, img, 'apply a function')
+        self.addButton('Evaluate function', self.parentapp.evalBar, img, 'calculate new column')
+        img = images.fit()
+        self.addButton('Stats models', self.parentapp.statsViewer, img, 'model fitting')
+
         img = images.table_delete()
         self.addButton('Clear', self.parentapp.clearTable, img, 'clear table')
         img = images.prefs()
@@ -2346,4 +2588,3 @@ class statusBar(Frame):
         self.rowsvar.set(len(model.df))
         self.colsvar.set(len(model.df.columns))
         return
-

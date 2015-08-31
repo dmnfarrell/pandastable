@@ -48,6 +48,8 @@ def dialogFromOptions(parent, opts, groups=None, callback=None,
     c=0
     row=0
     for g in groups:
+        if g == 'hidden':
+            continue
         if horizontal==True:
             row=0; c+=1
         else:
@@ -150,31 +152,29 @@ class MultipleValDialog(simpledialog.Dialog):
                 self.vrs.append(IntVar())
             else:
                 self.vrs.append(StringVar())
+            default = self.initialvalues[i]
             if self.types[i] == 'password':
                 s='*'
             else:
                 s=None
-
             if self.types[i] == 'combobox':
-                choices = self.initialvalues[i]
-                self.vrs[i].set(choices[0])
-                w = Combobox(master, values=choices,
+                self.vrs[i].set(default[0])
+                w = Combobox(master, values=default,
                          textvariable=self.vrs[i],width=14)
                 self.entries.append(w)
             elif self.types[i] == 'listbox':
-                f,w = addListBox(master, values=self.initialvalues[i],width=14)
+                f,w = addListBox(master, values=default,width=14)
                 self.entries.append(f)
                 self.vrs[i] = w #add widget instead of var
             elif self.types[i] == 'checkbutton':
-                self.vrs[i].set(self.initialvalues[i][0])
+                self.vrs[i].set(default)
                 w = Checkbutton(master, text='',
                          variable=self.vrs[i])
                 self.entries.append(w)
-            #elif self.types[i] == 'filename':
-            #    w = Button(master, text="Browse", command=self.loadfile, width=10)
-            #    self.entries.append(w)
             else:
-                self.vrs[i].set(self.initialvalues[i])
+                if default == None:
+                    default=''
+                self.vrs[i].set(default)
                 self.entries.append(Entry(master, textvariable=self.vrs[i], width=10, show=s))
             self.entries[i].grid(row=r, column=1,padx=2,pady=2,sticky='ew')
             if self.tooltips != None:
@@ -193,6 +193,20 @@ class MultipleValDialog(simpledialog.Dialog):
                 self.results.append(self.vrs[i].get())
         return
 
+    def getResults(self, null=None):
+        """Return a dict of options/values"""
+
+        res = dict(zip(self.labels,self.results))
+        #replace null values with None
+        if null != None:
+            for r in res:
+                if res[r] == null: res[r] = None
+        for r in res:
+            try:
+                res[r] = int(res[r])
+            except:
+                pass
+        return res
 
 class ToolTip(object):
     """Tooltip class for tkinter widgets"""
@@ -567,22 +581,26 @@ class EasyListbox(Listbox):
 
 class SimpleEditor(Frame):
     """Simple text editor"""
-    def __init__(self, parent=None, width=100, height=40):
+
+    def __init__(self, parent=None, width=100, height=40, font='monospace 12'):
 
         Frame.__init__(self, parent)
         st = self.text = ScrolledText(self, width=width, height=height)
-        st.pack(in_=self, fill=BOTH, expand=Y)
-        st.config(font='monospace 12')
+        st.pack(in_=self, fill=BOTH, expand=1)
+        st.config(font=font)
         btnform = Frame(self)
-        btnform.pack(fill=BOTH, expand=Y)
+        btnform.pack(fill=BOTH)
         Button(btnform, text='Save',  command=self.onSave).pack(side=LEFT)
         #Button(frm, text='Cut',   command=self.onCut).pack(side=LEFT)
         #Button(frm, text='Paste', command=self.onPaste).pack(side=LEFT)
         Button(btnform, text='Find',  command=self.onFind).pack(side=LEFT)
+        Button(btnform, text='Clear',  command=self.onClear).pack(side=LEFT)
         self.target=''
         return
 
     def onSave(self):
+        """Save text"""
+
         filename = filedialog.asksaveasfilename(defaultextension='.txt',
                                     initialdir=os.path.expanduser('~'),
                                      filetypes=(('Text files', '*.txt'),
@@ -590,6 +608,11 @@ class SimpleEditor(Frame):
         if filename:
             with open(filename, 'w') as stream:
                 stream.write(self.text.get('1.0',END))
+        return
+
+    def onClear(self):
+        """Clear text"""
+        self.text.delete('1.0',END)
         return
 
     def onFind(self):

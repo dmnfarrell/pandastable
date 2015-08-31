@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
-    Implements tests for pandastable.
-    Created Jan 2014
+    Implements the utility methods for pandastable classes.
+    Created August 2015
     Copyright (C) Damien Farrell
 
     This program is free software; you can redistribute it and/or
@@ -19,26 +19,24 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 """
 
-import sys, os
 from tkinter import *
 from tkinter.ttk import *
-import pandas as pd
-from .core import Table
-from .app import ViewerApp
-import unittest
-import unittest.mock
+from tkinter import filedialog, messagebox, simpledialog
+import tkinter.font
+import math, time
+import os, types
+import string, copy
 
-class BasicTest(unittest.TestCase):
-    def setUp(self):
-        return
-    def test(self):
-        app = ViewerApp()
-        app.deleteSheet()
-        app.sampleData()
-        table = app.getCurrentTable()
-        table.selectAll()
-        table.plotSelected()
-        app.quit()
+def getTextLength(text, w, scratch=None):
+    """Get correct canvas text size (chars) that will fit in
+    a given canvas width"""
 
-if __name__ == '__main__':
-    unittest.main()
+    if scratch == None:
+        scratch = Canvas()
+    length = len(str(text))
+    t = scratch.create_text((0,0), text=text)
+    b = scratch.bbox(t)
+    twidth = b[2]-b[0]
+    ratio = length/twidth * 0.85
+    length = math.floor(w*ratio)
+    return length

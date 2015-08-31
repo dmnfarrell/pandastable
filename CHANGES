@@ -3,6 +3,17 @@ CHANGES
 =======
 
 ------
+0.5.0
+------
+
+Model fitting interface using statsmodels
+Added ability to create categorical column
+Clean data options added
+Dialog to apply row-wise functions added to column menu
+Correlation matrix calculator
+Row index header to show index names
+
+------
 0.4.2
 ------
 

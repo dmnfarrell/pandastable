@@ -52,29 +52,49 @@ class PlotViewer(Frame):
             self.master = self.main
             self.main.title('Plot Viewer')
             self.main.protocol("WM_DELETE_WINDOW", self.quit)
-        self.addFigure(self.main)
-        def hide():
+        self.setupGUI()
+        return
+
+    def setupGUI(self):
+        """Add all GUI elements"""
+
+        '''def hide():
             if hidevar.get():
                 self.nb.pack_forget()
+                #self.m.configure(self.plotfr, height=800)
+                #self.m.forget(self.ctrlfr)
             else:
-                self.nb.pack(side=TOP,fill=BOTH)
-        bf = Frame(self.main, padding=2)
+                self.nb.pack(side=TOP,fill=BOTH)'''
+
+        self.m = PanedWindow(self.main, orient=VERTICAL)
+        self.m.pack(fill=BOTH,expand=1)
+        #frame for figure
+        self.plotfr = Frame(self.m)
+        #add it to the panedwindow
+        self.addFigure(self.plotfr)
+        self.m.add(self.plotfr, weight=2)
+        #frame for others
+        self.ctrlfr = Frame(self.main)
+        self.m.add(self.ctrlfr)
+        bf = Frame(self.ctrlfr, padding=2)
         bf.pack(side=TOP,fill=BOTH)
         b = Button(bf, text="Apply", command=self.applyPlotoptions)
         b.pack(side=LEFT,fill=X,expand=1)
-        #general options here?
+
+        #general options in this toolbar?
         self.dpivar = IntVar()
         self.dpivar.set(80)
         Label(bf, text='dpi:').pack(side=LEFT,fill=X,padx=2)
         e = Entry(bf, textvariable=self.dpivar, width=5)
         e.pack(side=LEFT,padx=2)
-        hidevar = IntVar()
-        c = Checkbutton(bf,text='Hide Options', command=hide, variable=hidevar)
-        c.pack(side=LEFT,fill=X,expand=1)
-        self.nb = Notebook(self.main)
+        #hidevar = IntVar()
+        #c = Checkbutton(bf,text='Hide Options', command=hide, variable=hidevar)
+        #c.pack(side=LEFT,fill=X,expand=1)
+        self.nb = Notebook(self.ctrlfr)
         self.nb.bind('<<NotebookTabChanged>>', self.setMode)
         self.nb.pack(side=TOP,fill=BOTH)
 
+        #add plotter tools (or other extensions?)
         self.mplopts = MPLBaseOptions(parent=self)
         w1 = self.mplopts.showDialog(self.nb)
         self.nb.add(w1, text='base plot options', sticky='news')
@@ -82,7 +102,7 @@ class PlotViewer(Frame):
         w2 = self.mplopts3d.showDialog(self.nb)
         self.nb.add(w2, text='3D plot', sticky='news')
         '''if self._importSeaborn() == 1:
-            self.factorplotter = FactorPlotter()
+            self.factorplotter = FactorPlotter(parent=self)
             w3 = self.factorplotter.showDialog(self.nb)
             self.nb.add(w3, text='factor plots', sticky='news')'''
         return
@@ -103,6 +123,7 @@ class PlotViewer(Frame):
 
     def applyPlotoptions(self):
         """Apply the current plotter/options"""
+
         if self.mode == 0:
             self.mplopts.applyOptions()
         elif self.mode == 1:
@@ -110,13 +131,13 @@ class PlotViewer(Frame):
         #elif self.mode == 2:
         #    self.factorplotter.applyOptions()
         #other opts?
-        print (self.dpivar.get())
         mpl.rcParams['savefig.dpi'] = self.dpivar.get()
         self.plotCurrent()
         return
 
     def addFigure(self, parent, figure=None):
         """Add the tk figure canvas"""
+
         from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
         from matplotlib.figure import Figure
         if hasattr(self,'canvas'):
@@ -139,6 +160,7 @@ class PlotViewer(Frame):
         return
 
     def setFigure(self, f=None):
+
         from matplotlib.figure import Figure
         if f == None:
             self.fig = f = Figure(figsize=(5,4), dpi=100)
@@ -154,6 +176,7 @@ class PlotViewer(Frame):
 
     def plotCurrent(self):
         """Plot current data"""
+
         if self.mode == 0:
             #self.setFigure()
             self.plot2D()
@@ -196,7 +219,7 @@ class PlotViewer(Frame):
                              'kind','rot','logx'],
                     'density': ['alpha', 'colormap', 'grid', 'legend', 'linestyle',
                                  'linewidth', 'marker', 'subplots', 'rot', 'kind'],
-                    'boxplot': ['alpha', 'linewidth', 'rot', 'grid'],
+                    'boxplot': ['rot', 'grid', 'logy'],
                     'scatter_matrix':['alpha', 'linewidth', 'marker', 'grid', 's'],
                     }
 
@@ -205,12 +228,14 @@ class PlotViewer(Frame):
         if self._checkNumeric(data) == False:
             self.showWarning('no numeric data to plot')
             return
+        #get all options from the mpl options object
         kwds = self.mplopts.kwds
         kind = kwds['kind']
         by = kwds['by']
         by2 = kwds['by2']
+
         #valid kwd args for this plot type
-        kwargs = dict((k, kwds[k]) for k in valid[kind])
+        kwargs = dict((k, kwds[k]) for k in valid[kind] if k in kwds)
         self.fig.clear()
         self.ax = ax = self.fig.add_subplot(111)
 
@@ -266,7 +291,7 @@ class PlotViewer(Frame):
         return
 
     def _doplot(self, data, ax, kind, subplots, kwargs):
-        """Do actual plotting"""
+        """Do core plotting"""
 
         cols = data.columns
         rows = int(round(np.sqrt(len(data.columns)),0))
@@ -291,7 +316,10 @@ class PlotViewer(Frame):
                 for a in self.fig.axes:
                     a.set_ylim(lims)
         elif kind == 'boxplot':
-            axs = data.boxplot(ax=ax)
+            axs = data.boxplot(ax=ax, rot=kwargs['rot'], grid=kwargs['grid'])
+            #boxplot won't accept required kwargs?
+            if kwargs['logy'] == 1:
+                ax.set_yscale('log')
         elif kind == 'histogram':
             bins = int(kwargs['bins'])
             axs = data.plot(kind='hist',layout=layout, ax=ax, **kwargs)
@@ -322,6 +350,7 @@ class PlotViewer(Frame):
         s=1
         plots = len(cols)
         cmap = plt.cm.get_cmap(kwds['colormap'])
+        lw = kwds['linewidth']
         if marker == '':
             marker = 'o'
         if kwds['subplots'] == 1:
@@ -339,8 +368,8 @@ class PlotViewer(Frame):
                 ec='black'
             if kwds['subplots'] == 1:
                 ax = self.fig.add_subplot(nrows,ncols,i)
-            ax.scatter(x, y, marker=marker, alpha=alpha, linewidth=kwds['linewidth'],
-                       s=kwds['s'], color=c, edgecolor=ec)
+            ax.scatter(x, y, marker=marker, alpha=alpha, linewidth=lw,
+                       s=kwds['s'], edgecolor=ec, color=c)
             ax.set_xlabel(cols[0])
             if kwds['logx'] == 1:
                 ax.set_xscale('log')
@@ -364,6 +393,7 @@ class PlotViewer(Frame):
         ax.set_yticks(np.arange(0.5, len(X.index)))
         ax.set_xticklabels(X.columns, minor=False)
         ax.set_yticklabels(X.index, minor=False)
+        ax.set_ylim(0, len(X.index))
         return
 
     def plot3D(self):
@@ -417,41 +447,40 @@ class PlotViewer(Frame):
         return
 
     def factorPlot(self):
-        """Seaborn facet grid plots"""
+        """Seaborn facet grid plots for categorical plotting. Uses pandas
+        melt method to convert the dataframe into a format where one or more
+        columns are identifier variables (id_vars), while all other columns
+        measured variables (value_vars), unpivoted to the row axis."""
 
         import seaborn as sns
         if not hasattr(self, 'data'):
             return
+        kwds = self.factorplotter.kwds
         df = self.data
-        labels = list(df.columns)
         dtypes = list(df.dtypes)
-        x='id'
-        print (labels)
-        hue='label'
-        col='var'
-        row=None
+        col = kwds['col']
+        hue = kwds['hue']
         wrap=2
-        kind='auto'
+        kind = kwds['kind']
+        x = kwds['x']
         aspect = 1.0
-
-        print (df[:10])
-        tm = pd.melt(df,id_vars=['label'],
-                     var_name='var',value_name='x')
-        print (tm[:10])
-
-        '''plots = len(df[col].unique())
-        wrap=int(wrap)
-        if plots == 1 or wrap==1:
-            row=col
-            col=None
-            wrap=None
+        palette=kwds['palette']
+        print (df.dtypes)
+        labels = list(df.select_dtypes(include=['object','category']).columns)
+        print(labels)
+        #print (df[:10])
+        t = pd.melt(df,id_vars=labels,
+                     var_name='var',value_name='value')
+        print (t[10:20])
         if hue == '':
-            hue=None'''
+            hue=None
+        if col == '':
+            col=None
         plt.clf()
-        g = sns.factorplot('label','x',data=tm, hue=hue, row=row, col=col,
-                                col_wrap=wrap, kind=kind,size=3, aspect=float(aspect),
-                                legend_out=True,sharey=False,palette='Spectral')
 
+        g = sns.factorplot(x=x,y='value',data=t, hue=hue, col=col,
+                            col_wrap=wrap, kind=kind,size=3, aspect=float(aspect),
+                            legend_out=True,sharey=False,palette=palette)
         #rotateLabels(g)
         self.fig.clear()
         #need to reset the current figure
@@ -463,6 +492,8 @@ class PlotViewer(Frame):
 
         df = self.table.model.df
         self.mplopts.update(df)
+        if hasattr(self, 'factorplotter'):
+            self.factorplotter.update(df)
         return
 
     def savePlot(self):
@@ -484,9 +515,11 @@ class PlotViewer(Frame):
         self.currfilename = filename
         return
 
-    def showWarning(self, s='plot error'):
-        self.ax.clear()
-        self.ax.text(.5, .5, s,transform=self.ax.transAxes,
+    def showWarning(self, s='plot error', ax=None):
+        if ax==None:
+            ax=self.ax
+        ax.clear()
+        ax.text(.5, .5, s,transform=self.ax.transAxes,
                        horizontalalignment='center', color='blue', fontsize=16)
         self.canvas.draw()
         return
@@ -550,6 +583,7 @@ class MPLBaseOptions(object):
     linestyles = ['-','--','-.',':','steps']
     kinds = ['line', 'scatter', 'bar', 'barh', 'pie', 'histogram', 'boxplot',
              'heatmap', 'area', 'hexbin', 'scatter_matrix', 'density']
+    defaultfont = 'monospace'
 
     def __init__(self, parent=None):
         """Setup variables"""
@@ -558,7 +592,7 @@ class MPLBaseOptions(object):
         df = self.parent.table.model.df
         datacols = list(df.columns)
         datacols.insert(0,'')
-        fonts = self.getFonts()
+        fonts = getFonts()
         grps = {'data':['bins','by','by2','use_index'],
                 'styles':['font','colormap','alpha','grid'],
                 'sizes':['fontsize','s','linewidth'],
@@ -567,11 +601,11 @@ class MPLBaseOptions(object):
                 'labels':['title','xlabel','ylabel','legend']}
         order = ['data','formats','sizes','axes','styles','labels']
         self.groups = OrderedDict(sorted(grps.items()))
-        opts = self.opts = {'font':{'type':'combobox','default':'Arial','items':fonts},
+        opts = self.opts = {'font':{'type':'combobox','default':self.defaultfont,'items':fonts},
                 'fontsize':{'type':'scale','default':12,'range':(5,40),'interval':1,'label':'font size'},
                 'marker':{'type':'combobox','default':'','items':self.markers},
                 'linestyle':{'type':'combobox','default':'-','items':self.linestyles},
-                's':{'type':'scale','default':30,'range':(5,500),'interval':10,'label':'marker size'},
+                's':{'type':'scale','default':30,'range':(1,500),'interval':10,'label':'marker size'},
                 'grid':{'type':'checkbutton','default':0,'label':'show grid'},
                 'logx':{'type':'checkbutton','default':0,'label':'log x'},
                 'logy':{'type':'checkbutton','default':0,'label':'log y'},
@@ -593,7 +627,7 @@ class MPLBaseOptions(object):
                 'colormap':{'type':'combobox','default':'jet','items':colormaps},
                 'bins':{'type':'entry','default':20,'width':10},
                 'by':{'type':'combobox','items':datacols,'label':'group by','default':''},
-                'by2':{'type':'combobox','items':datacols,'label':'group by 2','default':''},
+                'by2':{'type':'combobox','items':datacols,'label':'group by 2','default':''}
                 }
         return
 
@@ -628,14 +662,6 @@ class MPLBaseOptions(object):
         self.applyOptions()
         return dialog
 
-    def getFonts(self):
-        """Get the current list of system fonts"""
-
-        import tkinter.font
-        fonts = set(list(tkinter.font.families()))
-        fonts = sorted(list(fonts))
-        return fonts
-
     def update(self, df):
         """Update data widget(s)"""
 
@@ -649,6 +675,7 @@ class MPL3DOptions(object):
     """Class to provide 3D matplotlib options"""
 
     kinds = ['scatter', 'bar', 'bar3d', 'surface', 'contour']
+    defaultfont = 'monospace'
 
     def __init__(self, parent=None):
         """Setup variables"""
@@ -657,12 +684,12 @@ class MPL3DOptions(object):
         df = self.parent.table.model.df
         datacols = list(df.columns)
         datacols.insert(0,'')
-        fonts = self.getFonts()
+        fonts = getFonts()
         self.groups = grps = {'styles':['font','fontsize','colormap','alpha'],
                             'formats':['kind','title','xlabel','ylabel','zlabel'],}
                             #'data':['by','subplots']}
 
-        opts = self.opts = {'font':{'type':'combobox','default':'Arial','items':fonts},
+        opts = self.opts = {'font':{'type':'combobox','default':self.defaultfont,'items':fonts},
                 'fontsize':{'type':'scale','default':12,'range':(5,40),'interval':1,'label':'font size'},
                 'kind':{'type':'combobox','default':'scatter','items':self.kinds,'label':'kind'},
                 'alpha':{'type':'scale','default':0.8,'range':(0,1),'interval':0.1,'label':'alpha'},
@@ -693,37 +720,30 @@ class MPL3DOptions(object):
         self.applyOptions()
         return dialog
 
-    def getFonts(self):
-        """Get the current list of system fonts"""
-
-        import tkinter.font
-        fonts = set(list(tkinter.font.families()))
-        fonts = sorted(list(fonts))
-        return fonts
-
 class FactorPlotter(object):
     """Provides seaborn factor plots"""
-    def __init__(self, data=None):
+    def __init__(self, parent=None):
         """Setup variables"""
 
-        self.data=data
+        self.parent = parent
+        df = self.parent.table.model.df
+        datacols = list(df.columns)
         self.setDefaultStyle()
         self.groups = grps = {'formats':['style','despine','palette'],
-                'factors':['kind','hue','x']}
+                'factors':['kind','hue','col','x']}
         styles = ['darkgrid', 'whitegrid', 'dark', 'white', 'ticks']
-        kinds = ['auto','bar']
+        kinds = ['point', 'bar', 'count', 'box', 'violin', 'strip']
         palettes = ['Spectral','cubehelix','hls','hot','coolwarm','copper',
                     'winter','spring','summer','autumn','Greys','Blues','Reds',
-                    'Set1','Accent']
-        if self.data is not None:
-            cols = self.data.columns
+                    'Set1','Set2','Accent']
 
-        self.opts = {'style': {'type':'combobox','default':'whitegrid','items':styles},
+        self.opts = {'style': {'type':'combobox','default':'white','items':styles},
                      'despine': {'type':'checkbutton','default':0,'label':'despine'},
                      'palette': {'type':'combobox','default':'Spectral','items':palettes},
-                     'kind': {'type':'combobox','default':'auto','items':kinds},
-                     'x': {'type':'combobox','default':'auto','items':kinds},
-                     'hue': {'type':'combobox','default':'auto','items':kinds},
+                     'kind': {'type':'combobox','default':'bar','items':kinds},
+                     'col': {'type':'combobox','default':'','items':datacols},
+                     'hue': {'type':'combobox','default':'','items':datacols},
+                     'x': {'type':'combobox','default':'','items':datacols},
                         }
         return
 
@@ -731,7 +751,7 @@ class FactorPlotter(object):
         """Auto create tk vars, widgets for corresponding options and
            and return the frame"""
 
-        dialog, self.tkvars, w = dialogFromOptions(parent, self.opts, self.groups)
+        dialog, self.tkvars, self.widgets = dialogFromOptions(parent, self.opts, self.groups)
         #self.applyOptions()
         return dialog
 
@@ -740,6 +760,9 @@ class FactorPlotter(object):
         import seaborn as sns
         kwds = {}
         for i in self.opts:
+            if self.opts[i]['type'] == 'listbox':
+                items = self.widgets[i].curselection()
+                kwds[i] = [self.widgets[i].get(j) for j in items]
             kwds[i] = self.tkvars[i].get()
         self.kwds = kwds
         sns.set_style(self.kwds['style'])
@@ -753,3 +776,25 @@ class FactorPlotter(object):
         sns.set_context("paper", rc={'legend.fontsize':16,'xtick.labelsize':12,
                         'ytick.labelsize':12,'axes.labelsize':14,'axes.titlesize':16})
         return
+
+    def update(self, df):
+        """Update data widget(s)"""
+
+        cols = list(df.columns)
+        cols += ''
+        self.widgets['hue']['values'] = cols
+        self.widgets['col']['values'] = cols
+        self.widgets['x']['values'] = cols
+        return
+
+def getFonts():
+     """Get the current list of system fonts"""
+
+     import matplotlib.font_manager
+     l = matplotlib.font_manager.get_fontconfig_fonts()
+     fonts = [matplotlib.font_manager.FontProperties(fname=fname).get_name() for fname in l]
+     fonts = list(set(fonts))
+     fonts.sort()
+     #f = matplotlib.font_manager.FontProperties(family='monospace')
+     #print (matplotlib.font_manager.findfont(f))
+     return fonts

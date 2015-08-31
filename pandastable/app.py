@@ -75,6 +75,7 @@ class ViewerApp(Frame):
         self.main.title('DataExplore')
         self.createMenuBar()
         self.setupGUI()
+        self.clipboarddf = None
 
         if data != None:
             self.data = data
@@ -119,7 +120,7 @@ class ViewerApp(Frame):
         """Create the menu bar for the application. """
 
         self.menu=Menu(self.main)
-        self.proj_menu={'01New':{'cmd':self.newProject},
+        self.proj_menu={'01New':{'cmd': lambda : self.newProject(current=True)},
                         '02Open':{'cmd':self.openProject},
                         '03Close':{'cmd':self.closeProject},
                         '04Save':{'cmd':self.saveProject},
@@ -138,15 +139,25 @@ class ViewerApp(Frame):
         self.sheet_menu=self.createPulldown(self.menu,self.sheet_menu)
         self.menu.add_cascade(label='Sheet',menu=self.sheet_menu['var'])
 
+        self.edit_menu={'01Copy Table':{'cmd': self.copyTable},
+                        '02Paste Table':{'cmd':self.pasteTable},
+                        '03Paste as Subtable':{'cmd': lambda: self.pasteTable(subtable=True)}
+                         }
+        self.edit_menu = self.createPulldown(self.menu,self.edit_menu)
+        self.menu.add_cascade(label='Edit',menu=self.edit_menu['var'])
+
         self.table_menu={'01Describe Table':{'cmd':self.describe},
-                         '02Convert Column Names':{'cmd':self.convertColumns},
-                         '03Convert Numeric':{'cmd':self.convertNumeric},
-                         '04Concatenate Tables':{'cmd':self.concat},
-                         '05Table to Text':{'cmd':self.printTable}}
+                         '02Convert Column Names':{'cmd':lambda: self._call('convertColumnNames')},
+                         '03Convert Numeric':{'cmd': lambda: self._call('convertNumeric')},
+                         '04Clean Data': {'cmd': lambda: self._call('cleanData')},
+                         '05Correlation Matrix':{'cmd': lambda: self._call('corrMatrix')},
+                         '06Concatenate Tables':{'cmd':self.concat},
+                         '07Table to Text':{'cmd': lambda: self._call('showasText')},
+                         '08Table Info':{'cmd': lambda: self._call('showInfo')} }
         self.table_menu=self.createPulldown(self.menu,self.table_menu)
         self.menu.add_cascade(label='Table',menu=self.table_menu['var'])
 
-        self.tools_menu={'01Batch Rename':{'cmd':self.fileRename},
+        self.tools_menu={'01Batch File Rename':{'cmd':self.fileRename},
                          }
         self.tools_menu=self.createPulldown(self.menu,self.tools_menu)
         self.menu.add_cascade(label='Tools',menu=self.tools_menu['var'])
@@ -155,10 +166,10 @@ class ViewerApp(Frame):
                          '03Iris Data':{'cmd': lambda: self.getData('iris.mpk')},
                          '03Tips Data':{'cmd': lambda: self.getData('tips.mpk')},
                          '04Stacked Data':{'cmd':self.getStackedData},
-                         '05CSO IE employment':
-                             {'cmd': lambda: self.getData('cso_employment.mpk')},
-                         '06Eurostat popdensity by NUTS':
-                             {'cmd':lambda: self.getData('eurostat_popdensity_by_NUTS.mpk')}
+                         '05Pima Diabetes':
+                             {'cmd': lambda: self.getData('pima.mpk')},
+                         '06Titanic':
+                             {'cmd': lambda: self.getData('titanic3.mpk')},
                          }
         self.dataset_menu=self.createPulldown(self.menu,self.dataset_menu)
         self.menu.add_cascade(label='Datasets',menu=self.dataset_menu['var'])
@@ -197,9 +208,9 @@ class ViewerApp(Frame):
                 command=None
                 if 'cmd' in dict[item]:
                     command=dict[item]['cmd']
-
                 if 'sc' in dict[item]:
-                    var.add_command(label='%-25s %9s' %(item[2:],dict[item]['sc']),command=command)
+                    var.add_command(label='%-25s %9s' %(item[2:],dict[item]['sc']),
+                                    command=command)
                 else:
                     var.add_command(label='%-25s' %(item[2:]),command=command)
         dict['var']=var
@@ -355,7 +366,9 @@ class ViewerApp(Frame):
 
     def copySheet(self, newname=None):
         """Copy a sheet"""
-        newdata = self.currenttable.model.df
+
+        currenttable = self.getCurrentTable()
+        newdata = currenttable.model.df
         if newname == None:
             self.addSheet(None, newdata)
         else:
@@ -376,6 +389,7 @@ class ViewerApp(Frame):
         return
 
     def getCurrentTable(self):
+
         s = self.nb.index(self.nb.select())
         name = self.nb.tab(s, 'text')
         table = self.sheets[name]
@@ -388,26 +402,6 @@ class ViewerApp(Frame):
         df = table.model.df
         d = df.describe()
         table.createChildTable(d,index=True)
-        return
-
-    def printTable(self):
-        """Print table"""
-        table = self.getCurrentTable()
-        table.showasText()
-        return
-
-    def convertColumns(self):
-        table = self.getCurrentTable()
-        table.convertColumnNames()
-        return
-
-    def convertNumeric(self):
-        table = self.getCurrentTable()
-        table.convertNumeric()
-        return
-
-    def merge(self):
-
         return
 
     def concat(self):
@@ -455,7 +449,33 @@ class ViewerApp(Frame):
         """Start file renaming util"""
         from .rename import BatchRenameApp
         br = BatchRenameApp(self.master)
+        return
 
+    def copyTable(self):
+        """Copy current table dataframe"""
+        table = self.getCurrentTable()
+        self.clipboarddf = table.model.df.copy()
+        return
+
+    def pasteTable(self, subtable=False):
+        """Paste copied dataframe into current table"""
+
+        #add warning?
+        if self.clipboarddf is None:
+            return
+        df = self.clipboarddf
+        table = self.getCurrentTable()
+        if subtable == True:
+            table.createChildTable(df)
+        else:
+            model = TableModel(df)
+            table.updateModel(model)
+        return
+
+    def _call(self, func):
+        """Call a table function from it's string name"""
+        table = self.getCurrentTable()
+        getattr(table, func)()
         return
 
     def about(self):
