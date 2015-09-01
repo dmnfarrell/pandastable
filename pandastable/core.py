@@ -820,13 +820,93 @@ class Table(Canvas):
             new = func(**p)
         return new
 
+    def applyStringMethod(self):
+        """Apply string operation to column(s)"""
+
+        df = self.model.df
+        cols = list(df.columns[self.multiplecollist])
+        col = cols[0]
+        funcs = ['','split','strip','lower','upper','title','swapcase','len','join',
+                 'slice','replace']
+        d = MultipleValDialog(title='Apply Function',
+                                initialvalues=(funcs,',',0,1,'','',0),
+                                labels=('Function:',
+                                        'Split sep:',
+                                        'Slice start:',
+                                        'Slice end:',
+                                        'Pattern:',
+                                        'Replace with:',
+                                        'Add as new column(s):'),
+                                types=('combobox','string','int',
+                                       'int','string','string','checkbutton'),
+                                tooltips=(None,'separator for split',
+                                          'start index for slice',
+                                          'end index for slice',
+                                          'characters or regular expression for replace',
+                                          'characters to replace with',
+                                          'do not replace column'),
+                                parent = self.parentframe)
+        if d.result == None:
+            return
+        func = d.results[0]
+        sep = d.results[1]
+        start = d.results[2]
+        end = d.results[3]
+        pat = d.results[4]
+        repl = d.results[5]
+        newcol = d.results[6]
+        if func == 'split':
+            new = df[col].str.split(sep).apply(pd.Series)
+            new.columns = [col+'_'+str(i) for i in new.columns]
+            self.model.df = pd.concat([df,new],1)
+            self.redraw()
+            return
+        elif func == 'strip':
+            x = df[col].str.strip()
+        elif func == 'upper':
+            x = df[col].str.upper()
+        elif func == 'lower':
+            x = df[col].str.lower()
+        elif func == 'title':
+            x = df[col].str.title()
+        elif func == 'swapcase':
+            x = df[col].str.swapcase()
+        elif func == 'len':
+            x = df[col].str.len()
+        elif func == 'slice':
+            x = df[col].str.slice(start,end)
+        elif func == 'replace':
+            x = df[col].replace(pat, repl)
+        if newcol == 1:
+            col = col+'_'+func
+        df[col] = x
+        self.redraw()
+        return
+
     def showAll(self):
         """Re-show unfiltered"""
+
         if hasattr(self, 'dataframe'):
             self.model.df = self.dataframe
         self.filtered = False
         self.redraw()
         return
+
+    def statsViewer(self):
+        """Show model fitting dialog"""
+
+        from .stats import StatsViewer
+        if StatsViewer._doimport() == 0:
+            messagebox.showwarning("no such module",
+                                    "statsmodels is not installed.",
+                                    parent=self.parentframe)
+            return
+
+        if not hasattr(self, 'sv') or self.sv == None:
+            sf = self.statsframe = Frame(self.parentframe)
+            sf.grid(row=self.queryrow+1,column=0,columnspan=3,sticky='news')
+            self.sv = StatsViewer(table=self,parent=sf)
+        return self.sv
 
     def query(self, evt=None):
         """Do query"""
@@ -856,7 +936,8 @@ class Table(Canvas):
         if hasattr(self, 'qframe') and self.qframe != None:
             return
         qf = self.qframe = Frame(self.parentframe)
-        self.qframe.grid(row=self.queryrow,column=1,sticky='news')
+        self.qframe.grid(row=self.queryrow,column=0,columnspan=3,sticky='news')
+        Label(qf, text='Query:').pack(side=LEFT)
         self.queryvar = StringVar()
         e = Entry(qf, textvariable=self.queryvar, font="Courier 12 bold")#, validatecommand=self.query)
         e.bind('<Return>', self.query)
@@ -953,34 +1034,6 @@ class Table(Canvas):
         self.redraw()
         self.drawSelectedCol(self.currentcol)
         return
-
-    def get_currentRecord(self):
-        """Get the currently selected record"""
-        rec = self.model.getRecordAtRow(self.currentrow)
-        return rec
-
-    def get_currentColName(self):
-        """Get the currently selected record name"""
-        colname = self.mo(self.currentcol)
-        return colname
-
-    def get_currentRecordName(self):
-        """Get the currently selected record name"""
-        recname = self.model.getRecName(self.currentrow)
-        return recname
-
-    def get_selectedRecordNames(self):
-        """Get a list of the current multiple selection, if any"""
-        recnames=[]
-        for row in self.multiplerowlist:
-            recnames.append(self.model.getRecName(row))
-        return recnames
-
-    def get_currentRecCol(self):
-        """Get the clicked rec and col names as a tuple"""
-        recname = self.get_currentRecordName()
-        colname = self.get_currentColName()
-        return (recname, colname)
 
     def get_row_clicked(self, event):
         """get row where event on canvas occurs"""
@@ -1506,12 +1559,15 @@ class Table(Canvas):
 
     def convertNumeric(self):
         """Convert cols to numeric if possible"""
+
         df = self.model.df
         self.model.df = df.convert_objects(convert_numeric='force')
         self.redraw()
         return
 
     def corrMatrix(self):
+        """Correlation matrix"""
+
         df = self.model.df
         corr = df.corr()
         self.createChildTable(corr)
@@ -1571,7 +1627,7 @@ class Table(Canvas):
         w = Toplevel(self.parentframe)
         w.grab_set()
         w.transient(self)
-        ed = SimpleEditor(w, height=25, font='monospace 12')
+        ed = SimpleEditor(w, height=25)
         ed.pack(in_=w, fill=BOTH, expand=Y)
         ed.text.insert(END, buf.getvalue())
         return
@@ -1745,22 +1801,6 @@ class Table(Canvas):
         if not hasattr(self, 'pf'):
             self.pf = PlotViewer(table=self, parent=parent)
         return self.pf
-
-    def statsViewer(self):
-        """Show model fitting dialog"""
-
-        from .stats import StatsViewer
-        if StatsViewer._doimport() == 0:
-            messagebox.showwarning("no such module",
-                                    "statsmodels is not installed.",
-                                    parent=self.parentframe)
-            return
-
-        if not hasattr(self, 'sv') or self.sv == None:
-            sf = self.statsframe = Frame(self.parentframe)
-            sf.grid(row=self.queryrow,column=0,columnspan=3,sticky='news')
-            self.sv = StatsViewer(table=self,parent=sf)
-        return self.sv
 
     def hidePlot(self):
         """Hide plot frame"""

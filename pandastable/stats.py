@@ -74,17 +74,17 @@ class StatsViewer(Frame):
         e = Entry(ef, textvariable=self.formulavar, font="Courier 13 bold")
         e.pack(side=LEFT,fill=BOTH,expand=1)
 
-        bf = Frame(self.main, padding=2)
-        bf.pack(side=TOP,fill=BOTH)
-        Label(bf,text='model type:').pack(side=LEFT,padx=2)
+        f = Frame(self.main, padding=2)
+        f.pack(side=TOP,fill=BOTH)
+        Label(f,text='model type:').pack(side=LEFT,padx=2)
         self.modelvar = StringVar()
         self.modelvar.set('ols')
-        c = Combobox(bf, values=['ols','gls','logit'], width=4,
+        c = Combobox(f, values=['ols','gls','logit'], width=4,
                        textvariable=self.modelvar)
         c.pack(side=LEFT,fill=BOTH,expand=1)
 
-        f = Frame(self.main, padding=2)
-        f.pack(side=TOP,fill=BOTH)
+        #f = Frame(self.main, padding=2)
+        #f.pack(side=TOP,fill=BOTH)
         b = Button(f, text="Fit", command=self.doFit)
         b.pack(side=LEFT,fill=X,expand=1)
         b = Button(f, text="Summary", command=self.summary)
@@ -139,9 +139,8 @@ class StatsViewer(Frame):
         """Do model fit on selected subset of rows. Will only use
         the currently selected rows for fitting."""
 
-        #out of sample data
         df = self.table.model.df
-        #sub sample to fit
+        #sub sample of data to fit
         self.sub = s = self.table.getSelectedDataFrame()
         s = s.convert_objects(convert_numeric='force')
         if len(s) == 0 or len(s.columns)<1:

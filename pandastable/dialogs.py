@@ -20,6 +20,7 @@
 """
 
 import sys,os,types
+import platform
 import tkinter
 from tkinter import *
 from tkinter.ttk import *
@@ -582,11 +583,16 @@ class EasyListbox(Listbox):
 class SimpleEditor(Frame):
     """Simple text editor"""
 
-    def __init__(self, parent=None, width=100, height=40, font='monospace 12'):
+    def __init__(self, parent=None, width=100, height=40, font=None):
 
         Frame.__init__(self, parent)
         st = self.text = ScrolledText(self, width=width, height=height)
         st.pack(in_=self, fill=BOTH, expand=1)
+        if font == None:
+            if 'windows' in platform.system():
+                font = ('Courier New',10)
+            else:
+                font = 'monospace 10'
         st.config(font=font)
         btnform = Frame(self)
         btnform.pack(fill=BOTH)

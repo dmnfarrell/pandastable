@@ -10,8 +10,10 @@ Model fitting interface using statsmodels
 Added ability to create categorical column
 Clean data options added
 Dialog to apply row-wise functions added to column menu
+String operations added to column menu
 Correlation matrix calculator
 Row index header to show index names
+Convenient copy and paste table menu items for DataExplore
 
 ------
 0.4.2
