@@ -701,6 +701,7 @@ class Table(Canvas):
             prefix=None
         if dummies == 1:
             new = pd.get_dummies(df[col], prefix=prefix)
+            new.columns = new.columns.astype(str)
             self.model.df = pd.concat([df,new],1)
         elif convert == 1:
             df[name] = pd.Categorical(df[col]).codes

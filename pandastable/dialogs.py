@@ -589,7 +589,7 @@ class SimpleEditor(Frame):
         st = self.text = ScrolledText(self, width=width, height=height)
         st.pack(in_=self, fill=BOTH, expand=1)
         if font == None:
-            if 'windows' in platform.system():
+            if 'Windows' in platform.system():
                 font = ('Courier New',10)
             else:
                 font = 'monospace 10'

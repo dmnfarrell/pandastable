@@ -78,8 +78,6 @@ class StatsViewer(Frame):
                        textvariable=self.modelvar)
         c.pack(side=LEFT,fill=BOTH,expand=1)
 
-        #f = Frame(self.main, padding=2)
-        #f.pack(side=TOP,fill=BOTH)
         b = Button(f, text="Fit", command=self.doFit)
         b.pack(side=LEFT,fill=X,expand=1)
         b = Button(f, text="Summary", command=self.summary)
@@ -211,20 +209,20 @@ class StatsViewer(Frame):
         depvar = self.model.endog_names
         if indvar == '':
             indvar = self.model.exog_names[1]
-        #df = df.sort(indvar)
+
         #out of sample points
         out = data.ix[-data.index.isin(sub.index)]
-        print (out)
+        #print (out)
         x = sub[indvar]
         y = sub[depvar]
         xout = out[indvar]
         yout = out[depvar]
-        X1 = pd.DataFrame({indvar : np.linspace(xout.min(), xout.max(), 100)})
-
+        #X1 = pd.DataFrame({indvar : np.linspace(xout.min(), xout.max(), 100)})
         for i, r in data.iterrows():
             vals = np.linspace(r.min(), r.max(), 100)
 
-        X1 = sm.add_constant(X1)
+        X1 = sm.add_constant(out)
+        X1 = X1.sort(depvar)
         #predict out of sample
         y1 = fit.predict(X1)
 
@@ -233,15 +231,15 @@ class StatsViewer(Frame):
             marker='o'
         s=kwds['s']
         cmap = plt.cm.get_cmap(kwds['colormap'])
-        ax.scatter(x, y, alpha=0.7, color=cmap(.2), label='fitted data',
+        ax.scatter(x, y, alpha=0.6, color=cmap(.2), label='fitted data',
                     marker=marker,s=s)
         ax.scatter(xout, yout, alpha=0.3, color='gray', label='out of sample',
                    marker=marker,s=s)
         ax.set_xlabel(indvar)
         ax.set_ylabel(depvar)
-        #print (X1)
+
         x1 = X1[indvar]
-        ax.plot(x1, y1, 'r', lw=2, alpha=0.9, color=cmap(.8), label='fit')
+        ax.plot(x1, y1, 'ro', lw=1, alpha=0.6, color=cmap(.8), label='fit')
         #print(fit.params)
         i=0.05
         for k,p in fit.params.iteritems():
@@ -280,7 +278,7 @@ class StatsViewer(Frame):
                 self.fitinfo = None
                 self.w.destroy()
             w.protocol("WM_DELETE_WINDOW", deletewin)
-            self.fitinfo = SimpleEditor(w, height=25, width=80, font='monospace 10')
+            self.fitinfo = SimpleEditor(w, height=25, width=80)
             self.fitinfo.pack(in_=w, fill=BOTH, expand=Y)
 
         self.fitinfo.text.insert(END, s)
