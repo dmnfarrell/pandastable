@@ -3,21 +3,23 @@ from cx_Freeze import setup, Executable
 
 sys.path.append('pandastable')
 
-includes = ["pandastable"]
+includes = ["pandastable","scipy.integrate.vode","scipy.integrate.lsoda","scipy.linalg"]
 includefiles = ["pandastable/dataexplore.gif","pandastable/datasets"]
 
 # Dependencies are automatically detected, but it might need fine tuning.
-build_exe_options = {"packages": ["os","numpy","matplotlib","pandas","pandastable"],
+build_exe_options = {"packages": ["os","numpy","matplotlib","pandas",
+                                  "statsmodels","pandastable"],
                      "excludes": [],
-                     "namespace_packages": ['mpl_toolkits'],
+                     "namespace_packages": ['mpl_toolkits','scipy'],
                      "include_msvcr": True,
                      "includes": includes,
                      "include_files": includefiles}
 
 base = None
 if sys.platform == "win32":
+    #base = None
     base = "Win32GUI"
-
+    
 executables = [Executable("main.py", base=base,
                           copyDependentFiles = True,
                           targetName='DataExplore.exe',
