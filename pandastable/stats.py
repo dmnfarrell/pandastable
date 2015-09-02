@@ -45,6 +45,7 @@ class StatsViewer(Frame):
         self.table = table
         self.table.sv = self
         self.fit = None
+        self.model = None
         if self.parent != None:
             Frame.__init__(self, parent)
             self.main = self.master
@@ -71,7 +72,7 @@ class StatsViewer(Frame):
 
         f = Frame(self.main, padding=2)
         f.pack(side=TOP,fill=BOTH)
-        Label(f,text='model type:').pack(side=LEFT,padx=2)
+        Label(f,text='estimator:').pack(side=LEFT,padx=2)
         self.modelvar = StringVar()
         self.modelvar.set('ols')
         c = Combobox(f, values=['ols','gls','logit'], width=4,
@@ -139,7 +140,7 @@ class StatsViewer(Frame):
         if len(s) == 0 or len(s.columns)<1:
             return
 
-        formula = self.formulavar.get()
+        self.formula = formula = self.formulavar.get()
         kind = self.modelvar.get()
 
         try:
@@ -150,6 +151,7 @@ class StatsViewer(Frame):
             return
         self.fit = fit = mod.fit()
         self.summary()
+        self.updateData()
         return
 
     def showPlot(self):
@@ -209,20 +211,26 @@ class StatsViewer(Frame):
         depvar = self.model.endog_names
         if indvar == '':
             indvar = self.model.exog_names[1]
-
+        params = list(self.model.exog_names)
+        if indvar not in params:
+            self.pf.showWarning('chosen col is not a parameter',ax=ax)
+            return
         #out of sample points
         out = data.ix[-data.index.isin(sub.index)]
         #print (out)
-        x = sub[indvar]
-        y = sub[depvar]
-        xout = out[indvar]
-        yout = out[depvar]
+        #x = sub[indvar]
+        #y = sub[depvar]
+        #xout = out[indvar]
+        #yout = out[depvar]
         #X1 = pd.DataFrame({indvar : np.linspace(xout.min(), xout.max(), 100)})
         for i, r in data.iterrows():
             vals = np.linspace(r.min(), r.max(), 100)
 
-        X1 = sm.add_constant(out)
-        X1 = X1.sort(depvar)
+        from patsy import dmatrices
+        y1,X1 = dmatrices(self.formula, data=out, return_type='dataframe')
+        print(X1)
+        #X1 = sm.add_constant(out)
+        #X1 = X1.sort(depvar)
         #predict out of sample
         y1 = fit.predict(X1)
 
@@ -231,10 +239,10 @@ class StatsViewer(Frame):
             marker='o'
         s=kwds['s']
         cmap = plt.cm.get_cmap(kwds['colormap'])
-        ax.scatter(x, y, alpha=0.6, color=cmap(.2), label='fitted data',
-                    marker=marker,s=s)
-        ax.scatter(xout, yout, alpha=0.3, color='gray', label='out of sample',
-                   marker=marker,s=s)
+        #ax.scatter(x, y, alpha=0.6, color=cmap(.2), label='fitted data',
+        #            marker=marker,s=s)
+        #ax.scatter(xout, yout, alpha=0.3, color='gray', label='out of sample',
+        #           marker=marker,s=s)
         ax.set_xlabel(indvar)
         ax.set_ylabel(depvar)
 
@@ -304,7 +312,8 @@ class StatsViewer(Frame):
         """Update data widgets"""
 
         df = self.table.model.df
-        self.indvarwidget['values'] = list(df.columns)
+        if self.model is not None:
+            self.indvarwidget['values'] = list(self.model.exog_names)
         return
 
     def quit(self):

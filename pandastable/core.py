@@ -827,8 +827,8 @@ class Table(Canvas):
         df = self.model.df
         cols = list(df.columns[self.multiplecollist])
         col = cols[0]
-        funcs = ['','split','strip','lower','upper','title','swapcase','len','join',
-                 'slice','replace']
+        funcs = ['','split','strip','lower','upper','title','swapcase','len',
+                 'slice','replace','concat']
         d = MultipleValDialog(title='Apply Function',
                                 initialvalues=(funcs,',',0,1,'','',0),
                                 labels=('Function:',
@@ -840,7 +840,7 @@ class Table(Canvas):
                                         'Add as new column(s):'),
                                 types=('combobox','string','int',
                                        'int','string','string','checkbutton'),
-                                tooltips=(None,'separator for split',
+                                tooltips=(None,'separator for split or concat',
                                           'start index for slice',
                                           'end index for slice',
                                           'characters or regular expression for replace',
@@ -878,6 +878,8 @@ class Table(Canvas):
             x = df[col].str.slice(start,end)
         elif func == 'replace':
             x = df[col].replace(pat, repl)
+        elif func == 'concat':
+            x = df[col].str.cat(df[cols[1]].astype(str), sep=sep)
         if newcol == 1:
             col = col+'_'+func
         df[col] = x
