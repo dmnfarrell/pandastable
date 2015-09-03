@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to pandastable's documentation!
+Welcome to pandastable documentation.
 =======================================
 
 Contents:
@@ -12,6 +12,10 @@ Contents:
    :maxdepth: 2
 
 .. automodule:: pandastable.core
+    :members:
+.. automodule:: pandastable.headers
+    :members:
+.. automodule:: pandastable.plotting
     :members:
 
 Indices and tables
