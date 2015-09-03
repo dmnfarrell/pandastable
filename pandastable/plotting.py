@@ -517,7 +517,7 @@ class PlotViewer(Frame):
 
     def showWarning(self, s='plot error', ax=None):
         if ax==None:
-            ax=self.ax
+            ax=self.fig.gca()
         ax.clear()
         ax.text(.5, .5, s,transform=self.ax.transAxes,
                        horizontalalignment='center', color='blue', fontsize=16)

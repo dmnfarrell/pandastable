@@ -127,6 +127,9 @@ class ColumnHeader(Canvas):
         colclicked = self.table.get_col_clicked(event)
         if colclicked == None:
             return
+        #if 0 rows selected means we have just opened table
+        if len(self.table.multiplerowlist) == 0:
+            self.table.multiplerowlist = list(range(0,self.table.rows))
         #set all rows selected
         self.table.allrows = True
         self.table.setSelectedCol(colclicked)
@@ -481,6 +484,7 @@ class RowHeader(Canvas):
 
     def handle_left_click(self, event):
         """Handle left click"""
+
         rowclicked = self.table.get_row_clicked(event)
         self.startrow = rowclicked
         if 0 <= rowclicked < self.table.rows:
