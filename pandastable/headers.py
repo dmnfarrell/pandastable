@@ -72,7 +72,9 @@ class ColumnHeader(Canvas):
         df = self.model.df
         cols = self.model.getColumnCount()
         self.tablewidth=self.table.tablewidth
-        self.configure(scrollregion=(0,0, self.table.tablewidth+self.table.x_start, self.height))
+        self.configure(scrollregion=(0,0,
+                                     self.table.tablewidth+self.table.x_start,
+                                     self.height))
         self.delete('gridline','text')
         self.delete('rect')
         self.delete('dragrect')
@@ -103,6 +105,8 @@ class ColumnHeader(Canvas):
                 xt = x-w/2
             if isinstance(colname, tuple):
                 colname = '.'.join(colname)
+            #if isinstance(colname, np.int64):
+            colname = str(colname)
 
             length = util.getTextLength(colname, w-pad)
             colname = colname[0:length]
