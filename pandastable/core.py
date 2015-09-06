@@ -102,6 +102,13 @@ class Table(Canvas):
         self.setFontSize()
         return
 
+    '''def __str__(self ):
+        """Representation of object"""
+
+        df = self.model.df
+        s = 'pandastable with %s rows, %s columns' %(len(df.index), len(df.columns))
+        return s'''
+
     def set_defaults(self):
         """Set default settings"""
 
@@ -358,7 +365,7 @@ class Table(Canvas):
 
     def adjustColumnWidths(self):
         """Optimally adjust col widths to accomodate the longest entry
-            in each column - usually only called  on first redraw"""
+            in each column - usually only called on first redraw"""
 
         #obj = self.find_withtag(ALL)
         #print (obj)
@@ -414,14 +421,21 @@ class Table(Canvas):
     def sortTable(self, columnIndex=None, ascending=1, index=False):
         """Set up sort order dict based on currently selected field"""
 
-        if columnIndex==None:
-            columnIndex = self.multiplecollist
         df = self.model.df
+        if columnIndex == None:
+            columnIndex = self.multiplecollist
+        if isinstance(columnIndex, int):
+            columnIndex = [columnIndex]
+        #assert len(columnIndex) < len(df.columns)
         if index == True:
             df.sort_index(inplace=True)
         else:
             colnames = list(df.columns[columnIndex])
-            df.sort(colnames, inplace=True, ascending=ascending)
+            try:
+                df.sort(colnames, inplace=True, ascending=ascending)
+            except Exception as e:
+                print('could not sort')
+                print(e)
         self.redraw()
         return
 
@@ -553,6 +567,7 @@ class Table(Canvas):
 
     def deleteColumn(self):
         """Delete currently selected column(s)"""
+
         n =  messagebox.askyesno("Delete",
                                    "Delete Column(s)?",
                                    parent=self.parentframe)
@@ -566,13 +581,14 @@ class Table(Canvas):
                 self.pf.updateData()
         return
 
-    def deleteCells(self, rows, cols):
+    def deleteCells(self, rows, cols, answer=None):
         """Clear the cell contents"""
 
-        n =  messagebox.askyesno("Clear Confirm",
-                                   "Clear this data?",
-                                   parent=self.parentframe)
-        if not n:
+        if answer == None:
+            answer =  messagebox.askyesno("Clear Confirm",
+                                    "Clear this data?",
+                                    parent=self.parentframe)
+        if not answer:
             return
         self.model.deleteCells(rows, cols)
         self.redraw()
@@ -580,6 +596,7 @@ class Table(Canvas):
 
     def clearData(self, evt=None):
         """Delete cells from gui event"""
+
         rows = self.multiplerowlist
         cols = self.multiplecollist
         self.deleteCells(rows, cols)
@@ -599,6 +616,7 @@ class Table(Canvas):
 
     def autoAddColumns(self, numcols=None):
         """Automatically add x number of cols"""
+
         if numcols == None:
             numcols = simpledialog.askinteger("Auto add rows.",
                                                 "How many empty columns?",
@@ -701,6 +719,7 @@ class Table(Canvas):
             prefix=None
         if dummies == 1:
             new = pd.get_dummies(df[col], prefix=prefix)
+            new.columns = new.columns.astype(str)
             self.model.df = pd.concat([df,new],1)
         elif convert == 1:
             df[name] = pd.Categorical(df[col]).codes
@@ -826,8 +845,8 @@ class Table(Canvas):
         df = self.model.df
         cols = list(df.columns[self.multiplecollist])
         col = cols[0]
-        funcs = ['','split','strip','lower','upper','title','swapcase','len','join',
-                 'slice','replace']
+        funcs = ['','split','strip','lower','upper','title','swapcase','len',
+                 'slice','replace','concat']
         d = MultipleValDialog(title='Apply Function',
                                 initialvalues=(funcs,',',0,1,'','',0),
                                 labels=('Function:',
@@ -839,7 +858,7 @@ class Table(Canvas):
                                         'Add as new column(s):'),
                                 types=('combobox','string','int',
                                        'int','string','string','checkbutton'),
-                                tooltips=(None,'separator for split',
+                                tooltips=(None,'separator for split or concat',
                                           'start index for slice',
                                           'end index for slice',
                                           'characters or regular expression for replace',
@@ -877,6 +896,8 @@ class Table(Canvas):
             x = df[col].str.slice(start,end)
         elif func == 'replace':
             x = df[col].replace(pat, repl)
+        elif func == 'concat':
+            x = df[col].str.cat(df[cols[1]].astype(str), sep=sep)
         if newcol == 1:
             col = col+'_'+func
         df[col] = x
@@ -1437,6 +1458,7 @@ class Table(Canvas):
 
         self.model.transpose()
         self.updateModel(self.model)
+        self.setSelectedRow(0)
         self.redraw()
         return
 
@@ -1593,7 +1615,8 @@ class Table(Canvas):
         toolbar = ChildToolBar(win, newtable)
         toolbar.grid(row=0,column=3,rowspan=2,sticky='news')
         self.child = newtable
-        newtable.pf = self.pf
+        if hasattr(self, 'pf'):
+            newtable.pf = self.pf
         if index==True:
             newtable.showIndex()
         return
@@ -1636,20 +1659,25 @@ class Table(Canvas):
         """Get table as formatted text - for printing"""
 
         d = MultipleValDialog(title='Table to Text',
-                                initialvalues=(['left','right'],1,1,0,''),
-                                labels=['justify:','header ','include index:','sparsify:','na_rep:'],
-                                types=('combobox','checkbutton','checkbutton','checkbutton','string'),
+                                initialvalues=(['left','right'],1,1,0,'',0),
+                                labels=['justify:','header ','include index:',
+                                        'sparsify:','na_rep:','max_cols'],
+                                types=('combobox','checkbutton','checkbutton',
+                                       'checkbutton','string','int'),
                                 parent = self.parentframe)
         if d.result == None:
             return
         justify = d.results[0]
-        header = d.results[0]
+        header = d.results[1]
         index = d.results[2]
         sparsify = d.results[3]
         na_rep = d.results[4]
-
+        max_cols = d.results[5]
+        if max_cols == 0:
+            max_cols=None
         df = self.model.df
-        s = df.to_string(justify=justify,header=header,index=index,sparsify=sparsify,na_rep=na_rep)
+        s = df.to_string(justify=justify,header=header,index=index,
+                         sparsify=sparsify,na_rep=na_rep,max_cols=max_cols)
         #from tkinter.scrolledtext import ScrolledText
         from .dialogs import SimpleEditor
         w = Toplevel(self.parentframe)
@@ -1800,6 +1828,8 @@ class Table(Canvas):
 
         if not hasattr(self, 'pf'):
             self.pf = PlotViewer(table=self, parent=parent)
+        if hasattr(self, 'child') and self.child is not None:
+            self.child.pf = self.pf
         return self.pf
 
     def hidePlot(self):
@@ -1825,10 +1855,6 @@ class Table(Canvas):
         """Plot data from selection"""
 
         data = self.getSelectedDataFrame()
-        #data.sort(inplace=True)
-        #if the first col is text we try to use it as an index
-        #if data.dtypes[0] == 'object':
-        #    data.set_index(data.columns[0], inplace=True)
         data = data.convert_objects(convert_numeric='force')
         return data
 
@@ -2025,8 +2051,6 @@ class Table(Canvas):
         elif align == 'e':
             x1 = x1+w/2-pad
 
-        colname = self.model.getColumnName(col)
-        length = len(colname)
         newlength = util.getTextLength(celltxt, w-10, self.scratch)
         '''if h>=40 and newlength<length:
             width=w
@@ -2376,7 +2400,8 @@ class Table(Canvas):
         return progress_win
 
     def updateModel(self, model):
-        """Should call this method when a new table model is loaded"""
+        """Should call this method when a new table model is loaded.
+           Recreates widghets and redraws the table."""
 
         self.model = model
         self.rows = self.model.getRowCount()

@@ -53,6 +53,7 @@ class TableModel(object):
     @classmethod
     def getSampleData(self, rows=400, cols=5):
         """Generate sample data"""
+
         colnames = list(string.ascii_lowercase[:cols])
         coldata = [np.random.normal(x,1,rows) for x in np.random.normal(5,3,cols)]
         n = np.array(coldata).T
@@ -68,6 +69,7 @@ class TableModel(object):
     @classmethod
     def getIrisData(self):
         """Get iris dataset"""
+
         path = os.path.dirname(__file__)
         cols = ['sepal length','sepal width','petal length','petal width','class']
         df = pd.read_csv(os.path.join(path,'datasets','iris.data'),names=cols)
@@ -92,6 +94,8 @@ class TableModel(object):
         return
 
     def save(self, filename):
+        """Save dataframe"""
+
         ftype = os.path.splitext(filename)[1]
         if ftype == '.mpk':
             self.df.to_msgpack(filename)
@@ -181,12 +185,14 @@ class TableModel(object):
 
     def addColumn(self, colname=None, dtype=None):
         """Add a column"""
+
         x = pd.Series(dtype=dtype)
         self.df[colname] = x
         return
 
     def deleteColumn(self, colindex):
         """delete a column"""
+
         df = self.df
         colname = df.columns[colindex]
         df.drop([colname], axis=1, inplace=True)
@@ -254,7 +260,7 @@ class TableModel(object):
 
     def getColumnName(self, columnIndex):
          """Returns the name of the given column by columnIndex"""
-         return self.df.columns[columnIndex]
+         return str(self.df.columns[columnIndex])
 
     def getColumnData(self, columnIndex=None, columnName=None,
                         filters=None):
@@ -311,9 +317,15 @@ class TableModel(object):
 
     def transpose(self):
         """Transpose dataframe"""
-        rows = self.df.index
-        self.df = self.df.transpose()
-        self.df.reset_index()
+
+        df = self.df
+        rows = df.index
+        df = df.transpose()
+        df.reset_index()
+        df.columns = df.columns.astype(str)
+        #check col data?
+        self.df = df.convert_objects()
+        self.columnwidths = {}
         return
 
     def query(self):

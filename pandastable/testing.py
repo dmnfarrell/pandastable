@@ -24,21 +24,112 @@ from tkinter import *
 from tkinter.ttk import *
 import pandas as pd
 from .core import Table
+from .data import TableModel
 from .app import ViewerApp
 import unittest
-import unittest.mock
+import threading
 
-class BasicTest(unittest.TestCase):
+class clickThread(threading.Thread):
+    def __init__(self, root):
+        threading.Thread.__init__(self)
+        self.root = root
+
+    def getButton(self, root):
+        print(self.root.children)
+
+    def run(self):
+        button = lambda a: isinstance(a, Button)
+        self.getButton(self.root)
+        print ("clicked")
+
+class App(Frame):
+    """Test frame for table"""
+    def __init__(self, parent=None):
+        self.parent = parent
+        Frame.__init__(self)
+        self.main = self.master
+        self.main.geometry('600x400+200+100')
+        f = Frame(self.main)
+        f.pack(fill=BOTH,expand=1)
+        df = TableModel.getSampleData()
+        self.table = pt = Table(f, dataframe=df)
+        pt.show()
+        return
+
+class TableTests(unittest.TestCase):
+    """Pandastable tests - test anything involving table manipulation
+       but avoid actions that trigger dialogs"""
+    def setUp(self):
+        self.app = app = App()
+        #thread = clickThread(self.table.parentframe)
+        #thread.start()
+        return
+
+    def testA(self):
+        """Simple table tests"""
+
+        #app.mainloop()
+        table = self.app.table
+        model = table.model
+        table.setSelectedRow(10)
+        model.deleteRows(table.multiplerowlist)
+        table.redraw()
+        model.deleteColumns(table.multiplecollist)
+        table.redraw()
+        table.autoResizeColumns()
+        return
+
+    def testB(self):
+        """Sorting and adding"""
+
+        table = self.app.table
+        table.sortTable(0, ascending=1)
+        table.sortTable(4, ascending=0)
+        table.setSelectedCol(2)
+        table.drawSelectedCol()
+        table.getSelectedDataFrame()
+        table.setindex()
+        table.resetIndex()
+        table.addRows(2)
+        return
+
+    def testC(self):
+        """Table manipulation"""
+
+        table = self.app.table
+        table.groupby(0)
+        table.transpose()
+        table.sortTable(0, ascending=1)
+        table.transpose()
+        table.sortTable(0, ascending=1)
+        table.deleteCells([2],[3],answer=1)
+        #print (table.model.df)
+        return
+
+    def testD(self):
+        """Merge test"""
+
+        df = TableModel.getSampleData()
+        table = self.app.table
+        t2 = table.createChildTable(df)
+        return
+
+    def quit(self):
+        self.app.quit()
+
+class DataExploreTests(unittest.TestCase):
     def setUp(self):
         return
-    def test(self):
+
+    '''def testApp(self):
+        """Basic dataexplore app test"""
         app = ViewerApp()
+        table = app.getCurrentTable()
         app.deleteSheet()
         app.sampleData()
-        table = app.getCurrentTable()
         table.selectAll()
         table.plotSelected()
-        app.quit()
+        app.quit()'''
 
 if __name__ == '__main__':
     unittest.main()

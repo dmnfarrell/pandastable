@@ -72,7 +72,9 @@ class ColumnHeader(Canvas):
         df = self.model.df
         cols = self.model.getColumnCount()
         self.tablewidth=self.table.tablewidth
-        self.configure(scrollregion=(0,0, self.table.tablewidth+self.table.x_start, self.height))
+        self.configure(scrollregion=(0,0,
+                                     self.table.tablewidth+self.table.x_start,
+                                     self.height))
         self.delete('gridline','text')
         self.delete('rect')
         self.delete('dragrect')
@@ -103,6 +105,8 @@ class ColumnHeader(Canvas):
                 xt = x-w/2
             if isinstance(colname, tuple):
                 colname = '.'.join(colname)
+            #if isinstance(colname, np.int64):
+            colname = str(colname)
 
             length = util.getTextLength(colname, w-pad)
             colname = colname[0:length]
@@ -127,6 +131,9 @@ class ColumnHeader(Canvas):
         colclicked = self.table.get_col_clicked(event)
         if colclicked == None:
             return
+        #if 0 rows selected means we have just opened table
+        if len(self.table.multiplerowlist) == 0:
+            self.table.multiplerowlist = list(range(0,self.table.rows))
         #set all rows selected
         self.table.allrows = True
         self.table.setSelectedCol(colclicked)
@@ -481,6 +488,7 @@ class RowHeader(Canvas):
 
     def handle_left_click(self, event):
         """Handle left click"""
+
         rowclicked = self.table.get_row_clicked(event)
         self.startrow = rowclicked
         if 0 <= rowclicked < self.table.rows:

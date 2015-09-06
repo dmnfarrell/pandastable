@@ -36,8 +36,10 @@ import statsmodels.formula.api as smf
 import statsmodels.api as sm'''
 
 try:
+    import statsmodels
     import statsmodels.formula.api as smf
     import statsmodels.api as sm
+    from patsy import dmatrices
 except:
     print('statsmodel not installed')
 
@@ -50,6 +52,7 @@ class StatsViewer(Frame):
         self.table = table
         self.table.sv = self
         self.fit = None
+        self.model = None
         if self.parent != None:
             Frame.__init__(self, parent)
             self.main = self.master
@@ -59,6 +62,7 @@ class StatsViewer(Frame):
             self.main.title('Model Fitting App')
             self.main.protocol("WM_DELETE_WINDOW", self.quit)
         self.setupGUI()
+        self.pf = pf = self.table.pf
         return
 
     def setupGUI(self):
@@ -76,15 +80,13 @@ class StatsViewer(Frame):
 
         f = Frame(self.main, padding=2)
         f.pack(side=TOP,fill=BOTH)
-        Label(f,text='model type:').pack(side=LEFT,padx=2)
+        Label(f,text='estimator:').pack(side=LEFT,padx=2)
         self.modelvar = StringVar()
         self.modelvar.set('ols')
         c = Combobox(f, values=['ols','gls','logit'], width=4,
                        textvariable=self.modelvar)
         c.pack(side=LEFT,fill=BOTH,expand=1)
 
-        #f = Frame(self.main, padding=2)
-        #f.pack(side=TOP,fill=BOTH)
         b = Button(f, text="Fit", command=self.doFit)
         b.pack(side=LEFT,fill=X,expand=1)
         b = Button(f, text="Summary", command=self.summary)
@@ -96,9 +98,10 @@ class StatsViewer(Frame):
         f.pack(side=TOP,fill=BOTH)
         Label(f,text='plot type:').pack(side=LEFT)
         self.plotvar = StringVar()
-        self.plotvar.set('fit line')
-        c = Combobox(f, values=['fit line','fit line2','regression plots','qqplot',
-                                 'all regressors','leverage','influence'], width=15,
+        self.plotvar.set('default')
+        c = Combobox(f, values=['default','predicted vs test',
+                                'fit line','regression plots','qqplot',
+                                'all regressors','leverage','influence'], width=15,
                        textvariable=self.plotvar)
         c.pack(side=LEFT,fill=BOTH)
         Label(f,text='plot indep. variable:').pack(side=LEFT,padx=2)
@@ -124,45 +127,53 @@ class StatsViewer(Frame):
             formula = None
         return formula
 
-    def getModel(self, formula, s, kind='ols'):
+    def getModel(self, formula, data, est='ols'):
         """Select model to use"""
 
-        if kind == 'ols':
-            model = smf.ols(formula=formula, data=s)
-        elif kind == 'gls':
-            model = smf.gls(formula=formula, data=s)
-        elif kind == 'logit':
-            model = smf.logit(formula=formula, data=s, missing='drop')
+        s = self.table.multiplerowlist
+        self.sub = sub = data.index[s]
+        y,X = dmatrices(formula, data=data, return_type='dataframe')
+        self.X = X
+        self.y = y
+        Xf = X.ix[sub]
+        yf = y.ix[sub]
+
+        if est == 'ols':
+            #model = smf.ols(formula=formula, data=s)
+            model = sm.OLS(yf, Xf)
+        elif est == 'gls':
+            model = sm.GLS(y, X)
+        elif est == 'logit':
+            model = sm.Logit(y, X)
         return model
 
     def doFit(self):
         """Do model fit on selected subset of rows. Will only use
         the currently selected rows for fitting."""
 
-        df = self.table.model.df
+        data = self.table.model.df
         #sub sample of data to fit
-        self.sub = s = self.table.getSelectedDataFrame()
-        s = s.convert_objects(convert_numeric='force')
-        if len(s) == 0 or len(s.columns)<1:
+        #self.sub = s = self.table.getSelectedDataFrame()
+        #s = s.convert_objects(convert_numeric='force')
+        if len(data) == 0 or len(data.columns)<1:
             return
-
-        formula = self.formulavar.get()
-        kind = self.modelvar.get()
-
+        self.formula = formula = self.formulavar.get()
+        est = self.modelvar.get()
         try:
-            self.model = mod = self.getModel(formula, s, kind)
-        except NameError:
-            self.pf.showWarning('are variables in selected data?',ax=ax)
-            raise
+            self.model = mod = self.getModel(formula, data, est)
+        except Exception as e:
+            self.pf.showWarning(e)
             return
+
         self.fit = fit = mod.fit()
         self.summary()
+        self.updateData()
         return
 
     def showPlot(self):
         """Do plots"""
 
-        self.pf = pf = self.table.pf
+        pf = self.pf
         fit = self.fit
         if fit == None:
             pf.showWarning('no fitted model')
@@ -181,13 +192,14 @@ class StatsViewer(Frame):
         if indvar == '':
             indvar = self.model.exog_names[1]
 
-        #if isinstance(mod, smf.Logit):
-        #    self.plotLogit(fit, df, ax)
-        #    return
-
-        if kind == 'fit line':
-            self.plotRegression(fit, df, s, indvar, ax=ax, **kwds)
-        elif kind == 'fit line2':
+        if kind == 'default':
+            if isinstance(self.model, sm.OLS) or isinstance(self.model, sm.GLS):
+                self.plotRegression(fit, indvar, ax=ax, **kwds)
+            elif isinstance(self.model, sm.Logit):
+                self.plotLogit(fit, indvar, ax)
+        elif kind == 'predicted vs test':
+            self.plotPrediction(fit, ax)
+        elif kind == 'fit line':
             try:
                 sm.graphics.plot_fit(fit, indvar, ax=ax)
             except ValueError:
@@ -210,44 +222,64 @@ class StatsViewer(Frame):
         fig.canvas.draw()
         return
 
-    def plotRegression(self, fit, data, sub, indvar, ax, **kwds):
+    def plotPrediction(self, fit, ax):
+        """Plot predicted vs. test"""
+
+        sub = self.sub
+        if len(sub) == 0:
+            sub = X.index
+        Xout = self.X.ix[-self.X.index.isin(sub)]
+        yout = self.y.ix[-self.y.index.isin(sub)]
+        ypred = fit.predict(Xout)
+        ax.scatter(yout, ypred, alpha=0.6, edgecolor='black',
+                   color='blue', lw=0.5, label='fit')
+        ax.plot(ax.get_xlim(), ax.get_xlim(), ls="--", lw=2, c=".2")
+        ax.set_xlabel('test')
+        ax.set_ylabel('predicted')
+        ax.set_title('predicted vs test data')
+        import statsmodels.tools.eval_measures as em
+        yt = yout.squeeze().values
+        rmse = em.rmse(yt, ypred)
+        ax.text(0.9,0.1,'rmse: '+ str(round(rmse,3)),ha='right',
+                    va='top', transform=ax.transAxes)
+        return
+
+    def plotRegression(self, fit, indvar, ax, **kwds):
         """Plot custom statsmodels fit result for linear regression"""
 
         depvar = self.model.endog_names
         if indvar == '':
             indvar = self.model.exog_names[1]
-        #df = df.sort(indvar)
-        #out of sample points
-        out = data.ix[-data.index.isin(sub.index)]
-        print (out)
-        x = sub[indvar]
-        y = sub[depvar]
-        xout = out[indvar]
-        yout = out[depvar]
-        X1 = pd.DataFrame({indvar : np.linspace(xout.min(), xout.max(), 100)})
+        params = list(self.model.exog_names)
+        if indvar not in params:
+            self.pf.showWarning('chosen col is not a parameter',ax=ax)
+            return
 
-        for i, r in data.iterrows():
-            vals = np.linspace(r.min(), r.max(), 100)
-
-        X1 = sm.add_constant(X1)
         #predict out of sample
-        y1 = fit.predict(X1)
+        sub = self.sub
+        if len(sub) == 0:
+            sub = X.index
+        Xout = self.X.ix[-self.X.index.isin(sub)]
+        yout = self.y.ix[-self.y.index.isin(sub)]
+        yfit = fit.predict(Xout)
+        x = Xout[indvar]
+        #fitted data
+        Xin = self.X.ix[sub]
+        yin = self.y.ix[sub]
 
         marker=kwds['marker']
         if marker == '':
             marker='o'
         s=kwds['s']
         cmap = plt.cm.get_cmap(kwds['colormap'])
-        ax.scatter(x, y, alpha=0.7, color=cmap(.2), label='fitted data',
+        ax.scatter(Xin[indvar], yin, alpha=0.6, color=cmap(.2), label='fitted data',
                     marker=marker,s=s)
-        ax.scatter(xout, yout, alpha=0.3, color='gray', label='out of sample',
+
+        ax.scatter(x, yout, alpha=0.3, color='gray', label='out of sample',
                    marker=marker,s=s)
-        ax.set_xlabel(indvar)
-        ax.set_ylabel(depvar)
-        #print (X1)
-        x1 = X1[indvar]
-        ax.plot(x1, y1, 'r', lw=2, alpha=0.9, color=cmap(.8), label='fit')
-        #print(fit.params)
+        ax.scatter(x, yfit, alpha=0.6, edgecolor='black',
+                   color='red', s=s, lw=0.5, label='fit (out sample)')
+
         i=0.05
         for k,p in fit.params.iteritems():
             ax.text(0.9,i, k+': '+ str(round(p,3)), ha='right',
@@ -257,6 +289,8 @@ class StatsViewer(Frame):
                         va='top', transform=ax.transAxes)
         ax.legend()
         ax.set_title('fitted versus %s' %indvar)
+        ax.set_xlabel(indvar)
+        ax.set_ylabel(depvar)
 
         #confidence intervals
         #from statsmodels.sandbox.regression.predstd import wls_prediction_std
@@ -266,12 +300,18 @@ class StatsViewer(Frame):
         #plt.tight_layout()
         return
 
-    def plotLogit(self, fit, df, ax):
+    def plotLogit(self, fit, indvar, ax, **kwds):
         """Plot Logit results"""
 
-        #X1 = sm.add_constant(X1)
+        X = self.X
+        y = self.y
         #predict out of sample
-        #y1 = fit.predict(X1)
+        ypred = fit.predict(X)
+        #ax.plot(X.index, ypred, 'bo', X.index, y, 'mo', alpha=.25)
+        ax.plot(ypred, X[indvar], 'o')
+        ax.set_xlabel("Predicted")
+        ax.set_ylabel(indvar)
+        print (fit.pred_table(0.5))
         return
 
     def summary(self):
@@ -285,9 +325,8 @@ class StatsViewer(Frame):
                 self.fitinfo = None
                 self.w.destroy()
             w.protocol("WM_DELETE_WINDOW", deletewin)
-            self.fitinfo = SimpleEditor(w, height=25, width=80, font='monospace 10')
+            self.fitinfo = SimpleEditor(w, height=25, width=85)
             self.fitinfo.pack(in_=w, fill=BOTH, expand=Y)
-
         self.fitinfo.text.insert(END, s)
         self.fitinfo.text.see(END)
         return
@@ -311,7 +350,8 @@ class StatsViewer(Frame):
         """Update data widgets"""
 
         df = self.table.model.df
-        self.indvarwidget['values'] = list(df.columns)
+        if self.model is not None:
+            self.indvarwidget['values'] = list(self.model.exog_names)
         return
 
     def quit(self):
