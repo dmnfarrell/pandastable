@@ -30,11 +30,6 @@ from collections import OrderedDict
 import operator
 from .dialogs import *
 
-'''from scipy.sparse.csgraph import _validation
-from scipy.special import _ufuncs_cxx
-import statsmodels.formula.api as smf
-import statsmodels.api as sm'''
-
 try:
     import statsmodels
     import statsmodels.formula.api as smf
