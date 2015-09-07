@@ -2635,7 +2635,7 @@ class statusBar(Frame):
         Frame.__init__(self, parent)
         self.parentframe = parent
         self.parentapp = parentapp
-        sfont = ("Helvetica bold", 11)
+        sfont = ("Helvetica bold", 10)
         clr = '#A10000'
         self.rowsvar = StringVar()
         l=Label(self,textvariable=self.rowsvar,font=sfont,foreground=clr)
@@ -2646,10 +2646,17 @@ class statusBar(Frame):
         l=Label(self,textvariable=self.colsvar,font=sfont,foreground=clr)
         l.pack(fill=X, side=LEFT)
         Label(self,text='columns',font=sfont,foreground=clr).pack(side=LEFT)
+        self.filenamevar = StringVar()
+        l=Label(self,textvariable=self.filenamevar,font=sfont)
+        l.pack(fill=X, side=RIGHT)
         return
 
     def update(self):
+        """Update status bar"""
+
         model = self.parentapp.model
         self.rowsvar.set(len(model.df))
         self.colsvar.set(len(model.df.columns))
+        if self.parentapp.filename != None:
+            self.filenamevar.set(self.parentapp.filename)
         return

@@ -624,7 +624,7 @@ class MPLBaseOptions(object):
                 'xlabel':{'type':'entry','default':'','width':20},
                 'ylabel':{'type':'entry','default':'','width':20},
                 'subplots':{'type':'checkbutton','default':0,'label':'multiple subplots'},
-                'colormap':{'type':'combobox','default':'jet','items':colormaps},
+                'colormap':{'type':'combobox','default':'spectral','items':colormaps},
                 'bins':{'type':'entry','default':20,'width':10},
                 'by':{'type':'combobox','items':datacols,'label':'group by','default':''},
                 'by2':{'type':'combobox','items':datacols,'label':'group by 2','default':''}

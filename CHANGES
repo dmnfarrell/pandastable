@@ -14,6 +14,7 @@ String operations added to column menu
 Correlation matrix calculator
 Row index header to show index names
 Convenient copy and paste table menu items for DataExplore
+Added minimal unit tests
 
 ------
 0.4.2

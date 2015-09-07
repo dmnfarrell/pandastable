@@ -77,6 +77,8 @@ class TableTests(unittest.TestCase):
         model.deleteColumns(table.multiplecollist)
         table.redraw()
         table.autoResizeColumns()
+        df = TableModel.getSampleData()
+        table.createChildTable(df)
         return
 
     def testB(self):
@@ -107,11 +109,14 @@ class TableTests(unittest.TestCase):
         return
 
     def testD(self):
-        """Merge test"""
+        """Load/save test"""
 
-        df = TableModel.getSampleData()
+        df = TableModel.getSampleData(rows=10000)
+        model = TableModel(df)
         table = self.app.table
-        t2 = table.createChildTable(df)
+        table.updateModel(model)
+        table.saveAs('temp.mpk')
+        table.load('temp.mpk')
         return
 
     def quit(self):
