@@ -132,7 +132,7 @@ class ColumnHeader(Canvas):
         if colclicked == None:
             return
         #if 0 rows selected means we have just opened table
-        if len(self.table.multiplerowlist) == 0:
+        if len(self.table.multiplerowlist) == 0 or self.table.startrow == self.table.endrow:
             self.table.multiplerowlist = list(range(0,self.table.rows))
         #set all rows selected
         self.table.allrows = True
