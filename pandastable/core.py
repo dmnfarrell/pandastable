@@ -261,6 +261,8 @@ class Table(Canvas):
         return int(row)
 
     def getColPosition(self, x):
+        """Get column position at coord"""
+
         x_start = self.x_start
         w = self.cellwidth
         i=0
@@ -274,6 +276,7 @@ class Table(Canvas):
 
     def getVisibleRows(self, y1, y2):
         """Get the visible row range"""
+
         start = self.getRowPosition(y1)
         end = self.getRowPosition(y2)+1
         if end > self.rows:
@@ -282,6 +285,7 @@ class Table(Canvas):
 
     def getVisibleCols(self, x1, x2):
         """Get the visible column range"""
+
         start = self.getColPosition(x1)
         end = self.getColPosition(x2)+1
         if end > self.cols:
@@ -409,11 +413,11 @@ class Table(Canvas):
         self.col_positions.append(x_pos)
         for col in range(self.cols):
             #colname = self.model.getColumnName(col)
-            colname = df.columns[col]
+            colname = str(df.columns[col])
             if colname in self.model.columnwidths:
-                x_pos=x_pos+self.model.columnwidths[colname]
+                x_pos = x_pos+self.model.columnwidths[colname]
             else:
-                x_pos=x_pos+w
+                x_pos = x_pos+w
             self.col_positions.append(x_pos)
         self.tablewidth = self.col_positions[len(self.col_positions)-1]
         return
@@ -830,7 +834,7 @@ class Table(Canvas):
             p = d.getResults(null='')
             print(p)
 
-        print (obj)
+        #print (obj)
         if obj is pd:
             new = df.apply(func, **p)
         elif obj is df:

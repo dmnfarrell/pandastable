@@ -105,7 +105,6 @@ class ColumnHeader(Canvas):
                 xt = x-w/2
             if isinstance(colname, tuple):
                 colname = '.'.join(colname)
-            #if isinstance(colname, np.int64):
             colname = str(colname)
 
             length = util.getTextLength(colname, w-pad)
@@ -154,12 +153,12 @@ class ColumnHeader(Canvas):
         """When mouse released implement resize or col move"""
 
         self.delete('dragrect')
+        #column resized
         if self.atdivider == 1:
-            #col = self.table.get_col_clicked(event)
-            x=int(self.canvasx(event.x))
+            x = int(self.canvasx(event.x))
             col = self.table.currentcol
             x1,y1,x2,y2 = self.table.getCellCoords(0,col)
-            newwidth=x - x1
+            newwidth = x - x1
             if newwidth < 5:
                 newwidth=5
             self.table.resizeColumn(col, newwidth)
