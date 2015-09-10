@@ -3,14 +3,17 @@ from cx_Freeze import setup, Executable
 
 sys.path.append('pandastable')
 
-includes = ["pandastable","scipy.integrate.vode","scipy.integrate.lsoda","scipy.linalg"]
+#currently requires changing line 548 of hooks.py to make scipy work
+#see https://bitbucket.org/anthony_tuininga/cx_freeze/issues/43
+
+includes = ["pandastable"]#,"scipy.integrate.vode","scipy.integrate.lsoda","scipy.linalg"]
 includefiles = ["pandastable/dataexplore.gif","pandastable/datasets"]
 
 # Dependencies are automatically detected, but it might need fine tuning.
-build_exe_options = {"packages": ["os","numpy","matplotlib","pandas",
+build_exe_options = {"packages": ["os","numpy","matplotlib","pandas","scipy",
                                   "statsmodels","pandastable"],
                      "excludes": [],
-                     "namespace_packages": ['mpl_toolkits','scipy'],
+                     "namespace_packages": ['mpl_toolkits'],
                      "include_msvcr": True,
                      "includes": includes,
                      "include_files": includefiles}
