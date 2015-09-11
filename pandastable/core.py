@@ -2626,6 +2626,8 @@ class ChildToolBar(ToolBar):
         self.addButton('Import', func, img, 'import csv')
         img = images.plot()
         self.addButton('Plot', self.parentapp.plotSelected, img, 'plot selected')
+        img = images.transpose()
+        self.addButton('Transpose', self.parentapp.transpose, img, 'transpose')
         img = images.table_delete()
         self.addButton('Clear', self.parentapp.clearTable, img, 'clear table')
         img = images.cross()

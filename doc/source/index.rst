@@ -1,7 +1,3 @@
-.. pandastable documentation master file, created by
-   sphinx-quickstart on Wed Feb  5 22:43:09 2014.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
 
 Welcome to pandastable documentation.
 =======================================
@@ -13,8 +9,10 @@ Contents:
 
 .. automodule:: pandastable.core
     :members:
+
 .. automodule:: pandastable.headers
     :members:
+
 .. automodule:: pandastable.plotting
     :members:
 

@@ -217,7 +217,7 @@ class ViewerApp(Frame):
         return dict
 
     def newProject(self, data=None, current=False):
-        """Create a new project"""
+        """Create a new project from data or empty"""
 
         if current == True:
             w = messagebox.askyesno("Save current?",
@@ -230,7 +230,7 @@ class ViewerApp(Frame):
             self.nb.forget(n)
         if data != None:
             for s in sorted(data.keys()):
-                self.addSheet(s ,data[s])
+                self.addSheet(s, data[s])
         else:
             self.addSheet('sheet1')
         return

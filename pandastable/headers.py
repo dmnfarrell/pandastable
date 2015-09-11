@@ -27,26 +27,21 @@ import numpy as np
 import pandas as pd
 from . import util
 
-def check_multiindex(index):
-    """Check if multiindex"""
-    if isinstance(index, pd.core.index.MultiIndex):
-        return 1
-    else:
-        return 0
-
 class ColumnHeader(Canvas):
     """Class that takes it's size and rendering from a parent table
         and column names from the table model."""
 
     def __init__(self, parent=None, table=None):
-        Canvas.__init__(self, parent, bg='gray25', width=500, height=20)
+        Canvas.__init__(self, parent, bg='gray25', width=500, height=40)
         self.thefont='Arial 14'
         if table != None:
             self.table = table
-            self.height = 20
             self.model = self.table.model
-            self.config(width=self.table.width)
-            #self.colnames = self.model.columnNames
+            if util.check_multiindex(self.model.df.columns) == 1:
+                self.height = 40
+            else:
+                self.height = 20
+            self.config(width=self.table.width, height=self.height)
             self.columnlabels = self.model.df.columns
             self.draggedcol = None
             self.bind('<Button-1>',self.handle_left_click)
@@ -81,13 +76,12 @@ class ColumnHeader(Canvas):
         self.atdivider = None
         align = 'w'
         pad = 5
+        wrapw = 0
         h=self.height
         x_start = self.table.x_start
         if cols == 0:
             return
 
-        #if check_multiindex(self.model.df.columns) == 1:
-        #    cols = df.columns.get_level_values(1)
         for col in self.table.visiblecols:
             colname = df.columns[col]
             if colname in self.model.columnwidths:
@@ -103,19 +97,27 @@ class ColumnHeader(Canvas):
                 xt = x+w-pad
             elif align == 'center':
                 xt = x-w/2
-            if isinstance(colname, tuple):
-                colname = '.'.join(colname)
-            colname = str(colname)
 
-            length = util.getTextLength(colname, w-pad)
+            if util.check_multiindex(self.model.df.columns) == 1:
+                if isinstance(colname, tuple):
+                    colname = [str(i) for i in colname]
+                colname = ' '.join(colname)
+                wrapw = w - pad
+                length = util.getTextLength(colname, w*2-pad)
+                y = h/2
+            else:
+                colname = str(colname)
+                wrapw = 0
+                length = util.getTextLength(colname, w-pad)
+                y = h/2
             colname = colname[0:length]
             line = self.create_line(x, 0, x, h, tag=('gridline', 'vertline'),
                                  fill='white', width=1)
-            self.create_text(xt,h/2,
+            self.create_text(xt,y,
                                 text=colname,
                                 fill='white',
                                 font=self.thefont,
-                                tag='text', anchor=align)
+                                tag='text', anchor=align, width=wrapw)
         x = self.table.col_positions[col+1]
         self.create_line(x,0, x,h, tag='gridline',
                         fill='white', width=2)
@@ -424,12 +426,12 @@ class RowHeader(Canvas):
         h = self.table.rowheight
         index = self.model.df.index
         names = index.names
-
+        print(names)
         if self.showindex == True:
-            if check_multiindex(index) == 1:
+            if util.check_multiindex(index) == 1:
                 ind = index.values[v]
                 cols = [pd.Series(i).astype('object').astype(str) for i in list(zip(*ind))]
-                nl = [len(n) for n in names]
+                nl = [len(n) if n is not None else 0 for n in names]
                 l = [c.str.len().max() for c in cols]
                 #pick higher of index names and row data
                 l = list(np.maximum(l,nl))

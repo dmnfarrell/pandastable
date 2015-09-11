@@ -27,6 +27,7 @@ import os, string, types, copy
 import pickle
 import numpy as np
 import pandas as pd
+from . import util
 
 class TableModel(object):
     """A data model for the Table class that uses pandas"""
@@ -322,8 +323,11 @@ class TableModel(object):
         rows = df.index
         df = df.transpose()
         df.reset_index()
-        df.columns = df.columns.astype(str)
-        #check col data?
+        if util.check_multiindex(df.columns) != 1:
+            try:
+                df.columns = df.columns.astype(str)
+            except:
+                pass
         self.df = df.convert_objects()
         self.columnwidths = {}
         return

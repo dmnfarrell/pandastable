@@ -26,6 +26,7 @@ import tkinter.font
 import math, time
 import os, types
 import string, copy
+import pandas as pd
 
 def getTextLength(text, w, scratch=None):
     """Get correct canvas text size (chars) that will fit in
@@ -40,3 +41,10 @@ def getTextLength(text, w, scratch=None):
     ratio = length/twidth * 0.95
     length = math.floor(w*ratio)
     return length
+
+def check_multiindex(index):
+    """Check if multiindex"""
+    if isinstance(index, pd.core.index.MultiIndex):
+        return 1
+    else:
+        return 0
