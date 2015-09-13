@@ -74,18 +74,21 @@ class ColumnHeader(Canvas):
         self.delete('rect')
         self.delete('dragrect')
         self.atdivider = None
+        font = self.thefont
         align = 'w'
         pad = 5
         wrapw = 0
-        h=self.height
+        h = self.height
+        y = h/2
         x_start = self.table.x_start
         if cols == 0:
             return
 
         for col in self.table.visiblecols:
             colname = df.columns[col]
-            if colname in self.model.columnwidths:
-                w = self.model.columnwidths[colname]
+            colstr = str(colname)
+            if colstr in self.model.columnwidths:
+                w = self.model.columnwidths[colstr]
             else:
                 w = self.table.cellwidth
             if w<=8:
@@ -100,24 +103,26 @@ class ColumnHeader(Canvas):
 
             if util.check_multiindex(self.model.df.columns) == 1:
                 if isinstance(colname, tuple):
-                    colname = [str(i) for i in colname]
-                colname = ' '.join(colname)
-                wrapw = w - pad
-                length = util.getTextLength(colname, w*2-pad)
-                y = h/2
+                    lens = [util.getTextLength(c, w-pad, font=font) for c in colname]
+                    colname = [str(c)[:l] for c,l in zip(colname,lens)]
+                colname = '\n'.join(colname)
+                #wrapw = w-pad
+                xt = x+pad
+                align = 'nw'
+                y=3
             else:
                 colname = str(colname)
-                wrapw = 0
-                length = util.getTextLength(colname, w-pad)
-                y = h/2
-            colname = colname[0:length]
+                #wrapw = 0
+                length = util.getTextLength(colname, w-pad, font=font)
+                colname = colname[0:length]
+
             line = self.create_line(x, 0, x, h, tag=('gridline', 'vertline'),
                                  fill='white', width=1)
             self.create_text(xt,y,
                                 text=colname,
                                 fill='white',
                                 font=self.thefont,
-                                tag='text', anchor=align, width=wrapw)
+                                tag='text', anchor=align)
         x = self.table.col_positions[col+1]
         self.create_line(x,0, x,h, tag='gridline',
                         fill='white', width=2)
@@ -301,10 +306,12 @@ class ColumnHeader(Canvas):
     def popupMenu(self, event):
         """Add left and right click behaviour for column header"""
 
-        colname = str(self.model.df.columns[self.table.currentcol])
+        df = self.table.model.df
+        ismulti = util.check_multiindex(df.columns)
+        colname = str(df.columns[self.table.currentcol])
         currcol = self.table.currentcol
         multicols = self.table.multiplecollist
-        colnames = list(self.table.model.df.columns[multicols])
+        colnames = list(df.columns[multicols])[:4]
         colnames = [str(i) for i in colnames]
         colnames = ','.join(colnames)
         popupmenu = Menu(self, tearoff = 0)
@@ -316,9 +323,11 @@ class ColumnHeader(Canvas):
         popupmenu.add_command(label="Sort by " + colnames + ' (descending)',
             command=lambda : self.table.sortTable(ascending=[0 for i in multicols]))
         popupmenu.add_command(label="Set %s as Index" %colnames, command=self.table.setindex)
+        if ismulti == True:
+            popupmenu.add_command(label="Flatten Index", command=self.table.flattenIndex)
         popupmenu.add_command(label="Delete Column(s)", command=self.table.deleteColumn)
         popupmenu.add_command(label="Set Column Type", command=self.table.setColumnType)
-        popupmenu.add_command(label="Create Categorical", command=self.table.getCategorical)
+        popupmenu.add_command(label="Create Categorical", command=self.table.createCategorical)
         popupmenu.add_command(label="Apply Function", command=self.table.applyFunction)
         popupmenu.add_command(label="String Operation", command=self.table.applyStringMethod)
         popupmenu.bind("<FocusOut>", popupFocusOut)
@@ -426,7 +435,7 @@ class RowHeader(Canvas):
         h = self.table.rowheight
         index = self.model.df.index
         names = index.names
-        print(names)
+
         if self.showindex == True:
             if util.check_multiindex(index) == 1:
                 ind = index.values[v]

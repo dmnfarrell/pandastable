@@ -26,6 +26,7 @@ from tkinter import *
 from tkinter.ttk import *
 from tkinter.scrolledtext import ScrolledText
 from collections import OrderedDict
+import webbrowser
 import pandas as pd
 from .data import TableModel
 
@@ -500,7 +501,6 @@ class CombineDialog(Frame):
         return
 
     def help(self):
-        import webbrowser
         link='http://pandas.pydata.org/pandas-docs/stable/merging.html'
         webbrowser.open(link,autoraise=1)
         return
@@ -509,7 +509,88 @@ class CombineDialog(Frame):
         self.main.destroy()
         return
 
+class AggregateDialog(Frame):
+    """Provides a frame for split-apply-combine operations"""
+
+    def __init__(self, parent=None, df=None):
+
+        self.parent = parent
+        self.main = Toplevel()
+        self.master = self.main
+        self.main.title('Aggregate')
+        self.main.protocol("WM_DELETE_WINDOW", self.quit)
+        self.main.grab_set()
+        self.main.transient(parent)
+        self.df = df
+        self.result = None
+        cols = list(self.df.columns)
+
+        m = Frame(self.main)
+        m.pack(side=TOP)
+        w,self.grpvar = addListBox(m, values=cols,width=14)
+        ToolTip.createToolTip(w, 'columns to group on')
+        Label(m, text='group by:').pack()
+        w.pack()
+        self.vars = OrderedDict()
+        for i in range(1,3):
+            f = LabelFrame(m, text='aggregate-%s' %i)
+            f.pack(side=LEFT,fill=BOTH,padx=2)
+            self.vars[i] = self.createWidgets(f)
+
+        bf = Frame(self.main)
+        bf.pack(side=TOP,fill=BOTH)
+        b = Button(bf, text="Apply", command=self.apply)
+        b.pack(side=LEFT,fill=X,expand=1,pady=1)
+        b = Button(bf, text="Cancel", command=self.quit)
+        b.pack(side=LEFT,fill=X,expand=1,pady=1)
+        b = Button(bf, text="Help", command=self.help)
+        b.pack(side=LEFT,fill=X,expand=1,pady=1)
+        self.main.wait_window()
+        return
+
+    def createWidgets(self, f):
+        """Create a set of grp-agg-func options together"""
+
+        funcs = ['mean','sum','size','count','std','first','last',
+                 'min','max','var']
+        cols = list(self.df.columns)
+        colvar = StringVar()
+        w = Combobox(f, values=cols,
+                 textvariable=colvar,width=14)
+        Label(f, text='column:').pack()
+        w.pack()
+        w,funcvar = addListBox(f, values=funcs,width=14)
+        Label(f, text='functions:').pack()
+        w.pack()
+        return colvar, funcvar
+
+    def apply(self):
+        """Apply operation"""
+
+        grp = self.grpvar.getSelectedItem()
+        aggdict = {}
+        for i in self.vars:
+            agg = self.vars[i][0].get()
+            funcs = self.vars[i][1].getSelectedItem()
+            if agg != '' and agg not in grp:
+                aggdict[agg] = funcs
+        #print (aggdict)
+        self.result = self.df.groupby(grp).agg(aggdict)
+        self.quit()
+        return
+
+    def help(self):
+        link='http://pandas.pydata.org/pandas-docs/stable/groupby.html'
+        webbrowser.open(link,autoraise=1)
+        return
+
+    def quit(self):
+        self.main.destroy()
+        return
+
 def addListBox(parent, values=[], width=10):
+    """Add an EasyListBox"""
+
     frame=Frame(parent)
     yScroll = Scrollbar(frame, orient = VERTICAL)
     yScroll.grid(row = 0, column = 1, sticky = N+S)
@@ -524,7 +605,7 @@ def addListBox(parent, values=[], width=10):
     return frame, lbx
 
 class EasyListbox(Listbox):
-    """Customised list box"""
+    """Customised list box to replace useless default one"""
 
     def __init__(self, parent, width, height, yscrollcommand, listItemSelected):
         self._listItemSelected = listItemSelected

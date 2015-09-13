@@ -7,12 +7,15 @@ CHANGES
 ------
 
 Model fitting interface using statsmodels
-Added ability to create categorical column
+Added ability to create/edit categorical columns
 Clean data options added
 Dialog to apply row-wise functions added to column menu
 String operations added to column menu
 Correlation matrix calculator
+Re-did aggregate dialog
 Row index header to show index names
+Display column multiiindexes
+Cell text now fits columns properly for all sizes
 Convenient copy and paste table menu items for DataExplore
 Added minimal unit tests
 

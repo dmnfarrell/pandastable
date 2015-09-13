@@ -101,7 +101,7 @@ class ViewerApp(Frame):
         return
 
     def createSidePane(self, width=200):
-        """Side panel for various dialogs is tabbed notebook"""
+        """Side panel for plot viewer"""
 
         self.closeSidePane()
         self.sidepane = Frame(self.m)

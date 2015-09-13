@@ -21,29 +21,28 @@
 
 from tkinter import *
 from tkinter.ttk import *
-from tkinter import filedialog, messagebox, simpledialog
-import tkinter.font
 import math, time
 import os, types
 import string, copy
 import pandas as pd
 
-def getTextLength(text, w, scratch=None):
+def getTextLength(text, w, scratch=None, font=None):
     """Get correct canvas text size (chars) that will fit in
     a given canvas width"""
 
     if scratch == None:
         scratch = Canvas()
     length = len(str(text))
-    t = scratch.create_text((0,0), text=text)
+    t = scratch.create_text((0,0), text=text, font=font)
     b = scratch.bbox(t)
     twidth = b[2]-b[0]
-    ratio = length/twidth * 0.95
+    ratio = length/twidth
     length = math.floor(w*ratio)
     return length
 
 def check_multiindex(index):
-    """Check if multiindex"""
+    """Check if index is a multiindex"""
+
     if isinstance(index, pd.core.index.MultiIndex):
         return 1
     else:

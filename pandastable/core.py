@@ -102,13 +102,6 @@ class Table(Canvas):
         self.setFontSize()
         return
 
-    '''def __str__(self ):
-        """Representation of object"""
-
-        df = self.model.df
-        s = 'pandastable with %s rows, %s columns' %(len(df.index), len(df.columns))
-        return s'''
-
     def set_defaults(self):
         """Set default settings"""
 
@@ -174,7 +167,7 @@ class Table(Canvas):
             self.bind("<Button-3>", self.handle_right_click)
 
         self.bind('<B1-Motion>', self.handle_mouse_drag)
-        self.bind('<Motion>', self.handle_motion)
+        #self.bind('<Motion>', self.handle_motion)
 
         self.bind("<Control-c>", self.copy)
         #self.bind("<Control-x>", self.deleteRow)
@@ -233,6 +226,8 @@ class Table(Canvas):
             self.statusbar = statusBar(self.parentframe, self)
             self.statusbar.grid(row=3,column=0,columnspan=2,sticky='ew')
         self.redraw(callback=callback)
+        if hasattr(self, 'pf'):
+            self.pf.updateData()
         return
 
     def remove(self):
@@ -242,6 +237,7 @@ class Table(Canvas):
 
     def getVisibleRegion(self):
         """Get visible region of canvas"""
+
         x1, y1 = self.canvasx(0), self.canvasy(0)
         #w, h = self.winfo_width(), self.winfo_height()
         #if w <= 1.0 or h <= 1.0:
@@ -251,6 +247,7 @@ class Table(Canvas):
 
     def getRowPosition(self, y):
         """Set row position"""
+
         h = self.rowheight
         y_start = self.y_start
         row = (int(y)-y_start)/h
@@ -301,9 +298,10 @@ class Table(Canvas):
         self.cols = len(self.model.df.columns)
         if self.cols == 0 or self.rows == 0:
             self.delete('entry')
-            self.delete('rowrect')
-            self.delete('currentrect')
+            self.delete('rowrect','colrect')
+            self.delete('currentrect','fillrect')
             self.delete('gridline','text')
+            self.delete('multicellrect','multiplesel')
             return
         self.tablewidth = (self.cellwidth) * self.cols
         self.configure(bg=self.cellbackgr)
@@ -331,7 +329,7 @@ class Table(Canvas):
         for row in self.visiblerows:
             cols = df.iloc[row,:].fillna('')
             for col in self.visiblecols:
-                text = cols[col]
+                text = cols.iloc[col]
                 self.drawText(row, col, text, align)
 
         self.tablecolheader.redraw()
@@ -346,6 +344,8 @@ class Table(Canvas):
         return
 
     def redraw(self, event=None, callback=None):
+        """Redraw table"""
+
         self.redrawVisible(event, callback)
         if hasattr(self, 'statusbar'):
             self.statusbar.update()
@@ -466,6 +466,17 @@ class Table(Canvas):
         self.model.resetIndex()
         self.redraw()
         self.drawSelectedCol()
+        if hasattr(self, 'pf'):
+            self.pf.updateData()
+        return
+
+    def flattenIndex(self):
+        """FLatten multiindex"""
+
+        df = self.model.df
+        df.columns = df.columns.get_level_values(0)
+        #self.model.df
+        self.redraw()
         if hasattr(self, 'pf'):
             self.pf.updateData()
         return
@@ -697,19 +708,23 @@ class Table(Canvas):
         self.redraw()
         return
 
-    def getCategorical(self):
+    def createCategorical(self):
         """Get a categorical column from selected"""
 
         df = self.model.df
         col = df.columns[self.currentcol]
 
         d = MultipleValDialog(title='Categorical data',
-                                initialvalues=(0,'',0,''),
+                                initialvalues=(0,'',0,'','',''),
                                 labels=('Convert to integer codes:','Name:',
-                                        'Get dummies:','Dummies prefix:'),
-                                types=('checkbutton','string','checkbutton','string'),
+                                        'Get dummies:','Dummies prefix:',
+                                        'Numerical bins:','Labels:'),
+                                types=('checkbutton','string','checkbutton',
+                                       'string','string','string'),
                                 tooltips=(None, 'name if new column',
-                                         'get dummy columns for fitting',None),
+                                         'get dummy columns for fitting',None,
+                                         'define bins edges for numerical data',
+                                         'labels for bins'),
                                 parent = self.parentframe)
         if d.result == None:
             return
@@ -717,6 +732,9 @@ class Table(Canvas):
         name = d.results[1]
         dummies = d.results[2]
         prefix = d.results[3]
+        bins = d.results[4]
+        binlabels = d.results[5]
+
         if name == '':
             name = col
         if prefix == '':
@@ -727,9 +745,22 @@ class Table(Canvas):
             self.model.df = pd.concat([df,new],1)
         elif convert == 1:
             df[name] = pd.Categorical(df[col]).codes
+        elif bins != '':
+            bins = [int(i) for i in bins.split(',')]
+            if len(bins)==1:
+                bins = int(bins[0])
+                binlabels = list(string.ascii_uppercase[:bins])
+            else:
+                binlabels = binlabels.split(',')
+            if name == col:
+                name = col+'_binned'
+            df[name] = pd.cut(df[col], bins, labels=binlabels)
         else:
             df[name] = df[col].astype('category')
-        self.redraw()
+        if name != col:
+            self.placeColumn(name, col)
+        else:
+            self.redraw()
         return
 
     def applyFunction(self, evt=None):
@@ -802,7 +833,6 @@ class Table(Canvas):
             return
 
         a = inspect.getfullargspec(func)
-        print(a)
         args = a.args
         if a.defaults is None:
             p={}
@@ -1141,8 +1171,19 @@ class Table(Canvas):
         self.drawMultipleCells()
         return
 
+    def selectNone(self):
+        """Deselect current, called when table is redrawn with
+        completely new cols and rows e.g. after model is updated."""
+
+        self.multiplecollist = []
+        self.multiplerowlist = []
+        self.startrow = self.endrow = 0
+        self.delete('multicellrect','multiplesel','colrect')
+        return
+
     def getCellCoords(self, row, col):
         """Get x-y coordinates to drawing a cell in a given row/col"""
+
         colname=self.model.getColumnName(col)
         if colname in self.model.columnwidths:
             w=self.model.columnwidths[colname]
@@ -1161,6 +1202,7 @@ class Table(Canvas):
 
     def getCanvasPos(self, row, col):
         """Get the cell x-y coords as a fraction of canvas size"""
+
         if self.rows==0:
             return None, None
         x1,y1,x2,y2 = self.getCellCoords(row,col)
@@ -1170,6 +1212,7 @@ class Table(Canvas):
 
     def isInsideTable(self,x,y):
         """Returns true if x-y coord is inside table bounds"""
+
         if self.x_start < x < self.tablewidth and self.y_start < y < self.rows*self.rowheight:
             return 1
         else:
@@ -1183,6 +1226,7 @@ class Table(Canvas):
 
     def clearSelected(self):
         """Clear selections"""
+
         self.delete('rect')
         self.delete('entry')
         self.delete('tooltip')
@@ -1193,6 +1237,7 @@ class Table(Canvas):
 
     def gotoprevRow(self):
         """Programmatically set previous row - eg. for button events"""
+
         self.clearSelected()
         current = self.getSelectedRow()
         self.setSelectedRow(current-1)
@@ -1210,6 +1255,7 @@ class Table(Canvas):
 
     def gotonextRow(self):
         """Programmatically set next row - eg. for button events"""
+
         self.clearSelected()
         current = self.getSelectedRow()
         self.setSelectedRow(current+1)
@@ -1227,6 +1273,7 @@ class Table(Canvas):
 
     def handle_left_click(self, event):
         """Respond to a single press"""
+
         self.clearSelected()
         self.allrows = False
         #which row and column is the click inside?
@@ -1409,8 +1456,14 @@ class Table(Canvas):
                 self.rightmenu = self.popupMenu(event, outside=1)
         return
 
-    def handle_motion(self, event):
-        """Handle mouse motion on table"""
+    def placeColumn(self, col1, col2):
+        """Move col2 next to col1, useful for placing a new column
+        made from the first one next to it so user can see it easily"""
+
+        ind1 = self.model.df.columns.get_loc(col1)
+        ind2 = self.model.df.columns.get_loc(col2)
+        self.model.moveColumn(ind1, ind2+1)
+        self.redraw()
         return
 
     def gotonextCell(self):
@@ -1470,28 +1523,19 @@ class Table(Canvas):
         """Show aggregate dialog"""
 
         df = self.model.df
-        cols = list(df.columns)
-        funcs = ['mean','sum','size','count','std','first','last',
-                 'min','max','var']
-        d = MultipleValDialog(title='Aggregate',
-                                initialvalues=(cols,funcs,0),
-                                labels=('Group by:','Function:','Replace:'),
-                                types=('listbox','listbox','checkbutton'),
-                                parent = self.parentframe)
-        if d.result == None:
+        from .dialogs import AggregateDialog
+        dlg = AggregateDialog(self, df=self.model.df)
+        g = dlg.result
+        if g is None:
             return
-        #apply funcions
-        grp = d.results[0]
-        func = d.results[1]
-        replace = d.results[2]
-        g = df.groupby(grp).agg(func)
+        replace = False
         #replace or make new table
         if replace == True:
             self.model.df = g
             self.showIndex()
             self.redraw()
         else:
-            self.createChildTable(g, 'agg-%s-%s' %(grp,func), index=True)
+            self.createChildTable(g, 'aggregated', index=True)
         return
 
     def pivot(self):
@@ -1912,6 +1956,7 @@ class Table(Canvas):
 
     def drawRowHeader(self):
         """User has clicked to select a cell"""
+
         self.delete('rowheader')
         x_start=self.x_start
         y_start=self.y_start
@@ -1934,6 +1979,7 @@ class Table(Canvas):
 
     def drawSelectedRect(self, row, col, color=None):
         """User has clicked to select a cell"""
+
         if col >= self.cols:
             return
         self.delete('currentrect')
@@ -1952,6 +1998,7 @@ class Table(Canvas):
 
     def drawRect(self, row, col, color=None, tag=None, delete=1):
         """Cell is colored"""
+
         if delete==1:
             self.delete('cellbg'+str(row)+str(col))
         if color==None or color==self.cellbackgr:
@@ -1974,6 +2021,7 @@ class Table(Canvas):
 
     def cellentryCallback(self, row, col):
         """Callback for cell entry"""
+
         value = self.cellentryvar.get()
         self.model.setValueAt(value,row,col)
         self.drawText(row, col, value, align=self.align)
@@ -2011,13 +2059,11 @@ class Table(Canvas):
     def checkDataEntry(self,event=None):
         """do validation checks on data entry in a widget"""
 
-        #if user enters commas, change to points
         value=event.widget.get()
         if value!='':
             try:
                 value=re.sub(',','.', value)
                 value=float(value)
-
             except ValueError:
                 event.widget.configure(bg='red')
                 return 0
@@ -2040,7 +2086,7 @@ class Table(Canvas):
         length = len(celltxt)
         if length == 0:
             return
-        #if cell width is less than x, print nothing
+
         if w<=10:
             return
         if w < 18:
@@ -2055,12 +2101,8 @@ class Table(Canvas):
         elif align == 'e':
             x1 = x1+w/2-pad
 
-        newlength = util.getTextLength(celltxt, w-10, self.scratch)
-        '''if h>=40 and newlength<length:
-            width=w
-            anchor='nw'
-            y=y1+2
-        else:'''
+        newlength = util.getTextLength(celltxt, w-pad,
+                                       self.scratch, font=self.thefont)
         width=0
         celltxt = celltxt[0:newlength]
         y=y1+h/2
@@ -2075,6 +2117,7 @@ class Table(Canvas):
 
     def drawSelectedRow(self):
         """Draw the highlight rect for the currently selected row"""
+
         self.delete('rowrect')
         row = self.currentrow
         x1,y1,x2,y2 = self.getCellCoords(row,0)
@@ -2090,6 +2133,7 @@ class Table(Canvas):
 
     def drawSelectedCol(self, col=None, delete=1):
         """Draw an outline rect fot the current column selection"""
+
         if delete == 1:
             self.delete('colrect')
         if col == None:
@@ -2107,6 +2151,7 @@ class Table(Canvas):
 
     def drawMultipleRows(self, rowlist):
         """Draw more than one row selection"""
+
         self.delete('multiplesel')
         for r in rowlist:
             if r not in self.visiblerows or r > self.rows-1:
@@ -2123,6 +2168,7 @@ class Table(Canvas):
 
     def drawMultipleCells(self):
         """Draw an outline box for multiple cell selection"""
+
         self.delete('multicellrect')
         rows = self.multiplerowlist
         cols = self.multiplecollist
@@ -2132,7 +2178,6 @@ class Table(Canvas):
         rect = self.create_rectangle(x1+w/2,y1+w/2,x2,y2,
                              outline=self.boxoutlinecolor, width=w,
                              tag='multicellrect')
-
         return
 
     def setcellbackgr(self):
@@ -2145,19 +2190,22 @@ class Table(Canvas):
         clr = self.getaColor(self.grid_color)
         if clr != None:
             self.grid_color = clr
-
         return
 
     def setrowselectedcolor(self):
+        """Set selected row color"""
+
         clr = self.getaColor(self.rowselectedcolor)
         if clr != None:
             self.rowselectedcolor = clr
         return
 
     def getaColor(self, oldcolor):
+
         import tkinter.colorchooser
-        ctuple, newcolor = tkinter.colorchooser.askcolor(title='pick a color', initialcolor=oldcolor,
-                                                   parent=self.parentframe)
+        ctuple, newcolor = tkinter.colorchooser.askcolor(title='pick a color',
+                                                         initialcolor=oldcolor,
+                                                         parent=self.parentframe)
         if ctuple == None:
             return None
         return str(newcolor)
@@ -2283,6 +2331,7 @@ class Table(Canvas):
         return self.prefswindow
 
     def getFonts(self):
+
         fonts = set(list(tkinter.font.families()))
         fonts = sorted(list(fonts))
         return fonts
@@ -2413,6 +2462,7 @@ class Table(Canvas):
         self.tablewidth = (self.cellwidth)*self.cols
         self.tablecolheader.destroy()
         self.rowheader.destroy()
+        self.selectNone()
         self.show()
         return
 
@@ -2495,8 +2545,6 @@ class Table(Canvas):
         model = TableModel(dataframe=df)
         self.updateModel(model)
         self.redraw()
-        if hasattr(self, 'pf'):
-            self.pf.updateData()
         return
 
     def loadExcel(self, filename=None):

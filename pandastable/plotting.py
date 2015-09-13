@@ -32,6 +32,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from collections import OrderedDict
 import operator
 from .dialogs import *
+from . import util
 
 colormaps = sorted(m for m in plt.cm.datad if not m.endswith("_r"))
 
@@ -84,7 +85,7 @@ class PlotViewer(Frame):
         #general options in this toolbar?
         self.dpivar = IntVar()
         self.dpivar.set(80)
-        Label(bf, text='dpi:').pack(side=LEFT,fill=X,padx=2)
+        Label(bf, text='save dpi:').pack(side=LEFT,fill=X,padx=2)
         e = Entry(bf, textvariable=self.dpivar, width=5)
         e.pack(side=LEFT,padx=2)
         #hidevar = IntVar()
@@ -143,7 +144,7 @@ class PlotViewer(Frame):
         if hasattr(self,'canvas'):
             self.canvas._tkcanvas.destroy()
         if figure == None:
-            self.fig = f = Figure(figsize=(5,4), dpi=100)
+            self.fig = f = Figure(figsize=(5,4), dpi=80)
         else:
             self.fig = f = figure
         a = f.add_subplot(111)
@@ -209,7 +210,7 @@ class PlotViewer(Frame):
                     'hexbin': ['alpha', 'colormap', 'grid', 'linewidth'],
                     'bootstrap': ['grid'],
                     'bar': ['alpha', 'colormap', 'grid', 'legend', 'linewidth', 'subplots',
-                            'sharey', 'stacked', 'rot', 'kind'],
+                            'sharey',  'logy', 'stacked', 'rot', 'kind'],
                     'barh': ['alpha', 'colormap', 'grid', 'legend', 'linewidth', 'subplots',
                             'stacked', 'rot', 'kind'],
                     'histogram': ['alpha', 'linewidth','grid','stacked','subplots','colormap',
@@ -266,7 +267,8 @@ class PlotViewer(Frame):
                 handles, labels = ax.get_legend_handles_labels()
                 i+=1
             self.fig.legend(handles, labels, 'lower right')
-            self.fig.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1, hspace=.25)
+            self.fig.subplots_adjust(left=0.1, right=0.9, top=0.9,
+                                     bottom=0.1, hspace=.25)
             axs = self.fig.get_axes()
             #self.canvas.draw()
         else:
@@ -286,6 +288,8 @@ class PlotViewer(Frame):
         try:
             self.fig.tight_layout()
         except:
+            self.fig.subplots_adjust(left=0.1, right=0.9, top=0.9,
+                                     bottom=0.1, hspace=.3)
             print ('tight_layout failed')
         self.canvas.draw()
         return
@@ -618,13 +622,13 @@ class MPLBaseOptions(object):
                 'legend':{'type':'checkbutton','default':1,'label':'legend'},
                 'kind':{'type':'combobox','default':'line','items':self.kinds,'label':'kind'},
                 'stacked':{'type':'checkbutton','default':0,'label':'stacked'},
-                'linewidth':{'type':'scale','default':1,'range':(0,5),'interval':0.5,'label':'line width'},
+                'linewidth':{'type':'scale','default':1.5,'range':(0,5),'interval':0.5,'label':'line width'},
                 'alpha':{'type':'scale','default':0.7,'range':(0,1),'interval':0.1,'label':'alpha'},
                 'title':{'type':'entry','default':'','width':20},
                 'xlabel':{'type':'entry','default':'','width':20},
                 'ylabel':{'type':'entry','default':'','width':20},
                 'subplots':{'type':'checkbutton','default':0,'label':'multiple subplots'},
-                'colormap':{'type':'combobox','default':'spectral','items':colormaps},
+                'colormap':{'type':'combobox','default':'Set1','items':colormaps},
                 'bins':{'type':'entry','default':20,'width':10},
                 'by':{'type':'combobox','items':datacols,'label':'group by','default':''},
                 'by2':{'type':'combobox','items':datacols,'label':'group by 2','default':''}
@@ -665,7 +669,10 @@ class MPLBaseOptions(object):
     def update(self, df):
         """Update data widget(s)"""
 
-        cols = list(df.columns)
+        if util.check_multiindex(df.columns) == 1:
+            cols = list(df.columns.get_level_values(0))
+        else:
+            cols = list(df.columns)
         cols += ''
         self.widgets['by']['values'] = cols
         self.widgets['by2']['values'] = cols
