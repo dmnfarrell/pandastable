@@ -137,11 +137,10 @@ class ColumnHeader(Canvas):
         colclicked = self.table.get_col_clicked(event)
         if colclicked == None:
             return
-        #if 0 rows selected means we have just opened table
-        if len(self.table.multiplerowlist) == 0 or self.table.startrow == self.table.endrow:
-            self.table.multiplerowlist = list(range(0,self.table.rows))
-        #set all rows selected
-        self.table.allrows = True
+        #set all rows for plotting if no multi selection
+        if len(self.table.multiplerowlist) <= 1 or self.table.startrow == self.table.endrow:
+            self.table.allrows = True
+
         self.table.setSelectedCol(colclicked)
         if self.atdivider == 1:
             return
@@ -457,6 +456,8 @@ class RowHeader(Canvas):
             w = np.sum(widths)
             if w>maxw:
                 w=maxw
+            elif w<45:
+                w=45
         else:
             rows = [i+1 for i in v]
             cols = [rows]
@@ -670,7 +671,7 @@ class IndexHeader(Canvas):
             l = [len(n) for n in names]
             widths = [i * scale + 6 for i in l]
 
-        i=0; x=1; y=2
+        i=0; x=1; y=0
         for name in names:
             if name != None:
                 self.create_text(x+pad,y+h/2,text=name,

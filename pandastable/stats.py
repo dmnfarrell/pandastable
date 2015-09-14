@@ -126,7 +126,11 @@ class StatsViewer(Frame):
         """Select model to use"""
 
         s = self.table.multiplerowlist
-        self.sub = sub = data.index[s]
+        if len(s) == 0:
+            sub = data.index
+        else:
+            sub = data.index[s]
+        self.sub = sub
         y,X = dmatrices(formula, data=data, return_type='dataframe')
         self.X = X
         self.y = y
@@ -147,9 +151,6 @@ class StatsViewer(Frame):
         the currently selected rows for fitting."""
 
         data = self.table.model.df
-        #sub sample of data to fit
-        #self.sub = s = self.table.getSelectedDataFrame()
-        #s = s.convert_objects(convert_numeric='force')
         if len(data) == 0 or len(data.columns)<1:
             return
         self.formula = formula = self.formulavar.get()

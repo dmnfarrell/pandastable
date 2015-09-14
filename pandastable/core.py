@@ -1893,7 +1893,7 @@ class Table(Canvas):
 
         df = self.model.df
         rows = self.multiplerowlist
-        if len(rows)<1:
+        if len(rows)<1 or self.allrows == True:
             rows = list(range(self.rows))
         cols = self.multiplecollist
         data = df.iloc[rows,cols]
