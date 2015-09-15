@@ -6,6 +6,12 @@
  *    user zoom.
  */
 
+
+@font-face {
+  font-family: 'LeagueGothic';
+  src:  local('LeagueGothic'), url('fonts/LeagueGothic-Regular.otf') format('opentype');
+}
+
 html {
   font-family: sans-serif; /* 1 */
   -webkit-text-size-adjust: 100%; /* 2 */
@@ -428,12 +434,12 @@ th {
 
 /* LAYOUT STYLES */
 body {
-  font-family: 'Helvetica Neue', Helvetica, Arial, serif;
+  font-family: 'Droid Sans', Helvetica, Arial, serif;
   font-size: 15px;
   font-weight: 400;
   line-height: 1.5;
-  color: #666;
-  background: #fafafa url(../images/body-bg.jpg) 0 0 repeat;
+  color: #474747;
+
 }
 
 p {
@@ -450,7 +456,7 @@ a:hover {
 header {
   padding-top: 15px;
   padding-bottom: 15px;
-  font-family: 'Architects Daughter', 'Helvetica Neue', Helvetica, Arial, serif;
+  font-family: 'LeagueGothic', 'Helvetica Neue', Helvetica, Arial, serif;
   background: #2e7bcf url(../images/header-bg.jpg) 0 0 repeat-x;
   border-bottom: solid 1px #275da1;
 }
@@ -459,8 +465,8 @@ header h1 {
   width: 550px;
   margin-top: 0;
   margin-bottom: 0.2em;
-  font-family: 'Architects Daughter','Helvetica Neue', helvetica;
-  font-size: 62px;
+  font-family: 'LeagueGothic','Helvetica Neue', helvetica;
+  font-size: 72px;
   font-weight: normal;
   line-height: 1;
   color: #fff;
@@ -471,7 +477,7 @@ header h2 {
   width: 580px;
   margin-top: 0;
   margin-bottom: 0;
-  font-size: 24px;
+  font-size: 26px;
   font-weight: normal;
   line-height: 1.3;
   color: #9ddcff;
@@ -521,7 +527,7 @@ a.logo {
   height: 160px;
   padding-top: 22px;
   padding-left: 68px;
-  font-family: 'Architects Daughter', 'Helvetica Neue', Helvetica, Arial, serif;
+  font-family: 'Droid Sans', 'Helvetica Neue', Helvetica, Arial, serif;
   font-size: 23px;
   line-height: 1.2;
   color: #fff;
@@ -531,7 +537,7 @@ a.button {
   height: 58px;
   padding-top: 22px;
   padding-left: 68px;
-  font-family: 'Architects Daughter', 'Helvetica Neue', Helvetica, Arial, serif;
+  font-family: 'Droid Sans', 'Helvetica Neue', Helvetica, Arial, serif;
   font-size: 23px;
   line-height: 1.2;
   color: #fff;
@@ -557,7 +563,7 @@ aside a.button {
   width: 148px;
   padding-left: 74px;
   margin-bottom: 20px;
-  font-size: 21px;
+  font-size: 20px;
   background: transparent url(../images/download-button.png) 0 0 no-repeat;
 }
 
@@ -630,7 +636,7 @@ form {
 #main-content h1 {
   margin-top: 0;
   margin-bottom: 0;
-  font-family: 'Architects Daughter', 'Helvetica Neue', Helvetica, Arial, serif;
+  font-family: 'Droid Sans', Helvetica, Arial, serif;
   font-size: 2.8em;
   font-weight: normal;
   color: #474747;
@@ -646,9 +652,9 @@ form {
 }
 
 #main-content h2 {
-  margin-bottom: 8px;
-  font-family: 'Architects Daughter', 'Helvetica Neue', Helvetica, Arial, serif;
-  font-size: 22px;
+  margin-bottom: 4px;
+  font-family: 'Droid Sans', Helvetica, Arial, serif;
+  font-size: 20px;
   font-weight: bold;
   color: #474747;
   text-indent: 4px;
@@ -661,9 +667,9 @@ form {
 }
 
 #main-content h3 {
-  margin-top: 24px;
+  margin-top: 14px;
   margin-bottom: 8px;
-  font-family: 'Architects Daughter', 'Helvetica Neue', Helvetica, Arial, serif;
+  font-family: 'Droid Sans', Helvetica, Arial, serif;
   font-size: 18px;
   font-weight: bold;
   color: #474747;
@@ -679,7 +685,7 @@ form {
 
 #main-content h4 {
   margin-bottom: 8px;
-  font-family: 'Architects Daughter', 'Helvetica Neue', Helvetica, Arial, serif;
+  font-family: 'Droid Sans', Helvetica, Arial, serif;
   font-size: 15px;
   font-weight: bold;
   color: #474747;
@@ -695,7 +701,7 @@ h4:before {
 
 #main-content h5 {
   margin-bottom: 8px;
-  font-family: 'Architects Daughter', 'Helvetica Neue', Helvetica, Arial, serif;
+  font-family: 'Droid Sans', Helvetica, Arial, serif;
   font-size: 14px;
   color: #474747;
   text-indent: 3px;
@@ -709,7 +715,7 @@ h5:before {
 
 #main-content h6 {
   margin-bottom: 8px;
-  font-family: 'Architects Daughter', 'Helvetica Neue', Helvetica, Arial, serif;
+  font-family: 'Droid Sans', Helvetica, Arial, serif;
   font-size: .8em;
   color: #474747;
   text-indent: 3px;
@@ -771,6 +777,12 @@ footer a {
 }
 footer a:hover {
   color: #444;
+}
+
+#sidebar
+h2 {
+  font-family: 'Droid Sans', helvetica, Arial, serif;
+  font-size: 18px;
 }
 
 /* MISC */
@@ -898,4 +910,3 @@ footer a:hover {
 
 /* Mobile Portrait Size to Mobile Landscape Size (devices and browsers) */
 @media only screen and (max-width: 479px) { }
-
