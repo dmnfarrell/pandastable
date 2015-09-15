@@ -220,7 +220,7 @@ class PlotViewer(Frame):
                              'kind','rot','logx'],
                     'density': ['alpha', 'colormap', 'grid', 'legend', 'linestyle',
                                  'linewidth', 'marker', 'subplots', 'rot', 'kind'],
-                    'boxplot': ['rot', 'grid', 'logy'],
+                    'boxplot': ['rot', 'grid', 'logy','colormap','alpha','linewidth'],
                     'scatter_matrix':['alpha', 'linewidth', 'marker', 'grid', 's'],
                     }
 
@@ -320,7 +320,16 @@ class PlotViewer(Frame):
                 for a in self.fig.axes:
                     a.set_ylim(lims)
         elif kind == 'boxplot':
-            axs = data.boxplot(ax=ax, rot=kwargs['rot'], grid=kwargs['grid'])
+            axs = data.boxplot(ax=ax, rot=kwargs['rot'], grid=kwargs['grid'],
+                               patch_artist=True)
+            lw = kwargs['linewidth']
+            plt.setp(axs['boxes'], color='black', lw=lw)
+            plt.setp(axs['whiskers'], color='black', lw=lw)
+            plt.setp(axs['fliers'], color='black', marker='+', lw=lw)
+            cmap = plt.cm.get_cmap(kwargs['colormap'])
+            clr = cmap(0.5)
+            for patch in axs['boxes']:
+                patch.set_facecolor(clr)
             #boxplot won't accept required kwargs?
             if kwargs['logy'] == 1:
                 ax.set_yscale('log')
