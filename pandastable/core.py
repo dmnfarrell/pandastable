@@ -443,8 +443,23 @@ class Table(Canvas):
         self.redraw()
         return
 
+    def sortColumnIndex(self):
+        """Sort the column header"""
+
+        df = self.model.df
+        rowindex = df.index[self.currentrow]
+        row = df.ix[rowindex]
+        #convert to numbers so we can ignore unorderables
+        row = row.convert_objects(convert_numeric=True)
+        #df.columns = df.columns[row.argsort()]
+        self.model.df = df.reindex(columns=df.columns[row.argsort()])
+
+        self.redraw()
+        return
+
     def groupby(self, colindex):
         """Group by"""
+
         grps = self.model.groupby(colindex)
         return
 
@@ -483,11 +498,26 @@ class Table(Canvas):
 
     def copyIndex(self):
         """Copy index to a column"""
+
         self.model.copyIndex()
         self.redraw()
         return
 
+    def renameIndex(self, ):
+        """Rename the row index"""
+
+        n = self.model.df.index.name
+        name = simpledialog.askstring("New index name",
+                                      "New name:",initialvalue=n,
+                                       parent=self.parentframe)
+        if name:
+            self.model.df.index.name = name
+            self.rowindexheader.redraw()
+        return
+
     def showIndex(self):
+        """Show the row index"""
+
         self.rowheader.showindex = True
         return
 
@@ -1604,22 +1634,24 @@ class Table(Canvas):
         """Convert col names so we can use numexpr"""
 
         d = MultipleValDialog(title='Convert col names',
-                                initialvalues=['','',0,0],
-                                labels=['replace spaces with:','add symbol to start',
+                                initialvalues=['','','',0,0],
+                                labels=['replace','with:',
+                                        'add symbol to start:',
                                         'make lowercase','make uppercase'],
-                                types=('string','string','checkbutton','checkbutton'),
+                                types=('string','string','string','checkbutton','checkbutton'),
                                 parent = self.parentframe)
         if d.result == None:
             return
-        sep = d.results[0]
-        start = d.results[1]
-        lower = d.results[2]
-        upper = d.results[3]
+        pattern = d.results[0]
+        repl = d.results[1]
+        start = d.results[2]
+        lower = d.results[3]
+        upper = d.results[4]
         df = self.model.df
         if start != '':
             df.columns = start + df.columns
-        if sep != '':
-            df.columns = [i.replace(' ',sep) for i in df.columns]
+        if pattern != '':
+            df.columns = [i.replace(pattern,repl) for i in df.columns]
         if lower == 1:
             df.columns = df.columns.str.lower()
         elif upper == 1:

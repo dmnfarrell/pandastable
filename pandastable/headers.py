@@ -317,9 +317,9 @@ class ColumnHeader(Canvas):
         def popupFocusOut(event):
             popupmenu.unpost()
         popupmenu.add_command(label="Rename Column", command=self.renameColumn)
-        popupmenu.add_command(label="Sort by " + colnames,
+        popupmenu.add_command(label="Sort by " + colnames + ' \u2193',
                     command=lambda : self.table.sortTable(ascending=[1 for i in multicols]))
-        popupmenu.add_command(label="Sort by " + colnames + ' (descending)',
+        popupmenu.add_command(label="Sort by " + colnames + ' \u2191',
             command=lambda : self.table.sortTable(ascending=[0 for i in multicols]))
         popupmenu.add_command(label="Set %s as Index" %colnames, command=self.table.setindex)
         if ismulti == True:
@@ -586,8 +586,11 @@ class RowHeader(Canvas):
                          "Reset index" : lambda: self.table.resetIndex(),
                          "Toggle index" : lambda: self.toggleIndex(),
                          "Copy index to column" : lambda: self.table.copyIndex(),
+                         "Rename index" : lambda: self.table.renameIndex(),
+                         "Sort columns by row" : lambda: self.table.sortColumnIndex(),
                          "Select All" : self.table.selectAll}
-        main = ["Sort by index","Reset index","Toggle index","Copy index to column"]
+        main = ["Sort by index","Reset index","Toggle index",
+                "Rename index","Sort columns by row","Copy index to column"]
 
         popupmenu = Menu(self, tearoff = 0)
         def popupFocusOut(event):
