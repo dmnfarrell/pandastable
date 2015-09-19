@@ -444,16 +444,19 @@ class Table(Canvas):
         return
 
     def sortColumnIndex(self):
-        """Sort the column header"""
+        """Sort the column header by the current rows values"""
 
-        df = self.model.df
-        rowindex = df.index[self.currentrow]
-        row = df.ix[rowindex]
-        #convert to numbers so we can ignore unorderables
-        row = row.convert_objects(convert_numeric=True)
-        #df.columns = df.columns[row.argsort()]
-        self.model.df = df.reindex(columns=df.columns[row.argsort()])
-
+        cols = self.model.df.columns
+        #get only sortable cols
+        temp = self.model.df.convert_objects(convert_numeric=True)
+        temp = temp.select_dtypes(include=['int','float'])
+        rowindex = temp.index[self.currentrow]
+        row = temp.ix[rowindex]
+        #add unsortable cols to end of new ordered ones
+        newcols = list(temp.columns[row.argsort()])
+        a = list(set(cols) - set(newcols))
+        newcols.extend(a)
+        self.model.df = self.model.df.reindex(columns=newcols)
         self.redraw()
         return
 
