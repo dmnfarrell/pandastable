@@ -41,8 +41,8 @@ class PlotViewer(Frame):
 
     def __init__(self, table, parent=None):
 
-        self.parent=parent
-        self.table=table
+        self.parent = parent
+        self.table = table
         self.table.pf = self #opaque ref
         self.mode = 0
         if self.parent != None:
@@ -80,6 +80,8 @@ class PlotViewer(Frame):
         bf = Frame(self.ctrlfr, padding=2)
         bf.pack(side=TOP,fill=BOTH)
         b = Button(bf, text="Apply", command=self.applyPlotoptions)
+        b.pack(side=LEFT,fill=X,expand=1)
+        b = Button(bf, text="Replot", command=self.replot)
         b.pack(side=LEFT,fill=X,expand=1)
 
         #general options in this toolbar?
@@ -120,6 +122,13 @@ class PlotViewer(Frame):
     def setMode(self, evt=None):
         """Set the plot mode based on selected tab"""
         self.mode = self.nb.index(self.nb.select())
+        return
+
+    def replot(self):
+        """Re-plot from parent table when selected data changed"""
+
+        self.data = self.table.getPlotData()
+        self.applyPlotoptions()
         return
 
     def applyPlotoptions(self):
@@ -206,13 +215,13 @@ class PlotViewer(Frame):
                            'sharey', 'use_index', 'kind'],
                     'scatter': ['alpha', 'grid', 'linewidth', 'marker', 'subplots', 's',
                             'legend', 'colormap','sharey', 'logx', 'logy', 'use_index'],
-                    'pie': ['colormap', 'legend', 'kind','subplots'],
+                    'pie': ['colormap','legend'],
                     'hexbin': ['alpha', 'colormap', 'grid', 'linewidth'],
                     'bootstrap': ['grid'],
                     'bar': ['alpha', 'colormap', 'grid', 'legend', 'linewidth', 'subplots',
                             'sharey',  'logy', 'stacked', 'rot', 'kind'],
                     'barh': ['alpha', 'colormap', 'grid', 'legend', 'linewidth', 'subplots',
-                            'stacked', 'rot', 'kind'],
+                            'stacked', 'rot', 'kind', 'logx'],
                     'histogram': ['alpha', 'linewidth','grid','stacked','subplots','colormap',
                              'sharey','rot','bins', 'logx', 'logy'],
                     'heatmap': ['colormap','rot'],
@@ -274,24 +283,32 @@ class PlotViewer(Frame):
         else:
             axs = self._doplot(data, ax, kind, kwds['subplots'], kwargs)
 
-        if type(axs) is np.ndarray:
-            self.ax = axs.flat[0]
-        elif type(axs) is list:
-            self.ax = axs[0]
-        self.fig.suptitle(kwds['title'])
-        if kwds['xlabel'] != '':
-            self.ax.set_xlabel(kwds['xlabel'])
-        if kwds['ylabel'] != '':
-            self.ax.set_ylabel(kwds['ylabel'])
-        self.ax.xaxis.set_visible(kwds['showxlabels'])
-        self.ax.yaxis.set_visible(kwds['showylabels'])
+        #set options general for all plot types
+        self.setFigureOptions(axs, kwds)
         try:
             self.fig.tight_layout()
         except:
             self.fig.subplots_adjust(left=0.1, right=0.9, top=0.9,
-                                     bottom=0.1, hspace=.3)
+                                     bottom=0.1, hspace=.3, wspace=.2)
             print ('tight_layout failed')
         self.canvas.draw()
+        return
+
+    def setFigureOptions(self, axs, kwds):
+        """Set axis wide options such as ylabels, title"""
+
+        if type(axs) is np.ndarray:
+            self.ax = axs.flat[0]
+        elif type(axs) is list:
+            self.ax = axs[0]
+        self.fig.suptitle(kwds['title'], fontsize=kwds['fontsize']*1.2)
+        for ax in self.fig.axes:
+            if kwds['xlabel'] != '':
+                ax.set_xlabel(kwds['xlabel'])
+            if kwds['ylabel'] != '':
+                ax.set_ylabel(kwds['ylabel'])
+            ax.xaxis.set_visible(kwds['showxlabels'])
+            ax.yaxis.set_visible(kwds['showylabels'])
         return
 
     def _doplot(self, data, ax, kind, subplots, kwargs):
@@ -299,10 +316,9 @@ class PlotViewer(Frame):
 
         cols = data.columns
         rows = int(round(np.sqrt(len(data.columns)),0))
-        if len(data.columns) == 1:
+        if len(data.columns) == 1 and kind not in ['pie']:
             kwargs['subplots'] = 0
-        if kind == 'pie':
-            kwargs['subplots'] = True
+
         if subplots == 0:
             layout = None
         else:
@@ -346,6 +362,15 @@ class PlotViewer(Frame):
             x = cols[0]
             y = cols[1]
             axs = data.plot(x,y,ax=ax,kind='hexbin',gridsize=20,**kwargs)
+        elif kind == 'pie':
+            if kwargs['legend'] == True:
+                lbls=None
+            else:
+                lbls = list(data.index)
+            axs = data.plot(ax=ax,kind='pie', labels=lbls, layout=layout,
+                            autopct='%1.1f%%', subplots=True, **kwargs)
+            if lbls == None:
+                axs[0].legend(labels=data.index)
         else:
             axs = data.plot(ax=ax, layout=layout, **kwargs)
         return axs
@@ -382,7 +407,7 @@ class PlotViewer(Frame):
             if kwds['subplots'] == 1:
                 ax = self.fig.add_subplot(nrows,ncols,i)
             ax.scatter(x, y, marker=marker, alpha=alpha, linewidth=lw,
-                       s=kwds['s'], edgecolor=ec, color=c)
+                       s=kwds['s'], edgecolors=ec, color=c)
             ax.set_xlabel(cols[0])
             if kwds['logx'] == 1:
                 ax.set_xscale('log')
@@ -637,7 +662,7 @@ class MPLBaseOptions(object):
                 'xlabel':{'type':'entry','default':'','width':20},
                 'ylabel':{'type':'entry','default':'','width':20},
                 'subplots':{'type':'checkbutton','default':0,'label':'multiple subplots'},
-                'colormap':{'type':'combobox','default':'Set1','items':colormaps},
+                'colormap':{'type':'combobox','default':'Spectral','items':colormaps},
                 'bins':{'type':'entry','default':20,'width':10},
                 'by':{'type':'combobox','items':datacols,'label':'group by','default':''},
                 'by2':{'type':'combobox','items':datacols,'label':'group by 2','default':''}

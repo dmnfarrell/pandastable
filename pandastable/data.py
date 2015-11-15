@@ -115,7 +115,7 @@ class TableModel(object):
         return
 
     def getlongestEntry(self, colindex):
-        """Get the longest cell entry in the col"""
+        """Get the longest string in the column for determining width"""
 
         df = self.df
         col = df.columns[colindex]
@@ -129,7 +129,7 @@ class TableModel(object):
         return longest
 
     def getRecordAtRow(self, rowIndex):
-        """Get the entire record at the specifed row."""
+        """Get the entire record at the specifed row"""
 
         name = self.getRecName(rowIndex)
         record = self.df.ix[name]

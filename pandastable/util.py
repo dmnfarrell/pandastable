@@ -38,7 +38,7 @@ def getTextLength(text, w, scratch=None, font=None):
     twidth = b[2]-b[0]
     ratio = length/twidth
     length = math.floor(w*ratio)
-    return length
+    return twidth,length
 
 def check_multiindex(index):
     """Check if index is a multiindex"""

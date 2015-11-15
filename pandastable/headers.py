@@ -103,7 +103,7 @@ class ColumnHeader(Canvas):
 
             if util.check_multiindex(self.model.df.columns) == 1:
                 if isinstance(colname, tuple):
-                    lens = [util.getTextLength(c, w-pad, font=font) for c in colname]
+                    lens = [util.getTextLength(c, w-pad, font=font)[1] for c in colname]
                     colname = [str(c)[:l] for c,l in zip(colname,lens)]
                 colname = '\n'.join(colname)
                 #wrapw = w-pad
@@ -113,7 +113,7 @@ class ColumnHeader(Canvas):
             else:
                 colname = str(colname)
                 #wrapw = 0
-                length = util.getTextLength(colname, w-pad, font=font)
+                tw,length = util.getTextLength(colname, w-pad, font=font)
                 colname = colname[0:length]
 
             line = self.create_line(x, 0, x, h, tag=('gridline', 'vertline'),

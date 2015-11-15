@@ -100,13 +100,15 @@ class Table(Canvas):
         self.columnactions = {'text' : {"Edit":  'drawCellEntry' },
                               'number' : {"Edit": 'drawCellEntry' }}
         self.setFontSize()
+        self.scratch = Canvas()
         return
 
     def set_defaults(self):
         """Set default settings"""
 
-        self.cellwidth=50
+        self.cellwidth = 60
         self.maxcellwidth=300
+        self.mincellwidth = 30
         self.rowheight=20
         self.horizlines=1
         self.vertlines=1
@@ -371,10 +373,6 @@ class Table(Canvas):
         """Optimally adjust col widths to accomodate the longest entry
             in each column - usually only called on first redraw"""
 
-        #obj = self.find_withtag(ALL)
-        #print (obj)
-        #x1, y1, x2, y2 = self.bbox(obj)
-        #self.find_overlapping(x1, y1, x2, y2)
         try:
             fontsize = self.thefont[1]
         except:
@@ -387,13 +385,15 @@ class Table(Canvas):
             else:
                 w = self.cellwidth
             l = self.model.getlongestEntry(col)
-            size = l * scale
-            if size < w:
-                continue
-            #print (col, l,size, self.cellwidth)
-            if size >= self.maxcellwidth:
-                size = self.maxcellwidth
-            self.model.columnwidths[colname] = size + float(fontsize)/12*6
+            txt = ''.join(['X' for i in range(l+1)])
+            tw,tl = util.getTextLength(txt, self.maxcellwidth,
+                                       self.scratch, font=self.thefont)
+            #print (col,txt,l,tw)
+            if tw >= self.maxcellwidth:
+                tw = self.maxcellwidth
+            elif tw < self.cellwidth:
+                tw = self.cellwidth
+            self.model.columnwidths[colname] = tw
         return
 
     def autoResizeColumns(self):
@@ -412,7 +412,6 @@ class Table(Canvas):
         x_pos = self.x_start
         self.col_positions.append(x_pos)
         for col in range(self.cols):
-            #colname = self.model.getColumnName(col)
             colname = str(df.columns[col])
             if colname in self.model.columnwidths:
                 x_pos = x_pos+self.model.columnwidths[colname]
@@ -2136,7 +2135,7 @@ class Table(Canvas):
         elif align == 'e':
             x1 = x1+w/2-pad
 
-        newlength = util.getTextLength(celltxt, w-pad,
+        tw,newlength = util.getTextLength(celltxt, w-pad,
                                        self.scratch, font=self.thefont)
         width=0
         celltxt = celltxt[0:newlength]
@@ -2462,12 +2461,15 @@ class Table(Canvas):
 
     def applyPrefs(self):
         """Apply prefs to the table by redrawing"""
+
         self.savePrefs()
+        self.autoResizeColumns()
         self.redraw()
         return
 
     def show_progressbar(self,message=None):
         """Show progress bar window for loading of data"""
+
         progress_win=Toplevel() # Open a new window
         progress_win.title("Please Wait")
         #progress_win.geometry('+%d+%d' %(self.parentframe.rootx+200,self.parentframe.rooty+200))
