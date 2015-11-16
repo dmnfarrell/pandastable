@@ -243,6 +243,7 @@ class PlotViewer(Frame):
         kind = kwds['kind']
         by = kwds['by']
         by2 = kwds['by2']
+        errorbars = kwds['errorbars']
 
         #valid kwd args for this plot type
         kwargs = dict((k, kwds[k]) for k in valid[kind] if k in kwds)
@@ -281,7 +282,7 @@ class PlotViewer(Frame):
             axs = self.fig.get_axes()
             #self.canvas.draw()
         else:
-            axs = self._doplot(data, ax, kind, kwds['subplots'], kwargs)
+            axs = self._doplot(data, ax, kind, kwds['subplots'], errorbars, kwargs)
 
         #set options general for all plot types
         self.setFigureOptions(axs, kwds)
@@ -311,7 +312,7 @@ class PlotViewer(Frame):
             ax.yaxis.set_visible(kwds['showylabels'])
         return
 
-    def _doplot(self, data, ax, kind, subplots, kwargs):
+    def _doplot(self, data, ax, kind, subplots, errorbars, kwargs):
         """Do core plotting"""
 
         cols = data.columns
@@ -323,6 +324,13 @@ class PlotViewer(Frame):
             layout = None
         else:
             layout=(rows,-1)
+        if errorbars == True:
+            yerr = data[data.columns[1::2]]
+            data = data[data.columns[0::2]]
+            yerr.columns = data.columns
+            print (data, yerr)
+        else:
+            yerr = None
         if kind == 'bar':
             if len(data) > 50:
                 ax.get_xaxis().set_visible(False)
@@ -371,8 +379,13 @@ class PlotViewer(Frame):
                             autopct='%1.1f%%', subplots=True, **kwargs)
             if lbls == None:
                 axs[0].legend(labels=data.index)
+        elif kind == 'barh':
+            lw = kwargs['linewidth']
+            axs = data.plot(ax=ax, layout=layout, xerr=yerr, **kwargs)
         else:
-            axs = data.plot(ax=ax, layout=layout, **kwargs)
+            #if kwargs['table'] == True:
+            #    kwargs['table'] = data
+            axs = data.plot(ax=ax, layout=layout, yerr=yerr, **kwargs)
         return axs
 
     def scatter(self, df, ax, alpha=0.8, marker='o', **kwds):
@@ -631,12 +644,12 @@ class MPLBaseOptions(object):
         datacols = list(df.columns)
         datacols.insert(0,'')
         fonts = getFonts()
-        grps = {'data':['bins','by','by2','use_index'],
+        grps = {'data':['bins','by','by2','use_index','errorbars'],
                 'styles':['font','colormap','alpha','grid'],
                 'sizes':['fontsize','s','linewidth'],
                 'formats':['kind','marker','linestyle','stacked','subplots'],
                 'axes':['showxlabels','showylabels','sharex','sharey','logx','logy','rot'],
-                'labels':['title','xlabel','ylabel','legend']}
+                'labels':['title','xlabel','ylabel','legend','table']}
         order = ['data','formats','sizes','axes','styles','labels']
         self.groups = OrderedDict(sorted(grps.items()))
         opts = self.opts = {'font':{'type':'combobox','default':self.defaultfont,'items':fonts},
@@ -649,11 +662,13 @@ class MPLBaseOptions(object):
                 'logy':{'type':'checkbutton','default':0,'label':'log y'},
                 'rot':{'type':'entry','default':0, 'label':'ylabel rot'},
                 'use_index':{'type':'checkbutton','default':1,'label':'use index'},
+                'errorbars':{'type':'checkbutton','default':0,'label':'use errorbars'},
                 'showxlabels':{'type':'checkbutton','default':1,'label':'x tick labels'},
                 'showylabels':{'type':'checkbutton','default':1,'label':'y tick labels'},
                 'sharex':{'type':'checkbutton','default':0,'label':'share x'},
                 'sharey':{'type':'checkbutton','default':0,'label':'share y'},
                 'legend':{'type':'checkbutton','default':1,'label':'legend'},
+                'table':{'type':'checkbutton','default':0,'label':'show table'},
                 'kind':{'type':'combobox','default':'line','items':self.kinds,'label':'kind'},
                 'stacked':{'type':'checkbutton','default':0,'label':'stacked'},
                 'linewidth':{'type':'scale','default':1.5,'range':(0,5),'interval':0.5,'label':'line width'},
