@@ -216,6 +216,35 @@ class ViewerApp(Frame):
         dict['var']=var
         return dict
 
+    def loadMeta(self, table, meta):
+        """Load meta data for project"""
+
+        plotopts = meta['plotoptions']
+        tablesettings = meta['selected']
+
+        table.pf.mplopts.updateFromOptions(plotopts)
+        table.pf.mplopts.applyOptions()
+
+        for k in tablesettings:
+            table.__dict__[k] = tablesettings[k]
+
+        print (table.__dict__['multiplerowlist'])
+        table.redraw()
+        if table.plotted == True:
+                table.plotSelected()
+        return
+
+    def saveMeta(self, table):
+        """Save meta data such as current plot options"""
+
+        meta = {}
+        #save plot options
+        pfo = meta['plotoptions'] = table.pf.mplopts.kwds
+        #save table selections
+        tbl = meta['selected'] = table.getSettings()
+        print(tbl['multiplerowlist'])
+        return meta
+
     def newProject(self, data=None, current=False):
         """Create a new project from data or empty"""
 
@@ -230,6 +259,8 @@ class ViewerApp(Frame):
             self.nb.forget(n)
         if data != None:
             for s in sorted(data.keys()):
+                if s == 'meta':
+                    continue
                 self.addSheet(s, data[s])
         else:
             self.addSheet('sheet1')
@@ -279,8 +310,10 @@ class ViewerApp(Frame):
 
         data={}
         for i in self.sheets:
-            data[i] = self.sheets[i].model.df
-
+            table = self.sheets[i]
+            data[i] = {}
+            data[i]['table'] = table.model.df
+            data[i]['meta'] = self.saveMeta(table)
         pd.to_msgpack(filename, data, encoding='utf-8')
         return
 
@@ -303,7 +336,7 @@ class ViewerApp(Frame):
         df = pd.read_msgpack(filename)
         name = os.path.splitext(os.path.basename(filename))[0]
         if hasattr(self,'sheets'):
-            self.addSheet(sheetname=name, df=df)
+            self.addSheet(sheetname=name, data={'table':df})
         else:
             data = {name:df}
             self.newProject(data)
@@ -316,9 +349,13 @@ class ViewerApp(Frame):
         self.loadmsgpack(filename)
         return
 
-    def addSheet(self, sheetname=None, df=None, select=False):
+    def addSheet(self, sheetname=None, data=None, select=False):
         """Add a new sheet"""
 
+        if data != None:
+            df = data['table']
+        else:
+            df = None
         names = [self.nb.tab(i, "text") for i in self.nb.tabs()]
         def checkName(name):
             if name == '':
@@ -349,6 +386,9 @@ class ViewerApp(Frame):
         self.saved = 0
         self.currenttable = table
         self.sheets[sheetname] = table
+        #load meta data
+        if data != None and 'meta' in data:
+            self.loadMeta(table, data['meta'])
         if select == True:
             ind = self.nb.index('end')-1
             s = self.nb.tabs()[ind]
@@ -432,17 +472,18 @@ class ViewerApp(Frame):
         """Load sample table"""
 
         df = TableModel.getSampleData()
+
         name='sample'
         i=1
         while name in self.sheets:
             name='sample'+str(i)
             i+=1
-        self.addSheet(sheetname=name, df=df)
+        self.addSheet(sheetname=name, data={'table':df})
         return
 
     def getStackedData(self):
         df = TableModel.getStackedData()
-        self.addSheet(sheetname='stacked-data', df=df)
+        self.addSheet(sheetname='stacked-data', data={'table':df})
         return
 
     def fileRename(self):

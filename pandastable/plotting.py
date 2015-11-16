@@ -727,6 +727,14 @@ class MPLBaseOptions(object):
         self.widgets['by2']['values'] = cols
         return
 
+    def updateFromOptions(self, opts):
+        """Update all widgets using plot kwds dict"""
+
+        for i in opts:
+            self.tkvars[i].set(opts[i])
+
+        return
+
 class MPL3DOptions(object):
     """Class to provide 3D matplotlib options"""
 
