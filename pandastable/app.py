@@ -216,6 +216,47 @@ class ViewerApp(Frame):
         dict['var']=var
         return dict
 
+    def loadMeta(self, meta):
+        """Load meta data for project"""
+
+        plotopts = meta['plotoptions']
+        tablesettings = meta['table']
+        for s in self.sheets:
+            if s in plotopts:
+                print('options for',s)
+                table = self.sheets[s]
+                table.pf.mplopts.updateFromOptions(plotopts[s])
+                table.pf.mplopts.applyOptions()
+            if s in tablesettings:
+                for k in tablesettings[s]:
+                    table.__dict__[k] = tablesettings[s][k]
+                print ('sel')
+                print (table.__dict__['multiplerowlist'])
+                table.redraw()
+                if table.plotted == True:
+                    table.plotSelected()
+        return
+
+    def saveMeta(self):
+        """Save meta data such as current plot options"""
+
+        meta = {}
+        pfo = meta['plotoptions'] = {}
+        tbl = meta['table'] = {}
+        for s in self.sheets:
+            print('saving options for',s)
+            table = self.sheets[s]
+            #save plot options
+            plotopts = table.pf.mplopts.kwds
+            pfo[s] = plotopts
+            #print (pfo[s])
+            #save table selections
+            tbl[s] = table.getSettings()
+            print(tbl)
+            print(tbl[s]['multiplerowlist'])
+
+        return meta
+
     def newProject(self, data=None, current=False):
         """Create a new project from data or empty"""
 
@@ -230,9 +271,13 @@ class ViewerApp(Frame):
             self.nb.forget(n)
         if data != None:
             for s in sorted(data.keys()):
+                if s == 'meta':
+                    continue
                 self.addSheet(s, data[s])
         else:
             self.addSheet('sheet1')
+        if data is not None and  'meta' in data:
+            self.loadMeta(data['meta'])
         return
 
     def openProject(self, filename=None):
@@ -280,7 +325,7 @@ class ViewerApp(Frame):
         data={}
         for i in self.sheets:
             data[i] = self.sheets[i].model.df
-
+        data['meta'] = self.saveMeta()
         pd.to_msgpack(filename, data, encoding='utf-8')
         return
 

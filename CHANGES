@@ -3,6 +3,13 @@ CHANGES
 =======
 
 ------
+0.5.1
+------
+
+Added ability to show error bars
+Meta data now saved with project files allows saving plots
+
+------
 0.5.0
 ------
 

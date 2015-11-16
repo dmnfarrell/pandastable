@@ -101,6 +101,7 @@ class Table(Canvas):
                               'number' : {"Edit": 'drawCellEntry' }}
         self.setFontSize()
         self.scratch = Canvas()
+        self.plotted = False
         return
 
     def set_defaults(self):
@@ -1951,6 +1952,7 @@ class Table(Canvas):
         data = self.getPlotData()
         self.pf.data = data
         self.pf.plotCurrent()
+        self.plotted = True
         return
 
     def plot3D(self):
@@ -2628,6 +2630,16 @@ class Table(Canvas):
         """Get frame geometry"""
         return frame.winfo_rootx(), frame.winfo_rooty(), frame.winfo_width(), frame.winfo_height()
 
+    def getSettings(self):
+        """Get current table settings from object dict"""
+
+        d={}
+        for key in self.__dict__:
+            if key.startswith('_'):
+                continue
+            if type(self.__dict__[key]) in [str,int,float,list,tuple,bool]:
+                d[key] = self.__dict__[key]
+        return d
 
 class AutoScrollbar(Scrollbar):
     """a scrollbar that hides itself if it's not needed.  only
