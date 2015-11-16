@@ -241,6 +241,7 @@ class PlotViewer(Frame):
         #get all options from the mpl options object
         kwds = self.mplopts.kwds
         kind = kwds['kind']
+        table = kwds['table']
         by = kwds['by']
         by2 = kwds['by2']
         errorbars = kwds['errorbars']
@@ -272,7 +273,7 @@ class PlotViewer(Frame):
                 ax = self.fig.add_subplot(nrows,ncols,i)
                 kwargs['legend'] = False #remove axis legends
                 d=df.drop(by,1) #remove grouping columns
-                self._doplot(d, ax, kind, False, kwargs)
+                self._doplot(d, ax, kind, False,  errorbars, kwargs)
                 ax.set_title(n)
                 handles, labels = ax.get_legend_handles_labels()
                 i+=1
@@ -283,7 +284,11 @@ class PlotViewer(Frame):
             #self.canvas.draw()
         else:
             axs = self._doplot(data, ax, kind, kwds['subplots'], errorbars, kwargs)
-
+        if table == True:
+            from pandas.tools.plotting import table
+            table(axs, np.round(data.describe(), 2),
+                  loc='upper right', colWidths=[0.2 for i in data.columns])
+            #axs.set_ylim()
         #set options general for all plot types
         self.setFigureOptions(axs, kwds)
         try:
@@ -328,13 +333,13 @@ class PlotViewer(Frame):
             yerr = data[data.columns[1::2]]
             data = data[data.columns[0::2]]
             yerr.columns = data.columns
-            print (data, yerr)
+
         else:
             yerr = None
         if kind == 'bar':
             if len(data) > 50:
                 ax.get_xaxis().set_visible(False)
-            if len(data) > 400:
+            if len(data) > 300:
                 print ('too many bars to plot')
                 return
         if kind == 'scatter':

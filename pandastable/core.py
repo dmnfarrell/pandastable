@@ -235,6 +235,11 @@ class Table(Canvas):
 
     def remove(self):
         """Close table frame"""
+
+        if hasattr(self, 'parenttable'):
+            self.parenttable.child.destroy()
+            self.parenttable.child = None
+            self.parenttable.plotted = 'main'
         self.parentframe.destroy()
         return
 
@@ -1693,6 +1698,7 @@ class Table(Canvas):
             win.grid(row=self.childrow,column=0,columnspan=2,sticky='news')
         self.childframe = win
         newtable = self.__class__(win, dataframe=df, showtoolbar=0, showstatusbar=1)
+        newtable.parenttable = self
         newtable.adjustColumnWidths()
         newtable.show()
         toolbar = ChildToolBar(win, newtable)
@@ -1952,7 +1958,10 @@ class Table(Canvas):
         data = self.getPlotData()
         self.pf.data = data
         self.pf.plotCurrent()
-        self.plotted = True
+        if hasattr(self, 'parenttable'):
+            self.parenttable.plotted = 'child'
+        else:
+            self.plotted = 'main'
         return
 
     def plot3D(self):

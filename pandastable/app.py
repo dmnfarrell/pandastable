@@ -217,21 +217,29 @@ class ViewerApp(Frame):
         return dict
 
     def loadMeta(self, table, meta):
-        """Load meta data for project"""
+        """Load meta data for a table"""
 
         plotopts = meta['plotoptions']
         tablesettings = meta['selected']
-
+        if 'childtable' in meta:
+            childtable = meta['childtable']
+            childsettings = meta['childselected']
+        else:
+            childtable = None
         table.pf.mplopts.updateFromOptions(plotopts)
         table.pf.mplopts.applyOptions()
 
         for k in tablesettings:
             table.__dict__[k] = tablesettings[k]
+        if childtable is not None:
+            table.createChildTable(df=childtable)
+            for k in childsettings:
+                table.child.__dict__[k] = childsettings[k]
 
-        print (table.__dict__['multiplerowlist'])
-        table.redraw()
-        if table.plotted == True:
-                table.plotSelected()
+        if table.plotted == 'main':
+            table.plotSelected()
+        elif table.plotted == 'child' and table.child != None:
+            table.child.plotSelected()
         return
 
     def saveMeta(self, table):
@@ -239,10 +247,14 @@ class ViewerApp(Frame):
 
         meta = {}
         #save plot options
-        pfo = meta['plotoptions'] = table.pf.mplopts.kwds
+        meta['plotoptions'] = table.pf.mplopts.kwds
         #save table selections
-        tbl = meta['selected'] = table.getSettings()
-        print(tbl['multiplerowlist'])
+        meta['selected'] = table.getSettings()
+        #save child table if present
+        print (table.child)
+        if table.child != None:
+            meta['childtable'] = table.child.model.df
+            meta['childselected'] = table.child.getSettings()
         return meta
 
     def newProject(self, data=None, current=False):
