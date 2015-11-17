@@ -800,6 +800,39 @@ class Table(Canvas):
             self.redraw()
         return
 
+    def applyColumnWise(self, evt=None):
+        """Apply col wise funcs"""
+
+        df = self.model.df
+        cols = list(df.columns[self.multiplecollist])
+        funcs = ['mean','std','sum','max','min','log','exp',
+                 'round','floor','ceil','trunc',
+                 'sin','cos','tan','degrees','radians']
+        newcol = 'mean'
+
+        d = MultipleValDialog(title='Apply Function',
+                                initialvalues=(funcs,'',False,'_x'),
+                                labels=('Function:',
+                                        'New column name:',
+                                        'New column suffix:'),
+                                types=('combobox','string','string'),
+                                tooltips=(None,
+                                          'New column name',
+                                          'suffix for new columns'),
+                                parent = self.parentframe)
+        if d.result == None:
+            return
+        funcname = d.results[0]
+        newcol = d.results[1]
+        suffix = d.results[2]
+
+        func = getattr(np, funcname)
+        if newcol == '':
+            newcol = funcname
+        df[newcol] = df[cols].apply(func, 1)
+        self.placeColumn(newcol,cols[-1])
+        return
+
     def applyFunction(self, evt=None):
         """Apply row-wise functions on a column/Series"""
 
@@ -1097,7 +1130,7 @@ class Table(Canvas):
         return
 
     def evalBar(self, evt=None):
-        """Use pd.eval to apply a function."""
+        """Use pd.eval to apply a function colwise or present funcs."""
 
         def reset():
             self.evalframe.destroy()
@@ -1112,6 +1145,8 @@ class Table(Canvas):
         e.bind('<Return>', self.evalFunction)
         e.pack(fill=BOTH,side=LEFT,expand=1,padx=2,pady=2)
         b = Button(ef,text='apply',width=5,command=self.evalFunction)
+        b.pack(fill=BOTH,side=LEFT,padx=2,pady=2)
+        b = Button(ef,text='apply function',width=5,command=self.applyColumnWise)
         b.pack(fill=BOTH,side=LEFT,padx=2,pady=2)
         b = Button(ef,text='close',width=5,command=reset)
         b.pack(fill=BOTH,side=LEFT,padx=2,pady=2)

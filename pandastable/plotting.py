@@ -333,6 +333,8 @@ class PlotViewer(Frame):
         """Do core plotting"""
 
         cols = data.columns
+        if kind == 'line':
+            data = data.sort()
         rows = int(round(np.sqrt(len(data.columns)),0))
         if len(data.columns) == 1 and kind not in ['pie']:
             kwargs['subplots'] = 0

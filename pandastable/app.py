@@ -364,7 +364,7 @@ class ViewerApp(Frame):
         return
 
     def addSheet(self, sheetname=None, data=None, select=False):
-        """Add a new sheet"""
+        """Add a sheet with new or existing data"""
 
         if data is not None:
             df = data['table']

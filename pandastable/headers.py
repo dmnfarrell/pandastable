@@ -327,6 +327,7 @@ class ColumnHeader(Canvas):
         popupmenu.add_command(label="Delete Column(s)", command=self.table.deleteColumn)
         popupmenu.add_command(label="Set Column Type", command=self.table.setColumnType)
         popupmenu.add_command(label="Create Categorical", command=self.table.createCategorical)
+        popupmenu.add_command(label="Apply Colwise", command=self.table.applyColumnWise)
         popupmenu.add_command(label="Apply Function", command=self.table.applyFunction)
         popupmenu.add_command(label="String Operation", command=self.table.applyStringMethod)
         popupmenu.bind("<FocusOut>", popupFocusOut)
