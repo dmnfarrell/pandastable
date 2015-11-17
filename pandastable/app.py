@@ -31,8 +31,7 @@ import time
 from .core import Table
 from .data import TableModel
 from .prefs import Preferences
-from . import images
-from . import dialogs
+from . import images, util, dialogs
 from .dialogs import MultipleValDialog
 
 class ViewerApp(Frame):
@@ -221,6 +220,8 @@ class ViewerApp(Frame):
 
         plotopts = meta['plotoptions']
         tablesettings = meta['selected']
+        rowheadersettings = meta['rowheader']
+
         if 'childtable' in meta:
             childtable = meta['childtable']
             childsettings = meta['childselected']
@@ -229,17 +230,18 @@ class ViewerApp(Frame):
         table.pf.mplopts.updateFromOptions(plotopts)
         table.pf.mplopts.applyOptions()
 
-        for k in tablesettings:
-            table.__dict__[k] = tablesettings[k]
+        util.setAttributes(table, tablesettings)
+        util.setAttributes(table.rowheader, rowheadersettings)
         if childtable is not None:
             table.createChildTable(df=childtable)
-            for k in childsettings:
-                table.child.__dict__[k] = childsettings[k]
+            util.setAttributes(table.child, childsettings)
 
         if table.plotted == 'main':
             table.plotSelected()
         elif table.plotted == 'child' and table.child != None:
             table.child.plotSelected()
+        #redraw col selections
+        table.drawMultipleCols()
         return
 
     def saveMeta(self, table):
@@ -249,12 +251,12 @@ class ViewerApp(Frame):
         #save plot options
         meta['plotoptions'] = table.pf.mplopts.kwds
         #save table selections
-        meta['selected'] = table.getSettings()
+        meta['selected'] = util.getAttributes(table)
+        meta['rowheader'] = util.getAttributes(table.rowheader)
         #save child table if present
-        print (table.child)
         if table.child != None:
             meta['childtable'] = table.child.model.df
-            meta['childselected'] = table.child.getSettings()
+            meta['childselected'] = util.getAttributes(table.child)
         return meta
 
     def newProject(self, data=None, current=False):
@@ -364,7 +366,7 @@ class ViewerApp(Frame):
     def addSheet(self, sheetname=None, data=None, select=False):
         """Add a new sheet"""
 
-        if data != None:
+        if data is not None:
             df = data['table']
         else:
             df = None
@@ -420,7 +422,7 @@ class ViewerApp(Frame):
         """Copy a sheet"""
 
         currenttable = self.getCurrentTable()
-        newdata = currenttable.model.df
+        newdata = {'table':currenttable.model.df}
         if newname == None:
             self.addSheet(None, newdata)
         else:

@@ -113,7 +113,6 @@ class Table(Canvas):
         self.rowheight=20
         self.horizlines=1
         self.vertlines=1
-        self.alternaterows=0
         self.autoresizecols = 1
         self.inset=2
         self.x_start=0
@@ -1354,6 +1353,7 @@ class Table(Canvas):
 
     def handle_left_ctrl_click(self, event):
         """Handle ctrl clicks for multiple row selections"""
+
         rowclicked = self.get_row_clicked(event)
         colclicked = self.get_col_clicked(event)
         if 0 <= rowclicked < self.rows and 0 <= colclicked < self.cols:
@@ -1369,11 +1369,13 @@ class Table(Canvas):
 
     def handle_left_shift_click(self, event):
         """Handle shift click, for selecting multiple rows"""
+
         self.handle_mouse_drag(event)
         return
 
     def handle_mouse_drag(self, event):
         """Handle mouse moved with button held down, multiple selections"""
+
         if hasattr(self, 'cellentry'):
             self.cellentry.destroy()
         rowover = self.get_row_clicked(event)
@@ -2161,7 +2163,7 @@ class Table(Canvas):
         return
 
     def drawSelectedRow(self):
-        """Draw the highlight rect for the currently selected row"""
+        """Draw a highlight rect for the currently selected rows"""
 
         self.delete('rowrect')
         row = self.currentrow
@@ -2177,7 +2179,7 @@ class Table(Canvas):
         return
 
     def drawSelectedCol(self, col=None, delete=1):
-        """Draw an outline rect fot the current column selection"""
+        """Draw a highlight rect for the current column selection"""
 
         if delete == 1:
             self.delete('colrect')
@@ -2191,7 +2193,7 @@ class Table(Canvas):
                                      tag='colrect')
         self.lower('colrect')
         self.lower('rowrect')
-        self.delete('currentrect')
+        #self.delete('currentrect')
         return
 
     def drawMultipleRows(self, rowlist):
@@ -2209,6 +2211,13 @@ class Table(Canvas):
                                       tag=('multiplesel','rowrect'))
         self.lower('multiplesel')
         self.lower('fillrect')
+        return
+
+    def drawMultipleCols(self):
+        """Draw multiple column selections"""
+
+        for c in self.multiplecollist:
+            self.drawSelectedCol(c, delete=False)
         return
 
     def drawMultipleCells(self):
@@ -2639,16 +2648,6 @@ class Table(Canvas):
         """Get frame geometry"""
         return frame.winfo_rootx(), frame.winfo_rooty(), frame.winfo_width(), frame.winfo_height()
 
-    def getSettings(self):
-        """Get current table settings from object dict"""
-
-        d={}
-        for key in self.__dict__:
-            if key.startswith('_'):
-                continue
-            if type(self.__dict__[key]) in [str,int,float,list,tuple,bool]:
-                d[key] = self.__dict__[key]
-        return d
 
 class AutoScrollbar(Scrollbar):
     """a scrollbar that hides itself if it's not needed.  only

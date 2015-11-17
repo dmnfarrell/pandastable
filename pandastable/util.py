@@ -47,3 +47,23 @@ def check_multiindex(index):
         return 1
     else:
         return 0
+
+def getAttributes(obj):
+    """Get non hidden and built-in type object attributes that can be persisted"""
+
+    d={}
+    for key in obj.__dict__:
+        if key.startswith('_'):
+            continue
+        #print(key)
+        if type(obj.__dict__[key]) in [str,int,float,list,tuple,bool]:
+            d[key] = obj.__dict__[key]
+    return d
+
+def setAttributes(obj, data):
+    """Set attributes from a dict. Used for restoring settings in tables"""
+
+    for key in data:
+        #if key.startswith('_'): continue
+        obj.__dict__[key] = data[key]
+    return

@@ -83,6 +83,8 @@ class PlotViewer(Frame):
         b.pack(side=LEFT,fill=X,expand=1)
         b = Button(bf, text="Replot", command=self.replot)
         b.pack(side=LEFT,fill=X,expand=1)
+        b = Button(bf, text="Clear", command=self.clear)
+        b.pack(side=LEFT,fill=X,expand=1)
 
         #general options in this toolbar?
         self.dpivar = IntVar()
@@ -129,6 +131,15 @@ class PlotViewer(Frame):
 
         self.data = self.table.getPlotData()
         self.applyPlotoptions()
+        return
+
+    def clear(self):
+        """Clear plot"""
+
+        self.fig.clear()
+        self.ax = None
+        self.canvas.draw()
+        self.table.plotted=None
         return
 
     def applyPlotoptions(self):
@@ -195,6 +206,7 @@ class PlotViewer(Frame):
         #elif self.mode == 2:
         #    self.factorplotter.data = self.data
         #    self.factorPlot()
+
         return
 
     def _checkNumeric(self, df):
