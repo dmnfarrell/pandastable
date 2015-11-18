@@ -131,6 +131,20 @@ def dialogFromOptions(parent, opts, groups=None, callback=None,
 
     return dialog, tkvars, widgets
 
+def addButton(frame, name, callback, img=None, tooltip=None, side=TOP):
+    """Add a button with image, toolip to a tkinter frame"""
+
+    if img==None:
+        b = Button(frame, text=name, command=callback)
+    else:
+        b = Button(frame, text=name, command=callback,
+                         image=img)
+    b.image = img
+    b.pack(side=side)
+    if tooltip != None:
+        ToolTip.createToolTip(b, tooltip)
+    return
+
 class MultipleValDialog(simpledialog.Dialog):
     """Simple dialog to get multiple values"""
 

@@ -34,9 +34,8 @@ from .headers import ColumnHeader, RowHeader, IndexHeader
 from .plotting import MPLBaseOptions, PlotViewer
 from .prefs import Preferences
 from .dialogs import ImportDialog
-from . import images
+from . import images, util
 from .dialogs import *
-from . import util
 
 class Table(Canvas):
     """A tkinter class for providing table functionality"""
@@ -805,8 +804,10 @@ class Table(Canvas):
 
         df = self.model.df
         cols = list(df.columns[self.multiplecollist])
-        funcs = ['mean','std','sum','max','min','log','exp',
+        funcs = ['mean','std','sum','max','min','log','exp','log10',
                  'round','floor','ceil','trunc',
+                 'subtract','divide','mod','remainder','convolve',
+                 'negative','sign','power',
                  'sin','cos','tan','degrees','radians']
         newcol = 'mean'
 
@@ -1144,12 +1145,9 @@ class Table(Canvas):
         e = Entry(ef, textvariable=self.evalvar, font="Courier 13 bold")
         e.bind('<Return>', self.evalFunction)
         e.pack(fill=BOTH,side=LEFT,expand=1,padx=2,pady=2)
-        b = Button(ef,text='apply',width=5,command=self.evalFunction)
-        b.pack(fill=BOTH,side=LEFT,padx=2,pady=2)
-        b = Button(ef,text='apply function',width=5,command=self.applyColumnWise)
-        b.pack(fill=BOTH,side=LEFT,padx=2,pady=2)
-        b = Button(ef,text='close',width=5,command=reset)
-        b.pack(fill=BOTH,side=LEFT,padx=2,pady=2)
+        addButton(ef, 'apply function', self.evalFunction, images.cross(), 'apply', side=LEFT)
+        addButton(ef, 'preset', self.applyColumnWise, images.function(), 'preset', side=LEFT)
+        addButton(ef, 'close', reset, images.cross(), 'close', side=LEFT)
         return
 
     def resizeColumn(self, col, width):
@@ -2707,50 +2705,38 @@ class ToolBar(Frame):
         self.parentframe = parent
         self.parentapp = parentapp
         img = images.open_proj()
-        self.addButton('Load table', self.parentapp.load, img, 'load table')
+        addButton(self, 'Load table', self.parentapp.load, img, 'load table')
         img = images.save_proj()
-        self.addButton('Save', self.parentapp.save, img, 'save')
+        addButton(self, 'Save', self.parentapp.save, img, 'save')
         img = images.importcsv()
         func = lambda: self.parentapp.importCSV(dialog=1)
-        self.addButton('Import', func, img, 'import csv')
+        addButton(self, 'Import', func, img, 'import csv')
         img = images.excel()
-        self.addButton('Load excel', self.parentapp.loadExcel, img, 'load excel file')
+        addButton(self, 'Load excel', self.parentapp.loadExcel, img, 'load excel file')
         img = images.plot()
-        self.addButton('Plot', self.parentapp.plotSelected, img, 'plot selected')
+        addButton(self, 'Plot', self.parentapp.plotSelected, img, 'plot selected')
         img = images.transpose()
-        self.addButton('Transpose', self.parentapp.transpose, img, 'transpose')
+        addButton(self, 'Transpose', self.parentapp.transpose, img, 'transpose')
         img = images.aggregate()
-        self.addButton('Aggregate', self.parentapp.aggregate, img, 'aggregate')
+        addButton(self, 'Aggregate', self.parentapp.aggregate, img, 'aggregate')
         img = images.pivot()
-        self.addButton('Pivot', self.parentapp.pivot, img, 'pivot')
+        addButton(self, 'Pivot', self.parentapp.pivot, img, 'pivot')
         img = images.merge()
-        self.addButton('Merge', self.parentapp.doCombine, img, 'merge, concat or join')
+        addButton(self, 'Merge', self.parentapp.doCombine, img, 'merge, concat or join')
         img = images.table_multiple()
-        self.addButton('Table from selection', self.parentapp.tableFromSelection,
+        addButton(self, 'Table from selection', self.parentapp.tableFromSelection,
                     img, 'sub-table from selection')
         img = images.filtering()
-        self.addButton('Query', self.parentapp.queryBar, img, 'filter table')
+        addButton(self, 'Query', self.parentapp.queryBar, img, 'filter table')
         img = images.function()
-        self.addButton('Evaluate function', self.parentapp.evalBar, img, 'calculate new column')
+        addButton(self, 'Evaluate function', self.parentapp.evalBar, img, 'calculate new column')
         img = images.fit()
-        self.addButton('Stats models', self.parentapp.statsViewer, img, 'model fitting')
+        addButton(self, 'Stats models', self.parentapp.statsViewer, img, 'model fitting')
 
         img = images.table_delete()
-        self.addButton('Clear', self.parentapp.clearTable, img, 'clear table')
+        addButton(self, 'Clear', self.parentapp.clearTable, img, 'clear table')
         img = images.prefs()
-        self.addButton('Prefs', self.parentapp.showPrefs, img, 'table preferences')
-        return
-
-    def addButton(self, name, callback, img=None, tooltip=None):
-        if img==None:
-            b = Button(self, text=name, command=callback)
-        else:
-            b = Button(self, text=name, command=callback,
-                             image=img)
-        b.image = img
-        b.pack(side=TOP)
-        if tooltip != None:
-            ToolTip.createToolTip(b, tooltip)
+        addButton(self, 'Prefs', self.parentapp.showPrefs, img, 'table preferences')
         return
 
 class ChildToolBar(ToolBar):
@@ -2760,18 +2746,18 @@ class ChildToolBar(ToolBar):
         self.parentframe = parent
         self.parentapp = parentapp
         img = images.open_proj()
-        self.addButton('Load table', self.parentapp.load, img, 'load table')
+        addButton(self, 'Load table', self.parentapp.load, img, 'load table')
         img = images.importcsv()
         func = lambda: self.parentapp.importCSV(dialog=1)
-        self.addButton('Import', func, img, 'import csv')
+        addButton(self, 'Import', func, img, 'import csv')
         img = images.plot()
-        self.addButton('Plot', self.parentapp.plotSelected, img, 'plot selected')
+        addButton(self, 'Plot', self.parentapp.plotSelected, img, 'plot selected')
         img = images.transpose()
-        self.addButton('Transpose', self.parentapp.transpose, img, 'transpose')
+        addButton(self, 'Transpose', self.parentapp.transpose, img, 'transpose')
         img = images.table_delete()
-        self.addButton('Clear', self.parentapp.clearTable, img, 'clear table')
+        addButton(self, 'Clear', self.parentapp.clearTable, img, 'clear table')
         img = images.cross()
-        self.addButton('Close', self.parentapp.remove, img, 'close')
+        addButton(self, 'Close', self.parentapp.remove, img, 'close')
         return
 
 class statusBar(Frame):
