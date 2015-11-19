@@ -59,6 +59,11 @@ class ColumnHeader(Canvas):
             else:
                 self.bind("<Button-3>", self.handle_right_click)
             self.thefont = self.table.thefont
+            self.setDefaults()
+        return
+
+    def setDefaults(self):
+        self.colselectedcolor = '#0099CC'
         return
 
     def redraw(self):
@@ -159,6 +164,9 @@ class ColumnHeader(Canvas):
         """When mouse released implement resize or col move"""
 
         self.delete('dragrect')
+        #if ctrl selection return
+        if len(self.table.multiplecollist) > 1:
+            return
         #column resized
         if self.atdivider == 1:
             x = int(self.canvasx(event.x))
@@ -376,12 +384,12 @@ class ColumnHeader(Canvas):
     def drawRect(self,col, tag=None, color=None, outline=None, delete=1):
         """User has clicked to select a col"""
 
-        if tag==None:
-            tag='rect'
-        if color==None:
-            color='#0099CC'
-        if outline==None:
-            outline='gray25'
+        if tag == None:
+            tag = 'rect'
+        if color == None:
+            color = self.colselectedcolor
+        if outline == None:
+            outline = 'gray25'
         if delete == 1:
             self.delete(tag)
         w=1

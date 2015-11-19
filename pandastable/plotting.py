@@ -303,11 +303,13 @@ class PlotViewer(Frame):
             #axs.set_ylim()
         #set options general for all plot types
         self.setFigureOptions(axs, kwds)
+        scf = 12/kwds['fontsize']
         try:
             self.fig.tight_layout()
+            self.fig.subplots_adjust(top=0.9)
         except:
-            self.fig.subplots_adjust(left=0.1, right=0.9, top=0.9,
-                                     bottom=0.1, hspace=.3, wspace=.2)
+            self.fig.subplots_adjust(left=0.1, right=0.9, top=0.85,
+                                     bottom=0.1, hspace=.3/scf, wspace=.2)
             print ('tight_layout failed')
         self.canvas.draw()
         return

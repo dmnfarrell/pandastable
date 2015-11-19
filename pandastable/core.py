@@ -123,10 +123,10 @@ class Table(Canvas):
         self.cellbackgr = '#F4F4F3'
         self.entrybackgr = 'white'
         self.grid_color = '#ABB1AD'
-        #self.selectedcolor = '#F3F781'
         self.rowselectedcolor = '#E4DED4'
         self.multipleselectioncolor = '#E0F2F7'
         self.boxoutlinecolor = '#084B8A'
+        self.colselectedcolor ='#F5E9EF'#F5E9EF
         return
 
     def setFontSize(self):
@@ -804,34 +804,46 @@ class Table(Canvas):
 
         df = self.model.df
         cols = list(df.columns[self.multiplecollist])
-        funcs = ['mean','std','sum','max','min','log','exp','log10',
+
+        funcs = ['mean','std','max','min','log','exp','log10',
                  'round','floor','ceil','trunc',
-                 'subtract','divide','mod','remainder','convolve',
+                 'sum','subtract','divide','mod','remainder','convolve',
                  'negative','sign','power',
                  'sin','cos','tan','degrees','radians']
-        newcol = 'mean'
 
         d = MultipleValDialog(title='Apply Function',
                                 initialvalues=(funcs,'',False,'_x'),
                                 labels=('Function:',
                                         'New column name:',
+                                        'In place:',
                                         'New column suffix:'),
-                                types=('combobox','string','string'),
+                                types=('combobox','string','checkbutton','string'),
                                 tooltips=(None,
                                           'New column name',
+                                          'Update in place',
                                           'suffix for new columns'),
                                 parent = self.parentframe)
         if d.result == None:
             return
         funcname = d.results[0]
         newcol = d.results[1]
-        suffix = d.results[2]
+        inplace = d.results[2]
+        suffix = d.results[3]
 
         func = getattr(np, funcname)
         if newcol == '':
-            newcol = funcname
-        df[newcol] = df[cols].apply(func, 1)
-        self.placeColumn(newcol,cols[-1])
+            newcol = funcname +'_'+ cols[0]
+        if funcname in ['subtract','divide','mod','remainder','convolve']:
+            newcol = cols[0]+' '+ funcname +' '+cols[1]
+            df[newcol] = df[cols[0]].combine(df[cols[1]], func=func)
+        else:
+            if inplace == True:
+                newcol = cols[0]
+            df[newcol] = df[cols].apply(func, 1)
+        if inplace == False:
+            self.placeColumn(newcol,cols[-1])
+        else:
+            self.redraw()
         return
 
     def applyFunction(self, evt=None):
@@ -1074,6 +1086,16 @@ class Table(Canvas):
         b.pack(fill=BOTH,side=LEFT,padx=2,pady=2)
         return
 
+    def _eval(self, df, ex):
+        """Evaluate an expression using numexpr"""
+
+        #uses assignments to globals() - check this is ok
+        import numexpr as ne
+        for c in df:
+            globals()[c] = df[c].tolist()
+        a = ne.evaluate(ex)
+        print (a)
+        return a
 
     def evalFunction(self, evt=None):
         """Apply a string based function to create new columns"""
@@ -1083,7 +1105,11 @@ class Table(Canvas):
         if s=='':
             return
         df = self.model.df
-        e = df.eval(s)
+        #e = df.eval(s)
+        n, ex = s.split('=')
+        print (ex)
+        df[n] = self._eval(df, ex)
+
         if type(e) is pd.DataFrame:
             self.model.df = e
         self.redraw()
@@ -1145,7 +1171,7 @@ class Table(Canvas):
         e = Entry(ef, textvariable=self.evalvar, font="Courier 13 bold")
         e.bind('<Return>', self.evalFunction)
         e.pack(fill=BOTH,side=LEFT,expand=1,padx=2,pady=2)
-        addButton(ef, 'apply function', self.evalFunction, images.cross(), 'apply', side=LEFT)
+        addButton(ef, 'apply function', self.evalFunction, images.accept(), 'apply', side=LEFT)
         addButton(ef, 'preset', self.applyColumnWise, images.function(), 'preset', side=LEFT)
         addButton(ef, 'close', reset, images.cross(), 'close', side=LEFT)
         return
@@ -2222,7 +2248,7 @@ class Table(Canvas):
         x1,y1,x2,y2 = self.getCellCoords(0,col)
         y2 = self.rows * self.rowheight
         rect = self.create_rectangle(x1+w/2,y1+w/2,x2,y2+w/2,
-                                     width=w,fill='#F8E0E6',outline='',
+                                     width=w,fill=self.colselectedcolor,outline='',
                                      tag='colrect')
         self.lower('colrect')
         self.lower('rowrect')
@@ -2728,8 +2754,8 @@ class ToolBar(Frame):
                     img, 'sub-table from selection')
         img = images.filtering()
         addButton(self, 'Query', self.parentapp.queryBar, img, 'filter table')
-        img = images.function()
-        addButton(self, 'Evaluate function', self.parentapp.evalBar, img, 'calculate new column')
+        img = images.calculate()
+        addButton(self, 'Evaluate function', self.parentapp.evalBar, img, 'calculate')
         img = images.fit()
         addButton(self, 'Stats models', self.parentapp.statsViewer, img, 'model fitting')
 

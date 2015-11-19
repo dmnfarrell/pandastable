@@ -1007,23 +1007,6 @@ def aggregate():
             +'+4+BADs=')
      return img
 
-def aggregate():
-     img = tk.PhotoImage(format='gif',data=
-             'R0lGODlhEAAQAMZbACFfHiNiICZlIilpJSxtKC1sKS5vKTBwLDJ0LTN1LzV4'
-            +'MDh7Mjl+Mz2CNz6DN0CFOUGHOkOJPEOKPESKPUWMPk6XRk+YR1GXSlSWTlOd'
-            +'SlSfS1adTlqeU1qcVFaiTVejTlijT1qiUlmlUF2qU1+sVWGjW2KnWmOmXGWm'
-            +'XWWrXGSzWma1W2e3XWi4XWm5XmmrY3OybHO5bXS7b3i5b3i2cHi3cHW7cHi9'
-            +'cnm9c32+c3u5dHy6dXu+dX7AdX/AeH7AeYO/eoO/fIHCdoHDd4TDfYXDfofF'
-            +'gYjFgonGgovHhY3HhY3Iho/Jh5DKiZHLipLKipLLi5PLi5bNjpbNj5jOkZzQ'
-            +'lJ7RlqDSl6LUmaTUm6bVnf//////////////////////////////////////'
-            +'////////////////////////////////////////////////////////////'
-            +'/////////////////////////////////////////////////yH5BAEKAH8A'
-            +'LAAAAAAQABAAAAd+gH+Cg4SFhoeFFBcbIR6Igw9GSU1BII9/DUVHS000loIs'
-            +'hQwNEyhKTY6CKi2HEydNOykiIzlDrIYSOlFTVFZYWraGDzRMUVRUV1o5oYQL'
-            +'HUcwHRYmQzImgwMGCBhDRg+DGh+EAjI3PDwlDYMWhQExNjwvCpcABQcJBpf6'
-            +'+4+BADs=')
-     return img
-
 def merge():
      img = tk.PhotoImage(format='gif',data=
              'R0lGODlhEAAQAPZlADyANT6DN0CGOUKIO0eGQ0+ZR1CQSlGbSVOeS1ebUFia'
@@ -1180,6 +1163,51 @@ def cross():
             +'h4dLS4YvNRiES1ZWQoQrPFMrhEJQWFA3gis3UCkShThCV0IvKTdMKQ+HMTxW'
             +'U0xLJQ6IWSNQJyZCDbpZJUseGj+liCMxQj89OxkGhyMvQh8MBhY0FgWF1D8Z'
             +'DIIEEC0UAoQbLBsIhAEKFAOFFe2FAPLC+fpZgQA7')
+     return img
+
+def accept():
+     img = tk.PhotoImage(format='gif',data=
+             'R0lGODlhEAAQAPeGAB1sGh5uGh5wGh5xGh9xGx5zGh94Gx56Gx96Gx5/Gx+D'
+            +'GyCKGyCIHC2WHC+WHDKdHUKpH0KrH0KtH0yXPUu0JlK5K1K7LVS7LVS9MVW+'
+            +'NFXANFnCNlvCOU6bQVKgQl6pSGSwTGy2Vm23V2q5UG61WG+1WG+1WXC/V3S3'
+            +'W3S3XHC4WXG5W3K5W3O6XHG+X323Zne8YHy6ZH28Zn2+Z3+4aXTCWW/CYW/D'
+            +'YW7EYW7EYm7FY2/GZHDBY3HEY3TDZHDHZXPHZnnBZH7BaX7Hb3LIaHTIaHXI'
+            +'aHbJaXbKannJa3rMbX/KcIO+bYfCcoXFdYnEdoDKc4DMcoPOd4fJeYvIeJDO'
+            +'f5bHg5rHh5bLhpfMhZjLhprKh5jMh5bNiJnNip3Oi5nRi5nQjJrUjZ/SkZvX'
+            +'kZ3YkqHWlaHXlaPXlqvSm6vTm6/XoK7Xoa7cpa/cprPZpbTZpbTaprHdp7Lb'
+            +'qLXbqLTdqrTfrLXfrLXhrrfhr7fhsL7jtr/juMDkudbu0tns1Ob04+336/H5'
+            +'8PT68vz9+/3+/f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+            +'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+            +'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+            +'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+            +'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+            +'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+            +'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+            +'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+            +'AAAAAAAAAAAAAAAAAAAAACH5BAEAAIcAIf8LSW1hZ2VNYWdpY2sKZ2FtbWE9'
+            +'MC40NQAsAAAAABAAEAAACMEADwkcSLCgwUMcMFiocHDghhpo2rQ5M0LCQQ1V'
+            +'8pSRIqVMnicPCmbIqMQIESNGkth50oDgiTxKiOyY2WPPkDwfBl44Q8bITBs2'
+            +'+BgCBOYLA4EU5EQhksePjT2GCIURwiaBwAhtokARZChQ1C4sZqxBIBCCmTA+'
+            +'pgwyZAhLCBZYrpAVCKJOEBdO/ngJQSJFnA4EHTSZA6MFCxIkULyhMaDgAiZx'
+            +'uMSIsSVODAAHGXjgkiaNlQmYGx5CUAAAAdGoBwYEADs=')
+     return img
+
+def calculate():
+     img = tk.PhotoImage(format='gif',data=
+             'R0lGODlhEAAQAPZaAHJycnp6en5+fttYUuh0c01yp1Z7sGSLwWaNw2eNw2eP'
+            +'xWiPxWmQxmuSyGyUym6VyoKDhIODhIaGhoaGh4aHh4eHh4eIiIiIiIiIiYiJ'
+            +'iYqKiouMjI2NjYyNjo6Ojo+Pj5GRkZGRkpGSkpOTk5SUlJWVlZeXl5mZmZmZ'
+            +'mpmampubm5ydnp2dnp6enp+goaCgoKKioqOjo6SkpKWlpaioqKmpqaurq6ys'
+            +'rK2trbCwsLGxsbKysrS0tLu8vLy8vL+/v8HCwsLCwsXFxcnJyc7OztHR0dLS'
+            +'0tPT09fX19jY2Nra2tvb29zc3N/f3+Dg4OHh4eLi4uPj4+Xl5ebm5ufn5+jo'
+            +'6Onp6evr6/v7+/z8/P///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+            +'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+            +'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAAFsA'
+            +'If8LSW1hZ2VNYWdpY2sKZ2FtbWE9MC40NQAsAAAAABAAEAAAB6mAW4KDhIWD'
+            +'AC0zNjg4izMzLQKEJlqVlpcnhDBaBZ2enVothDNaBgcJCgsNDQZaMJqlqKoP'
+            +'D60umlhKSEZEQ0JAP66wOB5KMxpEBANYooMrWlBQTEtIR0ZFWiuEJ1o7IVA4'
+            +'H0w2HliZg5RUU1PRTk1MWiaEId0mVDsjUTkhWCGEG1quXLFShYq6KVo2EJIA'
+            +'xIePHhAjApFAKEAEChg1aKBggQKEAIZCFgoEADs=')
      return img
 
 def table_delete():
