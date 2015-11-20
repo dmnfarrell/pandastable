@@ -1,0 +1,8 @@
+language: python
+python:
+  - 3.4  
+install:
+  - pip install numpy matplotlib numpexpr xlrd pandas
+  - python setup.py install
+script:
+    python3 -m pandastable.tests

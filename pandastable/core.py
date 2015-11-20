@@ -1092,7 +1092,6 @@ class Table(Canvas):
         for c in df:
             globals()[c] = df[c].as_matrix()
         a = ne.evaluate(ex)
-        print (a)
         return a
 
     def evalFunction(self, evt=None):
@@ -1103,15 +1102,12 @@ class Table(Canvas):
         if s=='':
             return
         df = self.model.df
-        #e = df.eval(s)
-
         vals = s.split('=')
         if len(vals)==1:
             ex = vals[0]
             n = ex
         else:
             n, ex = vals
-        print(vals,n,ex)
         #evaluate
         df[n] = self._eval(df, ex)
 
