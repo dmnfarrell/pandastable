@@ -7,8 +7,9 @@ CHANGES
 ------
 
 Added ability to show error bars
-Meta data now saved with project files - allows saving plots
-Add table to plot
+Meta data now saved with project files - allows saving plots and selections
+Can add table to plot
+Changed function evaluation so that math functions work
 
 ------
 0.5.0

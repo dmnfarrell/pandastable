@@ -259,7 +259,7 @@ class ViewerApp(Frame):
             meta['childselected'] = util.getAttributes(table.child)
         return meta
 
-    def newProject(self, data=None, current=False):
+    def newProject(self, data=None, df=None, current=False):
         """Create a new project from data or empty"""
 
         if current == True:
@@ -275,7 +275,14 @@ class ViewerApp(Frame):
             for s in sorted(data.keys()):
                 if s == 'meta':
                     continue
-                self.addSheet(s, data[s])
+                df = data[s]['table']
+                if 'meta' in data[s]:
+                    meta = data[s]['meta']
+                else:
+                    meta=None
+                self.addSheet(s, df, meta)
+        #elif df != None:
+        #    self.addSheet(, df)
         else:
             self.addSheet('sheet1')
         return
@@ -352,7 +359,7 @@ class ViewerApp(Frame):
         if hasattr(self,'sheets'):
             self.addSheet(sheetname=name, data={'table':df})
         else:
-            data = {name:df}
+            data = {name:{'table':df}}
             self.newProject(data)
         return
 
@@ -363,13 +370,9 @@ class ViewerApp(Frame):
         self.loadmsgpack(filename)
         return
 
-    def addSheet(self, sheetname=None, data=None, select=False):
+    def addSheet(self, sheetname=None, df=None, meta=None, select=False):
         """Add a sheet with new or existing data"""
 
-        if data is not None:
-            df = data['table']
-        else:
-            df = None
         names = [self.nb.tab(i, "text") for i in self.nb.tabs()]
         def checkName(name):
             if name == '':
@@ -401,8 +404,9 @@ class ViewerApp(Frame):
         self.currenttable = table
         self.sheets[sheetname] = table
         #load meta data
-        if data != None and 'meta' in data:
-            self.loadMeta(table, data['meta'])
+        if meta != None:
+        #if data != None and 'meta' in data:
+            self.loadMeta(table, meta)
         if select == True:
             ind = self.nb.index('end')-1
             s = self.nb.tabs()[ind]
@@ -422,11 +426,11 @@ class ViewerApp(Frame):
         """Copy a sheet"""
 
         currenttable = self.getCurrentTable()
-        newdata = {'table':currenttable.model.df}
+        newdata = currenttable.model.df
         if newname == None:
-            self.addSheet(None, newdata)
+            self.addSheet(None, df=newdata)
         else:
-            self.addSheet(newname, newdata)
+            self.addSheet(newname, df=newdata)
         return
 
     def renameSheet(self):
@@ -492,22 +496,25 @@ class ViewerApp(Frame):
         while name in self.sheets:
             name='sample'+str(i)
             i+=1
-        self.addSheet(sheetname=name, data={'table':df})
+        self.addSheet(sheetname=name, df=df)
         return
 
     def getStackedData(self):
+
         df = TableModel.getStackedData()
-        self.addSheet(sheetname='stacked-data', data={'table':df})
+        self.addSheet(sheetname='stacked-data', df=df)
         return
 
     def fileRename(self):
         """Start file renaming util"""
+
         from .rename import BatchRenameApp
         br = BatchRenameApp(self.master)
         return
 
     def copyTable(self):
         """Copy current table dataframe"""
+
         table = self.getCurrentTable()
         self.clipboarddf = table.model.df.copy()
         return

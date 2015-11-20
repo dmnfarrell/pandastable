@@ -1080,10 +1080,8 @@ class Table(Canvas):
         e = Entry(qf, textvariable=self.queryvar, font="Courier 12 bold")#, validatecommand=self.query)
         e.bind('<Return>', self.query)
         e.pack(fill=BOTH,side=LEFT,expand=1,padx=2,pady=2)
-        b = Button(qf,text='find',width=5,command=self.query)
-        b.pack(fill=BOTH,side=LEFT,padx=2,pady=2)
-        b = Button(qf,text='close',width=5,command=reset)
-        b.pack(fill=BOTH,side=LEFT,padx=2,pady=2)
+        addButton(qf, 'find', self.query, images.filtering(), 'apply filter', side=LEFT)
+        addButton(qf, 'close', reset, images.cross(), 'close', side=LEFT)
         return
 
     def _eval(self, df, ex):
@@ -1092,7 +1090,7 @@ class Table(Canvas):
         #uses assignments to globals() - check this is ok
         import numexpr as ne
         for c in df:
-            globals()[c] = df[c].tolist()
+            globals()[c] = df[c].as_matrix()
         a = ne.evaluate(ex)
         print (a)
         return a
@@ -1106,15 +1104,30 @@ class Table(Canvas):
             return
         df = self.model.df
         #e = df.eval(s)
-        n, ex = s.split('=')
-        print (ex)
+
+        vals = s.split('=')
+        if len(vals)==1:
+            ex = vals[0]
+            n = ex
+        else:
+            n, ex = vals
+        print(vals,n,ex)
+        #evaluate
         df[n] = self._eval(df, ex)
 
-        if type(e) is pd.DataFrame:
-            self.model.df = e
-        self.redraw()
-        if hasattr(self, 'pf'):
+        #messagebox.showwarning("Parse error.",
+        #                       "Function should be of the form.\nx=a+b",
+        #                        parent=self.parentframe)
+        #if type(e) is pd.DataFrame:
+        #    self.model.df = e
+        if self.placecolvar.get() == 1:
+            cols = df.columns
+            self.placeColumn(n,cols[0])
+        else:
+            self.redraw()
+        if hasattr(self, 'pf') and self.updateplotvar.get()==1:
             self.plotSelected()
+
         #keep a copy?
         #self.dataframe = self.model.df.copy()
         return
@@ -1166,14 +1179,22 @@ class Table(Canvas):
         if hasattr(self, 'evalframe') and self.evalframe != None:
             return
         ef = self.evalframe = Frame(self.parentframe)
-        ef.grid(row=self.queryrow,column=1,sticky='news')
+        ef.grid(row=self.queryrow,column=0,columnspan=3,sticky='news')
+        bf = Frame(ef)
+        bf.pack(side=TOP, fill=BOTH)
         self.evalvar = StringVar()
-        e = Entry(ef, textvariable=self.evalvar, font="Courier 13 bold")
+        e = Entry(bf, textvariable=self.evalvar, font="Courier 13 bold")
         e.bind('<Return>', self.evalFunction)
         e.pack(fill=BOTH,side=LEFT,expand=1,padx=2,pady=2)
-        addButton(ef, 'apply function', self.evalFunction, images.accept(), 'apply', side=LEFT)
-        addButton(ef, 'preset', self.applyColumnWise, images.function(), 'preset', side=LEFT)
-        addButton(ef, 'close', reset, images.cross(), 'close', side=LEFT)
+        addButton(bf, 'apply function', self.evalFunction, images.accept(), 'apply', side=LEFT)
+        addButton(bf, 'preset', self.applyColumnWise, images.function(), 'preset', side=LEFT)
+        addButton(bf, 'close', reset, images.cross(), 'close', side=LEFT)
+        bf = Frame(ef)
+        bf.pack(side=TOP, fill=BOTH)
+        self.updateplotvar = IntVar()
+        self.placecolvar = IntVar()
+        Checkbutton(bf, text="Update plot", variable=self.updateplotvar).pack(side=LEFT)
+        Checkbutton(bf, text="Place new columns", variable=self.placecolvar).pack(side=LEFT)
         return
 
     def resizeColumn(self, col, width):

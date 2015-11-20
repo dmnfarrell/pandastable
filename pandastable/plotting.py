@@ -164,7 +164,7 @@ class PlotViewer(Frame):
         if hasattr(self,'canvas'):
             self.canvas._tkcanvas.destroy()
         if figure == None:
-            self.fig = f = Figure(figsize=(5,4), dpi=80)
+            self.fig = f = Figure(figsize=(5,4), dpi=80, facecolor='white')
         else:
             self.fig = f = figure
         a = f.add_subplot(111)
@@ -311,6 +311,7 @@ class PlotViewer(Frame):
             self.fig.subplots_adjust(left=0.1, right=0.9, top=0.85,
                                      bottom=0.1, hspace=.3/scf, wspace=.2)
             print ('tight_layout failed')
+        #plt.xkcd()
         self.canvas.draw()
         return
 
