@@ -425,7 +425,7 @@ class RowHeader(Canvas):
             self.bind("<Control-Button-1>", self.handle_left_ctrl_click)
             self.bind('<Button-3>',self.handle_right_click)
             self.bind('<B1-Motion>', self.handle_mouse_drag)
-            #self.bind('<Shift-Button-1>', self.handle_left_shift_click)
+            self.bind('<Shift-Button-1>', self.handle_left_shift_click)
         return
 
     def redraw(self, align='w', showkeys=False):
@@ -539,6 +539,20 @@ class RowHeader(Canvas):
             self.drawSelectedRows(multirowlist)
         return
 
+    def handle_left_shift_click(self, event):
+        """Handle shift click"""
+
+        self.endrow = self.table.get_row_clicked(event)
+        if self.endrow < self.startrow:
+            rowlist=list(range(self.endrow, self.startrow+1))
+        else:
+            rowlist=list(range(self.startrow, self.endrow+1))
+        self.drawSelectedRows(rowlist)
+        self.table.multiplerowlist = rowlist
+        self.table.drawMultipleRows(rowlist)
+        self.table.drawMultipleCells()
+        return
+
     def handle_right_click(self, event):
         """respond to a right click"""
 
@@ -571,6 +585,8 @@ class RowHeader(Canvas):
             self.drawSelectedRows(rowlist)
             self.table.multiplerowlist = rowlist
             self.table.drawMultipleRows(rowlist)
+            self.table.drawMultipleCells()
+            self.table.allrows = False
         else:
             self.table.multiplerowlist = []
             self.table.multiplerowlist.append(rowover)

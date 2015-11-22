@@ -56,7 +56,7 @@ def getAttributes(obj):
         if key.startswith('_'):
             continue
         #print(key)
-        if type(obj.__dict__[key]) in [str,int,float,list,tuple,bool]:
+        if type(obj.__dict__[key]) in [str,int,float,list,tuple,bool,dict]:
             d[key] = obj.__dict__[key]
     return d
 

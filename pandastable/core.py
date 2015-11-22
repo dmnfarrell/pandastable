@@ -1114,18 +1114,32 @@ class Table(Canvas):
         #messagebox.showwarning("Parse error.",
         #                       "Function should be of the form.\nx=a+b",
         #                        parent=self.parentframe)
-        #if type(e) is pd.DataFrame:
-        #    self.model.df = e
+
+        #keep track of which cols are functions?
+        self.formulae[n] = ex
+
         if self.placecolvar.get() == 1:
             cols = df.columns
             self.placeColumn(n,cols[0])
+        if self.recalculatevar.get() == 1:
+            self.recalculateFunctions()
         else:
             self.redraw()
         if hasattr(self, 'pf') and self.updateplotvar.get()==1:
             self.plotSelected()
+        #update functions list in dropdown
+        funclist = ['='.join(i) for i in self.formulae.items()]
+        self.functionentry['values'] = funclist
+        return
 
-        #keep a copy?
-        #self.dataframe = self.model.df.copy()
+    def recalculateFunctions(self):
+        """Re evaluate any columns that were derived from functions"""
+
+        df = self.model.df
+        for n in self.formulae:
+            ex = self.formulae[n]
+            df[n] = self._eval(df, ex)
+        self.redraw()
         return
 
     def functionsBar(self, evt=None):
@@ -1172,14 +1186,23 @@ class Table(Canvas):
             self.evalframe.destroy()
             self.evalframe = None
             self.showAll()
+        def checkFunc():
+            return 0
+
         if hasattr(self, 'evalframe') and self.evalframe != None:
             return
+        if not hasattr(self, 'formulae'):
+            self.formulae = {}
         ef = self.evalframe = Frame(self.parentframe)
         ef.grid(row=self.queryrow,column=0,columnspan=3,sticky='news')
         bf = Frame(ef)
         bf.pack(side=TOP, fill=BOTH)
         self.evalvar = StringVar()
-        e = Entry(bf, textvariable=self.evalvar, font="Courier 13 bold")
+        funclist = ['='.join(i) for i in self.formulae.items()]
+        self.functionentry = e = Combobox(bf, values=funclist,
+                                    textvariable=self.evalvar,width=34,
+                                    font="Courier 13 bold",
+                                    validatecommand=checkFunc)
         e.bind('<Return>', self.evalFunction)
         e.pack(fill=BOTH,side=LEFT,expand=1,padx=2,pady=2)
         addButton(bf, 'apply function', self.evalFunction, images.accept(), 'apply', side=LEFT)
@@ -1189,8 +1212,10 @@ class Table(Canvas):
         bf.pack(side=TOP, fill=BOTH)
         self.updateplotvar = IntVar()
         self.placecolvar = IntVar()
+        self.recalculatevar = IntVar()
         Checkbutton(bf, text="Update plot", variable=self.updateplotvar).pack(side=LEFT)
         Checkbutton(bf, text="Place new columns", variable=self.placecolvar).pack(side=LEFT)
+        Checkbutton(bf, text="Recalculate all", variable=self.recalculatevar).pack(side=LEFT)
         return
 
     def resizeColumn(self, col, width):
@@ -1482,7 +1507,6 @@ class Table(Canvas):
             self.drawMultipleRows(self.multiplerowlist)
             self.rowheader.drawSelectedRows(self.multiplerowlist)
             #draw selected cells outline using row and col lists
-            #print self.multiplerowlist
             self.drawMultipleCells()
         else:
             self.multiplerowlist = []

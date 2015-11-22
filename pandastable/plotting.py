@@ -308,8 +308,8 @@ class PlotViewer(Frame):
             self.fig.tight_layout()
             self.fig.subplots_adjust(top=0.9)
         except:
-            self.fig.subplots_adjust(left=0.1, right=0.9, top=0.85,
-                                     bottom=0.1, hspace=.3/scf, wspace=.2)
+            self.fig.subplots_adjust(left=0.1, right=0.9, top=0.89,
+                                     bottom=0.1, hspace=.4/scf, wspace=.2/scf)
             print ('tight_layout failed')
         #plt.xkcd()
         self.canvas.draw()
@@ -442,7 +442,7 @@ class PlotViewer(Frame):
             if kwds['subplots'] == 1:
                 ax = self.fig.add_subplot(nrows,ncols,i)
             ax.scatter(x, y, marker=marker, alpha=alpha, linewidth=lw,
-                       s=kwds['s'], edgecolors=ec, color=c)
+                       s=kwds['s'], edgecolors=ec, facecolor=c)
             ax.set_xlabel(cols[0])
             if kwds['logx'] == 1:
                 ax.set_xscale('log')
@@ -754,7 +754,6 @@ class MPLBaseOptions(object):
 
         for i in opts:
             self.tkvars[i].set(opts[i])
-
         return
 
 class MPL3DOptions(object):

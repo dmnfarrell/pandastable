@@ -219,7 +219,7 @@ class ViewerApp(Frame):
         """Load meta data for a table"""
 
         plotopts = meta['plotoptions']
-        tablesettings = meta['selected']
+        tablesettings = meta['table']
         rowheadersettings = meta['rowheader']
 
         if 'childtable' in meta:
@@ -251,8 +251,9 @@ class ViewerApp(Frame):
         #save plot options
         meta['plotoptions'] = table.pf.mplopts.kwds
         #save table selections
-        meta['selected'] = util.getAttributes(table)
+        meta['table'] = util.getAttributes(table)
         meta['rowheader'] = util.getAttributes(table.rowheader)
+
         #save child table if present
         if table.child != None:
             meta['childtable'] = table.child.model.df
@@ -357,7 +358,7 @@ class ViewerApp(Frame):
         df = pd.read_msgpack(filename)
         name = os.path.splitext(os.path.basename(filename))[0]
         if hasattr(self,'sheets'):
-            self.addSheet(sheetname=name, data={'table':df})
+            self.addSheet(sheetname=name, df=df)
         else:
             data = {name:{'table':df}}
             self.newProject(data)
