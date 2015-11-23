@@ -224,7 +224,7 @@ class PlotViewer(Frame):
         #needs cleaning up
         valid = {'line': ['alpha', 'colormap', 'grid', 'legend', 'linestyle',
                           'linewidth', 'marker', 'subplots', 'rot', 'logx', 'logy',
-                           'sharey', 'use_index', 'kind'],
+                           'sharey', 'kind'],
                     'scatter': ['alpha', 'grid', 'linewidth', 'marker', 'subplots', 's',
                             'legend', 'colormap','sharey', 'logx', 'logy', 'use_index'],
                     'pie': ['colormap','legend'],
@@ -257,6 +257,7 @@ class PlotViewer(Frame):
         by = kwds['by']
         by2 = kwds['by2']
         errorbars = kwds['errorbars']
+        useindex = kwds['use_index']
 
         #valid kwd args for this plot type
         kwargs = dict((k, kwds[k]) for k in valid[kind] if k in kwds)
@@ -285,7 +286,7 @@ class PlotViewer(Frame):
                 ax = self.fig.add_subplot(nrows,ncols,i)
                 kwargs['legend'] = False #remove axis legends
                 d=df.drop(by,1) #remove grouping columns
-                self._doplot(d, ax, kind, False,  errorbars, kwargs)
+                self._doplot(d, ax, kind, False,  errorbars, useindex, kwargs)
                 ax.set_title(n)
                 handles, labels = ax.get_legend_handles_labels()
                 i+=1
@@ -295,7 +296,8 @@ class PlotViewer(Frame):
             axs = self.fig.get_axes()
             #self.canvas.draw()
         else:
-            axs = self._doplot(data, ax, kind, kwds['subplots'], errorbars, kwargs)
+            axs = self._doplot(data, ax, kind, kwds['subplots'], errorbars,
+                               useindex, kwargs)
         if table == True:
             from pandas.tools.plotting import table
             table(axs, np.round(data.describe(), 2),
@@ -332,7 +334,7 @@ class PlotViewer(Frame):
             ax.yaxis.set_visible(kwds['showylabels'])
         return
 
-    def _doplot(self, data, ax, kind, subplots, errorbars, kwargs):
+    def _doplot(self, data, ax, kind, subplots, errorbars, useindex, kwargs):
         """Do core plotting"""
 
         cols = data.columns
@@ -407,6 +409,10 @@ class PlotViewer(Frame):
         else:
             #if kwargs['table'] == True:
             #    kwargs['table'] = data
+            if useindex == False:
+                x=data.columns[0]
+                data.set_index(x,inplace=True)
+                data=data.sort()
             axs = data.plot(ax=ax, layout=layout, yerr=yerr, **kwargs)
         return axs
 

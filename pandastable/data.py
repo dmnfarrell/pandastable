@@ -239,7 +239,7 @@ class TableModel(object):
         df = self.df
         name = df.index.name
         if name == None: name='index'
-        df[name] = df.index
+        df[name] = df.index#.astype('object')
         return
 
     def groupby(self, cols):

@@ -853,7 +853,7 @@ class Table(Canvas):
         cols = list(df.columns[self.multiplecollist])
 
         funcs = ['value_counts','rolling_mean','rolling_count',
-                 'resample','to_timestamp']
+                 'resample','shift']
 
         d = MultipleValDialog(title='Apply Function',
                                 initialvalues=(funcs,'',False,False,'_x'),
@@ -1099,6 +1099,7 @@ class Table(Canvas):
 
         self.convertNumeric()
         s = self.evalvar.get()
+
         if s=='':
             return
         df = self.model.df
@@ -1108,13 +1109,16 @@ class Table(Canvas):
             n = ex
         else:
             n, ex = vals
+        if n == '':
+            return
         #evaluate
-        df[n] = self._eval(df, ex)
-
-        #messagebox.showwarning("Parse error.",
-        #                       "Function should be of the form.\nx=a+b",
-        #                        parent=self.parentframe)
-
+        try:
+            df[n] = self._eval(df, ex)
+            self.functionentry.configure(style="White.TCombobox")
+        except:
+            print ('function parse error')
+            self.functionentry.configure(style="Red.TCombobox")
+            return
         #keep track of which cols are functions?
         self.formulae[n] = ex
 
@@ -1122,7 +1126,7 @@ class Table(Canvas):
             cols = df.columns
             self.placeColumn(n,cols[0])
         if self.recalculatevar.get() == 1:
-            self.recalculateFunctions()
+            self.recalculateFunctions(omit=n)
         else:
             self.redraw()
         if hasattr(self, 'pf') and self.updateplotvar.get()==1:
@@ -1132,13 +1136,17 @@ class Table(Canvas):
         self.functionentry['values'] = funclist
         return
 
-    def recalculateFunctions(self):
+    def recalculateFunctions(self, omit=None):
         """Re evaluate any columns that were derived from functions"""
 
         df = self.model.df
         for n in self.formulae:
+            if n==omit: continue
             ex = self.formulae[n]
-            df[n] = self._eval(df, ex)
+            try:
+                df[n] = self._eval(df, ex)
+            except:
+                print('could not calculate %s' %ex)
         self.redraw()
         return
 
@@ -1189,6 +1197,12 @@ class Table(Canvas):
         def checkFunc():
             return 0
 
+        self.estyle = ttk.Style()
+        self.estyle.configure("White.TCombobox",
+                         fieldbackground="white")
+        self.estyle.configure("Red.TCombobox",
+                         fieldbackground="#ffcccc")
+
         if hasattr(self, 'evalframe') and self.evalframe != None:
             return
         if not hasattr(self, 'formulae'):
@@ -1202,6 +1216,7 @@ class Table(Canvas):
         self.functionentry = e = Combobox(bf, values=funclist,
                                     textvariable=self.evalvar,width=34,
                                     font="Courier 13 bold",
+                                    style="White.TCombobox",
                                     validatecommand=checkFunc)
         e.bind('<Return>', self.evalFunction)
         e.pack(fill=BOTH,side=LEFT,expand=1,padx=2,pady=2)

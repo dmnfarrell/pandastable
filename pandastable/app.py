@@ -120,7 +120,7 @@ class ViewerApp(Frame):
 
         self.menu=Menu(self.main)
         self.proj_menu={'01New':{'cmd': lambda : self.newProject(current=True)},
-                        '02Open':{'cmd':self.openProject},
+                        '02Open':{'cmd': lambda: self.openProject(asksave=True)},
                         '03Close':{'cmd':self.closeProject},
                         '04Save':{'cmd':self.saveProject},
                         '05Save As':{'cmd':self.saveasProject},
@@ -288,9 +288,14 @@ class ViewerApp(Frame):
             self.addSheet('sheet1')
         return
 
-    def openProject(self, filename=None):
+    def openProject(self, filename=None, asksave=False):
         """Open project file"""
 
+        w=True
+        if asksave == True:
+            w = self.closeProject()
+        if w == None:
+            return
         if filename == None:
             filename = filedialog.askopenfilename(defaultextension='.dexpl"',
                                                     initialdir=os.getcwd(),
@@ -342,15 +347,19 @@ class ViewerApp(Frame):
     def closeProject(self):
         """Close"""
 
-        w = messagebox.askyesno("Are you sure?",
-                                "Do you want to close?",
-                                parent=self.master)
-        if w==False:
+        w = messagebox.askyesnocancel("Close Project",
+                                    "Save this project?",
+                                    parent=self.master)
+        if w==None:
             return
+        elif w==True:
+            self.saveProject()
+        else:
+            pass
         for n in self.nb.tabs():
             self.nb.forget(n)
         self.filename = None
-        return
+        return w
 
     def loadmsgpack(self, filename):
         """Load a msgpack file"""
