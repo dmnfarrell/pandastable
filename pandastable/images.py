@@ -677,6 +677,24 @@ def del_col():
             +'DxosSHDAAAEBIkq8UEGCwwWDBEdk0JDhdkAAOw==')
      return img
 
+def delete():
+     img = tk.PhotoImage(format='gif',data=
+             'R0lGODlhEAAQAPZvALdKK7hKKrpLLrhOLrxLML5PNrxQMr1RNb5TOMFNM9BP'
+            +'PsRQNMBTOsxSPMZVQsdXRctZScxbTNtWS9FeU9ddUeZWTOZYTOZZTulZTelb'
+            +'T+ZWUOZaUupcUOxfVOddWc9hU9ZgVNdiXNljXdpjX+5mUuBlXOljW+pmXO5q'
+            +'XvBkVvNzXdpkYdxkY9tpZN5qZ91qaN9qauNrYeNuY+BpauJwZvJ3Y/N5Y+R4'
+            +'ceJ7del7cOh6del/ePaCaPaEbO6KdeqDfe6Efe+GfvCFcPiGcPCMd/iMdvCD'
+            +'e/GOevCRf/eRfveTfvmSfvqTf/iUf+6MgfSOge2Tju6Sj/qah/qdi/GclvGd'
+            +'lvqjkfSgnvSinvWjn/upnPqrnfOno/WmoferofarovWsofWvpfivpPKtqvS0'
+            +'qvi2qPm5r/q6rvzHuvjDvvnLxPnTzPzUzf3b1P3c2P///wAAAAAAAAAAAAAA'
+            +'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAAHAA'
+            +'If8LSW1hZ2VNYWdpY2sKZ2FtbWE9MC40NQAsAAAAABAAEAAAB6GAcIKDhIWG'
+            +'cC8sKyKHgzNQaWtqZDQThzNjbmZWU1toORGFM1xtUkhHTExFZTIPhD9sU0o+'
+            +'PbU9NmIKgy5hW0QdwME1TzsMgi1mTEJvzM0YKFUFgiNfQzzNzidU0nAhTkoq'
+            +'GOLjF0Y4AoMSXykkFeMWG1kLhB8xYMAYFxUVXSABhRBKdDFywgOQLBQAHHLQ'
+            +'QEeUKDcSKGwEB8EBAQMoahwUCAA7')
+     return img
+
 def new_proj():
      img = tk.PhotoImage(format='gif',data=
              'R0lGODlhEAAQAIcAAAAAAEJ3u3y+dlKEw1SGxFWGxlaHx12KxVyKxl+MxlmK'

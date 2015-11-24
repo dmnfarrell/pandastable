@@ -300,8 +300,10 @@ class PlotViewer(Frame):
                                useindex, kwargs)
         if table == True:
             from pandas.tools.plotting import table
-            table(axs, np.round(data.describe(), 2),
-                  loc='upper right', colWidths=[0.2 for i in data.columns])
+            if self.table.child != None:
+                tabledata = self.table.child.model.df
+                table(axs, np.round(tabledata, 2),
+                      loc='upper right', colWidths=[0.1 for i in tabledata.columns])
             #axs.set_ylim()
         #set options general for all plot types
         self.setFigureOptions(axs, kwds)
@@ -407,12 +409,14 @@ class PlotViewer(Frame):
             lw = kwargs['linewidth']
             axs = data.plot(ax=ax, layout=layout, xerr=yerr, **kwargs)
         else:
-            #if kwargs['table'] == True:
-            #    kwargs['table'] = data
             if useindex == False:
                 x=data.columns[0]
                 data.set_index(x,inplace=True)
                 data=data.sort()
+            if len(data.columns) == 0:
+                msg = "Not enough data.\nIf 'use index' is off select at least 2 columns"
+                self.showWarning(msg)
+                return
             axs = data.plot(ax=ax, layout=layout, yerr=yerr, **kwargs)
         return axs
 
@@ -688,7 +692,7 @@ class MPLBaseOptions(object):
                 'grid':{'type':'checkbutton','default':0,'label':'show grid'},
                 'logx':{'type':'checkbutton','default':0,'label':'log x'},
                 'logy':{'type':'checkbutton','default':0,'label':'log y'},
-                'rot':{'type':'entry','default':0, 'label':'ylabel rot'},
+                'rot':{'type':'entry','default':0, 'label':'xlabel rot'},
                 'use_index':{'type':'checkbutton','default':1,'label':'use index'},
                 'errorbars':{'type':'checkbutton','default':0,'label':'use errorbars'},
                 'showxlabels':{'type':'checkbutton','default':1,'label':'x tick labels'},

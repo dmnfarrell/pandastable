@@ -75,6 +75,7 @@ class ViewerApp(Frame):
         self.createMenuBar()
         self.setupGUI()
         self.clipboarddf = None
+        self.projopen = False
 
         if data != None:
             self.data = data
@@ -119,7 +120,7 @@ class ViewerApp(Frame):
         """Create the menu bar for the application. """
 
         self.menu=Menu(self.main)
-        self.proj_menu={'01New':{'cmd': lambda : self.newProject(current=True)},
+        self.proj_menu={'01New':{'cmd': self.newProject},
                         '02Open':{'cmd': lambda: self.openProject(asksave=True)},
                         '03Close':{'cmd':self.closeProject},
                         '04Save':{'cmd':self.saveProject},
@@ -253,22 +254,20 @@ class ViewerApp(Frame):
         #save table selections
         meta['table'] = util.getAttributes(table)
         meta['rowheader'] = util.getAttributes(table.rowheader)
-
         #save child table if present
         if table.child != None:
             meta['childtable'] = table.child.model.df
             meta['childselected'] = util.getAttributes(table.child)
+        #for i in meta['table']:
+        #    print (i,meta['table'][i])
         return meta
 
-    def newProject(self, data=None, df=None, current=False):
+    def newProject(self, data=None, df=None):
         """Create a new project from data or empty"""
 
-        if current == True:
-            w = messagebox.askyesno("Save current?",
-                                    "Save current project?",
-                                    parent=self.master)
-            if w == True:
-                self.saveProject()
+        w = self.closeProject()
+        if w == None:
+            return
         self.sheets={}
         for n in self.nb.tabs():
             self.nb.forget(n)
@@ -282,10 +281,11 @@ class ViewerApp(Frame):
                 else:
                     meta=None
                 self.addSheet(s, df, meta)
-        #elif df != None:
-        #    self.addSheet(, df)
         else:
             self.addSheet('sheet1')
+        self.filename = None
+        self.projopen = True
+        self.main.title('DataExplore')
         return
 
     def openProject(self, filename=None, asksave=False):
@@ -308,6 +308,8 @@ class ViewerApp(Frame):
             data = pd.read_msgpack(filename)
         self.newProject(data)
         self.filename = filename
+        self.main.title('%s - DataExplore' %filename)
+        self.projopen = True
         return
 
     def saveProject(self):
@@ -341,15 +343,21 @@ class ViewerApp(Frame):
             data[i] = {}
             data[i]['table'] = table.model.df
             data[i]['meta'] = self.saveMeta(table)
-        pd.to_msgpack(filename, data, encoding='utf-8')
+        try:
+            pd.to_msgpack(filename, data, encoding='utf-8')
+        except:
+            print('SAVE FAILED!!!')
         return
 
     def closeProject(self):
         """Close"""
 
-        w = messagebox.askyesnocancel("Close Project",
-                                    "Save this project?",
-                                    parent=self.master)
+        if self.projopen == False:
+            w=False
+        else:
+            w = messagebox.askyesnocancel("Close Project",
+                                        "Save this project?",
+                                        parent=self.master)
         if w==None:
             return
         elif w==True:
@@ -359,6 +367,8 @@ class ViewerApp(Frame):
         for n in self.nb.tabs():
             self.nb.forget(n)
         self.filename = None
+        self.projopen = False
+        self.main.title('DataExplore')
         return w
 
     def loadmsgpack(self, filename):

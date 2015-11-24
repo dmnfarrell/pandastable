@@ -290,6 +290,8 @@ class ColumnHeader(Canvas):
 
         currcol = self.table.currentcol
         colclicked = self.table.get_col_clicked(event)
+        if type(self.table.multiplecollist) is tuple:
+            self.table.multiplecollist = list(self.table.multiplecollist)
         multicollist = self.table.multiplecollist
         if 0 <= colclicked < self.table.cols:
             if colclicked not in multicollist:
@@ -542,15 +544,9 @@ class RowHeader(Canvas):
     def handle_left_shift_click(self, event):
         """Handle shift click"""
 
-        self.endrow = self.table.get_row_clicked(event)
-        if self.endrow < self.startrow:
-            rowlist=list(range(self.endrow, self.startrow+1))
-        else:
-            rowlist=list(range(self.startrow, self.endrow+1))
-        self.drawSelectedRows(rowlist)
-        self.table.multiplerowlist = rowlist
-        self.table.drawMultipleRows(rowlist)
-        self.table.drawMultipleCells()
+        if self.startrow == None:
+            self.startrow = self.table.currentrow
+        self.handle_mouse_drag(event)
         return
 
     def handle_right_click(self, event):
@@ -559,7 +555,6 @@ class RowHeader(Canvas):
         self.delete('tooltip')
         if hasattr(self, 'rightmenu'):
             self.rightmenu.destroy()
-        #rowclicked = self.get_row_clicked(event)
         self.rightmenu = self.popupMenu(event, outside=1)
         return
 

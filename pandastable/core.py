@@ -308,6 +308,10 @@ class Table(Canvas):
             self.delete('currentrect','fillrect')
             self.delete('gridline','text')
             self.delete('multicellrect','multiplesel')
+            if self.cols == 0:
+                self.tablecolheader.redraw()
+            if self.rows == 0:
+                self.rowheader.redraw()
             return
         self.tablewidth = (self.cellwidth) * self.cols
         self.configure(bg=self.cellbackgr)
@@ -648,6 +652,9 @@ class Table(Canvas):
     def clearData(self, evt=None):
         """Delete cells from gui event"""
 
+        if self.allrows == True:
+            self.deleteColumn()
+            return
         rows = self.multiplerowlist
         cols = self.multiplecollist
         self.deleteCells(rows, cols)
@@ -1137,12 +1144,14 @@ class Table(Canvas):
         return
 
     def recalculateFunctions(self, omit=None):
-        """Re evaluate any columns that were derived from functions"""
+        """Re evaluate any columns that were derived from functions
+        and dependent on other columns (not self derived)"""
 
         df = self.model.df
         for n in self.formulae:
             if n==omit: continue
             ex = self.formulae[n]
+            #need to check if self calculation here...
             try:
                 df[n] = self._eval(df, ex)
             except:
@@ -1194,8 +1203,15 @@ class Table(Canvas):
             self.evalframe.destroy()
             self.evalframe = None
             self.showAll()
-        def checkFunc():
-            return 0
+        def clear():
+            n = messagebox.askyesno("Clear formulae",
+                                    "This will clear stored functions.\nProceed?",
+                                    parent=self.parentframe)
+            if n == None:
+                return
+            self.formulae = {}
+            self.functionentry['values'] = []
+            return
 
         self.estyle = ttk.Style()
         self.estyle.configure("White.TCombobox",
@@ -1216,12 +1232,12 @@ class Table(Canvas):
         self.functionentry = e = Combobox(bf, values=funclist,
                                     textvariable=self.evalvar,width=34,
                                     font="Courier 13 bold",
-                                    style="White.TCombobox",
-                                    validatecommand=checkFunc)
+                                    style="White.TCombobox")
         e.bind('<Return>', self.evalFunction)
         e.pack(fill=BOTH,side=LEFT,expand=1,padx=2,pady=2)
-        addButton(bf, 'apply function', self.evalFunction, images.accept(), 'apply', side=LEFT)
-        addButton(bf, 'preset', self.applyColumnWise, images.function(), 'preset', side=LEFT)
+        addButton(bf, 'apply', self.evalFunction, images.accept(), 'apply', side=LEFT)
+        addButton(bf, 'preset', self.applyColumnWise, images.function(), 'preset function', side=LEFT)
+        addButton(bf, 'clear', clear, images.delete(), 'clear stored functions', side=LEFT)
         addButton(bf, 'close', reset, images.cross(), 'close', side=LEFT)
         bf = Frame(ef)
         bf.pack(side=TOP, fill=BOTH)
@@ -2298,6 +2314,8 @@ class Table(Canvas):
 
         if delete == 1:
             self.delete('colrect')
+        if len(self.model.df.columns) == 0:
+            return
         if col == None:
             col = self.currentcol
         w=2

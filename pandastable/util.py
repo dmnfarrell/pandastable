@@ -52,12 +52,16 @@ def getAttributes(obj):
     """Get non hidden and built-in type object attributes that can be persisted"""
 
     d={}
+    allowed = [str,int,float,list,tuple,bool]
     for key in obj.__dict__:
         if key.startswith('_'):
             continue
-        #print(key)
-        if type(obj.__dict__[key]) in [str,int,float,list,tuple,bool,dict]:
-            d[key] = obj.__dict__[key]
+        item = obj.__dict__[key]
+        if type(item) in allowed:
+            d[key] = item
+        elif type(item) is dict:
+            if checkDict(item) == 1:
+                d[key] = item
     return d
 
 def setAttributes(obj, data):
@@ -67,3 +71,15 @@ def setAttributes(obj, data):
         #if key.startswith('_'): continue
         obj.__dict__[key] = data[key]
     return
+
+def checkDict(d):
+    """Check a dict recursively for non serializable types"""
+
+    allowed = [str,int,float,list,tuple,bool]
+    for k, v in d.items():
+        if isinstance(v, dict):
+            checkDict(v)
+        else:
+            if type(v) not in allowed:
+                return 0
+    return 1
