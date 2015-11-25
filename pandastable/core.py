@@ -312,6 +312,7 @@ class Table(Canvas):
                 self.tablecolheader.redraw()
             if self.rows == 0:
                 self.rowheader.redraw()
+            self.setColPositions()
             return
         self.tablewidth = (self.cellwidth) * self.cols
         self.configure(bg=self.cellbackgr)
@@ -629,6 +630,7 @@ class Table(Canvas):
         if n:
             cols = self.multiplecollist
             self.model.deleteColumns(cols)
+            #self.cols =
             self.setSelectedCol(0)
             self.redraw()
             self.drawSelectedCol()
@@ -1260,7 +1262,7 @@ class Table(Canvas):
         return
 
     def get_row_clicked(self, event):
-        """get row where event on canvas occurs"""
+        """Get row where event on canvas occurs"""
 
         h=self.rowheight
         #get coord on canvas, not window, need this if scrolling
@@ -1270,23 +1272,20 @@ class Table(Canvas):
         return rowc
 
     def get_col_clicked(self,event):
-        """get col where event on canvas occurs"""
+        """Get column where event on the canvas occurs"""
 
-        w=self.cellwidth
+        w = self.cellwidth
         x = int(self.canvasx(event.x))
-        x_start=self.x_start
-        #print self.col_positions
+        x_start = self.x_start
         for colpos in self.col_positions:
             try:
-                nextpos=self.col_positions[self.col_positions.index(colpos)+1]
+                nextpos = self.col_positions[self.col_positions.index(colpos)+1]
             except:
-                nextpos=self.tablewidth
+                nextpos = self.tablewidth
             if x > colpos and x <= nextpos:
                 #print 'x=', x, 'colpos', colpos, self.col_positions.index(colpos)
                 return self.col_positions.index(colpos)
-            else:
-                pass
-        #return colc
+        return
 
     def setSelectedRow(self, row):
         """Set currently selected row and reset multiple row list"""

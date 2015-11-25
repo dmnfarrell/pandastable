@@ -154,7 +154,7 @@ class ColumnHeader(Canvas):
         self.draggedcol = None
         self.drawRect(self.table.currentcol, tag='dragrect',
                         color='lightblue', outline='white')
-        if hasattr(self, 'rightmenu'):
+        if hasattr(self, 'rightmenu') and self.rightmenu != None:
             self.rightmenu.destroy()
         #finally, draw the selected col on the table
         self.table.drawSelectedCol()
@@ -218,7 +218,10 @@ class ColumnHeader(Canvas):
         else:
             w = self.table.cellwidth
             self.draggedcol = self.table.get_col_clicked(event)
-            x1, y1, x2, y2 = self.coords('dragrect')
+            coords = self.coords('dragrect')
+            if len(coords)==0:
+                return
+            x1, y1, x2, y2 = coords
             x=int(self.canvasx(event.x))
             y = self.canvasy(event.y)
             self.move('dragrect', x-x1-w/2, 0)
@@ -316,6 +319,8 @@ class ColumnHeader(Canvas):
         """Add left and right click behaviour for column header"""
 
         df = self.table.model.df
+        if len(df.columns)==0:
+            return
         ismulti = util.check_multiindex(df.columns)
         colname = str(df.columns[self.table.currentcol])
         currcol = self.table.currentcol
