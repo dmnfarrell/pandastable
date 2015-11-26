@@ -308,11 +308,12 @@ class Table(Canvas):
             self.delete('currentrect','fillrect')
             self.delete('gridline','text')
             self.delete('multicellrect','multiplesel')
+            self.setColPositions()
             if self.cols == 0:
                 self.tablecolheader.redraw()
             if self.rows == 0:
+                self.visiblerows = []
                 self.rowheader.redraw()
-            self.setColPositions()
             return
         self.tablewidth = (self.cellwidth) * self.cols
         self.configure(bg=self.cellbackgr)

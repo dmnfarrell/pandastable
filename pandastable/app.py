@@ -33,6 +33,7 @@ from .data import TableModel
 from .prefs import Preferences
 from . import images, util, dialogs
 from .dialogs import MultipleValDialog
+from . import plugin
 
 class ViewerApp(Frame):
     """Pandastable viewer application"""
@@ -73,6 +74,7 @@ class ViewerApp(Frame):
         self.style.configure("TEntry", padding=(3, 3, 3, 3))
         self.main.title('DataExplore')
         self.createMenuBar()
+        self.discoverPlugins()
         self.setupGUI()
         self.clipboarddf = None
         self.projopen = False
@@ -173,6 +175,10 @@ class ViewerApp(Frame):
                          }
         self.dataset_menu=self.createPulldown(self.menu,self.dataset_menu)
         self.menu.add_cascade(label='Datasets',menu=self.dataset_menu['var'])
+        self.plugin_menu={'01Update Plugins':{'cmd':self.discoverPlugins},
+                         '02sep':''}
+        self.plugin_menu=self.createPulldown(self.menu,self.plugin_menu)
+        self.menu.add_cascade(label='Plugins',menu=self.plugin_menu['var'])
 
         self.help_menu={'01Online Help':{'cmd':self.online_documentation},
                         '02About':{'cmd':self.about}}
@@ -552,6 +558,34 @@ class ViewerApp(Frame):
         else:
             model = TableModel(df)
             table.updateModel(model)
+        return
+
+    def discoverPlugins(self):
+        """Discover available plugins"""
+
+        homepath = os.path.join(os.path.expanduser('~'))
+        path = '.pandastable'
+        self.defaultpath = os.path.join(homepath, path)
+        apppath = os.path.dirname(os.path.abspath(__file__))
+        paths = [apppath,self.defaultpath]
+        pluginpaths = [os.path.join(p, 'plugins') for p in paths]
+        #print (pluginpaths)
+        failed = plugin.init_plugin_system(pluginpaths)
+        self.updatePluginMenu()
+        return
+
+    def updatePluginMenu(self):
+        """Update plugins"""
+
+        self.plugin_menu['var'].delete(2, self.plugin_menu['var'].index(END))
+        plgmenu = self.plugin_menu['var']
+        for plg in plugin.get_plugins_by_capability('gui'):
+            def func(p, **kwargs):
+                def new():
+                   p.main(**kwargs)
+                return new
+            plgmenu.add_command(label=plg.menuentry,
+                                command=func(plg, parent=self))
         return
 
     def _call(self, func):

@@ -3,14 +3,14 @@ CHANGES
 =======
 
 ------
-0.5.1
+0.6.0
 ------
 
 Added ability to show error bars in plots
 Meta data now saved with project files - allows saving plots and selections
 Can add a table to plot using sub-table contents
 Changed function evaluation so that math functions work
-Some fixes for table selection
+Various fixes for table selections
 
 ------
 0.5.0

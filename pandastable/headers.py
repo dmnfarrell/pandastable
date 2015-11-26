@@ -447,6 +447,8 @@ class RowHeader(Canvas):
         pad = 5
         maxw = self.maxwidth
         v = self.table.visiblerows
+        if len(v) == 0:
+            return
         scale = self.table.getScale()
         h = self.table.rowheight
         index = self.model.df.index
