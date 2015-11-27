@@ -60,7 +60,8 @@ class ViewerApp(Frame):
         self.main.tk.call('wm', 'iconphoto', self.main._w, img)
 
         # Get platform into a variable
-        self.currplatform=platform.system()
+        self.currplatform = platform.system()
+        self.setConfigDir()
         if not hasattr(self,'defaultsavedir'):
             self.defaultsavedir = os.getcwd()
 
@@ -90,6 +91,18 @@ class ViewerApp(Frame):
             self.newProject()
 
         self.main.protocol('WM_DELETE_WINDOW',self.quit)
+        return
+
+    def setConfigDir(self):
+        """Set up config folder"""
+
+        homepath = os.path.join(os.path.expanduser('~'))
+        path = '.dataexplore'
+        self.configpath = os.path.join(homepath, path)
+        self.pluginpath = os.path.join(self.configpath, 'plugins')
+        if not os.path.exists(self.configpath):
+            os.mkdir(self.configpath)
+            os.makedirs(self.pluginpath)
         return
 
     def setupGUI(self):
@@ -176,7 +189,8 @@ class ViewerApp(Frame):
         self.dataset_menu=self.createPulldown(self.menu,self.dataset_menu)
         self.menu.add_cascade(label='Datasets',menu=self.dataset_menu['var'])
         self.plugin_menu={'01Update Plugins':{'cmd':self.discoverPlugins},
-                         '02sep':''}
+                          '02Install Plugin':{'cmd':self.installPlugin},
+                          '03sep':''}
         self.plugin_menu=self.createPulldown(self.menu,self.plugin_menu)
         self.menu.add_cascade(label='Plugins',menu=self.plugin_menu['var'])
 
@@ -563,21 +577,31 @@ class ViewerApp(Frame):
     def discoverPlugins(self):
         """Discover available plugins"""
 
-        homepath = os.path.join(os.path.expanduser('~'))
-        path = '.pandastable'
-        self.defaultpath = os.path.join(homepath, path)
         apppath = os.path.dirname(os.path.abspath(__file__))
-        paths = [apppath,self.defaultpath]
+        paths = [apppath,self.configpath]
         pluginpaths = [os.path.join(p, 'plugins') for p in paths]
         #print (pluginpaths)
         failed = plugin.init_plugin_system(pluginpaths)
         self.updatePluginMenu()
         return
 
+    def installPlugin(self):
+        """Adds a user supplied .py file to plugin folder"""
+
+        filename = filedialog.askopenfilename(defaultextension='.py"',
+                                              initialdir=os.getcwd(),
+                                              filetypes=[("python","*.py")],
+                                              parent=self.main)
+        if filename:
+            import shutil
+            shtutil.copy(filename, self.pluginpath)
+            self.updatePluginMenu()
+        return
+
     def updatePluginMenu(self):
         """Update plugins"""
 
-        self.plugin_menu['var'].delete(2, self.plugin_menu['var'].index(END))
+        self.plugin_menu['var'].delete(3, self.plugin_menu['var'].index(END))
         plgmenu = self.plugin_menu['var']
         for plg in plugin.get_plugins_by_capability('gui'):
             def func(p, **kwargs):
@@ -587,6 +611,16 @@ class ViewerApp(Frame):
             plgmenu.add_command(label=plg.menuentry,
                                 command=func(plg, parent=self))
         return
+
+    def addPluginFrame(self, plugin):
+        """Add the plugin as a child frame and register it with the
+        current table"""
+
+        table = self.getCurrentTable()
+        win = Frame(table.parentframe)
+        win.grid(row=3,column=0,columnspan=2,sticky='news')
+        plugin.table = table
+        return win
 
     def _call(self, func):
         """Call a table function from it's string name"""

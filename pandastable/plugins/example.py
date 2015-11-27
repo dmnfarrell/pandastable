@@ -27,7 +27,7 @@ from tkinter.ttk import *
 class ExamplePlugin(Plugin):
     """Template plugin for DataExmplore"""
 
-    capabilities = ['gui']#,'uses_sidepane']
+    capabilities = ['gui','uses_sidepane']
     requires = ['']
     menuentry = 'Example Plugin'
     gui_methods = {}
@@ -44,7 +44,7 @@ class ExamplePlugin(Plugin):
     def _doFrame(self):
 
         if 'uses_sidepane' in self.capabilities:
-            self.mainwin = self.parent.createChildFrame()
+            self.mainwin = self.parent.addPluginFrame(self)
         else:
             self.mainwin=Toplevel()
             self.mainwin.title('A DataExplore Plugin')
@@ -62,6 +62,7 @@ class ExamplePlugin(Plugin):
 
     def _createButtons(self, methods):
         """Dynamically create buttons for supplied methods"""
+
         for m in methods:
             b=Button(self.mainwin,text=m[0],command=m[1])
             b.pack( side=TOP,fill=BOTH)
@@ -73,7 +74,6 @@ class ExamplePlugin(Plugin):
         self.file_menu={ '01Quit':{'cmd':self.quit}}
         self.file_menu=self.create_pulldown(self.menu,self.file_menu)
         self.menu.add_cascade(label='File',menu=self.file_menu['var'])
-
         self.mainwin.config(menu=self.menu)
         return
 

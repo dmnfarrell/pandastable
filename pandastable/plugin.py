@@ -45,7 +45,7 @@ class Plugin(object):
             self.__class__.__name__,
             self.capabilities)
 
-    def quit(self):
+    def quit(self, evt=None):
         if hasattr(self, 'mainwin'):
             self.mainwin.destroy()
         return
@@ -95,15 +95,14 @@ def parsefolder(folder):
         shutil.copytree('plugins', os.path.join(homedir,'plugins'))
 
     elif os.path.isdir(folder):
-        dirlist=os.listdir(folder)
+        dirlist = os.listdir(folder)
         filenm=""
         for x in dirlist:
-             filenm=x
-             if(filenm.endswith("py")):
-                 filenms.append(filenm.strip('.py'))
+             filenm = x
+             if filenm.endswith("py"):
+                 filenms.append(os.path.splitext(filenm)[0])
         filenms.sort()
-        filenameslist=[]
-        filenameslist=[os.path.basename(y) for y in filenms]
+        filenameslist = [os.path.basename(y) for y in filenms]
         return filenameslist
 
 _instances = {}
