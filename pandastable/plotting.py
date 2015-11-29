@@ -106,20 +106,7 @@ class PlotViewer(Frame):
         self.mplopts3d = MPL3DOptions(parent=self)
         w2 = self.mplopts3d.showDialog(self.nb)
         self.nb.add(w2, text='3D plot', sticky='news')
-        '''if self._importSeaborn() == 1:
-            self.factorplotter = FactorPlotter(parent=self)
-            w3 = self.factorplotter.showDialog(self.nb)
-            self.nb.add(w3, text='factor plots', sticky='news')'''
         return
-
-    def _importSeaborn(self):
-        """Try to import seaborn. If not installed return false"""
-        try:
-            import seaborn as sns
-            return 1
-        except:
-            print('seaborn not installed')
-            return 0
 
     def setMode(self, evt=None):
         """Set the plot mode based on selected tab"""
@@ -529,47 +516,6 @@ class PlotViewer(Frame):
             ax.scatter(x, y, z, color=c)
         return
 
-    def factorPlot(self):
-        """Seaborn facet grid plots for categorical plotting. Uses pandas
-        melt method to convert the dataframe into a format where one or more
-        columns are identifier variables (id_vars), while all other columns
-        measured variables (value_vars), unpivoted to the row axis."""
-
-        import seaborn as sns
-        if not hasattr(self, 'data'):
-            return
-        kwds = self.factorplotter.kwds
-        df = self.data
-        dtypes = list(df.dtypes)
-        col = kwds['col']
-        hue = kwds['hue']
-        wrap=2
-        kind = kwds['kind']
-        x = kwds['x']
-        aspect = 1.0
-        palette=kwds['palette']
-        print (df.dtypes)
-        labels = list(df.select_dtypes(include=['object','category']).columns)
-        print(labels)
-        #print (df[:10])
-        t = pd.melt(df,id_vars=labels,
-                     var_name='var',value_name='value')
-        print (t[10:20])
-        if hue == '':
-            hue=None
-        if col == '':
-            col=None
-        plt.clf()
-
-        g = sns.factorplot(x=x,y='value',data=t, hue=hue, col=col,
-                            col_wrap=wrap, kind=kind,size=3, aspect=float(aspect),
-                            legend_out=True,sharey=False,palette=palette)
-        #rotateLabels(g)
-        self.fig.clear()
-        #need to reset the current figure
-        self.setFigure(g.fig)
-        return
-
     def updateData(self):
         """Update data widgets"""
 
@@ -814,73 +760,6 @@ class MPL3DOptions(object):
         dialog, self.tkvars, w = dialogFromOptions(parent, self.opts, self.groups)
         self.applyOptions()
         return dialog
-
-class FactorPlotter(object):
-    """Provides seaborn factor plots"""
-    def __init__(self, parent=None):
-        """Setup variables"""
-
-        self.parent = parent
-        df = self.parent.table.model.df
-        datacols = list(df.columns)
-        self.setDefaultStyle()
-        self.groups = grps = {'formats':['style','despine','palette'],
-                'factors':['kind','hue','col','x']}
-        styles = ['darkgrid', 'whitegrid', 'dark', 'white', 'ticks']
-        kinds = ['point', 'bar', 'count', 'box', 'violin', 'strip']
-        palettes = ['Spectral','cubehelix','hls','hot','coolwarm','copper',
-                    'winter','spring','summer','autumn','Greys','Blues','Reds',
-                    'Set1','Set2','Accent']
-
-        self.opts = {'style': {'type':'combobox','default':'white','items':styles},
-                     'despine': {'type':'checkbutton','default':0,'label':'despine'},
-                     'palette': {'type':'combobox','default':'Spectral','items':palettes},
-                     'kind': {'type':'combobox','default':'bar','items':kinds},
-                     'col': {'type':'combobox','default':'','items':datacols},
-                     'hue': {'type':'combobox','default':'','items':datacols},
-                     'x': {'type':'combobox','default':'','items':datacols},
-                        }
-        return
-
-    def showDialog(self, parent, callback=None):
-        """Auto create tk vars, widgets for corresponding options and
-           and return the frame"""
-
-        dialog, self.tkvars, self.widgets = dialogFromOptions(parent, self.opts, self.groups)
-        #self.applyOptions()
-        return dialog
-
-    def applyOptions(self):
-        """Set the options"""
-        import seaborn as sns
-        kwds = {}
-        for i in self.opts:
-            if self.opts[i]['type'] == 'listbox':
-                items = self.widgets[i].curselection()
-                kwds[i] = [self.widgets[i].get(j) for j in items]
-            kwds[i] = self.tkvars[i].get()
-        self.kwds = kwds
-        sns.set_style(self.kwds['style'])
-        if self.kwds['despine'] == 1:
-            sns.despine()
-        return
-
-    def setDefaultStyle(self):
-        import seaborn as sns
-        sns.set_style("ticks", {'axes.facecolor': '#F7F7F7','legend.frameon': True})
-        sns.set_context("paper", rc={'legend.fontsize':16,'xtick.labelsize':12,
-                        'ytick.labelsize':12,'axes.labelsize':14,'axes.titlesize':16})
-        return
-
-    def update(self, df):
-        """Update data widget(s)"""
-
-        cols = list(df.columns)
-        cols += ''
-        self.widgets['hue']['values'] = cols
-        self.widgets['col']['values'] = cols
-        self.widgets['x']['values'] = cols
-        return
 
 def getFonts():
      """Get the current list of system fonts"""
