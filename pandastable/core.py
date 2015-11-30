@@ -101,6 +101,7 @@ class Table(Canvas):
         self.setFontSize()
         self.scratch = Canvas()
         self.plotted = False
+        self.importpath = None
         return
 
     def set_defaults(self):
@@ -1938,6 +1939,7 @@ class Table(Canvas):
                         "Import csv": lambda: self.importCSV(dialog=True),
                         "Plot Selected" : self.plotSelected,
                         "Hide plot" : self.hidePlot,
+                        "Show plot" : self.showPlot,
                         "Preferences" : self.showPrefs}
 
         main = ["Copy", #"Fill Down","Fill Right",
@@ -1946,7 +1948,7 @@ class Table(Canvas):
                     "Show as Text", "Table Info", "Preferences"]
 
         filecommands = ['New','Load','Import csv','Save','Save as']
-        plotcommands = ['Plot Selected','Hide plot']
+        plotcommands = ['Plot Selected','Hide plot','Show plot']
 
         def createSubMenu(parent, label, commands):
             menu = Menu(parent, tearoff = 0)
@@ -2006,16 +2008,15 @@ class Table(Canvas):
         model = self.model
         #remove first element as we don't want to overwrite it
         rowlist.remove(rowlist[0])
-
         self.redraw()
         return
 
     def fillAcross(self, collist, rowlist):
         """Fill across a row, or multiple rows"""
+
         model = self.model
         frstcol = collist[0]
         collist.remove(frstcol)
-
         self.redraw()
         return
 
@@ -2046,7 +2047,7 @@ class Table(Canvas):
         return lists
 
     def showPlotViewer(self, parent=None):
-        """Show plot frame"""
+        """Create plot frame"""
 
         if not hasattr(self, 'pf'):
             self.pf = PlotViewer(table=self, parent=parent)
@@ -2058,8 +2059,13 @@ class Table(Canvas):
         """Hide plot frame"""
 
         if hasattr(self, 'pf'):
-            self.pf.quit()
-            self.pf = None
+            self.pf.hide()
+            #self.pf = None
+        return
+
+    def showPlot(self):
+        if hasattr(self, 'pf'):
+            self.pf.show()
         return
 
     def getSelectedDataFrame(self):
@@ -2088,6 +2094,7 @@ class Table(Canvas):
         else:
             if type(self.pf.main) is tkinter.Toplevel:
                 self.pf.main.deiconify()
+        self.showPlot() #plot could be hidden
         data = self.getPlotData()
         self.pf.data = data
         self.pf.plotCurrent()
@@ -2715,10 +2722,13 @@ class Table(Canvas):
 
     def importCSV(self, filename=None, dialog=False):
         """Import from csv file"""
+
+        if self.importpath == None:
+            self.importpath = os.getcwd()
         if filename == None:
             filename = filedialog.askopenfilename(parent=self.master,
                                                           defaultextension='.csv',
-                                                          initialdir=os.getcwd(),
+                                                          initialdir=self.importpath,
                                                           filetypes=[("csv","*.csv"),
                                                                      ("tsv","*.tsv"),
                                                                      ("txt","*.txt"),
@@ -2735,6 +2745,7 @@ class Table(Canvas):
         model = TableModel(dataframe=df)
         self.updateModel(model)
         self.redraw()
+        self.importpath = os.path.dirname(filename)
         return
 
     def loadExcel(self, filename=None):

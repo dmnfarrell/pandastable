@@ -72,7 +72,12 @@ class PlotViewer(Frame):
         #frame for figure
         self.plotfr = Frame(self.m)
         #add it to the panedwindow
-        self.addFigure(self.plotfr)
+        #self.addFigure(self.plotfr)
+        #if hasattr(self,'canvas'):
+        #    self.canvas._tkcanvas.destroy()
+        self.fig, self.canvas = addFigure(self.plotfr)
+        self.ax = self.fig.add_subplot(111)
+
         self.m.add(self.plotfr, weight=2)
         #frame for others
         self.ctrlfr = Frame(self.main)
@@ -84,6 +89,8 @@ class PlotViewer(Frame):
         b = Button(bf, text="Replot", command=self.replot)
         b.pack(side=LEFT,fill=X,expand=1)
         b = Button(bf, text="Clear", command=self.clear)
+        b.pack(side=LEFT,fill=X,expand=1)
+        b = Button(bf, text="Hide", command=self.hide)
         b.pack(side=LEFT,fill=X,expand=1)
 
         #general options in this toolbar?
@@ -167,21 +174,6 @@ class PlotViewer(Frame):
         self.canvas = canvas
         return
 
-    def setFigure(self, f=None):
-
-        from matplotlib.figure import Figure
-        if f == None:
-            self.fig = f = Figure(figsize=(5,4), dpi=100)
-            self.ax = f.add_subplot(111)
-        a = self.fig.get_size_inches()
-        f.set_size_inches(a,forward=True)
-        self.canvas.figure = f
-        f.canvas = self.canvas
-        self.canvas.draw()
-        #mng = plt.get_current_fig_manager()
-        self.canvas._tkcanvas.config('state')
-        return
-
     def plotCurrent(self):
         """Plot current data"""
 
@@ -190,10 +182,6 @@ class PlotViewer(Frame):
             self.plot2D()
         elif self.mode == 1:
             self.plot3D()
-        #elif self.mode == 2:
-        #    self.factorplotter.data = self.data
-        #    self.factorPlot()
-
         return
 
     def _checkNumeric(self, df):
@@ -553,6 +541,15 @@ class PlotViewer(Frame):
         self.canvas.draw()
         return
 
+    def hide(self):
+        self.m.pack_forget()
+        #self.parent.update()
+        return
+
+    def show(self):
+        self.m.pack(fill=BOTH,expand=1)
+        return
+
     def quit(self):
         #self.main.withdraw()
         self.table.pf = None
@@ -760,6 +757,26 @@ class MPL3DOptions(object):
         dialog, self.tkvars, w = dialogFromOptions(parent, self.opts, self.groups)
         self.applyOptions()
         return dialog
+
+
+def addFigure(parent, figure=None):
+    """Create a tk figure and canvas"""
+
+    from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
+    from matplotlib.figure import Figure
+
+    if figure == None:
+        figure = Figure(figsize=(5,4), dpi=80, facecolor='white')
+
+    canvas = FigureCanvasTkAgg(figure, master=parent)
+    canvas.show()
+    canvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=1)
+    canvas.get_tk_widget().configure(highlightcolor='gray75',
+                                   highlightbackground='gray75')
+    toolbar = NavigationToolbar2TkAgg(canvas, parent)
+    toolbar.update()
+    canvas._tkcanvas.pack(side=TOP, fill=BOTH, expand=1)
+    return figure, canvas
 
 def getFonts():
      """Get the current list of system fonts"""

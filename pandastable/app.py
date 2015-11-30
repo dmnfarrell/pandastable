@@ -115,22 +115,6 @@ class ViewerApp(Frame):
         self.setGeometry()
         return
 
-    def createSidePane(self, width=200):
-        """Side panel for plot viewer"""
-
-        self.closeSidePane()
-        self.sidepane = Frame(self.m)
-        self.m.add(self.sidepane, weight=3)
-        return self.sidepane
-
-    def closeSidePane(self):
-        """Destroy sidepine"""
-
-        if hasattr(self, 'sidepane'):
-            self.m.forget(self.sidepane)
-            self.sidepane.destroy()
-        return
-
     def createMenuBar(self):
         """Create the menu bar for the application. """
 
@@ -437,8 +421,9 @@ class ViewerApp(Frame):
         main.add(f1)
         table = Table(f1, dataframe=df, showtoolbar=1, showstatusbar=1)
         table.show()
-        f2 = Frame(main)
+        self.plotframe = f2 = Frame(main)
         main.add(f2, weight=3)
+        #show the plot frame
         pf = table.showPlotViewer(f2)
         self.saved = 0
         self.currenttable = table
@@ -618,7 +603,7 @@ class ViewerApp(Frame):
 
         table = self.getCurrentTable()
         win = Frame(table.parentframe)
-        win.grid(row=3,column=0,columnspan=2,sticky='news')
+        win.grid(row=5,column=0,columnspan=2,sticky='news')
         plugin.table = table
         return win
 

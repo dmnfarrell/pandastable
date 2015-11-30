@@ -41,10 +41,8 @@ class SeabornPlugin(Plugin):
         if parent==None:
             return
         self.parent = parent
-        self.parentframe = None
         self._doFrame()
-        self.setDefaultStyle()
-        self.groups = grps = {'formats':['kind','style','despine','palette'],
+        self.groups = grps = {'formats':['kind','wrap','despine','palette'],
                 'factors':['hue','col','x']}
         styles = ['darkgrid', 'whitegrid', 'dark', 'white', 'ticks']
         kinds = ['point', 'bar', 'count', 'box', 'violin', 'strip']
@@ -52,7 +50,8 @@ class SeabornPlugin(Plugin):
                     'winter','spring','summer','autumn','Greys','Blues','Reds',
                     'Set1','Set2','Accent']
         datacols = []
-        self.opts = {'style': {'type':'combobox','default':'white','items':styles},
+        self.opts = {'wrap': {'type':'entry','default':2,'label':'cols'},
+                    #'style': {'type':'combobox','default':'white','items':styles},
                      'despine': {'type':'checkbutton','default':0,'label':'despine'},
                      'palette': {'type':'combobox','default':'Spectral','items':palettes},
                      'kind': {'type':'combobox','default':'bar','items':kinds},
@@ -64,52 +63,53 @@ class SeabornPlugin(Plugin):
         fr.pack(side=LEFT,fill=BOTH)
         bf = Frame(self.mainwin, padding=2)
         bf.pack(side=LEFT,fill=BOTH)
-        b = Button(bf, text="Replot", command=self.replot)
+        b = Button(bf, text="Replot", command=self._plot)
         b.pack(side=TOP,fill=X,expand=1)
         b = Button(bf, text="Clear", command=self.clear)
+        b.pack(side=TOP,fill=X,expand=1)
+        b = Button(bf, text="Close", command=self.quit)
         b.pack(side=TOP,fill=X,expand=1)
 
         self.table = self.parent.getCurrentTable()
         df = self.table.model.df
         self.update(df)
 
-        #self.pf = Toplevel(self.parent)
-        #self.addFigure(self.pf)
-        #use tables plot frame?
-        self.fig = self.table.pf.fig
-        print(self.fig)
-        self.canvas = self.fig.canvas
+        #self.table.pf.hide()
+        #self.pf = Frame(self.parent.pw)
+        #self.parent.pw.add(self.pf, weight=3)
+
+        self.pf = Toplevel(self.parent)
+        self.pf.geometry('600x600+800+400')
+
+        self.fig, self.canvas = plotting.addFigure(self.pf)
+        #use tables frame?
 
         return
 
-    def setFigure(self, f=None):
-
-        from matplotlib.figure import Figure
-        if f == None:
-            self.fig = f = Figure(figsize=(5,4), dpi=100, faceolor='white')
-            self.ax = f.add_subplot(111)
-        a = self.fig.get_size_inches()
-        f.set_size_inches(a,forward=True)
-        self.canvas.figure = f
-        f.canvas = self.canvas
-        self.canvas.draw()
-        #mng = plt.get_current_fig_manager()
-        self.canvas._tkcanvas.config('state')
+    def setFigure(self, f=None, name=None):
+        #dpi = self.fig.get_dpi()
+        #w,h = self.pf.winfo_width(),self.pf.winfo_height()
+        #g.fig.set_size_inches((w/float(dpi),h/float(dpi)),forward=True)
         return
 
-    def replot(self):
+    def _plot(self):
         """Do plot"""
 
         import seaborn as sns
+        self.setDefaultStyle()
+        sns.set(rc={'figure.facecolor':'white'})
+
         self.applyOptions()
         kwds = self.kwds
         df = self.table.getPlotData()
         dtypes = list(df.dtypes)
         col = kwds['col']
         hue = kwds['hue']
-        wrap=2
+        wrap=int(kwds['wrap'])
         kind = kwds['kind']
         x = kwds['x']
+        if x == '':
+            x = 'var'
         aspect = 1.0
         palette=kwds['palette']
 
@@ -125,17 +125,23 @@ class SeabornPlugin(Plugin):
         print(labels,hue,col)
         mng = plt.get_current_fig_manager()
         mng.resize(*mng.window.maxsize())
-        g = sns.factorplot(x='var',y='value',data=t, hue=hue, col=col,
+        try:
+            g = sns.factorplot(x=x,y='value',data=t, hue=hue, col=col,
                             col_wrap=wrap, kind=kind,size=3, aspect=float(aspect),
-                            legend_out=True,sharey=False,palette=palette)
-        #need to reset the current figure
-        self.setFigure(g.fig)
-        plt.tight_layout()
-        #self.fig.set_size_inches((6,4),forward=True)
-        #self.canvas.draw()
-        self.canvas._tkcanvas.config('state')
-        self.canvas._tkcanvas.master.config('height')
+                            legend_out=True, sharey=False, palette=palette)
+        except Exception as e:
+            self.showWarning(e)
+            return
 
+        #need to always make a new canvas to get size right
+        for child in self.pf.winfo_children():
+            child.destroy()
+        self.fig, self.canvas = plotting.addFigure(self.pf, g.fig)
+        self.fig.suptitle('test')
+        if kwds['despine']==True:
+            sns.despine()
+        plt.tight_layout()
+        self.canvas.draw()
         return
 
     def clear(self):
@@ -184,6 +190,23 @@ class SeabornPlugin(Plugin):
         self.widgets['x']['values'] = cols
         return
 
+    def showWarning(self, s='plot error'):
+
+        ax=self.fig.add_subplot(111)
+        ax.text(.5, .5, s,transform=ax.transAxes,
+                       horizontalalignment='center', color='blue', fontsize=16)
+        self.canvas.draw()
+        return
+
+    def quit(self, evt=None):
+        """Override this to handle pane closing"""
+
+        self.fig.clear()
+        plt.close('all')
+        self.pf.destroy()
+        self.mainwin.destroy()
+        return
+
     def _importSeaborn(self):
         """Try to import seaborn. If not installed return false"""
         try:
@@ -214,15 +237,3 @@ class SeabornPlugin(Plugin):
             b.pack( side=TOP,fill=BOTH)
         return
 
-    def _createMenuBar(self):
-        """Create the menu bar for the application. """
-        self.menu=Menu(self.mainwin)
-        self.file_menu={ '01Quit':{'cmd':self.quit}}
-        self.file_menu=self.create_pulldown(self.menu,self.file_menu)
-        self.menu.add_cascade(label='File',menu=self.file_menu['var'])
-        self.mainwin.config(menu=self.menu)
-        return
-
-    def quit(self, evt=None):
-        """Override this to handle pane closing"""
-        return
