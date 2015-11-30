@@ -74,12 +74,16 @@ class SeabornPlugin(Plugin):
         df = self.table.model.df
         self.update(df)
 
-        #self.table.pf.hide()
-        #self.pf = Frame(self.parent.pw)
-        #self.parent.pw.add(self.pf, weight=3)
+        sheet = self.parent.getCurrentSheet()
+        pw = self.parent.plotframes[sheet]
+        self.table.pf.hide()
+        self.pf = Frame(pw)
+        #self.pf.pack(side=LEFT,fill=BOTH)
+        pw.add(self.pf, weight=5)
+        print(sheet)
 
-        self.pf = Toplevel(self.parent)
-        self.pf.geometry('600x600+800+400')
+        #self.pf = Toplevel(self.parent)
+        #self.pf.geometry('600x600+800+400')
 
         self.fig, self.canvas = plotting.addFigure(self.pf)
         #use tables frame?
@@ -236,4 +240,3 @@ class SeabornPlugin(Plugin):
             b=Button(self.mainwin,text=m[0],command=m[1])
             b.pack( side=TOP,fill=BOTH)
         return
-

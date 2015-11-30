@@ -273,6 +273,7 @@ class ViewerApp(Frame):
         if w == None:
             return
         self.sheets={}
+        self.plotframes={}
         for n in self.nb.tabs():
             self.nb.forget(n)
         if data != None:
@@ -416,12 +417,13 @@ class ViewerApp(Frame):
             return
         #Create the table
         main = PanedWindow(orient=HORIZONTAL)
+        self.plotframes[sheetname] = main
         self.nb.add(main, text=sheetname)
         f1 = Frame(main)
         main.add(f1)
         table = Table(f1, dataframe=df, showtoolbar=1, showstatusbar=1)
         table.show()
-        self.plotframe = f2 = Frame(main)
+        f2 = Frame(main)
         main.add(f2, weight=3)
         #show the plot frame
         pf = table.showPlotViewer(f2)
@@ -470,6 +472,13 @@ class ViewerApp(Frame):
         self.copySheet(newname)
         self.deleteSheet()
         return
+
+    def getCurrentSheet(self):
+        """Get current sheet name"""
+
+        s = self.nb.index(self.nb.select())
+        name = self.nb.tab(s, 'text')
+        return name
 
     def getCurrentTable(self):
 
