@@ -67,8 +67,8 @@ class ViewerApp(Frame):
 
         self.style = Style()
         available_themes = self.style.theme_names()
-        pf = Table.checkOS()
-        if pf == 'linux':
+        plf = Table.checkOS()
+        if plf == 'linux':
             self.style.theme_use('default')
 
         self.style.configure("TButton", padding=(3, 3, 3, 3), relief="raised")
@@ -191,7 +191,7 @@ class ViewerApp(Frame):
 
         ws = self.main.winfo_screenwidth()
         hs = self.main.winfo_screenheight()
-        self.w=w=ws/1.4; h=hs*0.7
+        self.w = w = ws/1.4; h = hs*0.7
         x = (ws/2)-(w/2); y = (hs/2)-(h/2)
         g = '%dx%d+%d+%d' % (w,h,x,y)
         return g
@@ -273,7 +273,7 @@ class ViewerApp(Frame):
         if w == None:
             return
         self.sheets={}
-        self.plotframes={}
+        self.sheetframes={}
         for n in self.nb.tabs():
             self.nb.forget(n)
         if data != None:
@@ -358,7 +358,7 @@ class ViewerApp(Frame):
         """Close"""
 
         if self.projopen == False:
-            w=False
+            w = False
         else:
             w = messagebox.askyesnocancel("Close Project",
                                         "Save this project?",
@@ -417,14 +417,14 @@ class ViewerApp(Frame):
             return
         #Create the table
         main = PanedWindow(orient=HORIZONTAL)
-        self.plotframes[sheetname] = main
+        self.sheetframes[sheetname] = main
         self.nb.add(main, text=sheetname)
         f1 = Frame(main)
         main.add(f1)
         table = Table(f1, dataframe=df, showtoolbar=1, showstatusbar=1)
         table.show()
         f2 = Frame(main)
-        main.add(f2, weight=3)
+        main.add(f2, weight=2)
         #show the plot frame
         pf = table.showPlotViewer(f2)
         self.saved = 0
@@ -447,6 +447,7 @@ class ViewerApp(Frame):
         name = self.nb.tab(s, 'text')
         self.nb.forget(s)
         del self.sheets[name]
+        del self.sheetframes[name]
         return
 
     def copySheet(self, newname=None):
@@ -597,27 +598,43 @@ class ViewerApp(Frame):
 
         self.plugin_menu['var'].delete(3, self.plugin_menu['var'].index(END))
         plgmenu = self.plugin_menu['var']
-        for plg in plugin.get_plugins_by_capability('gui'):
+        #for plg in plugin.get_plugins_instances('gui'):
+        for plg in plugin.get_plugins_classes('gui'):
             def func(p, **kwargs):
                 def new():
-                   p.main(**kwargs)
+                   #p.main(**kwargs)
+                   self.loadPlugin(p)
                 return new
             plgmenu.add_command(label=plg.menuentry,
-                                command=func(plg, parent=self))
+                               command=func(plg))
+
         return
 
-    def addPluginFrame(self, plugin):
-        """Add the plugin as a child frame and register it with the
-        current table"""
+    def loadPlugin(self, plugin):
+        """Instansiate the plugin as a child frame"""
 
-        table = self.getCurrentTable()
-        win = Frame(table.parentframe)
-        win.grid(row=5,column=0,columnspan=2,sticky='news')
-        plugin.table = table
-        return win
+        p = plugin()
+        #plugin adds itself to the table frame
+        p.main(parent=self)
+        sheetname = self.getCurrentSheet()
+        return
+
+    def hidePlot(self):
+        name = self.getCurrentSheet()
+        pw = self.sheetframes[name]
+        pw.forget(1)
+        return
+
+    def showPlot(self):
+        name = self.getCurrentSheet()
+        table = self.sheets[name]
+        pw = self.sheetframes[name]
+        pw.add(table.pf, weight=2)
+        return
 
     def _call(self, func):
         """Call a table function from it's string name"""
+
         table = self.getCurrentTable()
         getattr(table, func)()
         return

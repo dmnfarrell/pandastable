@@ -38,12 +38,14 @@ class SeabornPlugin(Plugin):
     about = 'This plugin is a template'
 
     def main(self, parent):
+
         if parent==None:
             return
         self.parent = parent
         self._doFrame()
         self.groups = grps = {'formats':['kind','wrap','despine','palette'],
-                'factors':['hue','col','x']}
+                    'factors':['hue','col','x'],
+                    'sizes':['fontscale']}
         styles = ['darkgrid', 'whitegrid', 'dark', 'white', 'ticks']
         kinds = ['point', 'bar', 'count', 'box', 'violin', 'strip']
         palettes = ['Spectral','cubehelix','hls','hot','coolwarm','copper',
@@ -58,6 +60,7 @@ class SeabornPlugin(Plugin):
                      'col': {'type':'combobox','default':'','items':datacols},
                      'hue': {'type':'combobox','default':'','items':datacols},
                      'x': {'type':'combobox','default':'','items':datacols},
+                     'fontscale':{'type':'scale','default':1.2,'range':(.5,3),'interval':.1,'label':'font scale'}
                         }
         fr = self._plotWidgets(self.mainwin)
         fr.pack(side=LEFT,fill=BOTH)
@@ -75,25 +78,33 @@ class SeabornPlugin(Plugin):
         self.update(df)
 
         sheet = self.parent.getCurrentSheet()
-        pw = self.parent.plotframes[sheet]
-        self.table.pf.hide()
+        #reference to parent frame in sheet
+        pw = self.parent.sheetframes[sheet]
+        #hide the plot viewer from the sheet?
+        #self.parent.hidePlot()
         self.pf = Frame(pw)
-        #self.pf.pack(side=LEFT,fill=BOTH)
-        pw.add(self.pf, weight=5)
-        print(sheet)
-
+        pw.add(self.pf, weight=2)
         #self.pf = Toplevel(self.parent)
         #self.pf.geometry('600x600+800+400')
-
         self.fig, self.canvas = plotting.addFigure(self.pf)
-        #use tables frame?
-
         return
 
-    def setFigure(self, f=None, name=None):
-        #dpi = self.fig.get_dpi()
-        #w,h = self.pf.winfo_width(),self.pf.winfo_height()
-        #g.fig.set_size_inches((w/float(dpi),h/float(dpi)),forward=True)
+    def _doFrame(self):
+        """Create main frame"""
+
+        if 'uses_sidepane' in self.capabilities:
+
+            table = self.parent.getCurrentTable()
+            self.mainwin = Frame(table.parentframe)
+            self.mainwin.grid(row=5,column=0,columnspan=2,sticky='news')
+            self.table = table
+            print ('loaded plugin',self.mainwin)
+        else:
+            self.mainwin = Toplevel()
+            self.mainwin.title('Seaborn plotting plugin')
+            self.mainwin.geometry('600x600+200+100')
+        self.mainwin.bind("<Destroy>", self.quit)
+        self.ID=self.menuentry
         return
 
     def _plot(self):
@@ -133,6 +144,7 @@ class SeabornPlugin(Plugin):
             g = sns.factorplot(x=x,y='value',data=t, hue=hue, col=col,
                             col_wrap=wrap, kind=kind,size=3, aspect=float(aspect),
                             legend_out=True, sharey=False, palette=palette)
+            self.g = g
         except Exception as e:
             self.showWarning(e)
             return
@@ -149,6 +161,8 @@ class SeabornPlugin(Plugin):
         return
 
     def clear(self):
+        self.fig.clear()
+        self.canvas.draw()
         return
 
     def applyOptions(self):
@@ -163,9 +177,9 @@ class SeabornPlugin(Plugin):
             else:
                 kwds[i] = self.tkvars[i].get()
         self.kwds = kwds
-        #size = kwds['fontsize']
-        #plt.rc("font", family=kwds['font'], size=size)
-        #plt.rc('legend', fontsize=size-1)
+        scale = kwds['fontscale']
+        import seaborn as sns
+        sns.set(font_scale=scale)
         return
 
     def setDefaultStyle(self):
@@ -209,6 +223,8 @@ class SeabornPlugin(Plugin):
         plt.close('all')
         self.pf.destroy()
         self.mainwin.destroy()
+        import seaborn as sns
+        sns.reset_orig()
         return
 
     def _importSeaborn(self):
@@ -219,24 +235,3 @@ class SeabornPlugin(Plugin):
         except:
             print('seaborn not installed')
             return 0
-
-    def _doFrame(self):
-
-        if 'uses_sidepane' in self.capabilities:
-            self.mainwin = self.parent.addPluginFrame(self)
-        else:
-            self.mainwin=Toplevel()
-            self.mainwin.title('Seaborn plotting plugin')
-            self.mainwin.geometry('600x600+200+100')
-
-        self.ID=self.menuentry
-        self.mainwin.bind("<Destroy>", self.quit)
-        return
-
-    def _createButtons(self, methods):
-        """Dynamically create buttons for supplied methods"""
-
-        for m in methods:
-            b=Button(self.mainwin,text=m[0],command=m[1])
-            b.pack( side=TOP,fill=BOTH)
-        return

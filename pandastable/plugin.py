@@ -107,7 +107,8 @@ def parsefolder(folder):
 
 _instances = {}
 
-def get_plugins_by_capability(capability):
+def get_plugins_instances(capability):
+    """Returns instances of available plugins"""
 
     result = []
     for plugin in Plugin.__subclasses__():
@@ -116,6 +117,15 @@ def get_plugins_by_capability(capability):
             if not plugin in _instances:
                 _instances[plugin] = plugin()
             result.append(_instances[plugin])
+    return result
+
+def get_plugins_classes(capability):
+    """Returns classes of available plugins"""
+
+    result = []
+    for plugin in Plugin.__subclasses__():
+        if capability in plugin.capabilities:
+            result.append(plugin)
     return result
 
 def describe_class(obj):

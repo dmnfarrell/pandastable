@@ -543,7 +543,6 @@ class PlotViewer(Frame):
 
     def hide(self):
         self.m.pack_forget()
-        #self.parent.update()
         return
 
     def show(self):
