@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-    DataExplore Application plugin example.
+    DataExplore plugin for seaborn plotting.
     Created Oct 2015
     Copyright (C) Damien Farrell
 
@@ -20,7 +20,7 @@
 """
 
 from pandastable.plugin import Plugin
-from pandastable import plotting
+from pandastable import plotting, dialogs
 import tkinter
 from tkinter import *
 from tkinter.ttk import *
@@ -29,13 +29,13 @@ import pylab as plt
 #import seaborn as sns
 
 class SeabornPlugin(Plugin):
-    """Template plugin for DataExmplore"""
+    """Plugin for DataExplore"""
 
     capabilities = ['gui','uses_sidepane']
     requires = ['']
     menuentry = 'Categorical Plots'
     gui_methods = {}
-    about = 'This plugin is a template'
+    version = '0.1'
 
     def main(self, parent):
 
@@ -43,6 +43,7 @@ class SeabornPlugin(Plugin):
             return
         self.parent = parent
         self._doFrame()
+        self.setDefaultStyle()
         self.groups = grps = {'formats':['kind','wrap','despine','palette'],
                     'factors':['hue','col','x'],
                     'sizes':['fontscale']}
@@ -72,6 +73,8 @@ class SeabornPlugin(Plugin):
         b.pack(side=TOP,fill=X,expand=1)
         b = Button(bf, text="Close", command=self.quit)
         b.pack(side=TOP,fill=X,expand=1)
+        b = Button(bf, text="About", command=self._aboutWindow)
+        b.pack(side=TOP,fill=X,expand=1)
 
         self.table = self.parent.getCurrentTable()
         df = self.table.model.df
@@ -83,7 +86,7 @@ class SeabornPlugin(Plugin):
         #hide the plot viewer from the sheet?
         #self.parent.hidePlot()
         self.pf = Frame(pw)
-        pw.add(self.pf, weight=2)
+        pw.add(self.pf, weight=3)
         #self.pf = Toplevel(self.parent)
         #self.pf.geometry('600x600+800+400')
         self.fig, self.canvas = plotting.addFigure(self.pf)
@@ -93,12 +96,10 @@ class SeabornPlugin(Plugin):
         """Create main frame"""
 
         if 'uses_sidepane' in self.capabilities:
-
             table = self.parent.getCurrentTable()
             self.mainwin = Frame(table.parentframe)
             self.mainwin.grid(row=5,column=0,columnspan=2,sticky='news')
             self.table = table
-            print ('loaded plugin',self.mainwin)
         else:
             self.mainwin = Toplevel()
             self.mainwin.title('Seaborn plotting plugin')
@@ -112,13 +113,16 @@ class SeabornPlugin(Plugin):
 
         import seaborn as sns
         self.setDefaultStyle()
-        sns.set(rc={'figure.facecolor':'white'})
-
         self.applyOptions()
         kwds = self.kwds
         df = self.table.getPlotData()
         dtypes = list(df.dtypes)
         col = kwds['col']
+        if col == 1:
+            col=None
+            row=1
+        else:
+            row=None
         hue = kwds['hue']
         wrap=int(kwds['wrap'])
         kind = kwds['kind']
@@ -129,7 +133,6 @@ class SeabornPlugin(Plugin):
         palette=kwds['palette']
 
         labels = list(df.select_dtypes(include=['object','category']).columns)
-
         t = pd.melt(df,id_vars=labels,
                      var_name='var',value_name='value')
         print (t[10:20])
@@ -138,10 +141,8 @@ class SeabornPlugin(Plugin):
         if col == '':
             col=None
         print(labels,hue,col)
-        mng = plt.get_current_fig_manager()
-        mng.resize(*mng.window.maxsize())
         try:
-            g = sns.factorplot(x=x,y='value',data=t, hue=hue, col=col,
+            g = sns.factorplot(x=x,y='value',data=t, hue=hue, col=col, row=row,
                             col_wrap=wrap, kind=kind,size=3, aspect=float(aspect),
                             legend_out=True, sharey=False, palette=palette)
             self.g = g
@@ -153,14 +154,21 @@ class SeabornPlugin(Plugin):
         for child in self.pf.winfo_children():
             child.destroy()
         self.fig, self.canvas = plotting.addFigure(self.pf, g.fig)
-        self.fig.suptitle('test')
+        #self.fig.suptitle('test')
         if kwds['despine']==True:
             sns.despine()
+        for ax in g.axes.flatten():
+            for t in ax.get_xticklabels():
+                t.set(rotation=30)
+
+        sns.set(font_scale=kwds['fontscale'])
         plt.tight_layout()
+        self.fig.subplots_adjust(top=0.9, bottom=0.1)
         self.canvas.draw()
         return
 
     def clear(self):
+        """Clear figure canvas"""
         self.fig.clear()
         self.canvas.draw()
         return
@@ -177,17 +185,14 @@ class SeabornPlugin(Plugin):
             else:
                 kwds[i] = self.tkvars[i].get()
         self.kwds = kwds
-        scale = kwds['fontscale']
-        import seaborn as sns
-        sns.set(font_scale=scale)
         return
 
     def setDefaultStyle(self):
         import seaborn as sns
-        sns.set_style("ticks", {'figure.facecolor':'white',
-                                'axes.facecolor': '#F7F7F7','legend.frameon': True})
-        sns.set_context("paper", rc={'legend.fontsize':16,'xtick.labelsize':12,
-                        'ytick.labelsize':12,'axes.labelsize':14,'axes.titlesize':16})
+        sns.set(rc={'figure.facecolor':'white','axes.facecolor': '#F7F7F7'})
+        sns.set_style("ticks", { 'axes.facecolor': '#F7F7F7','legend.frameon': True})
+        #sns.set_context("notebook", rc={'legend.fontsize':16,'xtick.labelsize':12,
+        #                'ytick.labelsize':12,'axes.labelsize':14,'axes.titlesize':16})
         return
 
     def _plotWidgets(self, parent, callback=None):
@@ -226,6 +231,17 @@ class SeabornPlugin(Plugin):
         import seaborn as sns
         sns.reset_orig()
         return
+
+    def about(self):
+        """About this plugin"""
+
+        txt = "This plugin implements factor plotting using\n"+\
+              "the seaborn library which provides an interface\n"+\
+              "for drawing attractive statistical graphics.\n\n"+\
+              "http://stanford.edu/~mwaskom/software/seaborn/\n\n"\
+               "version: %s" %self.version
+
+        return txt
 
     def _importSeaborn(self):
         """Try to import seaborn. If not installed return false"""

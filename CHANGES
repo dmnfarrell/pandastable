@@ -6,10 +6,11 @@ CHANGES
 0.6.0
 ------
 
-Added ability to show error bars in plots
+Implemented plugin system with sample seaborn plugin
 Meta data now saved with project files - allows saving plots and selections
 Can add a table to plot using sub-table contents
 Changed function evaluation so that math functions work
+Added ability to show error bars in plots
 Various fixes for table selections
 
 ------

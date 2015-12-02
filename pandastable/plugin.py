@@ -22,6 +22,10 @@
 import sys
 import os
 import inspect
+import tkinter
+from tkinter import *
+from tkinter.ttk import *
+from . import dialogs
 
 class Plugin(object):
     """Base Plugin class, should be inherited by any plugin"""
@@ -39,6 +43,20 @@ class Plugin(object):
         mems = inspect.getmembers(self, inspect.ismethod)
         methods = [m for m in mems if not m[0].startswith('_')]
         return methods
+
+    def _aboutWindow(self):
+        """Display an about dialog"""
+
+        text = self.about()
+        abwin = Toplevel()
+        x,y,w,h = dialogs.getParentGeometry(self.parent.main)
+        abwin.geometry('+%d+%d' %(x+w/2-200,y+h/2-200))
+        abwin.title('About')
+        abwin.transient(self.parent)
+        abwin.grab_set()
+        tmp = Label(abwin, text=text, style="BW.TLabel")
+        tmp.pack(fill=BOTH,padx=5,pady=5)
+        return
 
     def __repr__(self):
         return '<%s %r>' % (

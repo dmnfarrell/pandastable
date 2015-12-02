@@ -25,13 +25,13 @@ from tkinter import *
 from tkinter.ttk import *
 
 class ExamplePlugin(Plugin):
-    """Template plugin for DataExmplore"""
+    """Template plugin for DataExplore"""
 
-    capabilities = ['gui','uses_sidepane']
+    #uncomment capabilities list to appear in menu
+    capabilities = [] # ['gui','uses_sidepane']
     requires = ['']
     menuentry = 'Example Plugin'
     gui_methods = {}
-    about = 'This plugin is a template'
 
     def main(self, parent):
         if parent==None:
@@ -44,7 +44,10 @@ class ExamplePlugin(Plugin):
     def _doFrame(self):
 
         if 'uses_sidepane' in self.capabilities:
-            self.mainwin = self.parent.addPluginFrame(self)
+            table = self.parent.getCurrentTable()
+            self.mainwin = Frame(table.parentframe)
+            self.mainwin.grid(row=5,column=0,columnspan=2,sticky='news')
+            self.table = table
         else:
             self.mainwin=Toplevel()
             self.mainwin.title('A DataExplore Plugin')
@@ -52,24 +55,15 @@ class ExamplePlugin(Plugin):
 
         self.ID='Basic Plugin'
         #self._createMenuBar()
-        methods = self._getmethods()
-        methods = [m for m in methods if m[0] in self.gui_methods]
-        #self._createButtons(methods)
+
         l=Label(self.mainwin, text='This is a template plugin')
         l.pack(side=TOP,fill=BOTH)
         self.mainwin.bind("<Destroy>", self.quit)
         return
 
-    def _createButtons(self, methods):
-        """Dynamically create buttons for supplied methods"""
-
-        for m in methods:
-            b=Button(self.mainwin,text=m[0],command=m[1])
-            b.pack( side=TOP,fill=BOTH)
-        return
-
     def _createMenuBar(self):
         """Create the menu bar for the application. """
+
         self.menu=Menu(self.mainwin)
         self.file_menu={ '01Quit':{'cmd':self.quit}}
         self.file_menu=self.create_pulldown(self.menu,self.file_menu)
@@ -80,3 +74,10 @@ class ExamplePlugin(Plugin):
     def quit(self, evt=None):
         """Override this to handle pane closing"""
         return
+
+    def about(self):
+        """About this plugin"""
+
+        txt = "This plugin implements ...\n"+\
+               "version: %s" %self.version
+        return txt

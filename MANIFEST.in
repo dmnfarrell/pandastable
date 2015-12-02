@@ -1,2 +1,3 @@
 include pandastable/datasets/*
+include pandastable/plugins/*.py
 include pandastable/*.gif
