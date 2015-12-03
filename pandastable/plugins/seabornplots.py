@@ -26,6 +26,7 @@ from tkinter import *
 from tkinter.ttk import *
 import pandas as pd
 import pylab as plt
+from collections import OrderedDict
 #import seaborn as sns
 
 class SeabornPlugin(Plugin):
@@ -44,9 +45,10 @@ class SeabornPlugin(Plugin):
         self.parent = parent
         self._doFrame()
         self.setDefaultStyle()
-        self.groups = grps = {'formats':['kind','wrap','despine','palette'],
+        grps = {'formats':['kind','wrap','despine','palette'],
                     'factors':['hue','col','x'],
                     'sizes':['fontscale']}
+        self.groups = grps = OrderedDict(grps)
         styles = ['darkgrid', 'whitegrid', 'dark', 'white', 'ticks']
         kinds = ['point', 'bar', 'count', 'box', 'violin', 'strip']
         palettes = ['Spectral','cubehelix','hls','hot','coolwarm','copper',
@@ -112,19 +114,20 @@ class SeabornPlugin(Plugin):
         """Do plot"""
 
         import seaborn as sns
-        self.setDefaultStyle()
         self.applyOptions()
         kwds = self.kwds
+        self.setDefaultStyle(kwds['fontscale'])
+
         df = self.table.getPlotData()
         dtypes = list(df.dtypes)
         col = kwds['col']
-        if col == 1:
+        wrap=int(kwds['wrap'])
+        if wrap == 1:
+            row=col
             col=None
-            row=1
         else:
             row=None
         hue = kwds['hue']
-        wrap=int(kwds['wrap'])
         kind = kwds['kind']
         x = kwds['x']
         if x == '':
@@ -154,14 +157,14 @@ class SeabornPlugin(Plugin):
         for child in self.pf.winfo_children():
             child.destroy()
         self.fig, self.canvas = plotting.addFigure(self.pf, g.fig)
-        #self.fig.suptitle('test')
+        plt.suptitle('test')
+
         if kwds['despine']==True:
             sns.despine()
         for ax in g.axes.flatten():
             for t in ax.get_xticklabels():
                 t.set(rotation=30)
 
-        sns.set(font_scale=kwds['fontscale'])
         plt.tight_layout()
         self.fig.subplots_adjust(top=0.9, bottom=0.1)
         self.canvas.draw()
@@ -187,12 +190,15 @@ class SeabornPlugin(Plugin):
         self.kwds = kwds
         return
 
-    def setDefaultStyle(self):
+    def setDefaultStyle(self, fontscale=1.2):
+
         import seaborn as sns
-        sns.set(rc={'figure.facecolor':'white','axes.facecolor': '#F7F7F7'})
+        sns.set(font_scale=fontscale,
+                rc={'figure.facecolor':'white','axes.facecolor': '#F7F7F7'})
         sns.set_style("ticks", { 'axes.facecolor': '#F7F7F7','legend.frameon': True})
-        #sns.set_context("notebook", rc={'legend.fontsize':16,'xtick.labelsize':12,
-        #                'ytick.labelsize':12,'axes.labelsize':14,'axes.titlesize':16})
+        sns.plotting_context('notebook',
+                           rc={'legend.fontsize':16,'xtick.labelsize':12,
+                          'ytick.labelsize':12,'axes.labelsize':14,'axes.titlesize':16})
         return
 
     def _plotWidgets(self, parent, callback=None):
