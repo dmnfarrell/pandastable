@@ -336,7 +336,7 @@ class PlotViewer(Frame):
             if len(data) > 50:
                 ax.get_xaxis().set_visible(False)
             if len(data) > 300:
-                print ('too many bars to plot')
+                self.showWarning('too many bars to plot')
                 return
         if kind == 'scatter':
             axs = self.scatter(data, ax, **kwargs)

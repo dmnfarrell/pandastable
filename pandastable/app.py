@@ -272,8 +272,9 @@ class ViewerApp(Frame):
         w = self.closeProject()
         if w == None:
             return
-        self.sheets={}
-        self.sheetframes={}
+        self.sheets = {}
+        self.sheetframes = {} #store references to enclosing widgets
+        self.openplugins = {} #refs to running plugins
         for n in self.nb.tabs():
             self.nb.forget(n)
         if data != None:
@@ -611,12 +612,14 @@ class ViewerApp(Frame):
         return
 
     def loadPlugin(self, plugin):
-        """Instansiate the plugin as a child frame"""
+        """Instansiate the plugin and call it's main method"""
 
         p = plugin()
-        #plugin adds itself to the table frame
+        #plugin should add itself to the table frame if it's a dialog
         p.main(parent=self)
-        sheetname = self.getCurrentSheet()
+        name = self.getCurrentSheet()
+        #track which plugin is running so the last one is removed?
+        self.openplugins[name] = p
         return
 
     def hidePlot(self):

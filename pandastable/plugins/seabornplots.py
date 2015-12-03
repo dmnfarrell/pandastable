@@ -34,7 +34,7 @@ class SeabornPlugin(Plugin):
 
     capabilities = ['gui','uses_sidepane']
     requires = ['']
-    menuentry = 'Categorical Plots'
+    menuentry = 'Factor Plots'
     gui_methods = {}
     version = '0.1'
 
@@ -47,7 +47,7 @@ class SeabornPlugin(Plugin):
         self.setDefaultStyle()
         grps = {'formats':['kind','wrap','despine','palette'],
                     'factors':['hue','col','x'],
-                    'sizes':['fontscale']}
+                    'labels':['fontscale','title','ylabel']}
         self.groups = grps = OrderedDict(grps)
         styles = ['darkgrid', 'whitegrid', 'dark', 'white', 'ticks']
         kinds = ['point', 'bar', 'count', 'box', 'violin', 'strip']
@@ -56,15 +56,16 @@ class SeabornPlugin(Plugin):
                     'Set1','Set2','Accent']
         datacols = []
         self.opts = {'wrap': {'type':'entry','default':2,'label':'cols'},
-                    #'style': {'type':'combobox','default':'white','items':styles},
                      'despine': {'type':'checkbutton','default':0,'label':'despine'},
                      'palette': {'type':'combobox','default':'Spectral','items':palettes},
                      'kind': {'type':'combobox','default':'bar','items':kinds},
                      'col': {'type':'combobox','default':'','items':datacols},
                      'hue': {'type':'combobox','default':'','items':datacols},
                      'x': {'type':'combobox','default':'','items':datacols},
-                     'fontscale':{'type':'scale','default':1.2,'range':(.5,3),'interval':.1,'label':'font scale'}
-                        }
+                     'fontscale':{'type':'scale','default':1.2,'range':(.5,3),'interval':.1,'label':'font scale'},
+                     'title':{'type':'entry','default':'','width':20},
+                     'ylabel':{'type':'entry','default':'','width':20}
+                     }
         fr = self._plotWidgets(self.mainwin)
         fr.pack(side=LEFT,fill=BOTH)
         bf = Frame(self.mainwin, padding=2)
@@ -89,19 +90,17 @@ class SeabornPlugin(Plugin):
         #self.parent.hidePlot()
         self.pf = Frame(pw)
         pw.add(self.pf, weight=3)
-        #self.pf = Toplevel(self.parent)
-        #self.pf.geometry('600x600+800+400')
         self.fig, self.canvas = plotting.addFigure(self.pf)
         return
 
     def _doFrame(self):
-        """Create main frame"""
+        """Create main frame and add to parent. The plugin should usually
+           handle this."""
 
         if 'uses_sidepane' in self.capabilities:
-            table = self.parent.getCurrentTable()
-            self.mainwin = Frame(table.parentframe)
-            self.mainwin.grid(row=5,column=0,columnspan=2,sticky='news')
-            self.table = table
+            self.table = self.parent.getCurrentTable()
+            self.mainwin = Frame(self.table.parentframe)
+            self.mainwin.grid(row=6,column=0,columnspan=2,sticky='news')
         else:
             self.mainwin = Toplevel()
             self.mainwin.title('Seaborn plotting plugin')
@@ -116,7 +115,8 @@ class SeabornPlugin(Plugin):
         import seaborn as sns
         self.applyOptions()
         kwds = self.kwds
-        self.setDefaultStyle(kwds['fontscale'])
+        fontscale = kwds['fontscale']
+        self.setDefaultStyle(fontscale)
 
         df = self.table.getPlotData()
         dtypes = list(df.dtypes)
@@ -125,6 +125,7 @@ class SeabornPlugin(Plugin):
         if wrap == 1:
             row=col
             col=None
+            wrap=None
         else:
             row=None
         hue = kwds['hue']
@@ -157,14 +158,16 @@ class SeabornPlugin(Plugin):
         for child in self.pf.winfo_children():
             child.destroy()
         self.fig, self.canvas = plotting.addFigure(self.pf, g.fig)
-        plt.suptitle('test')
+        plt.suptitle(kwds['title'], fontsize=14*fontscale)
 
-        if kwds['despine']==True:
+        ylabel = kwds['ylabel']
+        if kwds['despine'] == True:
             sns.despine()
         for ax in g.axes.flatten():
             for t in ax.get_xticklabels():
                 t.set(rotation=30)
-
+            if ylabel != '':
+                ax.set_ylabel(ylabel)
         plt.tight_layout()
         self.fig.subplots_adjust(top=0.9, bottom=0.1)
         self.canvas.draw()
@@ -221,6 +224,7 @@ class SeabornPlugin(Plugin):
 
     def showWarning(self, s='plot error'):
 
+        self.fig.clear()
         ax=self.fig.add_subplot(111)
         ax.text(.5, .5, s,transform=ax.transAxes,
                        horizontalalignment='center', color='blue', fontsize=16)

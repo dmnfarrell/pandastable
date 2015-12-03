@@ -32,6 +32,7 @@ class ExamplePlugin(Plugin):
     requires = ['']
     menuentry = 'Example Plugin'
     gui_methods = {}
+    pluginrow = 6 #row to add plugin frame beneath table
 
     def main(self, parent):
         if parent==None:
@@ -44,10 +45,9 @@ class ExamplePlugin(Plugin):
     def _doFrame(self):
 
         if 'uses_sidepane' in self.capabilities:
-            table = self.parent.getCurrentTable()
-            self.mainwin = Frame(table.parentframe)
-            self.mainwin.grid(row=5,column=0,columnspan=2,sticky='news')
-            self.table = table
+            self.table = self.parent.getCurrentTable()
+            self.mainwin = Frame(self.table.parentframe)
+            self.mainwin.grid(row=pluginrow,column=0,columnspan=2,sticky='news')
         else:
             self.mainwin=Toplevel()
             self.mainwin.title('A DataExplore Plugin')
