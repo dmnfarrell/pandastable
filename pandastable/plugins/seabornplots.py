@@ -38,6 +38,10 @@ class SeabornPlugin(Plugin):
     gui_methods = {}
     version = '0.1'
 
+    def __init__(self):
+
+        return
+
     def main(self, parent):
 
         if parent==None:
@@ -55,7 +59,7 @@ class SeabornPlugin(Plugin):
                     'winter','spring','summer','autumn','Greys','Blues','Reds',
                     'Set1','Set2','Accent']
         datacols = []
-        self.opts = {'wrap': {'type':'entry','default':2,'label':'cols'},
+        self.opts = {'wrap': {'type':'entry','default':2,'label':'column wrap'},
                      'despine': {'type':'checkbutton','default':0,'label':'despine'},
                      'palette': {'type':'combobox','default':'Spectral','items':palettes},
                      'kind': {'type':'combobox','default':'bar','items':kinds},
@@ -122,6 +126,9 @@ class SeabornPlugin(Plugin):
         dtypes = list(df.dtypes)
         col = kwds['col']
         wrap=int(kwds['wrap'])
+        if col == '':
+            col = None
+            wrap = 1
         if wrap == 1:
             row=col
             col=None
@@ -148,7 +155,7 @@ class SeabornPlugin(Plugin):
         try:
             g = sns.factorplot(x=x,y='value',data=t, hue=hue, col=col, row=row,
                             col_wrap=wrap, kind=kind,size=3, aspect=float(aspect),
-                            legend_out=True, sharey=False, palette=palette)
+                            legend_out=False, sharey=False, palette=palette)
             self.g = g
         except Exception as e:
             self.showWarning(e)
@@ -159,6 +166,7 @@ class SeabornPlugin(Plugin):
             child.destroy()
         self.fig, self.canvas = plotting.addFigure(self.pf, g.fig)
         plt.suptitle(kwds['title'], fontsize=14*fontscale)
+        plt.legend(loc='best')
 
         ylabel = kwds['ylabel']
         if kwds['despine'] == True:

@@ -19,7 +19,7 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 """
 
-'''Module for batch file renamining'''
+'''Plugin for batch file renamining'''
 
 import os, string
 import re, glob
@@ -28,47 +28,22 @@ from tkinter import *
 from tkinter.ttk import *
 from tkinter import filedialog, messagebox, simpledialog
 from tkinter.scrolledtext import ScrolledText
+from pandastable.plugin import Plugin
 
-def doRename(files=None, wildcard=None, pattern='', replacement='', rename=False):
-    """Rename all files in a directory using replacement"""
 
-    newfiles = []
-    if files==None:
-        files = glob.glob(wildcard)
-    for pathname in files:
-        basename= os.path.basename(pathname)
-        new_filename= re.sub(pattern, replacement, basename)
-        if new_filename != basename:
-            newfiles.append(new_filename)
-            if rename == True:
-                os.rename(pathname,
-                          os.path.join(os.path.dirname(pathname),
-                          new_filename))
-    return newfiles
+class BatchRenamePlugin(Plugin):
+    """Batch renaming plugin for DataExplore"""
 
-def doFindReplace(files=None, wildcard=None, find='', replace='', rename=False):
-    newfiles = []
-    if files==None:
-        files = glob.glob(wildcard)
-    for pathname in files:
-        basename= os.path.basename(pathname)
-        new_filename = basename.replace(find,replace)
-        newfiles.append(new_filename)
-        if new_filename != basename:
+    capabilities = ['gui']
+    requires = ['']
+    menuentry = 'Batch File Rename'
+    gui_methods = {}
+    version = '0.1'
 
-            if rename == True:
-                os.rename(pathname,
-                          os.path.join(os.path.dirname(pathname),
-                          new_filename))
-    return newfiles
+    def __init__(self):
+        return
 
-def constructRegex(inputstr):
-    return
-
-class BatchRenameApp(Frame):
-    """Batch renaming app"""
-
-    def __init__(self, parent=None):
+    def main(self, parent):
         self.parent=parent
         if not self.parent:
             Frame.__init__(self)
@@ -185,6 +160,44 @@ class BatchRenameApp(Frame):
         doFindReplace(files=flist, find=find, replace=repl, rename=True)
         self.refresh()
         return
+
+def doRename(files=None, wildcard=None, pattern='', replacement='', rename=False):
+    """Rename all files in a directory using replacement"""
+
+    newfiles = []
+    if files==None:
+        files = glob.glob(wildcard)
+    for pathname in files:
+        basename= os.path.basename(pathname)
+        new_filename= re.sub(pattern, replacement, basename)
+        if new_filename != basename:
+            newfiles.append(new_filename)
+            if rename == True:
+                os.rename(pathname,
+                          os.path.join(os.path.dirname(pathname),
+                          new_filename))
+    return newfiles
+
+def doFindReplace(files=None, wildcard=None, find='', replace='', rename=False):
+    """Find replace method"""
+
+    newfiles = []
+    if files==None:
+        files = glob.glob(wildcard)
+    for pathname in files:
+        basename= os.path.basename(pathname)
+        new_filename = basename.replace(find,replace)
+        newfiles.append(new_filename)
+        if new_filename != basename:
+
+            if rename == True:
+                os.rename(pathname,
+                          os.path.join(os.path.dirname(pathname),
+                          new_filename))
+    return newfiles
+
+def constructRegex(inputstr):
+    return
 
 def main():
     from optparse import OptionParser

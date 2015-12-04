@@ -811,7 +811,7 @@ class Table(Canvas):
         return
 
     def applyColumnWise(self, evt=None):
-        """Apply col wise funcs"""
+        """Apply col wise function"""
 
         df = self.model.df
         cols = list(df.columns[self.multiplecollist])
@@ -843,7 +843,7 @@ class Table(Canvas):
 
         func = getattr(np, funcname)
         if newcol == '':
-            newcol = funcname +'_'+ cols[0]
+            newcol = funcname + '(%s)' %(','.join(cols))
         if funcname in ['subtract','divide','mod','remainder','convolve']:
             newcol = cols[0]+' '+ funcname +' '+cols[1]
             df[newcol] = df[cols[0]].combine(df[cols[1]], func=func)
@@ -1126,8 +1126,9 @@ class Table(Canvas):
         try:
             df[n] = self._eval(df, ex)
             self.functionentry.configure(style="White.TCombobox")
-        except:
+        except Exception as e:
             print ('function parse error')
+            print (e)
             self.functionentry.configure(style="Red.TCombobox")
             return
         #keep track of which cols are functions?
@@ -1201,7 +1202,7 @@ class Table(Canvas):
         return
 
     def evalBar(self, evt=None):
-        """Use pd.eval to apply a function colwise or present funcs."""
+        """Use pd.eval to apply a function colwise or preset funcs."""
 
         def reset():
             self.evalframe.destroy()

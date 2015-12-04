@@ -156,10 +156,9 @@ class ViewerApp(Frame):
         self.table_menu=self.createPulldown(self.menu,self.table_menu)
         self.menu.add_cascade(label='Table',menu=self.table_menu['var'])
 
-        self.tools_menu={'01Batch File Rename':{'cmd':self.fileRename},
-                         }
-        self.tools_menu=self.createPulldown(self.menu,self.tools_menu)
-        self.menu.add_cascade(label='Tools',menu=self.tools_menu['var'])
+        #self.tools_menu={ }
+        #self.tools_menu=self.createPulldown(self.menu,self.tools_menu)
+        #self.menu.add_cascade(label='Tools',menu=self.tools_menu['var'])
 
         self.dataset_menu={'01Sample Data':{'cmd':self.sampleData},
                          '03Iris Data':{'cmd': lambda: self.getData('iris.mpk')},
