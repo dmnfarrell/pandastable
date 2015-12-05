@@ -49,9 +49,9 @@ class SeabornPlugin(Plugin):
         self.parent = parent
         self._doFrame()
         self.setDefaultStyle()
-        grps = {'formats':['kind','wrap','despine','palette'],
-                    'factors':['hue','col','x'],
-                    'labels':['fontscale','title','ylabel']}
+        grps = {'formats':['kind','wrap','palette','sharey','aspect'],
+                    'factors':['hue','col','x','ci'],
+                    'labels':['title','ylabel','rot','fontscale']}
         self.groups = grps = OrderedDict(grps)
         styles = ['darkgrid', 'whitegrid', 'dark', 'white', 'ticks']
         kinds = ['point', 'bar', 'count', 'box', 'violin', 'strip']
@@ -60,15 +60,18 @@ class SeabornPlugin(Plugin):
                     'Set1','Set2','Accent']
         datacols = []
         self.opts = {'wrap': {'type':'entry','default':2,'label':'column wrap'},
-                     'despine': {'type':'checkbutton','default':0,'label':'despine'},
                      'palette': {'type':'combobox','default':'Spectral','items':palettes},
                      'kind': {'type':'combobox','default':'bar','items':kinds},
                      'col': {'type':'combobox','default':'','items':datacols},
                      'hue': {'type':'combobox','default':'','items':datacols},
                      'x': {'type':'combobox','default':'','items':datacols},
+                     'ci':{'type':'entry','default':95,'width':16},
                      'fontscale':{'type':'scale','default':1.2,'range':(.5,3),'interval':.1,'label':'font scale'},
-                     'title':{'type':'entry','default':'','width':20},
-                     'ylabel':{'type':'entry','default':'','width':20}
+                     'title':{'type':'entry','default':'','width':16},
+                     'ylabel':{'type':'entry','default':'','width':16},
+                     'rot':{'type':'entry','default':0, 'label':'xlabel angle'},
+                     'sharey':{'type':'checkbutton','default':0,'label':'share y'},
+                     'aspect':{'type':'entry','default':1.0, 'label':'aspect'},
                      }
         fr = self._plotWidgets(self.mainwin)
         fr.pack(side=LEFT,fill=BOTH)
@@ -120,12 +123,18 @@ class SeabornPlugin(Plugin):
         self.applyOptions()
         kwds = self.kwds
         fontscale = kwds['fontscale']
-        self.setDefaultStyle(fontscale)
+        font = kwds['font']
+        self.setDefaultStyle(fontscale=fontscale, font=font)
 
         df = self.table.getPlotData()
-        dtypes = list(df.dtypes)
+        #dtypes = list(df.dtypes)
         col = kwds['col']
         wrap=int(kwds['wrap'])
+        ci = kwds['ci']
+        if kwds['sharey'] == True:
+            sharey = 'all'
+        else:
+            sharey = 'none'
         if col == '':
             col = None
             wrap = 1
@@ -140,22 +149,24 @@ class SeabornPlugin(Plugin):
         x = kwds['x']
         if x == '':
             x = 'var'
-        aspect = 1.0
+        aspect = float(kwds['aspect'])
         palette=kwds['palette']
+        xlabelrot = kwds['rot']
 
         labels = list(df.select_dtypes(include=['object','category']).columns)
         t = pd.melt(df,id_vars=labels,
                      var_name='var',value_name='value')
-        print (t[10:20])
+        #print (t[10:20])
         if hue == '':
             hue=None
         if col == '':
             col=None
-        print(labels,hue,col)
+
         try:
             g = sns.factorplot(x=x,y='value',data=t, hue=hue, col=col, row=row,
                             col_wrap=wrap, kind=kind,size=3, aspect=float(aspect),
-                            legend_out=False, sharey=False, palette=palette)
+                            legend_out=False, sharey=sharey, palette=palette,
+                            ci=ci)
             self.g = g
         except Exception as e:
             self.showWarning(e)
@@ -169,13 +180,12 @@ class SeabornPlugin(Plugin):
         plt.legend(loc='best')
 
         ylabel = kwds['ylabel']
-        if kwds['despine'] == True:
-            sns.despine()
         for ax in g.axes.flatten():
             for t in ax.get_xticklabels():
-                t.set(rotation=30)
+                t.set(rotation=xlabelrot)
             if ylabel != '':
                 ax.set_ylabel(ylabel)
+
         plt.tight_layout()
         self.fig.subplots_adjust(top=0.9, bottom=0.1)
         self.canvas.draw()
@@ -199,14 +209,17 @@ class SeabornPlugin(Plugin):
             else:
                 kwds[i] = self.tkvars[i].get()
         self.kwds = kwds
+        #take font from plotter?
+        kwds['font'] = self.table.pf.mplopts.kwds['font']
         return
 
-    def setDefaultStyle(self, fontscale=1.2):
+    def setDefaultStyle(self, fontscale=1.2, font='monospace'):
 
         import seaborn as sns
         sns.set(font_scale=fontscale,
                 rc={'figure.facecolor':'white','axes.facecolor': '#F7F7F7'})
-        sns.set_style("ticks", { 'axes.facecolor': '#F7F7F7','legend.frameon': True})
+        sns.set_style("ticks", {'font.family':font, 'axes.facecolor': '#F7F7F7',
+                                'legend.frameon': True})
         sns.plotting_context('notebook',
                            rc={'legend.fontsize':16,'xtick.labelsize':12,
                           'ytick.labelsize':12,'axes.labelsize':14,'axes.titlesize':16})

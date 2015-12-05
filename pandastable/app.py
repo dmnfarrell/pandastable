@@ -657,6 +657,8 @@ class ViewerApp(Frame):
         style = Style()
         style.configure("BW.TLabel", font='arial 11')
         from . import __version__
+        pandasver = pd.__version__
+        pythonver = platform.python_version()
 
         text='DataExplore Application\n'\
                 +'pandastable version '+__version__+'\n'\
@@ -664,7 +666,9 @@ class ViewerApp(Frame):
                 +'This program is free software; you can redistribute it and/or\n'\
                 +'modify it under the terms of the GNU General Public License\n'\
                 +'as published by the Free Software Foundation; either version 3\n'\
-                +'of the License, or (at your option) any later version.'
+                +'of the License, or (at your option) any later version.\n'\
+                +'Using pandas v%s, Python v%s' %(pandasver,pythonver)
+
         row=1
         #for line in text:
         tmp = Label(abwin, text=text, style="BW.TLabel")
@@ -680,8 +684,6 @@ class ViewerApp(Frame):
         return
 
     def quit(self):
-        #import pylab as plt
-        #plt.close()
         self.main.destroy()
         return
 

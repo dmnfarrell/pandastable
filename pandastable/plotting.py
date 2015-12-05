@@ -634,7 +634,7 @@ class MPLBaseOptions(object):
                 'grid':{'type':'checkbutton','default':0,'label':'show grid'},
                 'logx':{'type':'checkbutton','default':0,'label':'log x'},
                 'logy':{'type':'checkbutton','default':0,'label':'log y'},
-                'rot':{'type':'entry','default':0, 'label':'xlabel rot'},
+                'rot':{'type':'entry','default':0, 'label':'xlabel angle'},
                 'use_index':{'type':'checkbutton','default':1,'label':'use index'},
                 'errorbars':{'type':'checkbutton','default':0,'label':'use errorbars'},
                 'showxlabels':{'type':'checkbutton','default':1,'label':'x tick labels'},
@@ -758,8 +758,8 @@ class MPL3DOptions(object):
         return dialog
 
 
-def addFigure(parent, figure=None):
-    """Create a tk figure and canvas"""
+def addFigure(parent, figure=None, resize_callback=None):
+    """Create a tk figure and canvas in the parent frame"""
 
     from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
     from matplotlib.figure import Figure
@@ -767,7 +767,7 @@ def addFigure(parent, figure=None):
     if figure == None:
         figure = Figure(figsize=(5,4), dpi=80, facecolor='white')
 
-    canvas = FigureCanvasTkAgg(figure, master=parent)
+    canvas = FigureCanvasTkAgg(figure, master=parent, resize_callback=resize_callback)
     canvas.show()
     canvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=1)
     canvas.get_tk_widget().configure(highlightcolor='gray75',
