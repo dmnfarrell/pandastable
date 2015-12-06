@@ -49,7 +49,7 @@ class SeabornPlugin(Plugin):
         self.parent = parent
         self._doFrame()
         self.setDefaultStyle()
-        grps = {'formats':['kind','wrap','palette','sharey','aspect'],
+        grps = {'formats':['kind','wrap','palette','logy','aspect'],
                     'factors':['hue','col','x','ci'],
                     'labels':['title','ylabel','rot','fontscale']}
         self.groups = grps = OrderedDict(grps)
@@ -70,7 +70,7 @@ class SeabornPlugin(Plugin):
                      'title':{'type':'entry','default':'','width':16},
                      'ylabel':{'type':'entry','default':'','width':16},
                      'rot':{'type':'entry','default':0, 'label':'xlabel angle'},
-                     'sharey':{'type':'checkbutton','default':0,'label':'share y'},
+                     'logy':{'type':'checkbutton','default':0,'label':'log y'},
                      'aspect':{'type':'entry','default':1.0, 'label':'aspect'},
                      }
         fr = self._plotWidgets(self.mainwin)
@@ -131,10 +131,8 @@ class SeabornPlugin(Plugin):
         col = kwds['col']
         wrap=int(kwds['wrap'])
         ci = kwds['ci']
-        if kwds['sharey'] == True:
-            sharey = 'all'
-        else:
-            sharey = 'none'
+        logy = kwds['logy']
+
         if col == '':
             col = None
             wrap = 1
@@ -147,25 +145,24 @@ class SeabornPlugin(Plugin):
         hue = kwds['hue']
         kind = kwds['kind']
         x = kwds['x']
+        order = None
         if x == '':
             x = 'var'
         aspect = float(kwds['aspect'])
         palette=kwds['palette']
         xlabelrot = kwds['rot']
-
-        labels = list(df.select_dtypes(include=['object','category']).columns)
-        t = pd.melt(df,id_vars=labels,
-                     var_name='var',value_name='value')
-        #print (t[10:20])
         if hue == '':
             hue=None
         if col == '':
             col=None
 
+        labels = list(df.select_dtypes(include=['object','category']).columns)
+        t = pd.melt(df,id_vars=labels, var_name='var',value_name='value')
+        print(t)
         try:
             g = sns.factorplot(x=x,y='value',data=t, hue=hue, col=col, row=row,
                             col_wrap=wrap, kind=kind,size=3, aspect=float(aspect),
-                            legend_out=False, sharey=sharey, palette=palette,
+                            legend_out=False, sharey='all', palette=palette, order=order,
                             ci=ci)
             self.g = g
         except Exception as e:
@@ -185,9 +182,14 @@ class SeabornPlugin(Plugin):
                 t.set(rotation=xlabelrot)
             if ylabel != '':
                 ax.set_ylabel(ylabel)
+            if logy == True:
+                ax.set_yscale('log')
 
         plt.tight_layout()
-        self.fig.subplots_adjust(top=0.9, bottom=0.1)
+        bottom = 0.1
+        if xlabelrot>45:
+            bottom=0.2
+        self.fig.subplots_adjust(top=0.9, bottom=bottom)
         self.canvas.draw()
         return
 
