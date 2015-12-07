@@ -265,7 +265,7 @@ class PlotViewer(Frame):
                 ax.set_title(n)
                 handles, labels = ax.get_legend_handles_labels()
                 i+=1
-            self.fig.legend(handles, labels, 'lower right')
+            self.fig.legend(handles, labels, loc='center right')#, bbox_to_anchor=(1, 0.5))
             self.fig.subplots_adjust(left=0.1, right=0.9, top=0.9,
                                      bottom=0.1, hspace=.25)
             axs = self.fig.get_axes()
@@ -279,7 +279,7 @@ class PlotViewer(Frame):
                 tabledata = self.table.child.model.df
                 table(axs, np.round(tabledata, 2),
                       loc='upper right', colWidths=[0.1 for i in tabledata.columns])
-            #axs.set_ylim()
+
         #set options general for all plot types
         self.setFigureOptions(axs, kwds)
         scf = 12/kwds['fontsize']

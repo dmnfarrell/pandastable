@@ -1217,6 +1217,9 @@ class Table(Canvas):
             self.formulae = {}
             self.functionentry['values'] = []
             return
+        def addcolname(evt):
+            self.functionentry.insert(END,colvar.get())
+            return
 
         self.estyle = ttk.Style()
         self.estyle.configure("White.TCombobox",
@@ -1244,8 +1247,16 @@ class Table(Canvas):
         addButton(bf, 'preset', self.applyColumnWise, images.function(), 'preset function', side=LEFT)
         addButton(bf, 'clear', clear, images.delete(), 'clear stored functions', side=LEFT)
         addButton(bf, 'close', reset, images.cross(), 'close', side=LEFT)
+
         bf = Frame(ef)
         bf.pack(side=TOP, fill=BOTH)
+        columns = list(self.model.df.columns)
+        colvar = StringVar()
+        Label(bf, text='insert column:').pack(side=LEFT,fill=BOTH)
+        c = Combobox(bf, values=columns,textvariable=colvar,width=14)
+        c.bind("<<ComboboxSelected>>", addcolname)
+        c.pack(side=LEFT,fill=BOTH)
+
         self.updateplotvar = IntVar()
         self.placecolvar = IntVar()
         self.recalculatevar = IntVar()

@@ -293,8 +293,6 @@ class ColumnHeader(Canvas):
 
         currcol = self.table.currentcol
         colclicked = self.table.get_col_clicked(event)
-        if type(self.table.multiplecollist) is tuple:
-            self.table.multiplecollist = list(self.table.multiplecollist)
         multicollist = self.table.multiplecollist
         if 0 <= colclicked < self.table.cols:
             if colclicked not in multicollist:

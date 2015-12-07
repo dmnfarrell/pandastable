@@ -247,6 +247,8 @@ class ViewerApp(Frame):
         elif table.plotted == 'child' and table.child != None:
             table.child.plotSelected()
         #redraw col selections
+        if type(table.multiplecollist) is tuple:
+            table.multiplecollist = list(table.multiplecollist)
         table.drawMultipleCols()
         return
 
