@@ -1682,15 +1682,21 @@ class Table(Canvas):
     def pasteTable(self, event=None):
         """Paste a new table from clipboard"""
 
+        try:
+            df = pd.read_clipboard()
+        except Exception as e:
+            messagebox.showwarning("Could not read data", e,
+                                    parent=self.parentframe)
+            return
         df = pd.read_clipboard()
         model = TableModel(df)
         self.updateModel(model)
         return
 
     def paste(self, event=None):
-        """Copy from clipboard"""
+        """Paste selections - not implemented"""
 
-        df = pd.read_clipboard()
+        #df = pd.read_clipboard()
         return
 
     def copy(self, rows, cols=None):
@@ -2892,7 +2898,7 @@ class ToolBar(Frame):
         img = images.excel()
         addButton(self, 'Load excel', self.parentapp.loadExcel, img, 'load excel file')
         img = images.copy()
-        addButton(self, 'Copy', self.parentapp.copyTable, img, 'copy to table')
+        addButton(self, 'Copy', self.parentapp.copyTable, img, 'copy table to clipboard')
         img = images.paste()
         addButton(self, 'Paste', self.parentapp.pasteTable, img, 'paste table')
         img = images.plot()
