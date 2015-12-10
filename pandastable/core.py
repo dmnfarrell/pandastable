@@ -1672,6 +1672,21 @@ class Table(Canvas):
         self.tablecolheader.yview('moveto', y)
         return
 
+    def copyTable(self, event=None):
+        """Copy from clipboard"""
+
+        df = self.model.df
+        df.to_clipboard()
+        return
+
+    def pasteTable(self, event=None):
+        """Paste a new table from clipboard"""
+
+        df = pd.read_clipboard()
+        model = TableModel(df)
+        self.updateModel(model)
+        return
+
     def paste(self, event=None):
         """Copy from clipboard"""
 
@@ -1899,6 +1914,20 @@ class Table(Canvas):
             return
         self.createChildTable(df, 'selection')
         return
+
+    '''def pasteChildTable(self):
+        """Paste child table back into main one"""
+
+        answer =  messagebox.askyesno("Confirm",
+                                "This will overwrite the main table.\n"+\
+                                "Are you sure?",
+                                parent=self.parentframe)
+        if not answer:
+            return
+        table = self.parenttable
+        model = TableModel(self.model.df)
+        table.updateModel(model)
+        return'''
 
     def showInfo(self):
         """Show dataframe info"""
@@ -2862,6 +2891,10 @@ class ToolBar(Frame):
         addButton(self, 'Import', func, img, 'import csv')
         img = images.excel()
         addButton(self, 'Load excel', self.parentapp.loadExcel, img, 'load excel file')
+        img = images.copy()
+        addButton(self, 'Copy', self.parentapp.copyTable, img, 'copy to table')
+        img = images.paste()
+        addButton(self, 'Paste', self.parentapp.pasteTable, img, 'paste table')
         img = images.plot()
         addButton(self, 'Plot', self.parentapp.plotSelected, img, 'plot selected')
         img = images.transpose()
@@ -2886,8 +2919,8 @@ class ToolBar(Frame):
 
         img = images.table_delete()
         addButton(self, 'Clear', self.parentapp.clearTable, img, 'clear table')
-        img = images.prefs()
-        addButton(self, 'Prefs', self.parentapp.showPrefs, img, 'table preferences')
+        #img = images.prefs()
+        #addButton(self, 'Prefs', self.parentapp.showPrefs, img, 'table preferences')
         return
 
 class ChildToolBar(ToolBar):
@@ -2905,6 +2938,10 @@ class ChildToolBar(ToolBar):
         addButton(self, 'Plot', self.parentapp.plotSelected, img, 'plot selected')
         img = images.transpose()
         addButton(self, 'Transpose', self.parentapp.transpose, img, 'transpose')
+        img = images.copy()
+        addButton(self, 'Copy', self.parentapp.copyTable, img, 'copy to table')
+        img = images.paste()
+        addButton(self, 'Paste', self.parentapp.pasteTable, img, 'paste table')
         img = images.table_delete()
         addButton(self, 'Clear', self.parentapp.clearTable, img, 'clear table')
         img = images.cross()

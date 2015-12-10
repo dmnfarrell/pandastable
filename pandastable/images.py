@@ -1275,3 +1275,41 @@ def function():
             +'pIklckIzyBYqRcRkW6vod7hRjbuVc8uSPlsmkCEiCycSkJOGcGEgCJANDAsI'
             +'fQIAaoiJX0EAOw==')
      return img
+
+def copy():
+     img = tk.PhotoImage(format='gif',data=
+             'R0lGODlhEAAQAPZtAEJzxUR0xUV1xkV1x0d5x0h9w0l5x0p5x0V1yEZ1yEt5'
+            +'yE58yFN/ylCDylODylSAylKEylOFy1SFylWFy1SGy1WGy1aGy1eHy1KDzFOC'
+            +'z1WDzFaBzlWGzFaGzFeHzFWFz1iHzFaIy1aIzFeIzF+WzGWVzW2e0Gyg0Yi7'
+            +'6pG65JG75JK75JO75Ja+5Za/5pPB7J3D6q/R87TT9bvX9rzZ98Lc+cLc+sTd'
+            +'+cTe+cXe/Mjf+sfg+8Ti+srg+svj+8zi+8vi/83i/M3j/N3p9dDk/NHk/NHl'
+            +'/dLl/NLl/9Tm/dbn/dXn/tXn/9fn/9np/9vq/+fx7+jy7+Pv+uTv+ufw+ufy'
+            +'+ufy/ejx+unx++vz+ury++vy++71++/2++jy/Onz/erz/ejz/uzz/O70/e31'
+            +'/vD2/vH3/vD3//H3//L3//P4+/P5/v7//////wAAAAAAAAAAAAAAAAAAAAAA'
+            +'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAAG4A'
+            +'If8LSW1hZ2VNYWdpY2sKZ2FtbWE9MC40NQAsAAAAABAAEAAAB7+ABBwjISES'
+            +'EG6JiooSbWCPUlUoH4uKHGM5OzUyazwvBZVul0JCOzRDWWsloRJrRkY/NzAt'
+            +'KionJiSKEWtKSkY9LY5gVVSSHG4RaExKTEUsmJqcO58QaE7XTM9CPqZDW2oY'
+            +'GFxOT05KKmdGRbEzMlISG1Hk5iprTExGOjc0YCALw1O2bHl2T0kRHzasSDig'
+            +'AMEAhxDOXDNnxMeaY5UwjJmHT8iYDaHicTQiJArISgcEBhQIZsyDUAAGyHT4'
+            +'MACDQAA7')
+     return img
+
+def paste():
+     img = tk.PhotoImage(format='gif',data=
+             'R0lGODlhEAAQAPYAAEZGRkhISElJSUpKSkxMTE9PT1JSUlNTU1VVVVZWVlhY'
+            +'WFpaWl5eXmVlZWhoaGpqapVjJJhjIKFuLqR1N4FoSohzWJ+HaaCGY6GHZKGI'
+            +'ZKmLYaGFaKOIbKWLb6eOcKSOdaqRc6yUdcaERM2HQ8eIR86LRsmMSs+OSNCP'
+            +'SMuRTM2VT9uVQdyVQtyWQtyWQ9yXRNGTStKTS9GUS9OXTdOYTtSYTtqbSt6b'
+            +'S9+dTs+ZUtWcUNWdUNacUNaeUdWeU9efUtegU9ejV9ikWNmlWtmnXNqoXtGf'
+            +'YtelYtijYtikYtmmZNuqYdyrYtqoZd2uZdyraNyuad6yad6xa96ybN+zbduz'
+            +'ceC0buC1cOG3c+K5duO7euS9fOS/fuS/f/DUdbOzs7S0tLW1tba2tre3t/Pb'
+            +'gP3utf7vtubm5ufn5+jo6Onp6ezs7O3t7e7u7u/v7/Dw8PHx8fLy8vPz8/T0'
+            +'9Pf39/j4+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAAHYA'
+            +'If8LSW1hZ2VNYWdpY2sKZ2FtbWE9MC40NQAsAAAAABAAEAAAB82AdoIRhIWC'
+            +'h4eEE2VkZGUShIh2EVVcOGVeXmU4VFQRiBFcUTYvLyynP1GfiVxOS0SwsEA4'
+            +'q4Narz+5P7NLtZNZREJAPxoYGRgcDQ4ODZNYQbk5IXRxcXBycnBzDBFYPzw1'
+            +'KiBwY2Lm5m0LEVY8MzEpHnBqamlo9m0JEVAzMDAmHHLOgRm45oC+fiVEcHCT'
+            +'Js0Ze2faFIjwBEWJESI2wBnIEcwaAhGSKFGSxMgHN/YgnlkjYFIhCBXovHnj'
+            +'xs1MOQAkCVKA4EABAgQC5AwEADs=')
+     return img

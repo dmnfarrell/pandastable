@@ -10,8 +10,11 @@ Implemented plugin system with sample seaborn plugin
 Meta data now saved with project files - allows saving plots and selections
 Can add a table to plot using sub-table contents
 Changed function evaluation so that math functions work
+Column-wise functions can be applied
 Added ability to show error bars in plots
 Various fixes for table selections
+Integrated table copy and paste into toolbars
+Added melt function for converting to long form data
 
 ------
 0.5.0

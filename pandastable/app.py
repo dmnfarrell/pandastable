@@ -139,9 +139,9 @@ class ViewerApp(Frame):
         self.menu.add_cascade(label='Sheet',menu=self.sheet_menu['var'])
 
         self.edit_menu={'01Copy Table':{'cmd': self.copyTable},
-                        '02Paste Table':{'cmd':self.pasteTable},
-                        '03Copy subtable':{'cmd': lambda: self.copyTable(subtable=True)},
-                        '04Paste as Subtable':{'cmd': lambda: self.pasteTable(subtable=True)}
+                        #'02Paste Table':{'cmd':self.pasteTable},
+                        #'03Copy subtable':{'cmd': lambda: self.copyTable(subtable=True)},
+                        #'04Paste as Subtable':{'cmd': lambda: self.pasteTable(subtable=True)}
                          }
         self.edit_menu = self.createPulldown(self.menu,self.edit_menu)
         self.menu.add_cascade(label='Edit',menu=self.edit_menu['var'])
@@ -555,15 +555,8 @@ class ViewerApp(Frame):
     def copyTable(self, subtable=False):
         """Copy current table dataframe"""
 
-        if subtable == True:
-            table = self.getCurrentTable()
-            if hasattr(table, 'child'):
-                table = table.child
-                if table == None:
-                    return
-        else:
-            table = self.getCurrentTable()
-        self.clipboarddf = table.model.df.copy()
+        table = self.getCurrentTable()
+        table.model.df.to_clipboard()
         return
 
     def pasteTable(self, subtable=False):

@@ -50,7 +50,7 @@ class SeabornPlugin(Plugin):
         self._doFrame()
         self.setDefaultStyle()
         grps = {'formats':['kind','wrap','palette','logy','aspect'],
-                    'factors':['hue','col','x','ci'],
+                    'factors':['hue','col','x','ci','melt'],
                     'labels':['title','ylabel','rot','fontscale']}
         self.groups = grps = OrderedDict(grps)
         styles = ['darkgrid', 'whitegrid', 'dark', 'white', 'ticks']
@@ -66,6 +66,7 @@ class SeabornPlugin(Plugin):
                      'hue': {'type':'combobox','default':'','items':datacols},
                      'x': {'type':'combobox','default':'','items':datacols},
                      'ci':{'type':'entry','default':95,'width':16},
+                     'melt':{'type':'checkbutton','default':1,'label':'convert to long form'},
                      'fontscale':{'type':'scale','default':1.2,'range':(.5,3),'interval':.1,'label':'font scale'},
                      'title':{'type':'entry','default':'','width':16},
                      'ylabel':{'type':'entry','default':'','width':16},
@@ -132,7 +133,7 @@ class SeabornPlugin(Plugin):
         wrap=int(kwds['wrap'])
         ci = kwds['ci']
         logy = kwds['logy']
-
+        melt = kwds['melt']
         if col == '':
             col = None
             wrap = 1
@@ -157,8 +158,10 @@ class SeabornPlugin(Plugin):
             col=None
 
         labels = list(df.select_dtypes(include=['object','category']).columns)
-        t = pd.melt(df,id_vars=labels, var_name='var',value_name='value')
-        #t = df
+        if melt == True:
+            t = pd.melt(df,id_vars=labels, var_name='var',value_name='value')
+        else:
+            t = df
         try:
             g = sns.factorplot(x=x,y='value',data=t, hue=hue, col=col, row=row,
                             col_wrap=wrap, kind=kind,size=3, aspect=float(aspect),
