@@ -1674,6 +1674,7 @@ class Table(Canvas):
 
     def paste(self, event=None):
         """Copy from clipboard"""
+
         df = pd.read_clipboard()
         return
 
@@ -1720,6 +1721,31 @@ class Table(Canvas):
             self.redraw()
         else:
             self.createChildTable(g, 'aggregated', index=True)
+        return
+
+    def melt(self):
+        """Melt table"""
+
+        df = self.model.df
+        cols = list(df.columns)
+        valcols = list(df.select_dtypes(include=[np.float64,np.int32]))
+        d = MultipleValDialog(title='Pivot',
+                                initialvalues=(cols,valcols),
+                                labels=('ID vars:', 'Value vars:'),
+                                types=('combobox','listbox'),
+                                tooltips=('Column(s) to use as identifier variables',
+                                          'Column(s) to unpivot' ),
+                                parent = self.parentframe)
+        idvars = d.results[0]
+        valuevars = d.results[1]
+        if valuevars == '':
+            valuevars = None
+        elif len(valuevars) == 1:
+            valuevars = valuevars[0]
+        t = pd.melt(df, id_vars=idvars, value_vars=valuevars,
+                 var_name='var',value_name='value')
+        print(t)
+        self.createChildTable(t, '', index=True)
         return
 
     def pivot(self):
@@ -2844,6 +2870,8 @@ class ToolBar(Frame):
         addButton(self, 'Aggregate', self.parentapp.aggregate, img, 'aggregate')
         img = images.pivot()
         addButton(self, 'Pivot', self.parentapp.pivot, img, 'pivot')
+        img = images.melt()
+        addButton(self, 'Melt', self.parentapp.melt, img, 'melt')
         img = images.merge()
         addButton(self, 'Merge', self.parentapp.doCombine, img, 'merge, concat or join')
         img = images.table_multiple()

@@ -158,7 +158,7 @@ class SeabornPlugin(Plugin):
 
         labels = list(df.select_dtypes(include=['object','category']).columns)
         t = pd.melt(df,id_vars=labels, var_name='var',value_name='value')
-        print(t)
+        #t = df
         try:
             g = sns.factorplot(x=x,y='value',data=t, hue=hue, col=col, row=row,
                             col_wrap=wrap, kind=kind,size=3, aspect=float(aspect),
@@ -187,7 +187,7 @@ class SeabornPlugin(Plugin):
 
         plt.tight_layout()
         bottom = 0.1
-        if xlabelrot>45:
+        if xlabelrot>30:
             bottom=0.2
         self.fig.subplots_adjust(top=0.9, bottom=bottom)
         self.canvas.draw()

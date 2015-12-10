@@ -991,6 +991,23 @@ def transpose():
             +'hxswSD5EQj49GAWHESU1PTo6NxUDiQkJBhf1j4ME9v0EASQUCAA7')
      return img
 
+def melt():
+     img = tk.PhotoImage(format='gif',data=
+             'R0lGODlhEAAQAMZnACxsJy9wKi9xKzJ1LTN2LjV4LzV4MDZ5MDh8Mjp+ND6E'
+            +'OEOGPUOKPEeMQUmLQ0iQQEmRQUmRQkuUQ0yRRUyTREyVRE6YRk+YR1OXTFCa'
+            +'SFWgTFaiTVejTlikT1unUVuoUlypUl6qVV+sVWCuVmGvV2GjW2KkW2WnXmW0'
+            +'WmurY2usZWyvZG+vaGu1YGu8YG66ZHK+Z3GyaHGxa3K0aXOzbXS2bHa2bXa3'
+            +'bXi2cHi3cHu5dHq+dXy+d32/d2/BZHDCZXLEZnLFZn/AeYDBdoTFeYLCfITD'
+            +'fYXDfofEf4nKforMf4fFgIjFgonGgozGg4vHhIrMgIzIhY/MhZDJiJDKiZLK'
+            +'ipTLjJXMjZXMjpfOj5jOkJrPkpvPk57RlqHTmKLUmaTUnKbVnajXn6nXoKrX'
+            +'oavYoq3apP//////////////////////////////////////////////////'
+            +'/////////////////////////////////////////////////yH5BAEKAH8A'
+            +'LAAAAAAQABAAAAeGgH+Cg4SFhoY+QIeDIy0vMFJKQYsaUV5gYmVmUJOFFzhc'
+            +'XV9gY2NKioUSU1k3ISNDRC6DBQkKGDRTKxqCKCiEBDxDS0w6FYt/Ajs8RUs4'
+            +'D8cAAgQOKksnz38aHosIR9YUGC01H4cGJUtRU1ZcXDUg5TJM6VlZM9vlCw0T'
+            +'KykZx4QMsP07FAgAOw==')
+     return img
+
 def pivot():
      img = tk.PhotoImage(format='gif',data=
              'R0lGODlhEAAQAMZQACFfHiNiICRiICZlIidmIylpJSprJixtKC5vKTByKzJ0'
