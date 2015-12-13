@@ -1023,7 +1023,7 @@ class Table(Canvas):
         elif func == 'slice':
             x = df[col].str.slice(start,end)
         elif func == 'replace':
-            x = df[col].replace(pat, repl)
+            x = df[col].replace(pat, repl, regex=True)
         elif func == 'concat':
             x = df[col].str.cat(df[cols[1]].astype(str), sep=sep)
         if newcol == 1:
@@ -1059,6 +1059,7 @@ class Table(Canvas):
 
     def query(self, evt=None):
         """Do query"""
+
         s = self.queryvar.get()
         if s=='':
             self.showAll()
@@ -1673,20 +1674,22 @@ class Table(Canvas):
         return
 
     def copyTable(self, event=None):
-        """Copy from clipboard"""
+        """Copy from the clipboard"""
 
         df = self.model.df
         df.to_clipboard()
         return
 
     def pasteTable(self, event=None):
-        """Paste a new table from clipboard"""
+        """Paste a new table from the clipboard"""
 
         try:
             df = pd.read_clipboard()
         except Exception as e:
             messagebox.showwarning("Could not read data", e,
                                     parent=self.parentframe)
+            return
+        if len(df) == 0:
             return
         df = pd.read_clipboard()
         model = TableModel(df)
@@ -1751,21 +1754,23 @@ class Table(Canvas):
         cols = list(df.columns)
         valcols = list(df.select_dtypes(include=[np.float64,np.int32]))
         d = MultipleValDialog(title='Pivot',
-                                initialvalues=(cols,valcols),
-                                labels=('ID vars:', 'Value vars:'),
-                                types=('combobox','listbox'),
+                                initialvalues=(cols,valcols,'var'),
+                                labels=('ID vars:', 'Value vars:', 'var name:'),
+                                types=('combobox','listbox','entry'),
                                 tooltips=('Column(s) to use as identifier variables',
-                                          'Column(s) to unpivot' ),
+                                          'Column(s) to unpivot',
+                                          'name of variable column'),
                                 parent = self.parentframe)
         idvars = d.results[0]
         valuevars = d.results[1]
+        varname = d.results[2]
         if valuevars == '':
             valuevars = None
         elif len(valuevars) == 1:
             valuevars = valuevars[0]
         t = pd.melt(df, id_vars=idvars, value_vars=valuevars,
-                 var_name='var',value_name='value')
-        print(t)
+                 var_name=varname,value_name='value')
+        #print(t)
         self.createChildTable(t, '', index=True)
         return
 
@@ -2156,7 +2161,7 @@ class Table(Canvas):
         """Plot data from selection"""
 
         data = self.getSelectedDataFrame()
-        data = data.convert_objects(convert_numeric='force')
+        #data = data.convert_objects(convert_numeric='force')
         return data
 
     def plotSelected(self):
@@ -2945,7 +2950,7 @@ class ChildToolBar(ToolBar):
         img = images.transpose()
         addButton(self, 'Transpose', self.parentapp.transpose, img, 'transpose')
         img = images.copy()
-        addButton(self, 'Copy', self.parentapp.copyTable, img, 'copy to table')
+        addButton(self, 'Copy', self.parentapp.copyTable, img, 'copy to clipboard')
         img = images.paste()
         addButton(self, 'Paste', self.parentapp.pasteTable, img, 'paste table')
         img = images.table_delete()

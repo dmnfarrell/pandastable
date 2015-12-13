@@ -169,7 +169,7 @@ class ViewerApp(Frame):
                              {'cmd': lambda: self.getData('pima.mpk')},
                          '06Titanic':
                              {'cmd': lambda: self.getData('titanic3.mpk')},
-                         '07miRNA Data':
+                         '07miRNA expression':
                              {'cmd': lambda: self.getData('miRNA.mpk')}
                          }
         self.dataset_menu=self.createPulldown(self.menu,self.dataset_menu)
@@ -290,7 +290,10 @@ class ViewerApp(Frame):
                     meta = data[s]['meta']
                 else:
                     meta=None
-                self.addSheet(s, df, meta)
+                try:
+                    self.addSheet(s, df, meta)
+                except Exception as e:
+                    print (e)
         else:
             self.addSheet('sheet1')
         self.filename = None
