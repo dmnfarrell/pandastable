@@ -204,22 +204,24 @@ class ViewerApp(Frame):
         return
 
     def createPulldown(self,menu,dict):
-        var=Menu(menu,tearoff=0)
-        items=list(dict.keys())
+        """Create pulldown menu"""
+
+        var = Menu(menu,tearoff=0)
+        items = list(dict.keys())
         items.sort()
         for item in items:
-            if item[-3:]=='sep':
+            if item[-3:] == 'sep':
                 var.add_separator()
             else:
-                command=None
+                command = None
                 if 'cmd' in dict[item]:
-                    command=dict[item]['cmd']
+                    command = dict[item]['cmd']
                 if 'sc' in dict[item]:
                     var.add_command(label='%-25s %9s' %(item[2:],dict[item]['sc']),
                                     command=command)
                 else:
-                    var.add_command(label='%-25s' %(item[2:]),command=command)
-        dict['var']=var
+                    var.add_command(label='%-25s' %(item[2:]), command=command)
+        dict['var'] = var
         return dict
 
     def loadMeta(self, table, meta):

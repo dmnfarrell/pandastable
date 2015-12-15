@@ -446,7 +446,7 @@ class Table(Canvas):
         else:
             colnames = list(df.columns[columnIndex])
             try:
-                df.sort(colnames, inplace=True, ascending=ascending)
+                df.sort_values(by=colnames, inplace=True, ascending=ascending)
             except Exception as e:
                 print('could not sort')
                 print(e)
