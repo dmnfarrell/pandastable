@@ -580,7 +580,11 @@ class ViewerApp(Frame):
     def discoverPlugins(self):
         """Discover available plugins"""
 
-        apppath = os.path.dirname(os.path.abspath(__file__))
+        if getattr(sys, 'frozen', False):
+            #the application is frozen
+            apppath = os.path.dirname(sys.executable)
+        else:    
+            apppath = os.path.dirname(os.path.abspath(__file__))
         paths = [apppath,self.configpath]
         pluginpaths = [os.path.join(p, 'plugins') for p in paths]
         #print (pluginpaths)

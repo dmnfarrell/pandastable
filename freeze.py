@@ -7,10 +7,12 @@ sys.path.append('pandastable')
 #see https://bitbucket.org/anthony_tuininga/cx_freeze/issues/43
 
 includes = ["pandastable"]#,"scipy.integrate.vode","scipy.integrate.lsoda","scipy.linalg"]
-includefiles = ["pandastable/dataexplore.gif","pandastable/datasets"]
+includefiles = ["pandastable/dataexplore.gif","pandastable/datasets",
+                "pandastable/plugins"]
 
 # Dependencies are automatically detected, but it might need fine tuning.
-build_exe_options = {"packages": ["os","numpy","matplotlib","pandas","scipy",
+build_exe_options = {"packages": ["os","numpy","matplotlib","pandas",
+                                  "scipy","seaborn",
                                   "statsmodels","pandastable"],
                      "excludes": [],
                      "namespace_packages": ['mpl_toolkits'],
