@@ -25,6 +25,7 @@ from tkinter import *
 from tkinter.ttk import *
 import numpy as np
 import pandas as pd
+from pandas.tools import plotting
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -99,12 +100,10 @@ class PlotViewer(Frame):
         Label(bf, text='save dpi:').pack(side=LEFT,fill=X,padx=2)
         e = Entry(bf, textvariable=self.dpivar, width=5)
         e.pack(side=LEFT,padx=2)
-        #hidevar = IntVar()
-        #c = Checkbutton(bf,text='Hide Options', command=hide, variable=hidevar)
-        #c.pack(side=LEFT,fill=X,expand=1)
-        self.nb = Notebook(self.ctrlfr)
+
+        self.nb = Notebook(self.ctrlfr,height=190)
         self.nb.bind('<<NotebookTabChanged>>', self.setMode)
-        self.nb.pack(side=TOP,fill=BOTH)
+        self.nb.pack(side=TOP,fill=BOTH,expand=1)
 
         #add plotter tools (or other extensions?)
         self.mplopts = MPLBaseOptions(parent=self)
@@ -150,30 +149,6 @@ class PlotViewer(Frame):
         self.plotCurrent()
         return
 
-    def addFigure(self, parent, figure=None):
-        """Add the tk figure canvas"""
-
-        from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
-        from matplotlib.figure import Figure
-        if hasattr(self,'canvas'):
-            self.canvas._tkcanvas.destroy()
-        if figure == None:
-            self.fig = f = Figure(figsize=(5,4), dpi=80, facecolor='white')
-        else:
-            self.fig = f = figure
-        a = f.add_subplot(111)
-        canvas = FigureCanvasTkAgg(f, master=parent)
-        canvas.show()
-        canvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=1)
-        canvas.get_tk_widget().configure(highlightcolor='gray75',
-                                       highlightbackground='gray75')
-        toolbar = NavigationToolbar2TkAgg(canvas, parent)
-        toolbar.update()
-        canvas._tkcanvas.pack(side=TOP, fill=BOTH, expand=1)
-        self.ax = a
-        self.canvas = canvas
-        return
-
     def plotCurrent(self):
         """Plot current data"""
 
@@ -202,7 +177,7 @@ class PlotViewer(Frame):
         #needs cleaning up
         valid = {'line': ['alpha', 'colormap', 'grid', 'legend', 'linestyle',
                           'linewidth', 'marker', 'subplots', 'rot', 'logx', 'logy',
-                           'sharey', 'kind'],
+                          'sharey', 'kind'],
                     'scatter': ['alpha', 'grid', 'linewidth', 'marker', 'subplots', 's',
                             'legend', 'colormap','sharey', 'logx', 'logy', 'use_index'],
                     'pie': ['colormap','legend'],
@@ -223,7 +198,6 @@ class PlotViewer(Frame):
                     'scatter_matrix':['alpha', 'linewidth', 'marker', 'grid', 's'],
                     }
 
-        from pandas.tools import plotting
         data = self.data
         if self._checkNumeric(data) == False:
             self.showWarning('no numeric data to plot')
@@ -319,7 +293,7 @@ class PlotViewer(Frame):
 
         cols = data.columns
         if kind == 'line':
-            data = data.sort()
+            data = data.sort_index()
         rows = int(round(np.sqrt(len(data.columns)),0))
         if len(data.columns) == 1 and kind not in ['pie']:
             kwargs['subplots'] = 0
