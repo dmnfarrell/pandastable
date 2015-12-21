@@ -82,7 +82,7 @@ class ViewerApp(Frame):
 
         if data != None:
             self.data = data
-            self.new_project(data)
+            self.newProject(data)
         elif projfile != None:
             self.openProject(projfile)
         elif msgpack != None:
@@ -436,7 +436,7 @@ class ViewerApp(Frame):
         f2 = Frame(main)
         main.add(f2, weight=2)
         #show the plot frame
-        pf = table.showPlotViewer(f2)
+        pf = table.showPlotViewer(f2, layout='vertical')
         self.saved = 0
         self.currenttable = table
         self.sheets[sheetname] = table
@@ -585,7 +585,7 @@ class ViewerApp(Frame):
         if getattr(sys, 'frozen', False):
             #the application is frozen
             apppath = os.path.dirname(sys.executable)
-        else:    
+        else:
             apppath = os.path.dirname(os.path.abspath(__file__))
         paths = [apppath,self.configpath]
         pluginpaths = [os.path.join(p, 'plugins') for p in paths]

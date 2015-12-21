@@ -2124,11 +2124,11 @@ class Table(Canvas):
             lists.append(x)
         return lists
 
-    def showPlotViewer(self, parent=None):
+    def showPlotViewer(self, parent=None, layout='horizontal'):
         """Create plot frame"""
 
         if not hasattr(self, 'pf'):
-            self.pf = PlotViewer(table=self, parent=parent)
+            self.pf = PlotViewer(table=self, parent=parent, layout=layout)
         if hasattr(self, 'child') and self.child is not None:
             self.child.pf = self.pf
         return self.pf

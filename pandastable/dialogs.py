@@ -38,7 +38,7 @@ def getParentGeometry(parent):
     return x,y,w,h
 
 def dialogFromOptions(parent, opts, groups=None, callback=None,
-                        sticky='news', horizontal=True):
+                        sticky='news',  layout='horizontal'):
     """Auto create tk vars and widgets for corresponding options and
        and return the enclosing frame"""
 
@@ -52,7 +52,7 @@ def dialogFromOptions(parent, opts, groups=None, callback=None,
     for g in groups:
         if g == 'hidden':
             continue
-        if horizontal==True:
+        if layout=='horizontal':
             row=0; c+=1
         else:
             c=0; row+=1

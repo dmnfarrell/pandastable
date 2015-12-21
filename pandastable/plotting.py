@@ -40,7 +40,7 @@ colormaps = sorted(m for m in plt.cm.datad if not m.endswith("_r"))
 class PlotViewer(Frame):
     """Provides a frame for figure canvas and MPL settings"""
 
-    def __init__(self, table, parent=None):
+    def __init__(self, table, parent=None, layout='horizontal'):
 
         self.parent = parent
         self.table = table
@@ -54,26 +54,22 @@ class PlotViewer(Frame):
             self.master = self.main
             self.main.title('Plot Viewer')
             self.main.protocol("WM_DELETE_WINDOW", self.quit)
+        self.layout = layout
+        if layout == 'horizontal':
+            self.orient = VERTICAL
+        else:
+            self.orient = HORIZONTAL
         self.setupGUI()
         return
 
     def setupGUI(self):
-        """Add all GUI elements"""
+        """Add GUI elements"""
 
-        '''def hide():
-            if hidevar.get():
-                self.nb.pack_forget()
-                #self.m.configure(self.plotfr, height=800)
-                #self.m.forget(self.ctrlfr)
-            else:
-                self.nb.pack(side=TOP,fill=BOTH)'''
-
-        self.m = PanedWindow(self.main, orient=VERTICAL)
+        self.m = PanedWindow(self.main, orient=self.orient)
         self.m.pack(fill=BOTH,expand=1)
         #frame for figure
         self.plotfr = Frame(self.m)
         #add it to the panedwindow
-        #self.addFigure(self.plotfr)
         #if hasattr(self,'canvas'):
         #    self.canvas._tkcanvas.destroy()
         self.fig, self.canvas = addFigure(self.plotfr)
@@ -85,14 +81,18 @@ class PlotViewer(Frame):
         self.m.add(self.ctrlfr)
         bf = Frame(self.ctrlfr, padding=2)
         bf.pack(side=TOP,fill=BOTH)
+        if self.layout == 'vertical':
+            side = TOP
+        else:
+            side = LEFT
         b = Button(bf, text="Apply", command=self.applyPlotoptions)
-        b.pack(side=LEFT,fill=X,expand=1)
+        b.pack(side=side,fill=X,expand=1,pady=1)
         b = Button(bf, text="Replot", command=self.replot)
-        b.pack(side=LEFT,fill=X,expand=1)
+        b.pack(side=side,fill=X,expand=1,pady=1)
         b = Button(bf, text="Clear", command=self.clear)
-        b.pack(side=LEFT,fill=X,expand=1)
+        b.pack(side=side,fill=X,expand=1,pady=1)
         b = Button(bf, text="Hide", command=self.hide)
-        b.pack(side=LEFT,fill=X,expand=1)
+        b.pack(side=side,fill=X,expand=1,pady=1)
 
         #general options in this toolbar?
         self.dpivar = IntVar()
@@ -107,10 +107,10 @@ class PlotViewer(Frame):
 
         #add plotter tools (or other extensions?)
         self.mplopts = MPLBaseOptions(parent=self)
-        w1 = self.mplopts.showDialog(self.nb)
+        w1 = self.mplopts.showDialog(self.nb, layout=self.layout)
         self.nb.add(w1, text='base plot options', sticky='news')
         self.mplopts3d = MPL3DOptions(parent=self)
-        w2 = self.mplopts3d.showDialog(self.nb)
+        w2 = self.mplopts3d.showDialog(self.nb,layout=self.layout)
         self.nb.add(w2, text='3D plot', sticky='news')
         return
 
@@ -658,11 +658,13 @@ class MPLBaseOptions(object):
             self.callback()
         return
 
-    def showDialog(self, parent, callback=None):
+    def showDialog(self, parent, callback=None, layout='horizontal'):
         """Auto create tk vars, widgets for corresponding options and
            and return the frame"""
 
-        dialog, self.tkvars, self.widgets = dialogFromOptions(parent, self.opts, self.groups)
+        dialog, self.tkvars, self.widgets = dialogFromOptions(parent,
+                                                              self.opts, self.groups,
+                                                              layout=layout)
         self.applyOptions()
         return dialog
 
@@ -726,11 +728,12 @@ class MPL3DOptions(object):
         plt.rc("font", family=kwds['font'], size=kwds['fontsize'])
         return
 
-    def showDialog(self, parent, callback=None):
+    def showDialog(self, parent, callback=None, layout='horizontal'):
         """Auto create tk vars, widgets for corresponding options and
            and return the frame"""
 
-        dialog, self.tkvars, w = dialogFromOptions(parent, self.opts, self.groups)
+        dialog, self.tkvars, w = dialogFromOptions(parent, self.opts, self.groups,
+                                                    layout=layout)
         self.applyOptions()
         return dialog
 
