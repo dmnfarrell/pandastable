@@ -2871,21 +2871,6 @@ class Table(Canvas):
         return frame.winfo_rootx(), frame.winfo_rooty(), frame.winfo_width(), frame.winfo_height()
 
 
-class AutoScrollbar(Scrollbar):
-    """a scrollbar that hides itself if it's not needed.  only
-       works if you use the grid geometry manager."""
-    def set(self, lo, hi):
-        if float(lo) <= 0.0 and float(hi) >= 1.0:
-            # grid_remove is currently missing from Tkinter!
-            self.tk.call("grid", "remove", self)
-        else:
-            self.grid()
-        Scrollbar.set(self, lo, hi)
-    def pack(self, **kw):
-        raise TclError("cannot use pack with this widget")
-    def place(self, **kw):
-        raise TclError("cannot use place with this widget")
-
 class ToolBar(Frame):
     """Uses the parent instance to provide the functions"""
     def __init__(self, parent=None, parentapp=None):

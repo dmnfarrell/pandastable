@@ -23,19 +23,20 @@ import math, time
 import os, types
 import string, copy
 from configparser import ConfigParser
+from tkinter import *
+from tkinter.ttk import *
 
 class Prefs():
     """This class implements a preferences system using configparser """
 
-    def __init__(self, filename=None):
+    def __init__(self, path= '.pandastable'):
 
         homepath = os.path.join(os.path.expanduser('~'))
-        path = '.pandastable'
         self.defaultpath = os.path.join(homepath, path)
         if not os.path.exists(self.defaultpath):
             os.mkdir(self.defaultpath)
-        if filename == None:
-            filename = os.path.join(self.defaultpath, 'default.conf')
+
+        filename = os.path.join(self.defaultpath, 'default.conf')
         if not os.path.exists(filename):
             self.createConfig(filename)
             self.writeConfig()
@@ -44,24 +45,14 @@ class Prefs():
         self.filename = filename
         return
 
-    def createConfig(self, conffile='default.conf', **kwargs):
+    def createConfig(self, opts={}, conffile='default.conf'):
         """Create a basic config file with default options and/or custom values"""
 
         c = ConfigParser()
         wdir = os.path.join(self.defaultpath,'workingdir')
-        functionsconf = os.path.join(self.defaultpath,'functions.conf')
-        sections = ['table','plotting']
-        defaults = {'table': [('horizlines', 'True') ],
-                    'plotting': [('saveplots', 'False'), ('fontsize','12'),]
-                            #('alpha',0.8),
-                            #('font','monospace'), ('markersize',25), ('linewidth',1),
-                            #('dpi', 80), ('marker','o'),
-                            #('legend',0)]
-                    }
-
-        cp = createConfigParserfromDict(defaults, sections ,**kwargs)
+        cp = createConfigParserfromOptions(opts, 'default')
         cp.write(open(conffile,'w'))
-        self.parseConfig(conffile)
+        #self.parseConfig(conffile)
         return cp
 
     def parseConfig(self, conffile=None):
@@ -81,13 +72,13 @@ class Prefs():
         print('parsed config file ok')
         return
 
-    def writeConfig(self, filename=None):
+    def writeConfig(self, opts, filename=None):
         """Save a config file from the current object"""
 
         if filename == None:
-            filename = self.configurationfile
-        data = self.__dict__
-        cp = createConfigParserfromDict(data, self.configsections)
+            filename = self.filename
+
+        cp = createConfigParserfromOptions(opts, 'default')
         cp.write(open(filename,'w'))
         return
 
@@ -102,30 +93,18 @@ def setAttributesfromConfigParser(obj, cp):
             except: val=f[1]
             obj.__dict__[f[0]] = val
 
-def createConfigParserfromDict(data, sections, **kwargs):
-    """Helper method to create a ConfigParser from a dict and/or keywords"""
+def createConfigParserfromOptions(opts, section):
+    """Helper method to create a ConfigParser from a dict of options"""
 
     cp = ConfigParser()
-    for s in sections:
-        cp.add_section(s)
-        if not s in data:
-            continue
-        for i in data[s]:
-            name,val = i
-            print(s,name,val)
-            cp.set(s, name, val)
-
-    #use kwargs to create specific settings in the appropriate section
-    for s in cp.sections():
-        opts = cp.options(s)
-        for k in kwargs:
-            if k in opts:
-                cp.set(s, k, kwargs[k])
-
+    s='default'
+    cp.add_section(s)
+    for name in opts:
+        val =  opts[name]['default']
+        print(name,val)
+        cp.set(s, name, str(val))
+    #cp.write(open(filename,'w'))
     return cp
-
-def getDialog():
-    dialog, self.tkvars, self.widgets = dialogFromOptions(parent, opts, groups)
 
 
 from tkinter import *
@@ -148,6 +127,14 @@ class App(Frame):
         return
 
 if __name__ == '__main__':
-    p = Prefs()
+
+    p = Prefs('.dataexplore')
+    a=App()
+    #from .plotting import MPLBaseOptions
+    #opts = MPLBaseOptions(a).opts
+    opts = {'layout':{'type':'checkbutton','default':'horizontal'},
+            }
+    p.createConfig(opts)
+
     #app=App()
     #app.mainloop()

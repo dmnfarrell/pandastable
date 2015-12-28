@@ -26,14 +26,14 @@ from tkinter import filedialog, messagebox, simpledialog
 import matplotlib
 matplotlib.use('TkAgg')
 import pandas as pd
-import re, os, platform
-import time
+import re, os, platform, time
 from .core import Table
 from .data import TableModel
 from .prefs import Preferences
 from . import images, util, dialogs
 from .dialogs import MultipleValDialog
 from . import plugin
+from .preferences import Prefs
 
 class ViewerApp(Frame):
     """Pandastable viewer application"""
@@ -80,6 +80,7 @@ class ViewerApp(Frame):
         self.clipboarddf = None
         self.projopen = False
 
+        self.prefs = Prefs('.dataexplore')
         if data != None:
             self.data = data
             self.newProject(data)
@@ -139,9 +140,7 @@ class ViewerApp(Frame):
         self.menu.add_cascade(label='Sheet',menu=self.sheet_menu['var'])
 
         self.edit_menu={'01Copy Table':{'cmd': self.copyTable},
-                        #'02Paste Table':{'cmd':self.pasteTable},
-                        #'03Copy subtable':{'cmd': lambda: self.copyTable(subtable=True)},
-                        #'04Paste as Subtable':{'cmd': lambda: self.pasteTable(subtable=True)}
+                        #'02Preferences..':{'cmd':self.preferencesDialog},
                          }
         self.edit_menu = self.createPulldown(self.menu,self.edit_menu)
         self.menu.add_cascade(label='Edit',menu=self.edit_menu['var'])
@@ -223,6 +222,37 @@ class ViewerApp(Frame):
                     var.add_command(label='%-25s' %(item[2:]), command=command)
         dict['var'] = var
         return dict
+
+    def preferencesDialog(self):
+        """Prefs dialog from config parser info"""
+
+        def save():
+            d = dialogs.getDictfromTkVars(opts, tkvars, widgets)
+            p.writeConfig(d)
+        from . import plotting
+        defaultfont = 'monospace'
+        p=Prefs('.dataexplore')
+        opts = {'layout':{'type':'checkbutton','default':False,'label':'vertical plot tools'},
+            'fontsize':{'type':'scale','default':12,'range':(5,40),'interval':1,'label':'font size'},
+            'colormap':{'type':'combobox','default':'Spectral','items':plotting.colormaps},
+                }
+        sections = {'main':['layout'],'plot':['fontsize','colormap']}
+        p.createConfig(opts)
+        t=Toplevel(self)
+        dialog, tkvars, widgets = dialogs.dialogFromOptions(t, opts, sections)
+        dialog.pack(side=TOP,fill=BOTH)
+        bf=Frame(t)
+        bf.pack()
+        Button(bf, text='Save',  command=save).pack(side=LEFT)
+        Button(bf, text='Close',  command=t.destroy).pack(side=LEFT)
+        t.title('About')
+        t.transient(self)
+        t.grab_set()
+        t.resizable(width=False, height=False)
+
+        d = dialogs.getDictfromTkVars(opts, tkvars, widgets)
+        print (d)
+        return
 
     def loadMeta(self, table, meta):
         """Load meta data for a table"""
@@ -436,7 +466,7 @@ class ViewerApp(Frame):
         f2 = Frame(main)
         main.add(f2, weight=2)
         #show the plot frame
-        pf = table.showPlotViewer(f2, layout='vertical')
+        pf = table.showPlotViewer(f2, layout='horizontal')
         self.saved = 0
         self.currenttable = table
         self.sheets[sheetname] = table
@@ -664,6 +694,7 @@ class ViewerApp(Frame):
         abwin.title('About')
         abwin.transient(self)
         abwin.grab_set()
+        abwin.resizable(width=False, height=False)
         logo = images.tableapp_logo()
         label = Label(abwin,image=logo,anchor=CENTER)
         label.image = logo

@@ -101,7 +101,13 @@ class PlotViewer(Frame):
         e = Entry(bf, textvariable=self.dpivar, width=5)
         e.pack(side=LEFT,padx=2)
 
-        self.nb = Notebook(self.ctrlfr,height=190)
+        if self.layout == 'vertical':
+            sf = VerticalScrolledFrame(self.ctrlfr,width=100,height=1050)
+            sf.pack(side=TOP,fill=BOTH)
+            self.nb = Notebook(sf.interior,width=100,height=1050)
+        else:
+            self.nb = Notebook(self.ctrlfr,height=190)
+
         self.nb.bind('<<NotebookTabChanged>>', self.setMode)
         self.nb.pack(side=TOP,fill=BOTH,expand=1)
 
