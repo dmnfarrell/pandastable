@@ -18,9 +18,11 @@ The DataExplore application using these classes is included in the distribution 
 Requires python>=3.3 and numpy, matplotlib and pandas.
 These requirements should be satisfied automatically when using:
 
-```pip install pandastable```
+```pip3 install pandastable```
 or
-```easy_install pandastable```
+```easy_install3 pandastable```
+
+see the [wiki page](https://github.com/dmnfarrell/pandastable/wiki/Installation) for more details on installing.
 
 ## Current features
 * add, remove rows and columns
