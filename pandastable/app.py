@@ -223,6 +223,17 @@ class ViewerApp(Frame):
         dict['var'] = var
         return dict
 
+    def progressDialog(self):
+
+        t = Toplevel(self)
+        pb = Progressbar(t, mode="indeterminate")
+        pb.pack(side="bottom", fill=X)
+        t.title('Progress')
+        t.transient(self)
+        t.grab_set()
+        t.resizable(width=False, height=False)
+        return pb
+
     def preferencesDialog(self):
         """Prefs dialog from config parser info"""
 
@@ -350,7 +361,12 @@ class ViewerApp(Frame):
         if not filename:
             return
         if os.path.isfile(filename):
+            #pb = self.progressDialog()
+            #t = threading.Thread()
+            #t.__init__(target=pd.read_msgpack, args=(filename))
+            #t.start()
             data = pd.read_msgpack(filename)
+
         self.newProject(data)
         self.filename = filename
         self.main.title('%s - DataExplore' %filename)
@@ -419,6 +435,8 @@ class ViewerApp(Frame):
     def loadmsgpack(self, filename):
         """Load a msgpack file"""
 
+        size = round((os.path.getsize(filename)/1.0485e6),2)
+        print (size)
         df = pd.read_msgpack(filename)
         name = os.path.splitext(os.path.basename(filename))[0]
         if hasattr(self,'sheets'):

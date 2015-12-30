@@ -12,11 +12,11 @@ setup(
     author_email = 'farrell.damien[at]gmail.com',
     packages = ['pandastable'],
     package_data={'pandastable': ['dataexplore.gif','datasets/*.mpk']},
-	install_requires=['numpy>=1.5',
+    install_requires=['numpy>=1.5',
                       'matplotlib>=1.1',
                       'pandas>=0.16',
                       'numexpr>=2.4',
-		              'xlrd>=0.9'],
+                      'xlrd>=0.9'],
     entry_points = { 'gui_scripts': [
                      'dataexplore = pandastable.app:main']},
     classifiers = ['Operating System :: OS Independent',
@@ -28,5 +28,5 @@ setup(
             'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
             'Development Status :: 4 - Beta',
             'Intended Audience :: Science/Research'],
-    keywords = ['tkinter', 'spreadsheet', 'table', 'pandas', 'data analysis'],
+    keywords = ['tkinter', 'ttk', 'spreadsheet', 'table', 'pandas', 'data analysis'],
 )

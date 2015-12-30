@@ -338,6 +338,7 @@ class ColumnHeader(Canvas):
         if ismulti == True:
             popupmenu.add_command(label="Flatten Index", command=self.table.flattenIndex)
         popupmenu.add_command(label="Delete Column(s)", command=self.table.deleteColumn)
+        popupmenu.add_command(label="Fill With Data", command=self.table.fillColumn)
         popupmenu.add_command(label="Set Column Type", command=self.table.setColumnType)
         popupmenu.add_command(label="Create Categorical", command=self.table.createCategorical)
         popupmenu.add_command(label="Apply Function", command=self.table.applyFunction)
@@ -614,9 +615,12 @@ class RowHeader(Canvas):
                          "Copy index to column" : lambda: self.table.copyIndex(),
                          "Rename index" : lambda: self.table.renameIndex(),
                          "Sort columns by row" : lambda: self.table.sortColumnIndex(),
-                         "Select All" : self.table.selectAll}
+                         "Select All" : self.table.selectAll,
+                         "Add Row(s)" : lambda: self.table.addRows(),
+                         "Delete Row(s)" : lambda: self.table.deleteRow()}
         main = ["Sort by index","Reset index","Toggle index",
-                "Rename index","Sort columns by row","Copy index to column"]
+                "Rename index","Sort columns by row","Copy index to column",
+                "Add Row(s)","Delete Row(s)"]
 
         popupmenu = Menu(self, tearoff = 0)
         def popupFocusOut(event):

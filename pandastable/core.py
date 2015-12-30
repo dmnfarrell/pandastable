@@ -587,6 +587,7 @@ class Table(Canvas):
                 dtype = d.results[0]
                 newname = d.results[1]
 
+        df = self.model.df
         if newname != None:
             if newname in self.model.df.columns:
                 messagebox.showwarning("Name exists",
@@ -673,6 +674,47 @@ class Table(Canvas):
             return
         model = TableModel(pd.DataFrame())
         self.updateModel(model)
+        self.redraw()
+        return
+
+    def fillColumn(self):
+        """Fill a column with a data range"""
+
+        dists = ['normal','gamma','poisson','uniform']
+        d = MultipleValDialog(title='New Column',
+                                initialvalues=(0,1,False,0,1),
+                                labels=('Start','End','Random Noise','Mean','Std'),#'Distribution'),
+                                types=('string','string','checkbutton','float','float'),
+                                tooltips=('start value if filling with data',
+                                          'end value if filling with data',
+                                          'create random noise data in the ranges',
+                                          'mean of random distribution',
+                                          'std dev. of random distribution'),
+                                          #'sampling distribution for noise'),
+                                parent = self.parentframe)
+        if d.result == None:
+            return
+        else:
+            start = d.results[0]
+            end = d.results[1]
+            random = d.results[2]
+            mean = d.results[3]
+            std = d.results[4]
+            #dist = d.results[5]
+        df = self.model.df
+        if start != '' and end != '':
+            try:
+                start=float(start); end=float(end)
+            except:
+                return
+        if random == True:
+            #if dist == 'normal':
+            data = np.random.normal(mean, std, len(df))
+        else:
+            step = (end-start)/len(df)
+            data = pd.Series(np.arange(start,end,step))
+        col = df.columns[self.currentcol]
+        df[col] = data
         self.redraw()
         return
 
@@ -1712,7 +1754,7 @@ class Table(Canvas):
         df = self.model.df
         data = df.iloc[rows,cols]
         try:
-            data.to_clipboard()
+            data.to_clipboard()#excel=True,sep=',')
         except:
             messagebox.showwarning("Warning",
                                     "No clipboard software.\nInstall xclip",
@@ -2001,7 +2043,7 @@ class Table(Canvas):
                         #"Fill Down" : lambda: self.fillDown(rows, cols),
                         #"Fill Right" : lambda: self.fillAcross(cols, rows),
                         "Add Row(s)" : lambda: self.addRows(),
-                        "Delete Row(s)" : lambda: self.deleteRow(),
+                        #"Delete Row(s)" : lambda: self.deleteRow(),
                         "Add Column(s)" : lambda: self.addColumn(),
                         "Delete Column(s)" : lambda: self.deleteColumn(),
                         "Clear Data" : lambda: self.deleteCells(rows, cols),
@@ -2021,7 +2063,7 @@ class Table(Canvas):
                         "Preferences" : self.showPrefs}
 
         main = ["Copy", #"Fill Down","Fill Right",
-                "Clear Data", "Delete Row(s)", "Delete Column(s)"]
+                "Clear Data", "Delete Column(s)"]
         general = ["Add Row(s)", "Add Column(s)", "Select All", "Filter Rows",
                     "Show as Text", "Table Info", "Preferences"]
 

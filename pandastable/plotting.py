@@ -442,17 +442,31 @@ class PlotViewer(Frame):
         if not hasattr(self, 'data'):
             return
         kwds = self.mplopts3d.kwds
-        print (kwds)
+        #print (kwds)
         data = self.data
+        X = data.values
+        x = X[:,0]
+        y = X[:,1]
+        z = X[:,2]
         self.fig.clear()
         ax = self.ax = Axes3D(self.fig)
         if kwds['kind'] == 'scatter':
             self.scatter3D(data, ax, kwds)
         elif kwds['kind'] == 'bar':
             self.bar3D(data, ax, kwds)
-        elif kwds['kind'] == 'contour':
-            X = data.values
-            ax.contour(X[:,0], X[:,1], X[:,2])
+        elif kwds['kind'] == 'wireframe':
+            X, Y = np.meshgrid(x, y)
+            from scipy.interpolate import griddata
+            Z = griddata((x, y), z, (X, Y), method='cubic')
+            w = ax.plot_wireframe(X, Y, Z)
+        elif kwds['kind'] == 'surface':
+            X, Y = np.meshgrid(x, y)
+            from scipy.interpolate import griddata
+            Z = griddata((x, y), z, (X, Y), method='cubic')
+            w = ax.plot_wireframe(X, Y, Z)
+            surf = ax.plot_surface(X, Y, Z,
+                                   cmap=kwds['colormap'])
+
         self.fig.suptitle(kwds['title'])
         self.ax.set_xlabel(kwds['xlabel'])
         self.ax.set_ylabel(kwds['ylabel'])
@@ -696,7 +710,7 @@ class MPLBaseOptions(object):
 class MPL3DOptions(object):
     """Class to provide 3D matplotlib options"""
 
-    kinds = ['scatter', 'bar', 'bar3d', 'surface', 'contour']
+    kinds = ['scatter', 'bar', 'bar3d', 'wireframe', 'surface']
     defaultfont = 'monospace'
 
     def __init__(self, parent=None):

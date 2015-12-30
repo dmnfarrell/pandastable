@@ -155,7 +155,10 @@ class TableModel(object):
             print (df)
             return
 
-        ind = self.df.index.max()
+        try:
+            ind = self.df.index.max()+1
+        except:
+            ind = len(df)+1
         for i in range(num):
             self.addRow(i+ind)
         return
@@ -167,7 +170,6 @@ class TableModel(object):
         a, b = df[:rowindex], df[rowindex:]
         a = a.append(pd.Series(), ignore_index=1)
         self.df = pd.concat([a,b])
-
         return
 
     def deleteRow(self, rowindex=None, update=True):
@@ -184,11 +186,12 @@ class TableModel(object):
         df.drop(df.index[rowlist],inplace=True)
         return
 
-    def addColumn(self, colname=None, dtype=None):
+    def addColumn(self, colname=None, dtype=None, data=None):
         """Add a column"""
 
-        x = pd.Series(dtype=dtype)
-        self.df[colname] = x
+        if data is None:
+            data = pd.Series(dtype=dtype)
+        self.df[colname] = data
         return
 
     def deleteColumn(self, colindex):
