@@ -29,7 +29,7 @@ from tkinter.ttk import *
 class Prefs():
     """This class implements a preferences system using configparser """
 
-    def __init__(self, path= '.pandastable'):
+    def __init__(self, path= '.pandastable', opts={}):
 
         homepath = os.path.join(os.path.expanduser('~'))
         self.defaultpath = os.path.join(homepath, path)
@@ -38,7 +38,7 @@ class Prefs():
 
         filename = os.path.join(self.defaultpath, 'default.conf')
         if not os.path.exists(filename):
-            self.createConfig(filename)
+            self.createConfig(opts, filename)
             self.writeConfig()
         else:
             self.parseConfig(filename)
@@ -52,6 +52,7 @@ class Prefs():
         wdir = os.path.join(self.defaultpath,'workingdir')
         cp = createConfigParserfromOptions(opts, 'default')
         cp.write(open(conffile,'w'))
+        self.cp = cp
         #self.parseConfig(conffile)
         return cp
 
@@ -72,14 +73,14 @@ class Prefs():
         print('parsed config file ok')
         return
 
-    def writeConfig(self, opts, filename=None):
+    def writeConfig(self, filename=None):
         """Save a config file from the current object"""
 
         if filename == None:
             filename = self.filename
 
-        cp = createConfigParserfromOptions(opts, 'default')
-        cp.write(open(filename,'w'))
+        #cp = createConfigParserfromOptions(opts, 'default')
+        self.cp.write(open(filename,'w'))
         return
 
 def setAttributesfromConfigParser(obj, cp):
@@ -98,9 +99,9 @@ def createConfigParserfromOptions(opts, section):
 
     cp = ConfigParser()
     s='default'
-    cp.add_section(s)
-    for name in opts:
-        val =  opts[name]['default']
+    cp.add_section(s)    
+    for name in opts:        
+        val = opts[name]['default']
         print(name,val)
         cp.set(s, name, str(val))
     #cp.write(open(filename,'w'))

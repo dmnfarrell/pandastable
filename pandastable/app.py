@@ -80,7 +80,8 @@ class ViewerApp(Frame):
         self.clipboarddf = None
         self.projopen = False
 
-        self.prefs = Prefs('.dataexplore')
+        opts = {'layout':{'type':'checkbutton','default':'horizontal'}}
+        self.prefs = Prefs('.dataexplore', opts=opts)
         if data != None:
             self.data = data
             self.newProject(data)
