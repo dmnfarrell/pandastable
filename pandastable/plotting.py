@@ -29,6 +29,7 @@ from pandas.tools import plotting
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+from matplotlib.mlab import griddata
 #import matplotlib.animation as animation
 from collections import OrderedDict
 import operator
@@ -202,6 +203,7 @@ class PlotViewer(Frame):
                                  'linewidth', 'marker', 'subplots', 'rot', 'kind'],
                     'boxplot': ['rot', 'grid', 'logy','colormap','alpha','linewidth'],
                     'scatter_matrix':['alpha', 'linewidth', 'marker', 'grid', 's'],
+                    'contour': ['colormap','alpha']
                     }
 
         data = self.data
@@ -303,7 +305,8 @@ class PlotViewer(Frame):
         rows = int(round(np.sqrt(len(data.columns)),0))
         if len(data.columns) == 1 and kind not in ['pie']:
             kwargs['subplots'] = 0
-
+        if 'colormap' in kwargs:
+            cmap = plt.cm.get_cmap(kwargs['colormap'])
         if subplots == 0:
             layout = None
         else:
@@ -312,7 +315,6 @@ class PlotViewer(Frame):
             yerr = data[data.columns[1::2]]
             data = data[data.columns[0::2]]
             yerr.columns = data.columns
-
         else:
             yerr = None
         if kind == 'bar':
@@ -334,7 +336,6 @@ class PlotViewer(Frame):
             plt.setp(axs['boxes'], color='black', lw=lw)
             plt.setp(axs['whiskers'], color='black', lw=lw)
             plt.setp(axs['fliers'], color='black', marker='+', lw=lw)
-            cmap = plt.cm.get_cmap(kwargs['colormap'])
             clr = cmap(0.5)
             for patch in axs['boxes']:
                 patch.set_facecolor(clr)
@@ -354,6 +355,17 @@ class PlotViewer(Frame):
             x = cols[0]
             y = cols[1]
             axs = data.plot(x,y,ax=ax,kind='hexbin',gridsize=20,**kwargs)
+        elif kind == 'contour':
+            x = data.values[:,0]
+            y = data.values[:,1]
+            z = data.values[:,2]
+            xi = np.linspace(x.min(), x.max())
+            yi = np.linspace(y.min(), y.max())
+            zi = griddata(x, y, z, xi, yi, interp='linear')
+            cs = ax.contour(xi,yi,zi,15,linewidths=0.5,colors='k')
+            cs = ax.contourf(xi,yi,zi,15,cmap=cmap)
+            self.fig.colorbar(cs,ax=ax)
+            axs = ax
         elif kind == 'pie':
             if kwargs['legend'] == True:
                 lbls=None
@@ -437,36 +449,60 @@ class PlotViewer(Frame):
         ax.set_ylim(0, len(X.index))
         return
 
+    def prepareData(self, x,y,z):
+        """Prepare 3 1D data for plotting in 3D"""
+
+        '''x = np.random.uniform(-2,2,50)
+        y = np.random.uniform(-2,2,50)
+        z = x*np.exp(-x**2-y**2)
+        # define grid.
+        xi = np.linspace(-2.1,2.1,100)
+        yi = np.linspace(-2.1,2.1,100)'''
+
+        xi = np.linspace(x.min(), x.max())
+        yi = np.linspace(y.min(), y.max())
+        zi = griddata(x, y, z, xi, yi, interp='linear')
+        X, Y = np.meshgrid(xi, yi)
+        return X,Y,zi
+
     def plot3D(self):
         """3D plots"""
+
         if not hasattr(self, 'data'):
             return
         kwds = self.mplopts3d.kwds
-        #print (kwds)
         data = self.data
-        X = data.values
-        x = X[:,0]
-        y = X[:,1]
-        z = X[:,2]
+        x = data.values[:,0]
+        y = data.values[:,1]
+        z = data.values[:,2]
         self.fig.clear()
         ax = self.ax = Axes3D(self.fig)
+        rstride=kwds['rstride']
+        cstride=kwds['cstride']
+
         if kwds['kind'] == 'scatter':
             self.scatter3D(data, ax, kwds)
         elif kwds['kind'] == 'bar':
             self.bar3D(data, ax, kwds)
+        elif kwds['kind'] == 'contour':
+            xi = np.linspace(x.min(), x.max())
+            yi = np.linspace(y.min(), y.max())
+            zi = griddata(x, y, z, xi, yi, interp='linear')
+            surf = ax.contour(xi, yi, zi, rstride=rstride, cstride=cstride,
+                              cmap=kwds['colormap'],
+                              linewidth=.5, antialiased=True)
         elif kwds['kind'] == 'wireframe':
-            X, Y = np.meshgrid(x, y)
-            from scipy.interpolate import griddata
-            Z = griddata((x, y), z, (X, Y), method='cubic')
-            w = ax.plot_wireframe(X, Y, Z)
+            X,Y,zi = self.prepareData(x,y,z)
+            w = ax.plot_wireframe(X, Y, zi, rstride=rstride, cstride=cstride)
         elif kwds['kind'] == 'surface':
-            X, Y = np.meshgrid(x, y)
-            from scipy.interpolate import griddata
-            Z = griddata((x, y), z, (X, Y), method='cubic')
-            w = ax.plot_wireframe(X, Y, Z)
-            surf = ax.plot_surface(X, Y, Z,
-                                   cmap=kwds['colormap'])
+            X,Y,zi = self.prepareData(x,y,z)
+            surf = ax.plot_surface(X, Y, zi, rstride=rstride, cstride=cstride,
+                                   cmap=kwds['colormap'], alpha=0.5,
+                                   linewidth=.5)
 
+            self.fig.colorbar(surf, shrink=0.5, aspect=5)
+        if kwds['points'] == True:
+            self.scatter3D(data, ax, kwds)
         self.fig.suptitle(kwds['title'])
         self.ax.set_xlabel(kwds['xlabel'])
         self.ax.set_ylabel(kwds['ylabel'])
@@ -498,7 +534,7 @@ class PlotViewer(Frame):
             y = X[:,i]
             z = X[:,i+1]
             c = cmap(float(i)/(l))
-            ax.scatter(x, y, z, color=c)
+            ax.scatter(x, y, z, edgecolor='black', color=c, linewidth=.5)
         return
 
     def updateData(self):
@@ -604,7 +640,7 @@ class MPLBaseOptions(object):
     markers = ['','o','.','^','v','>','<','s','+','x','p','d','h','*']
     linestyles = ['-','--','-.',':','steps']
     kinds = ['line', 'scatter', 'bar', 'barh', 'pie', 'histogram', 'boxplot',
-             'heatmap', 'area', 'hexbin', 'scatter_matrix', 'density']
+             'heatmap', 'area', 'hexbin', 'contour', 'scatter_matrix', 'density']
     defaultfont = 'monospace'
 
     def __init__(self, parent=None):
@@ -710,7 +746,7 @@ class MPLBaseOptions(object):
 class MPL3DOptions(object):
     """Class to provide 3D matplotlib options"""
 
-    kinds = ['scatter', 'bar', 'bar3d', 'wireframe', 'surface']
+    kinds = ['scatter', 'bar', 'contour', 'wireframe', 'surface']
     defaultfont = 'monospace'
 
     def __init__(self, parent=None):
@@ -721,21 +757,24 @@ class MPL3DOptions(object):
         datacols = list(df.columns)
         datacols.insert(0,'')
         fonts = getFonts()
-        self.groups = grps = {'styles':['font','fontsize','colormap','alpha'],
-                            'formats':['kind','title','xlabel','ylabel','zlabel'],}
-                            #'data':['by','subplots']}
+        modes = ['parametric','(x,y)->z']
+        self.groups = grps = {'styles':['colormap','font','fontsize'],#,'alpha'],
+                             'labels':['title','xlabel','ylabel','zlabel'],
+                             'formats':['kind','mode','rstride','cstride','points']}
 
         opts = self.opts = {'font':{'type':'combobox','default':self.defaultfont,'items':fonts},
                 'fontsize':{'type':'scale','default':12,'range':(5,40),'interval':1,'label':'font size'},
                 'kind':{'type':'combobox','default':'scatter','items':self.kinds,'label':'kind'},
-                'alpha':{'type':'scale','default':0.8,'range':(0,1),'interval':0.1,'label':'alpha'},
+                #'alpha':{'type':'scale','default':0.8,'range':(0,1),'interval':0.1,'label':'alpha'},
                 'title':{'type':'entry','default':'','width':25},
                 'xlabel':{'type':'entry','default':'','width':25},
                 'ylabel':{'type':'entry','default':'','width':25},
                 'zlabel':{'type':'entry','default':'','width':25},
-                #'subplots':{'type':'checkbutton','default':0,'label':'multiple subplots'},
                 'colormap':{'type':'combobox','default':'jet','items': colormaps},
-                #'by':{'type':'combobox','items':datacols,'label':'group by','default':''},
+                'rstride':{'type':'entry','default':2,'width':25},
+                'cstride':{'type':'entry','default':2,'width':25},
+                'points':{'type':'checkbutton','default':0,'label':'show points'},
+                'mode':{'type':'combobox','default':'(x,y)->z','items': modes},
                  }
 
     def applyOptions(self):
