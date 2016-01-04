@@ -3,6 +3,13 @@ CHANGES
 =======
 
 ------
+0.6.1
+------
+
+Added fill data functions for columns
+Updates to 3D plotting allow working contour, wireframe and surface plots
+
+------
 0.6.0
 ------
 

@@ -680,39 +680,48 @@ class Table(Canvas):
     def fillColumn(self):
         """Fill a column with a data range"""
 
-        dists = ['normal','gamma','poisson','uniform']
+        dists = ['normal','gamma','uniform','random integer','logistic']
         d = MultipleValDialog(title='New Column',
-                                initialvalues=(0,1,False,0,1),
-                                labels=('Start','End','Random Noise','Mean','Std'),#'Distribution'),
-                                types=('string','string','checkbutton','float','float'),
+                                initialvalues=(0,1,False,dists,1,1),
+                                labels=('Low','High','Random Noise','Distribution','Mean','Std'),
+                                types=('string','string','checkbutton','combobox','float','float'),
                                 tooltips=('start value if filling with data',
                                           'end value if filling with data',
                                           'create random noise data in the ranges',
-                                          'mean of random distribution',
-                                          'std dev. of random distribution'),
-                                          #'sampling distribution for noise'),
+                                          'sampling distribution for noise',
+                                          'mean/scale of distribution',
+                                          'std dev./shape of distribution'),
                                 parent = self.parentframe)
         if d.result == None:
             return
         else:
-            start = d.results[0]
-            end = d.results[1]
+            low = d.results[0]
+            high = d.results[1]
             random = d.results[2]
-            mean = d.results[3]
-            std = d.results[4]
-            #dist = d.results[5]
+            dist = d.results[3]
+            param1 = d.results[4]
+            param2 = d.results[5]
+
         df = self.model.df
-        if start != '' and end != '':
+        if low != '' and high != '':
             try:
-                start=float(start); end=float(end)
+                low=float(low); high=float(high)
             except:
                 return
         if random == True:
-            #if dist == 'normal':
-            data = np.random.normal(mean, std, len(df))
+            if dist == 'normal':
+                data = np.random.normal(param1, param2, len(df))
+            elif dist == 'gamma':
+                data = np.random.gamma(param1, param2, len(df))
+            elif dist == 'uniform':
+                data = np.random.uniform(low, high, len(df))
+            elif dist == 'random integer':
+                data = np.random.randint(low, high, len(df))
+            elif dist == 'logistic':
+                data = np.random.logistic(low, high, len(df))
         else:
-            step = (end-start)/len(df)
-            data = pd.Series(np.arange(start,end,step))
+            step = (high-low)/len(df)
+            data = pd.Series(np.arange(low,high,step))
         col = df.columns[self.currentcol]
         df[col] = data
         self.redraw()

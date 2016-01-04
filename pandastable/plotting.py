@@ -465,6 +465,16 @@ class PlotViewer(Frame):
         X, Y = np.meshgrid(xi, yi)
         return X,Y,zi
 
+    def getView(self):
+        ax = self.ax
+        if hasattr(ax,'azim'):
+            azm=ax.azim
+            ele=ax.elev
+            dst=ax.dist
+        else:
+            return None,None,None
+        return azm,ele,dst
+
     def plot3D(self):
         """3D plots"""
 
@@ -475,10 +485,14 @@ class PlotViewer(Frame):
         x = data.values[:,0]
         y = data.values[:,1]
         z = data.values[:,2]
+        azm,ele,dst = self.getView()
+
         self.fig.clear()
         ax = self.ax = Axes3D(self.fig)
         rstride=kwds['rstride']
         cstride=kwds['cstride']
+        lw = kwds['linewidth']
+        alpha = kwds['alpha']
 
         if kwds['kind'] == 'scatter':
             self.scatter3D(data, ax, kwds)
@@ -489,16 +503,17 @@ class PlotViewer(Frame):
             yi = np.linspace(y.min(), y.max())
             zi = griddata(x, y, z, xi, yi, interp='linear')
             surf = ax.contour(xi, yi, zi, rstride=rstride, cstride=cstride,
-                              cmap=kwds['colormap'],
-                              linewidth=.5, antialiased=True)
+                              cmap=kwds['colormap'], alpha=alpha,
+                              linewidth=lw, antialiased=True)
         elif kwds['kind'] == 'wireframe':
             X,Y,zi = self.prepareData(x,y,z)
-            w = ax.plot_wireframe(X, Y, zi, rstride=rstride, cstride=cstride)
+            w = ax.plot_wireframe(X, Y, zi, rstride=rstride, cstride=cstride,
+                                  linewidth=lw)
         elif kwds['kind'] == 'surface':
             X,Y,zi = self.prepareData(x,y,z)
             surf = ax.plot_surface(X, Y, zi, rstride=rstride, cstride=cstride,
-                                   cmap=kwds['colormap'], alpha=0.5,
-                                   linewidth=.5)
+                                   cmap=kwds['colormap'], alpha=alpha,
+                                   linewidth=lw)
 
             self.fig.colorbar(surf, shrink=0.5, aspect=5)
         if kwds['points'] == True:
@@ -507,6 +522,10 @@ class PlotViewer(Frame):
         self.ax.set_xlabel(kwds['xlabel'])
         self.ax.set_ylabel(kwds['ylabel'])
         self.ax.set_zlabel(kwds['zlabel'])
+        if azm!=None:
+            self.ax.azim = azm
+            self.ax.elev = ele
+            self.ax.dist = dst
         self.canvas.draw()
         return
 
@@ -758,14 +777,16 @@ class MPL3DOptions(object):
         datacols.insert(0,'')
         fonts = getFonts()
         modes = ['parametric','(x,y)->z']
-        self.groups = grps = {'styles':['colormap','font','fontsize'],#,'alpha'],
+        self.groups = grps = {'formats':['kind','mode','rstride','cstride','points'],
+                             'styles':['colormap','alpha','font'],
                              'labels':['title','xlabel','ylabel','zlabel'],
-                             'formats':['kind','mode','rstride','cstride','points']}
-
+                             'sizes':['fontsize','linewidth']}
+        self.groups = OrderedDict(sorted(grps.items()))
         opts = self.opts = {'font':{'type':'combobox','default':self.defaultfont,'items':fonts},
                 'fontsize':{'type':'scale','default':12,'range':(5,40),'interval':1,'label':'font size'},
                 'kind':{'type':'combobox','default':'scatter','items':self.kinds,'label':'kind'},
-                #'alpha':{'type':'scale','default':0.8,'range':(0,1),'interval':0.1,'label':'alpha'},
+                'alpha':{'type':'scale','default':0.8,'range':(0,1),'interval':0.1,'label':'alpha'},
+                'linewidth':{'type':'scale','default':.5,'range':(0,4),'interval':0.1,'label':'linewidth'},
                 'title':{'type':'entry','default':'','width':25},
                 'xlabel':{'type':'entry','default':'','width':25},
                 'ylabel':{'type':'entry','default':'','width':25},
