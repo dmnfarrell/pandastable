@@ -34,7 +34,7 @@ from matplotlib.mlab import griddata
 from collections import OrderedDict
 import operator
 from .dialogs import *
-from . import util
+from . import util, images
 
 colormaps = sorted(m for m in plt.cm.datad if not m.endswith("_r"))
 
@@ -63,6 +63,20 @@ class PlotViewer(Frame):
         self.setupGUI()
         return
 
+    def refreshLayout(self):
+        """Show plot controls"""
+
+        self.m.destroy()
+        if self.layout == 'horizontal':
+            self.layout = 'vertical'
+            self.orient = HORIZONTAL
+        else:
+            self.layout = 'horizontal'
+            self.orient = VERTICAL
+        self.setupGUI()
+        self.replot()
+        return
+
     def setupGUI(self):
         """Add GUI elements"""
 
@@ -71,8 +85,6 @@ class PlotViewer(Frame):
         #frame for figure
         self.plotfr = Frame(self.m)
         #add it to the panedwindow
-        #if hasattr(self,'canvas'):
-        #    self.canvas._tkcanvas.destroy()
         self.fig, self.canvas = addFigure(self.plotfr)
         self.ax = self.fig.add_subplot(111)
 
@@ -86,14 +98,17 @@ class PlotViewer(Frame):
             side = TOP
         else:
             side = LEFT
-        b = Button(bf, text="Apply", command=self.applyPlotoptions)
-        b.pack(side=side,fill=X,expand=1,pady=1)
-        b = Button(bf, text="Replot", command=self.replot)
-        b.pack(side=side,fill=X,expand=1,pady=1)
-        b = Button(bf, text="Clear", command=self.clear)
-        b.pack(side=side,fill=X,expand=1,pady=1)
-        b = Button(bf, text="Hide", command=self.hide)
-        b.pack(side=side,fill=X,expand=1,pady=1)
+
+        addButton(bf, 'Plot', self.replot, images.plot(),
+                  'plot current data', side=side, compound="left", width=20)
+        addButton(bf, 'Apply Options', self.applyPlotoptions, images.refresh(),
+                  'refresh plot with current options', side=side, compound="left", width=20)
+        addButton(bf, 'Clear', self.clear, images.plot_clear(),
+                  'clear plot', side=side, compound="left")
+        addButton(bf, 'Hide', self.hide, images.cross(),
+                  'hide plot frame', side=side)
+        addButton(bf, 'Vertical', self.refreshLayout, images.tilehorizontal(),
+                  'change plot tools orientation', side=side)
 
         #general options in this toolbar?
         self.dpivar = IntVar()
@@ -102,6 +117,7 @@ class PlotViewer(Frame):
         e = Entry(bf, textvariable=self.dpivar, width=5)
         e.pack(side=LEFT,padx=2)
 
+        print (self.layout)
         if self.layout == 'vertical':
             sf = VerticalScrolledFrame(self.ctrlfr,width=100,height=1050)
             sf.pack(side=TOP,fill=BOTH)
@@ -112,7 +128,7 @@ class PlotViewer(Frame):
         self.nb.bind('<<NotebookTabChanged>>', self.setMode)
         self.nb.pack(side=TOP,fill=BOTH,expand=1)
 
-        #add plotter tools (or other extensions?)
+        #add plotter tools
         self.mplopts = MPLBaseOptions(parent=self)
         w1 = self.mplopts.showDialog(self.nb, layout=self.layout)
         self.nb.add(w1, text='base plot options', sticky='news')
@@ -169,8 +185,9 @@ class PlotViewer(Frame):
     def _checkNumeric(self, df):
         """Get only numeric data that can be plotted"""
 
-        x = df.convert_objects()._get_numeric_data()
-        #x = df.select_dtypes(include=['int','float','int64'])
+        #x = df._convert()._get_numeric_data()
+        #x = df.apply(pd.to_numeric, args=('coerce',))
+        x = df.select_dtypes(include=['int','float','int64'])
         if x.empty==True:
             return False
 
