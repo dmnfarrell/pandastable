@@ -344,7 +344,7 @@ class ImportDialog(Frame):
         bf = Frame(self.main)
         bf.pack(side=LEFT,fill=BOTH)
         optsframe, self.tkvars, w = dialogFromOptions(bf, opts, grps,
-                                    sticky='nwe', horizontal=False)
+                                    sticky='nwe', layout='vertical')
 
         self.m = PanedWindow(self.main, orient=VERTICAL)
         self.m.pack(side=LEFT,fill=BOTH,expand=1)

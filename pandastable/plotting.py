@@ -66,7 +66,7 @@ class PlotViewer(Frame):
         return
 
     def refreshLayout(self):
-        """Show plot controls"""
+        """Redraw plot tools dialogs"""
 
         self.m.destroy()
         if self.layout == 'horizontal':
@@ -113,7 +113,7 @@ class PlotViewer(Frame):
         addButton(bf, 'Vertical', self.refreshLayout, images.tilehorizontal(),
                   'change plot tools orientation', side=side)
 
-        #general options in this toolbar?
+        #add button toolbar
         self.dpivar = IntVar()
         self.dpivar.set(80)
         Label(bf, text='save dpi:').pack(side=LEFT,fill=X,padx=2)
@@ -133,10 +133,13 @@ class PlotViewer(Frame):
         #add plotter tool dialogs
         w1 = self.mplopts.showDialog(self.nb, layout=self.layout)
         self.nb.add(w1, text='base plot options', sticky='news')
-        #reload tkvars if we already have them from
-        #self.mplopts.updateFromOptions()
+        #reload tkvars again from stored kwds variable
+        self.mplopts.updateFromOptions()
+        #self.mplopts.applyOptions()
         w2 = self.mplopts3d.showDialog(self.nb,layout=self.layout)
         self.nb.add(w2, text='3D plot', sticky='news')
+        self.mplopts3d.updateFromOptions()
+        #self.mplopts3d.applyOptions()
         if self.mode == 1:
             self.nb.select(w2)
         return
@@ -187,9 +190,9 @@ class PlotViewer(Frame):
     def _checkNumeric(self, df):
         """Get only numeric data that can be plotted"""
 
-        #x = df._convert()._get_numeric_data()
+        x = df._convert()._get_numeric_data()
         #x = df.apply(pd.to_numeric, args=('coerce',))
-        x = df.select_dtypes(include=['int','float','int64'])
+        #x = df.select_dtypes(include=['int','float','int64'])
         if x.empty==True:
             return False
 
@@ -737,7 +740,7 @@ class MPLBaseOptions(object):
             if self.opts[i]['type'] == 'listbox':
                 items = self.widgets[i].curselection()
                 kwds[i] = [self.widgets[i].get(j) for j in items]
-                print (items, kwds[i])
+                #print (items, kwds[i])
             else:
                 kwds[i] = self.tkvars[i].get()
         self.kwds = kwds
@@ -759,7 +762,6 @@ class MPLBaseOptions(object):
         dialog, self.tkvars, self.widgets = dialogFromOptions(parent,
                                                               self.opts, self.groups,
                                                               layout=layout)
-        self.applyOptions()
         return dialog
 
     def update(self, df):
@@ -775,16 +777,16 @@ class MPLBaseOptions(object):
         return
 
     def updateFromOptions(self, kwds=None):
-        """Update all widgets using plot kwds dict"""
+        """Update all widget tk vars using plot kwds dict"""
 
         if kwds != None:
-            self.kwds == kwds
-        else:
+            self.kwds = kwds
+        elif hasattr(self, 'kwds'):
             kwds = self.kwds
-        print (self.kwds)
+        else:
+            return
         for i in kwds:
             self.tkvars[i].set(kwds[i])
-        #self.applyOptions()
         return
 
 class MPL3DOptions(MPLBaseOptions):

@@ -279,10 +279,9 @@ class ViewerApp(Frame):
             childsettings = meta['childselected']
         else:
             childtable = None
+        #update plot options
         table.pf.mplopts.updateFromOptions(plotopts)
-        #table.pf.mplopts.applyOptions()
         table.pf.mplopts3d.updateFromOptions(plotopts3d)
-        #table.pf.mplopts3d.applyOptions()
 
         util.setAttributes(table, tablesettings)
         util.setAttributes(table.rowheader, rowheadersettings)
@@ -290,10 +289,6 @@ class ViewerApp(Frame):
             table.createChildTable(df=childtable)
             util.setAttributes(table.child, childsettings)
 
-        if table.plotted == 'main':
-            table.plotSelected()
-        elif table.plotted == 'child' and table.child != None:
-            table.child.plotSelected()
         #redraw col selections
         if type(table.multiplecollist) is tuple:
             table.multiplecollist = list(table.multiplecollist)
@@ -314,8 +309,6 @@ class ViewerApp(Frame):
         if table.child != None:
             meta['childtable'] = table.child.model.df
             meta['childselected'] = util.getAttributes(table.child)
-        #for i in meta['table']:
-        #    print (i,meta['table'][i])
         return meta
 
     def newProject(self, data=None, df=None):
@@ -341,6 +334,7 @@ class ViewerApp(Frame):
                 try:
                     self.addSheet(s, df, meta)
                 except Exception as e:
+                    print ('error reading in options?')
                     print (e)
         else:
             self.addSheet('sheet1')
@@ -490,13 +484,17 @@ class ViewerApp(Frame):
         main.add(f2, weight=2)
         #show the plot frame
         pf = table.showPlotViewer(f2, layout='horizontal')
+        #load meta data
+        if meta != None:
+            self.loadMeta(table, meta)
+        if table.plotted == 'main':
+            table.plotSelected()
+        elif table.plotted == 'child' and table.child != None:
+            table.child.plotSelected()
         self.saved = 0
         self.currenttable = table
         self.sheets[sheetname] = table
-        #load meta data
-        if meta != None:
-        #if data != None and 'meta' in data:
-            self.loadMeta(table, meta)
+
         if select == True:
             ind = self.nb.index('end')-1
             s = self.nb.tabs()[ind]

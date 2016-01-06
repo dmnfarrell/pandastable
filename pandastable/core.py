@@ -2223,10 +2223,11 @@ class Table(Canvas):
         else:
             if type(self.pf.main) is tkinter.Toplevel:
                 self.pf.main.deiconify()
-        self.showPlot() #plot could be hidden
-        data = self.getPlotData()
-        self.pf.data = data
-        self.pf.plotCurrent()
+        #plot could be hidden
+        self.showPlot()
+        #data = self.getPlotData()
+        #self.pf.data = data
+        self.pf.replot() #calls getPlotData on the table
         if hasattr(self, 'parenttable'):
             self.parenttable.plotted = 'child'
         else:
