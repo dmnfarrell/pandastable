@@ -270,6 +270,7 @@ class ViewerApp(Frame):
         """Load meta data for a table"""
 
         plotopts = meta['plotoptions']
+        plotopts3d = meta['plotoptions3d']
         tablesettings = meta['table']
         rowheadersettings = meta['rowheader']
 
@@ -279,7 +280,9 @@ class ViewerApp(Frame):
         else:
             childtable = None
         table.pf.mplopts.updateFromOptions(plotopts)
-        table.pf.mplopts.applyOptions()
+        #table.pf.mplopts.applyOptions()
+        table.pf.mplopts3d.updateFromOptions(plotopts3d)
+        #table.pf.mplopts3d.applyOptions()
 
         util.setAttributes(table, tablesettings)
         util.setAttributes(table.rowheader, rowheadersettings)
@@ -303,6 +306,7 @@ class ViewerApp(Frame):
         meta = {}
         #save plot options
         meta['plotoptions'] = table.pf.mplopts.kwds
+        meta['plotoptions3d'] = table.pf.mplopts3d.kwds
         #save table selections
         meta['table'] = util.getAttributes(table)
         meta['rowheader'] = util.getAttributes(table.rowheader)

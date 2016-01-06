@@ -37,12 +37,12 @@ class Prefs():
             os.mkdir(self.defaultpath)
 
         filename = os.path.join(self.defaultpath, 'default.conf')
+        self.filename = filename
         if not os.path.exists(filename):
             self.createConfig(opts, filename)
             self.writeConfig()
         else:
             self.parseConfig(filename)
-        self.filename = filename
         return
 
     def createConfig(self, opts={}, conffile='default.conf'):
@@ -99,8 +99,8 @@ def createConfigParserfromOptions(opts, section):
 
     cp = ConfigParser()
     s='default'
-    cp.add_section(s)    
-    for name in opts:        
+    cp.add_section(s)
+    for name in opts:
         val = opts[name]['default']
         print(name,val)
         cp.set(s, name, str(val))

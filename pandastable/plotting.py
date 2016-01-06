@@ -60,6 +60,8 @@ class PlotViewer(Frame):
             self.orient = VERTICAL
         else:
             self.orient = HORIZONTAL
+        self.mplopts = MPLBaseOptions(parent=self)
+        self.mplopts3d = MPL3DOptions(parent=self)
         self.setupGUI()
         return
 
@@ -73,6 +75,7 @@ class PlotViewer(Frame):
         else:
             self.layout = 'horizontal'
             self.orient = VERTICAL
+
         self.setupGUI()
         self.replot()
         return
@@ -117,7 +120,6 @@ class PlotViewer(Frame):
         e = Entry(bf, textvariable=self.dpivar, width=5)
         e.pack(side=LEFT,padx=2)
 
-        print (self.layout)
         if self.layout == 'vertical':
             sf = VerticalScrolledFrame(self.ctrlfr,width=100,height=1050)
             sf.pack(side=TOP,fill=BOTH)
@@ -128,13 +130,15 @@ class PlotViewer(Frame):
         self.nb.bind('<<NotebookTabChanged>>', self.setMode)
         self.nb.pack(side=TOP,fill=BOTH,expand=1)
 
-        #add plotter tools
-        self.mplopts = MPLBaseOptions(parent=self)
+        #add plotter tool dialogs
         w1 = self.mplopts.showDialog(self.nb, layout=self.layout)
         self.nb.add(w1, text='base plot options', sticky='news')
-        self.mplopts3d = MPL3DOptions(parent=self)
+        #reload tkvars if we already have them from
+        #self.mplopts.updateFromOptions()
         w2 = self.mplopts3d.showDialog(self.nb,layout=self.layout)
         self.nb.add(w2, text='3D plot', sticky='news')
+        if self.mode == 1:
+            self.nb.select(w2)
         return
 
     def setMode(self, evt=None):
@@ -165,9 +169,7 @@ class PlotViewer(Frame):
             self.mplopts.applyOptions()
         elif self.mode == 1:
             self.mplopts3d.applyOptions()
-        #elif self.mode == 2:
-        #    self.factorplotter.applyOptions()
-        #other opts?
+
         mpl.rcParams['savefig.dpi'] = self.dpivar.get()
         self.plotCurrent()
         return
@@ -728,7 +730,7 @@ class MPLBaseOptions(object):
         return
 
     def applyOptions(self):
-        """Set the options"""
+        """Set the plot kwd arguments from the tk variables"""
 
         kwds = {}
         for i in self.opts:
@@ -761,7 +763,7 @@ class MPLBaseOptions(object):
         return dialog
 
     def update(self, df):
-        """Update data widget(s)"""
+        """Update data widget(s) when dataframe changes"""
 
         if util.check_multiindex(df.columns) == 1:
             cols = list(df.columns.get_level_values(0))
@@ -772,14 +774,20 @@ class MPLBaseOptions(object):
         self.widgets['by2']['values'] = cols
         return
 
-    def updateFromOptions(self, opts):
+    def updateFromOptions(self, kwds=None):
         """Update all widgets using plot kwds dict"""
 
-        for i in opts:
-            self.tkvars[i].set(opts[i])
+        if kwds != None:
+            self.kwds == kwds
+        else:
+            kwds = self.kwds
+        print (self.kwds)
+        for i in kwds:
+            self.tkvars[i].set(kwds[i])
+        #self.applyOptions()
         return
 
-class MPL3DOptions(object):
+class MPL3DOptions(MPLBaseOptions):
     """Class to provide 3D matplotlib options"""
 
     kinds = ['scatter', 'bar', 'contour', 'wireframe', 'surface']
@@ -814,25 +822,6 @@ class MPL3DOptions(object):
                 'points':{'type':'checkbutton','default':0,'label':'show points'},
                 'mode':{'type':'combobox','default':'(x,y)->z','items': modes},
                  }
-
-    def applyOptions(self):
-        """Set the options"""
-
-        kwds = {}
-        for i in self.opts:
-            kwds[i] = self.tkvars[i].get()
-        self.kwds = kwds
-        plt.rc("font", family=kwds['font'], size=kwds['fontsize'])
-        return
-
-    def showDialog(self, parent, callback=None, layout='horizontal'):
-        """Auto create tk vars, widgets for corresponding options and
-           and return the frame"""
-
-        dialog, self.tkvars, w = dialogFromOptions(parent, self.opts, self.groups,
-                                                    layout=layout)
-        self.applyOptions()
-        return dialog
 
 
 def addFigure(parent, figure=None, resize_callback=None):
