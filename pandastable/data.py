@@ -147,7 +147,7 @@ class TableModel(object):
         return
 
     def autoAddRows(self, num):
-        """Aut add n rows. Not efficient"""
+        """Aut add n rows. Not efficient - fix this!"""
 
         df = self.df
         if len(df) == 0:

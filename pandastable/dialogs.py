@@ -399,6 +399,7 @@ class ImportDialog(Frame):
 
         self.showText()
         f = pd.read_csv(self.filename, chunksize=400, error_bad_lines=False,
+                        parse_dates=True,
                         warn_bad_lines=False, **kwds)
         try:
             df = f.get_chunk()

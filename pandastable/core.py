@@ -630,15 +630,23 @@ class Table(Canvas):
         n =  messagebox.askyesno("Delete",
                                    "Delete Column(s)?",
                                    parent=self.parentframe)
-        if n:
-            cols = self.multiplecollist
-            self.model.deleteColumns(cols)
-            #self.cols =
-            self.setSelectedCol(0)
-            self.redraw()
-            self.drawSelectedCol()
-            if hasattr(self, 'pf'):
-                self.pf.updateData()
+        if not n:
+            return
+        cols = self.multiplecollist
+        self.model.deleteColumns(cols)
+        self.setSelectedCol(0)
+        self.redraw()
+        self.drawSelectedCol()
+        self.tableChanged()
+        return
+
+    def tableChanged(self):
+        """Callback to be used when dataframe changes so that other
+            widgets and data can be updated"""
+
+        self.updateFunctions()
+        if hasattr(self, 'pf'):
+            self.pf.updateData()
         return
 
     def deleteCells(self, rows, cols, answer=None):
@@ -1202,7 +1210,7 @@ class Table(Canvas):
 
     def recalculateFunctions(self, omit=None):
         """Re evaluate any columns that were derived from functions
-        and dependent on other columns (not self derived)"""
+        and dependent on other columns (except self derived?)"""
 
         df = self.model.df
         for n in self.formulae:
@@ -1214,6 +1222,18 @@ class Table(Canvas):
             except:
                 print('could not calculate %s' %ex)
         self.redraw()
+        return
+
+    def updateFunctions(self):
+        """Remove functions if a column has been deleted"""
+
+        if not hasattr(self, 'formulae'):
+            return
+        df = self.model.df
+        cols = list(df.columns)
+        for n in list(self.formulae.keys()):
+            if n not in cols:
+                del(self.formulae[n])
         return
 
     def functionsBar(self, evt=None):

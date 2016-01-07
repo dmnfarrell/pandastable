@@ -730,6 +730,7 @@ class MPLBaseOptions(object):
                 'by':{'type':'combobox','items':datacols,'label':'group by','default':''},
                 'by2':{'type':'combobox','items':datacols,'label':'group by 2','default':''}
                 }
+        self.kwds = {}
         return
 
     def applyOptions(self):
@@ -814,17 +815,18 @@ class MPL3DOptions(MPLBaseOptions):
                 'kind':{'type':'combobox','default':'scatter','items':self.kinds,'label':'kind'},
                 'alpha':{'type':'scale','default':0.8,'range':(0,1),'interval':0.1,'label':'alpha'},
                 'linewidth':{'type':'scale','default':.5,'range':(0,4),'interval':0.1,'label':'linewidth'},
-                'title':{'type':'entry','default':'','width':25},
-                'xlabel':{'type':'entry','default':'','width':25},
-                'ylabel':{'type':'entry','default':'','width':25},
-                'zlabel':{'type':'entry','default':'','width':25},
+                'title':{'type':'entry','default':'','width':20},
+                'xlabel':{'type':'entry','default':'','width':20},
+                'ylabel':{'type':'entry','default':'','width':20},
+                'zlabel':{'type':'entry','default':'','width':20},
                 'colormap':{'type':'combobox','default':'jet','items': colormaps},
-                'rstride':{'type':'entry','default':2,'width':25},
-                'cstride':{'type':'entry','default':2,'width':25},
+                'rstride':{'type':'entry','default':2,'width':20},
+                'cstride':{'type':'entry','default':2,'width':20},
                 'points':{'type':'checkbutton','default':0,'label':'show points'},
                 'mode':{'type':'combobox','default':'(x,y)->z','items': modes},
                  }
-
+        self.kwds = {}
+        return
 
 def addFigure(parent, figure=None, resize_callback=None):
     """Create a tk figure and canvas in the parent frame"""

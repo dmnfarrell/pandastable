@@ -269,8 +269,6 @@ class ViewerApp(Frame):
     def loadMeta(self, table, meta):
         """Load meta data for a table"""
 
-        plotopts = meta['plotoptions']
-        plotopts3d = meta['plotoptions3d']
         tablesettings = meta['table']
         rowheadersettings = meta['rowheader']
 
@@ -280,6 +278,8 @@ class ViewerApp(Frame):
         else:
             childtable = None
         #update plot options
+        plotopts = meta['plotoptions']
+        plotopts3d = meta['plotoptions3d']
         table.pf.mplopts.updateFromOptions(plotopts)
         table.pf.mplopts3d.updateFromOptions(plotopts3d)
 
@@ -516,10 +516,8 @@ class ViewerApp(Frame):
 
         currenttable = self.getCurrentTable()
         newdata = currenttable.model.df
-        if newname == None:
-            self.addSheet(None, df=newdata)
-        else:
-            self.addSheet(newname, df=newdata)
+        meta = self.saveMeta(currenttable)
+        self.addSheet(newname, df=newdata, meta=meta)
         return
 
     def renameSheet(self):
