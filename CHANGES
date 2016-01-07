@@ -8,6 +8,7 @@ CHANGES
 
 Added fill data functions for columns
 Updates to 3D plotting allow working contour, wireframe and surface plots
+Added contour and imshow plots
 Can now display plot options vertically
 
 ------

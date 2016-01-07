@@ -225,7 +225,8 @@ class PlotViewer(Frame):
                                  'linewidth', 'marker', 'subplots', 'rot', 'kind'],
                     'boxplot': ['rot', 'grid', 'logy','colormap','alpha','linewidth'],
                     'scatter_matrix':['alpha', 'linewidth', 'marker', 'grid', 's'],
-                    'contour': ['colormap','alpha']
+                    'contour': ['linewidth','colormap','alpha'],
+                    'imshow': ['colormap','alpha']
                     }
 
         data = self.data
@@ -378,15 +379,17 @@ class PlotViewer(Frame):
             y = cols[1]
             axs = data.plot(x,y,ax=ax,kind='hexbin',gridsize=20,**kwargs)
         elif kind == 'contour':
-            x = data.values[:,0]
-            y = data.values[:,1]
-            z = data.values[:,2]
-            xi = np.linspace(x.min(), x.max())
-            yi = np.linspace(y.min(), y.max())
-            zi = griddata(x, y, z, xi, yi, interp='linear')
-            cs = ax.contour(xi,yi,zi,15,linewidths=0.5,colors='k')
+            xi,yi,zi = self.contourData(data)
+            cs = ax.contour(xi,yi,zi,15,linewidths=.5,colors='k')
+            #plt.clabel(cs,fontsize=9)
             cs = ax.contourf(xi,yi,zi,15,cmap=cmap)
             self.fig.colorbar(cs,ax=ax)
+            axs = ax
+        elif kind == 'imshow':
+            xi,yi,zi = self.contourData(data)
+            im = ax.imshow(zi, interpolation="nearest",
+                           cmap=cmap, alpha=kwargs['alpha'])
+            self.fig.colorbar(im,ax=ax)
             axs = ax
         elif kind == 'pie':
             if kwargs['legend'] == True:
@@ -471,8 +474,19 @@ class PlotViewer(Frame):
         ax.set_ylim(0, len(X.index))
         return
 
-    def prepareData(self, x,y,z):
-        """Prepare 3 1D data for plotting in 3D"""
+    def contourData(self, data):
+        """Get data for contour plot"""
+
+        x = data.values[:,0]
+        y = data.values[:,1]
+        z = data.values[:,2]
+        xi = np.linspace(x.min(), x.max())
+        yi = np.linspace(y.min(), y.max())
+        zi = griddata(x, y, z, xi, yi, interp='linear')
+        return xi,yi,zi
+
+    def meshData(self, x,y,z):
+        """Prepare 1D data for plotting in the form (x,y)->Z"""
 
         '''x = np.random.uniform(-2,2,50)
         y = np.random.uniform(-2,2,50)
@@ -511,10 +525,11 @@ class PlotViewer(Frame):
 
         self.fig.clear()
         ax = self.ax = Axes3D(self.fig)
-        rstride=kwds['rstride']
-        cstride=kwds['cstride']
+        rstride = kwds['rstride']
+        cstride = kwds['cstride']
         lw = kwds['linewidth']
         alpha = kwds['alpha']
+        cmap = kwds['colormap']
 
         if kwds['kind'] == 'scatter':
             self.scatter3D(data, ax, kwds)
@@ -528,16 +543,19 @@ class PlotViewer(Frame):
                               cmap=kwds['colormap'], alpha=alpha,
                               linewidth=lw, antialiased=True)
         elif kwds['kind'] == 'wireframe':
-            X,Y,zi = self.prepareData(x,y,z)
+            X,Y,zi = self.meshData(x,y,z)
             w = ax.plot_wireframe(X, Y, zi, rstride=rstride, cstride=cstride,
                                   linewidth=lw)
         elif kwds['kind'] == 'surface':
-            X,Y,zi = self.prepareData(x,y,z)
+            X,Y,zi = self.meshData(x,y,z)
             surf = ax.plot_surface(X, Y, zi, rstride=rstride, cstride=cstride,
-                                   cmap=kwds['colormap'], alpha=alpha,
+                                   cmap=cmap, alpha=alpha,
                                    linewidth=lw)
-
-            self.fig.colorbar(surf, shrink=0.5, aspect=5)
+            #m = plt.cm.ScalarMappable(cmap = cmap)
+            #m.set_array([zi.min(), zi.max()])
+            #m.set_clim(vmin=zi.min(), vmax=zi.max())
+            cb = self.fig.colorbar(surf, shrink=0.5, aspect=5)
+            #cb.set_clim(vmin=zi.min(), vmax=zi.max())
         if kwds['points'] == True:
             self.scatter3D(data, ax, kwds)
         self.fig.suptitle(kwds['title'])
@@ -681,7 +699,7 @@ class MPLBaseOptions(object):
     markers = ['','o','.','^','v','>','<','s','+','x','p','d','h','*']
     linestyles = ['-','--','-.',':','steps']
     kinds = ['line', 'scatter', 'bar', 'barh', 'pie', 'histogram', 'boxplot',
-             'heatmap', 'area', 'hexbin', 'contour', 'scatter_matrix', 'density']
+             'heatmap', 'area', 'hexbin', 'contour', 'imshow', 'scatter_matrix', 'density']
     defaultfont = 'monospace'
 
     def __init__(self, parent=None):
