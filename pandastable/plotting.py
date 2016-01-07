@@ -551,11 +551,8 @@ class PlotViewer(Frame):
             surf = ax.plot_surface(X, Y, zi, rstride=rstride, cstride=cstride,
                                    cmap=cmap, alpha=alpha,
                                    linewidth=lw)
-            #m = plt.cm.ScalarMappable(cmap = cmap)
-            #m.set_array([zi.min(), zi.max()])
-            #m.set_clim(vmin=zi.min(), vmax=zi.max())
             cb = self.fig.colorbar(surf, shrink=0.5, aspect=5)
-            #cb.set_clim(vmin=zi.min(), vmax=zi.max())
+            surf.set_clim(vmin=zi.min(), vmax=zi.max())
         if kwds['points'] == True:
             self.scatter3D(data, ax, kwds)
         self.fig.suptitle(kwds['title'])
@@ -582,7 +579,6 @@ class PlotViewer(Frame):
     def scatter3D(self, data, ax, kwds):
         """3D scatter plot"""
 
-        #print (kwds['by'])
         data = data._get_numeric_data()
         l = len(data.columns)
         if l<3: return

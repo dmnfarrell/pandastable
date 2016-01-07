@@ -597,6 +597,7 @@ class Table(Canvas):
                 self.model.addColumn(newname, dtype)
                 self.parentframe.configure(width=self.width)
                 self.redraw()
+                self.tableChanged()
         return
 
     def deleteRow(self):
@@ -683,6 +684,7 @@ class Table(Canvas):
         model = TableModel(pd.DataFrame())
         self.updateModel(model)
         self.redraw()
+        self.tableChanged()
         return
 
     def fillColumn(self):
