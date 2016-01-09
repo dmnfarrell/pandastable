@@ -44,7 +44,7 @@ class Plugin(object):
         if 'uses_sidepane' in self.capabilities:
             self.table = self.parent.getCurrentTable()
             self.mainwin = Frame(self.table.parentframe)
-            self.mainwin.grid(row=6,column=0,columnspan=2,sticky='news')
+            self.mainwin.grid(row=6,column=0,columnspan=4,sticky='news')
         else:
             self.mainwin = Toplevel()
             self.mainwin.title('Plugin')

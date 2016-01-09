@@ -101,22 +101,6 @@ class SeabornPlugin(Plugin):
         self.fig, self.canvas = plotting.addFigure(self.pf)
         return
 
-    def _doFrame(self):
-        """Create main frame and add to parent. The plugin should usually
-           handle this."""
-
-        if 'uses_sidepane' in self.capabilities:
-            self.table = self.parent.getCurrentTable()
-            self.mainwin = Frame(self.table.parentframe)
-            self.mainwin.grid(row=6,column=0,columnspan=2,sticky='news')
-        else:
-            self.mainwin = Toplevel()
-            self.mainwin.title('Seaborn plotting plugin')
-            self.mainwin.geometry('600x600+200+100')
-        self.mainwin.bind("<Destroy>", self.quit)
-        self.ID=self.menuentry
-        return
-
     def _plot(self):
         """Do plot"""
 
