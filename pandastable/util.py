@@ -83,3 +83,15 @@ def checkDict(d):
             if type(v) not in allowed:
                 return 0
     return 1
+
+def getFonts():
+     """Get the current list of system fonts"""
+
+     import matplotlib.font_manager
+     l = matplotlib.font_manager.get_fontconfig_fonts()
+     fonts = [matplotlib.font_manager.FontProperties(fname=fname).get_name() for fname in l]
+     fonts = list(set(fonts))
+     fonts.sort()
+     #f = matplotlib.font_manager.FontProperties(family='monospace')
+     #print (matplotlib.font_manager.findfont(f))
+     return fonts

@@ -14,17 +14,18 @@ import sys
 import os
 import io
 import platform
+import subprocess
 from tkinter import *
 from tkinter.ttk import *
 import IPython
 from pkg_resources import parse_version
 from pandastable.plugin import Plugin
+from pandastable import images, dialogs, util
 
 class IterableIPShell:
     def __init__(self,argv=None,user_ns=None,user_global_ns=None,
                  cin=None, cout=None,cerr=None, input_func=None):
         '''
-
         @param argv: Command line options for IPython
         @type argv: list
         @param user_ns: User namespace.
@@ -40,6 +41,7 @@ class IterableIPShell:
         @param input_func: Replacement for builtin raw_input()
         @type input_func: function
         '''
+
         io = IPython.utils.io
         if input_func:
           if parse_version(IPython.release.version) >= parse_version("1.2.1"):
@@ -99,6 +101,7 @@ class IterableIPShell:
         # Workaround for updating namespace with sys.modules
         #
         self.__update_namespace()
+        return
 
     def __update_namespace(self):
         '''
@@ -291,10 +294,14 @@ class IterableIPShell:
             print (header+cmd)
         # flush stdout so we don't mangle python's buffering
         if not debug:
-          input, output = os.popen(cmd)
-          print (output.read())
-          output.close()
-          input.close()
+            p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                                  stderr=subprocess.STDOUT, shell=True,
+                                  close_fds=True)
+            (input, output) = (p.stdin, p.stdout)
+            out = output.read().decode("utf-8").split('\n')
+            for line in out:
+                print (line.rstrip())
+        return
 
 ansi_colors =  {'0;30': 'Black',
                 '0;31': 'Red',
@@ -315,7 +322,7 @@ ansi_colors =  {'0;30': 'Black',
 
 class TkConsoleView(Text):
     def __init__(self,root):
-        Text.__init__(self,root, width=100, height=16)
+        Text.__init__(self, root, width=60, height=16)
 
         if 'Windows' in platform.system():
             font = ('Courier New',10)
@@ -486,6 +493,22 @@ class TkConsoleView(Text):
         self.changeLine(completed or slice)
         return "break"
 
+    def setFont(self):
+
+        sizes = list(range(8,30,2))
+        fonts = util.getFonts()
+        d = dialogs.MultipleValDialog(title='Font',
+                              initialvalues=(fonts,sizes),
+                              labels=('Font:', 'Size:'),
+                              types=('combobox','combobox'),
+                              parent = self)
+        if d.result == None:
+            return
+        font = d.results[0]
+        size = d.results[1]
+        self.config(font='"%s" %s' %(font, size))
+        return
+
 class IPythonView(TkConsoleView, IterableIPShell):
     def __init__(self,root,banner=None):
         TkConsoleView.__init__(self,root)
@@ -544,10 +567,14 @@ class IPythonPlugin(Plugin):
         self.parent = parent
         self._doFrame()
         s = IPythonView(self.mainwin)
-        s.pack(side=LEFT, fill=BOTH)
+        s.pack(side=LEFT, fill=BOTH,expand=1)
         #scroll=Scrollbar(self.mainwin)
         #scroll.pack(side=LEFT,fill=Y)
         #s.configure(yscrollcommand=scroll.set)
+        bf = Frame(self.mainwin)
+        bf.pack(side=RIGHT,fill=BOTH)
+        dialogs.addButton(bf, 'Close', self.quit, images.cross(), 'close', side=TOP)
+        dialogs.addButton(bf, 'Font', s.setFont, images.font(), 'font', side=TOP)
 
         self.table = self.parent.getCurrentTable()
         df = self.table.model.df

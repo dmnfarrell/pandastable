@@ -665,7 +665,6 @@ class ViewerApp(Frame):
         for plg in plugin.get_plugins_classes('gui'):
             def func(p, **kwargs):
                 def new():
-                   #p.main(**kwargs)
                    self.loadPlugin(p)
                 return new
             plgmenu.add_command(label=plg.menuentry,
@@ -678,7 +677,11 @@ class ViewerApp(Frame):
 
         p = plugin()
         #plugin should add itself to the table frame if it's a dialog
-        p.main(parent=self)
+        try:
+            p.main(parent=self)
+        except Exception as e:
+            messagebox.showwarning("Plugin error", e,
+                                    parent=self)
         name = self.getCurrentSheet()
         #track which plugin is running so the last one is removed?
         self.openplugins[name] = p

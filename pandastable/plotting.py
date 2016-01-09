@@ -705,7 +705,7 @@ class MPLBaseOptions(object):
         df = self.parent.table.model.df
         datacols = list(df.columns)
         datacols.insert(0,'')
-        fonts = getFonts()
+        fonts = util.getFonts()
         grps = {'data':['bins','by','by2','use_index','errorbars'],
                 'styles':['font','colormap','alpha','grid'],
                 'sizes':['fontsize','s','linewidth'],
@@ -817,7 +817,7 @@ class MPL3DOptions(MPLBaseOptions):
         df = self.parent.table.model.df
         datacols = list(df.columns)
         datacols.insert(0,'')
-        fonts = getFonts()
+        fonts = util.getFonts()
         modes = ['parametric','(x,y)->z']
         self.groups = grps = {'formats':['kind','mode','rstride','cstride','points'],
                              'styles':['colormap','alpha','font'],
@@ -860,15 +860,3 @@ def addFigure(parent, figure=None, resize_callback=None):
     toolbar.update()
     canvas._tkcanvas.pack(side=TOP, fill=BOTH, expand=1)
     return figure, canvas
-
-def getFonts():
-     """Get the current list of system fonts"""
-
-     import matplotlib.font_manager
-     l = matplotlib.font_manager.get_fontconfig_fonts()
-     fonts = [matplotlib.font_manager.FontProperties(fname=fname).get_name() for fname in l]
-     fonts = list(set(fonts))
-     fonts.sort()
-     #f = matplotlib.font_manager.FontProperties(family='monospace')
-     #print (matplotlib.font_manager.findfont(f))
-     return fonts

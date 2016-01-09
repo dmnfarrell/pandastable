@@ -31,7 +31,6 @@ class ExamplePlugin(Plugin):
     capabilities = [] # ['gui','uses_sidepane']
     requires = ['']
     menuentry = 'Example Plugin'
-    gui_methods = {}
     pluginrow = 6 #row to add plugin frame beneath table
 
     def main(self, parent):
