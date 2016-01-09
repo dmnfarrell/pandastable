@@ -88,7 +88,8 @@ def getFonts():
      """Get the current list of system fonts"""
 
      import matplotlib.font_manager
-     l = matplotlib.font_manager.get_fontconfig_fonts()
+     #l = matplotlib.font_manager.get_fontconfig_fonts()
+     l = matplotlib.font_manager.findSystemFonts()
      fonts = [matplotlib.font_manager.FontProperties(fname=fname).get_name() for fname in l]
      fonts = list(set(fonts))
      fonts.sort()
