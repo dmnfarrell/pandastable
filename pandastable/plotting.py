@@ -190,7 +190,7 @@ class PlotViewer(Frame):
     def _checkNumeric(self, df):
         """Get only numeric data that can be plotted"""
 
-        x = df._convert()._get_numeric_data()
+        x = df.convert_objects()._get_numeric_data()
         #x = df.apply(pd.to_numeric, args=('coerce',))
         #x = df.select_dtypes(include=['int','float','int64'])
         if x.empty==True:

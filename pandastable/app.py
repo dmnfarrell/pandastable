@@ -174,6 +174,12 @@ class ViewerApp(Frame):
                          }
         self.dataset_menu=self.createPulldown(self.menu,self.dataset_menu)
         self.menu.add_cascade(label='Datasets',menu=self.dataset_menu['var'])
+
+        self.plots_menu={'01Add plot':{'cmd':self.addPlot}
+                        }
+        self.plots_menu=self.createPulldown(self.menu,self.plots_menu)
+        self.menu.add_cascade(label='Plots',menu=self.plots_menu['var'])
+
         self.plugin_menu={'01Update Plugins':{'cmd':self.discoverPlugins},
                           '02Install Plugin':{'cmd':self.installPlugin},
                           '03sep':''}
@@ -320,6 +326,7 @@ class ViewerApp(Frame):
         self.sheets = {}
         self.sheetframes = {} #store references to enclosing widgets
         self.openplugins = {} #refs to running plugins
+        self.plots = {}
         for n in self.nb.tabs():
             self.nb.forget(n)
         if data != None:
@@ -698,6 +705,31 @@ class ViewerApp(Frame):
         table = self.sheets[name]
         pw = self.sheetframes[name]
         pw.add(table.pf, weight=2)
+        return
+
+    def addPlot(self, ):
+        """Store the current plot so it can be re-loaded"""
+
+        import pickle
+        from . import plotting
+        name = self.getCurrentSheet()
+        table = self.sheets[name]
+        fig = table.pf.fig
+        t = time.strftime("%H:%M:%S")
+        label = name+'-'+t
+        #dump and reload the figure to get a new object
+        p = pickle.dumps(fig)
+        fig = pickle.loads(p)
+        self.plots[label] = fig
+
+        def func(label):
+            fig = self.plots[label]
+            win = Toplevel()
+            win.title(label)
+            plotting.addFigure(win, fig)
+
+        menu = self.plots_menu['var']
+        menu.add_command(label=label, command=lambda: func(label))
         return
 
     def _call(self, func):

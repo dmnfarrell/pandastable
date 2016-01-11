@@ -580,8 +580,9 @@ class IPythonPlugin(Plugin):
         df = self.table.model.df
         import pandas as pd
         import numpy as np
+        import pandastable as pt
         s.updateNamespace({'df':df, 'table':self.table,
-                           'pd':pd, 'np':np})
+                           'pd':pd, 'np':np, 'pt':pt})
         return
 
 if __name__ == '__main__':
