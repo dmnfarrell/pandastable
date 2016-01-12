@@ -175,8 +175,10 @@ class ViewerApp(Frame):
         self.dataset_menu=self.createPulldown(self.menu,self.dataset_menu)
         self.menu.add_cascade(label='Datasets',menu=self.dataset_menu['var'])
 
-        self.plots_menu={'01Add plot':{'cmd':self.addPlot}
-                        }
+        self.plots_menu={'01Add plot':{'cmd':self.addPlot},
+                         '02Clear plots':{'cmd':self.updatePlotsMenu},
+                         '03Plots to pdf':{'cmd':self.pdfReport},
+                         '04sep':''}
         self.plots_menu=self.createPulldown(self.menu,self.plots_menu)
         self.menu.add_cascade(label='Plots',menu=self.plots_menu['var'])
 
@@ -326,7 +328,7 @@ class ViewerApp(Frame):
         self.sheets = {}
         self.sheetframes = {} #store references to enclosing widgets
         self.openplugins = {} #refs to running plugins
-        self.plots = {}
+        self.updatePlotsMenu()
         for n in self.nb.tabs():
             self.nb.forget(n)
         if data != None:
@@ -676,7 +678,6 @@ class ViewerApp(Frame):
                 return new
             plgmenu.add_command(label=plg.menuentry,
                                command=func(plg))
-
         return
 
     def loadPlugin(self, plugin):
@@ -730,6 +731,30 @@ class ViewerApp(Frame):
 
         menu = self.plots_menu['var']
         menu.add_command(label=label, command=lambda: func(label))
+        return
+
+    def updatePlotsMenu(self, clear=True):
+        """Clear stored plots"""
+
+        if clear == True:
+            self.plots = {}
+        menu = self.plots_menu['var']
+        menu.delete(4, menu.index(END))
+        return
+
+    def pdfReport(self):
+        """"""
+        from matplotlib.backends.backend_pdf import PdfPages
+        pdf_pages = PdfPages('my-document.pdf')
+        from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
+        for p in self.plots:
+            fig = self.plots[p]
+            canvas = FigureCanvasTkAgg(fig, master=self)
+            #fig.canvas = canvas
+            pdf_pages.savefig(fig)
+        pdf_pages.close()
+
         return
 
     def _call(self, func):

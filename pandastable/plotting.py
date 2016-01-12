@@ -733,7 +733,7 @@ class MPLBaseOptions(object):
                 'table':{'type':'checkbutton','default':0,'label':'show table'},
                 'kind':{'type':'combobox','default':'line','items':self.kinds,'label':'kind'},
                 'stacked':{'type':'checkbutton','default':0,'label':'stacked'},
-                'linewidth':{'type':'scale','default':1.5,'range':(0,5),'interval':0.5,'label':'line width'},
+                'linewidth':{'type':'scale','default':1.5,'range':(0,8),'interval':0.5,'label':'line width'},
                 'alpha':{'type':'scale','default':0.7,'range':(0,1),'interval':0.1,'label':'alpha'},
                 'title':{'type':'entry','default':'','width':20},
                 'xlabel':{'type':'entry','default':'','width':20},

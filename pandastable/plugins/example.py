@@ -34,6 +34,8 @@ class ExamplePlugin(Plugin):
     pluginrow = 6 #row to add plugin frame beneath table
 
     def main(self, parent):
+        """Customise this or _doFrame for your widgets"""
+
         if parent==None:
             return
         self.parent = parent

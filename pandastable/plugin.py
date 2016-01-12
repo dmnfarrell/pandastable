@@ -37,6 +37,14 @@ class Plugin(object):
         self.parent = parent
         return
 
+    def main(self, parent):
+        if parent==None:
+            return
+        self.parent = parent
+        self.parentframe = None
+        self._doFrame()
+        return
+
     def _doFrame(self):
         """Create main frame and add to parent. The plugin should usually
            handle this."""

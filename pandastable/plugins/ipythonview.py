@@ -5,8 +5,8 @@
 
     This is a modified version of source code from the Accerciser project
     (http://live.gnome.org/accerciser). The original code is released under a
-    BSD license.
-
+    BSD license. This version has been updated to work with Python >3.3 and
+    with fixes for the Tkinter text widget.
 """
 
 import re
@@ -244,12 +244,13 @@ class IterableIPShell:
         and possible further completions.
         @rtype: tuple
         '''
+        import functools
         split_line = self.complete_sep.split(line)
-        if split_line[-1]:
-          possibilities = self.IP.complete(split_line[-1])
+        if split_line[0]:
+            possibilities = self.IP.complete(split_line[0])
         else:
-          completed = line
-          possibilities = ['', []]
+            completed = line
+            possibilities = ['', []]
         if possibilities:
           def _commonPrefix(str1, str2):
             '''
@@ -264,11 +265,11 @@ class IterableIPShell:
             @rtype: string
             '''
             for i in range(len(str1)):
-              if not str2.startswith(str1[:i+1]):
-                return str1[:i]
+                if not str2.startswith(str1[:i+1]):
+                    return str1[:i]
             return str1
           if possibilities[1]:
-            common_prefix = reduce(_commonPrefix, possibilities[1]) or line[-1]
+            common_prefix = functools.reduce(_commonPrefix, possibilities[1]) or line[-1]
             completed = line[:-len(split_line[-1])]+common_prefix
           else:
             completed = line
@@ -481,14 +482,22 @@ class TkConsoleView(Text):
         return "break"
 
     def processTabPress(self,event):
+        """Do tab completion"""
         if not self.getCurrentLine().strip():
             return
         completed, possibilities = self.complete(self.getCurrentLine())
         if len(possibilities) > 1:
             slice = self.getCurrentLine()
             self.write('\n')
-            for symbol in possibilities:
-                self.write(symbol+'\n')
+            #for symbol in possibilities:
+            #    self.write(symbol+'\n')
+            n=3
+            for i in range(0, len(possibilities), n):
+                chunk = possibilities[i:i+n]
+                for symbol in chunk:
+                    s = "%-22s" %symbol
+                    self.write(s)
+                self.write('\n')
             self.showPrompt(self.prompt)
         self.changeLine(completed or slice)
         return "break"
