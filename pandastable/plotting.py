@@ -62,7 +62,9 @@ class PlotViewer(Frame):
             self.orient = HORIZONTAL
         self.mplopts = MPLBaseOptions(parent=self)
         self.mplopts3d = MPL3DOptions(parent=self)
+        self.layoutopts = PlotLayoutOptions(parent=self)
         self.setupGUI()
+        self.axisrow = 0
         return
 
     def refreshLayout(self):
@@ -107,7 +109,7 @@ class PlotViewer(Frame):
         addButton(bf, 'Apply Options', self.applyPlotoptions, images.refresh(),
                   'refresh plot with current options', side=side, compound="left", width=20)
         addButton(bf, 'Clear', self.clear, images.plot_clear(),
-                  'clear plot', side=side, compound="left")
+                  'clear plot', side=side)
         addButton(bf, 'Hide', self.hide, images.cross(),
                   'hide plot frame', side=side)
         addButton(bf, 'Vertical', self.refreshLayout, images.tilehorizontal(),
@@ -119,6 +121,11 @@ class PlotViewer(Frame):
         Label(bf, text='save dpi:').pack(side=LEFT,fill=X,padx=2)
         e = Entry(bf, textvariable=self.dpivar, width=5)
         e.pack(side=LEFT,padx=2)
+        #plot layout
+        self.playoutvar = IntVar()
+        self.playoutvar.set(0)
+        cb = Checkbutton(bf,text='use grid layout', variable=self.playoutvar)
+        cb.pack(side=LEFT)
 
         if self.layout == 'vertical':
             sf = VerticalScrolledFrame(self.ctrlfr,width=100,height=1050)
@@ -132,14 +139,14 @@ class PlotViewer(Frame):
 
         #add plotter tool dialogs
         w1 = self.mplopts.showDialog(self.nb, layout=self.layout)
-        self.nb.add(w1, text='base plot options', sticky='news')
+        self.nb.add(w1, text='Base Options', sticky='news')
         #reload tkvars again from stored kwds variable
         self.mplopts.updateFromOptions()
-        #self.mplopts.applyOptions()
         w2 = self.mplopts3d.showDialog(self.nb,layout=self.layout)
         self.nb.add(w2, text='3D plot', sticky='news')
         self.mplopts3d.updateFromOptions()
-        #self.mplopts3d.applyOptions()
+        w3 = self.layoutopts.showDialog(self.nb,layout=self.layout)
+        self.nb.add(w3, text='Layout', sticky='news')
         if self.mode == 1:
             self.nb.select(w2)
         return
@@ -163,6 +170,8 @@ class PlotViewer(Frame):
         self.ax = None
         self.canvas.draw()
         self.table.plotted=None
+        self.axisrow = 0
+        self.axiscol = 0
         return
 
     def applyPlotoptions(self):
@@ -195,6 +204,43 @@ class PlotViewer(Frame):
         #x = df.select_dtypes(include=['int','float','int64'])
         if x.empty==True:
             return False
+
+    def _initFigure(self):
+        """Clear figure or add a new axis to existing layout"""
+
+        from matplotlib.gridspec import GridSpec
+        layout = self.playoutvar.get()
+        #plot layout should be tracked by plotlayoutoptions
+        self.layoutopts.applyOptions()
+        kwds = self.layoutopts.kwds
+        print(kwds)
+        rows = kwds['rows']
+        cols = kwds['cols']
+        colspan = kwds['colspan']
+        if layout == 0:
+            #default layout is just a single axis
+            self.fig.clear()
+            self.ax = self.fig.add_subplot(111)
+            self.axisrow = 0
+            self.axiscol = 0
+            self.gs = None
+        else:
+            if self.axiscol >= cols:
+                self.axisrow+=1
+                self.axiscol=0
+            if self.axisrow >= rows:
+                self.axisrow = 0; self.axiscol = 0
+            r = self.axisrow
+            c = self.axiscol
+            print(r,c,self.axiscol/colspan)
+            if self.gs == None:
+                self.gs = GridSpec(rows,cols,bottom=0.1,left=0.1,right=0.9)
+            gs = self.gs
+            #self.fig.axes[r+c].clear()
+            self.ax = self.fig.add_subplot(gs[r,c])
+            self.axiscol+=1
+            print ()
+        return
 
     def plot2D(self):
         """Draw method for current data. Relies on pandas plot functionality
@@ -244,8 +290,9 @@ class PlotViewer(Frame):
 
         #valid kwd args for this plot type
         kwargs = dict((k, kwds[k]) for k in valid[kind] if k in kwds)
-        self.fig.clear()
-        self.ax = ax = self.fig.add_subplot(111)
+        #initialise the figure
+        self._initFigure()
+        ax = self.ax
 
         if by != '':
             #groupby needs to be handled per group so we can add all the axes to
@@ -620,6 +667,11 @@ class PlotViewer(Frame):
         self.currfilename = filename
         return
 
+    def designLayout(self):
+        """Allow custom layout"""
+
+        return
+
     def showWarning(self, s='plot error', ax=None):
         if ax==None:
             ax=self.fig.gca()
@@ -688,7 +740,70 @@ class animator(Frame):
         line.set_data(xdata, ydata)
         return line,
 
-class MPLBaseOptions(object):
+class TkOptions(object):
+    """Class to generate tkinter widget dialog for dict of options"""
+    def __init__(self, parent=None):
+        """Setup variables"""
+
+        self.parent = parent
+        df = self.parent.table.model.df
+        return
+
+    def applyOptions(self):
+        """Set the plot kwd arguments from the tk variables"""
+
+        kwds = {}
+        for i in self.opts:
+            if self.opts[i]['type'] == 'listbox':
+                items = self.widgets[i].curselection()
+                kwds[i] = [self.widgets[i].get(j) for j in items]
+                #print (items, kwds[i])
+            else:
+                kwds[i] = self.tkvars[i].get()
+        self.kwds = kwds
+        return
+
+    def apply(self):
+        self.applyOptions()
+        if self.callback != None:
+            self.callback()
+        return
+
+    def showDialog(self, parent, callback=None, layout='horizontal'):
+        """Auto create tk vars, widgets for corresponding options and
+           and return the frame"""
+
+        dialog, self.tkvars, self.widgets = dialogFromOptions(parent,
+                                                              self.opts, self.groups,
+                                                              layout=layout)
+        return dialog
+
+    def update(self, df):
+        """Update data widget(s) when dataframe changes"""
+
+        if util.check_multiindex(df.columns) == 1:
+            cols = list(df.columns.get_level_values(0))
+        else:
+            cols = list(df.columns)
+        cols += ''
+        self.widgets['by']['values'] = cols
+        self.widgets['by2']['values'] = cols
+        return
+
+    def updateFromOptions(self, kwds=None):
+        """Update all widget tk vars using plot kwds dict"""
+
+        if kwds != None:
+            self.kwds = kwds
+        elif hasattr(self, 'kwds'):
+            kwds = self.kwds
+        else:
+            return
+        for i in kwds:
+            self.tkvars[i].set(kwds[i])
+        return
+
+class MPLBaseOptions(TkOptions):
     """Class to provide a dialog for matplotlib options and returning
         the selected prefs"""
 
@@ -750,58 +865,10 @@ class MPLBaseOptions(object):
     def applyOptions(self):
         """Set the plot kwd arguments from the tk variables"""
 
-        kwds = {}
-        for i in self.opts:
-            if self.opts[i]['type'] == 'listbox':
-                items = self.widgets[i].curselection()
-                kwds[i] = [self.widgets[i].get(j) for j in items]
-                #print (items, kwds[i])
-            else:
-                kwds[i] = self.tkvars[i].get()
-        self.kwds = kwds
-        size = kwds['fontsize']
-        plt.rc("font", family=kwds['font'], size=size)
+        TkOptions.applyOptions(self)
+        size = self.kwds['fontsize']
+        plt.rc("font", family=self.kwds['font'], size=size)
         plt.rc('legend', fontsize=size-1)
-        return
-
-    def apply(self):
-        self.applyOptions()
-        if self.callback != None:
-            self.callback()
-        return
-
-    def showDialog(self, parent, callback=None, layout='horizontal'):
-        """Auto create tk vars, widgets for corresponding options and
-           and return the frame"""
-
-        dialog, self.tkvars, self.widgets = dialogFromOptions(parent,
-                                                              self.opts, self.groups,
-                                                              layout=layout)
-        return dialog
-
-    def update(self, df):
-        """Update data widget(s) when dataframe changes"""
-
-        if util.check_multiindex(df.columns) == 1:
-            cols = list(df.columns.get_level_values(0))
-        else:
-            cols = list(df.columns)
-        cols += ''
-        self.widgets['by']['values'] = cols
-        self.widgets['by2']['values'] = cols
-        return
-
-    def updateFromOptions(self, kwds=None):
-        """Update all widget tk vars using plot kwds dict"""
-
-        if kwds != None:
-            self.kwds = kwds
-        elif hasattr(self, 'kwds'):
-            kwds = self.kwds
-        else:
-            return
-        for i in kwds:
-            self.tkvars[i].set(kwds[i])
         return
 
 class MPL3DOptions(MPLBaseOptions):
@@ -838,6 +905,25 @@ class MPL3DOptions(MPLBaseOptions):
                 'cstride':{'type':'entry','default':2,'width':20},
                 'points':{'type':'checkbutton','default':0,'label':'show points'},
                 'mode':{'type':'combobox','default':'(x,y)->z','items': modes},
+                 }
+        self.kwds = {}
+        return
+
+class PlotLayoutOptions(TkOptions):
+    def __init__(self, parent=None):
+        """Setup variables"""
+
+        self.parent = parent
+        self.groups = grps = {'grid':['rows','cols'],
+                             'current axis':['position','rowspan','colspan'],
+                             }
+        self.groups = OrderedDict(sorted(grps.items()))
+        opts = self.opts = {
+                'rows':{'type':'entry','default':2,'width':20},
+                'cols':{'type':'entry','default':2,'width':20},
+                'position':{'type':'entry','default':0,'width':20},
+                'rowspan':{'type':'entry','default':1,'width':20},
+                'colspan':{'type':'entry','default':1,'width':20},
                  }
         self.kwds = {}
         return

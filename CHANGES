@@ -3,13 +3,15 @@ CHANGES
 =======
 
 ------
-0.6.1
+0.7.0
 ------
 
 Added fill data functions for columns
 Updates to 3D plotting allow working contour, wireframe and surface plots
 Added contour and imshow plots
 Can now display plot options vertically
+IPython console plugin
+Combining multiple separate plots now possible
 
 ------
 0.6.0
