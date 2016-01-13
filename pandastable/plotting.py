@@ -214,31 +214,21 @@ class PlotViewer(Frame):
         self.layoutopts.applyOptions()
         kwds = self.layoutopts.kwds
         print(kwds)
-        rows = kwds['rows']
-        cols = kwds['cols']
-        colspan = kwds['colspan']
+
         if layout == 0:
             #default layout is just a single axis
             self.fig.clear()
             self.ax = self.fig.add_subplot(111)
-            self.axisrow = 0
-            self.axiscol = 0
-            self.gs = None
         else:
-            if self.axiscol >= cols:
-                self.axisrow+=1
-                self.axiscol=0
-            if self.axisrow >= rows:
-                self.axisrow = 0; self.axiscol = 0
-            r = self.axisrow
-            c = self.axiscol
-            print(r,c,self.axiscol/colspan)
-            if self.gs == None:
-                self.gs = GridSpec(rows,cols,bottom=0.1,left=0.1,right=0.9)
-            gs = self.gs
-            #self.fig.axes[r+c].clear()
-            self.ax = self.fig.add_subplot(gs[r,c])
-            self.axiscol+=1
+            rows = kwds['rows']
+            cols = kwds['cols']
+            r = kwds['row']-1
+            c = kwds['col']-1
+            colspan = kwds['colspan']
+            rowspan = kwds['rowspan']
+            gs = self.gs = GridSpec(rows,cols,bottom=0.1,left=0.1,right=0.9)
+            #print (self.fig.axes[r+c])
+            self.ax = self.fig.add_subplot(gs[r:r+rowspan,c:c+colspan])
             print ()
         return
 
@@ -345,7 +335,6 @@ class PlotViewer(Frame):
             self.fig.subplots_adjust(left=0.1, right=0.9, top=0.89,
                                      bottom=0.1, hspace=.4/scf, wspace=.2/scf)
             print ('tight_layout failed')
-        #plt.xkcd()
         self.canvas.draw()
         return
 
@@ -914,14 +903,17 @@ class PlotLayoutOptions(TkOptions):
         """Setup variables"""
 
         self.parent = parent
-        self.groups = grps = {'grid':['rows','cols'],
-                             'current axis':['position','rowspan','colspan'],
+        self.groups = grps = {'grid':['rows','cols','clear'],
+                             'current axis':['row','col','rowspan','colspan'],
                              }
         self.groups = OrderedDict(sorted(grps.items()))
         opts = self.opts = {
-                'rows':{'type':'entry','default':2,'width':20},
-                'cols':{'type':'entry','default':2,'width':20},
-                'position':{'type':'entry','default':0,'width':20},
+                'rows':{'type':'entry','default':2,'width':20,'label':'size (rows)'},
+                'cols':{'type':'entry','default':2,'width':20,'label':'size (cols)'},
+                'clear':{'type':'checkbutton','default':1,'label':'clear on grid update',
+                         'tooltip':'clear figure when the grid is altered'},
+                'row':{'type':'entry','default':1,'width':20},
+                'col':{'type':'entry','default':1,'width':20},
                 'rowspan':{'type':'entry','default':1,'width':20},
                 'colspan':{'type':'entry','default':1,'width':20},
                  }
