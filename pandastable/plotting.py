@@ -64,7 +64,7 @@ class PlotViewer(Frame):
         self.mplopts3d = MPL3DOptions(parent=self)
         self.layoutopts = PlotLayoutOptions(parent=self)
         self.setupGUI()
-        self.axisrow = 0
+        self.gridaxes = {}
         return
 
     def refreshLayout(self):
@@ -170,8 +170,7 @@ class PlotViewer(Frame):
         self.ax = None
         self.canvas.draw()
         self.table.plotted=None
-        self.axisrow = 0
-        self.axiscol = 0
+        self.gs = None
         return
 
     def applyPlotoptions(self):
@@ -226,10 +225,16 @@ class PlotViewer(Frame):
             c = kwds['col']-1
             colspan = kwds['colspan']
             rowspan = kwds['rowspan']
-            gs = self.gs = GridSpec(rows,cols,bottom=0.1,left=0.1,right=0.9)
+            if self.gs == None:
+                self.gs = GridSpec(rows,cols,bottom=0.1,left=0.1,right=0.9)
+            gs = self.gs
             #print (self.fig.axes[r+c])
+            if r+c in self.gridaxes:
+               self.gridaxes[r+c].clear()
+
             self.ax = self.fig.add_subplot(gs[r:r+rowspan,c:c+colspan])
-            print ()
+            self.gridaxes[r+c] = self.ax
+            print (self.gridaxes)
         return
 
     def plot2D(self):
@@ -916,7 +921,7 @@ class PlotLayoutOptions(TkOptions):
                 'col':{'type':'entry','default':1,'width':20},
                 'rowspan':{'type':'entry','default':1,'width':20},
                 'colspan':{'type':'entry','default':1,'width':20},
-                 }
+                }
         self.kwds = {}
         return
 

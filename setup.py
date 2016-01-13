@@ -14,7 +14,7 @@ setup(
     package_data={'pandastable': ['dataexplore.gif','datasets/*.mpk']},
     install_requires=['numpy>=1.5',
                       'matplotlib>=1.1',
-                      'pandas>=0.16',
+                      'pandas>=0.17',
                       'numexpr>=2.4',
                       'xlrd>=0.9'],
     entry_points = { 'gui_scripts': [
