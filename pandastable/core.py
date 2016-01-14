@@ -2249,6 +2249,7 @@ class Table(Canvas):
         self.showPlot()
         #data = self.getPlotData()
         #self.pf.data = data
+        self.pf.table = self
         self.pf.replot() #calls getPlotData on the table
         if hasattr(self, 'parenttable'):
             self.parenttable.plotted = 'child'

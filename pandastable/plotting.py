@@ -63,8 +63,8 @@ class PlotViewer(Frame):
         self.mplopts = MPLBaseOptions(parent=self)
         self.mplopts3d = MPL3DOptions(parent=self)
         self.layoutopts = PlotLayoutOptions(parent=self)
-        self.setupGUI()
         self.gridaxes = {}
+        self.setupGUI()
         return
 
     def refreshLayout(self):
@@ -170,7 +170,7 @@ class PlotViewer(Frame):
         self.ax = None
         self.canvas.draw()
         self.table.plotted=None
-        self.gs = None
+        self.gridaxes = {}
         return
 
     def applyPlotoptions(self):
@@ -188,7 +188,7 @@ class PlotViewer(Frame):
     def plotCurrent(self):
         """Plot current data"""
 
-        if self.mode == 0:
+        if self.mode == 0 or self.mode>1:
             #self.setFigure()
             self.plot2D()
         elif self.mode == 1:
@@ -217,6 +217,7 @@ class PlotViewer(Frame):
         if layout == 0:
             #default layout is just a single axis
             self.fig.clear()
+            self.gridaxes={}
             self.ax = self.fig.add_subplot(111)
         else:
             rows = kwds['rows']
@@ -225,16 +226,44 @@ class PlotViewer(Frame):
             c = kwds['col']-1
             colspan = kwds['colspan']
             rowspan = kwds['rowspan']
-            if self.gs == None:
-                self.gs = GridSpec(rows,cols,bottom=0.1,left=0.1,right=0.9)
-            gs = self.gs
-            #print (self.fig.axes[r+c])
-            if r+c in self.gridaxes:
-               self.gridaxes[r+c].clear()
-
+            top = float(kwds['top'])
+            bottom = float(kwds['bottom'])
+            gs = GridSpec(rows,cols,top=top,bottom=bottom,left=0.1,right=0.9)
+            name = str(r+1)+','+str(c+1)
+            if name in self.gridaxes:
+                ax = self.gridaxes[name]
+                if ax in self.fig.axes:
+                    self.fig.delaxes(ax)
             self.ax = self.fig.add_subplot(gs[r:r+rowspan,c:c+colspan])
-            self.gridaxes[r+c] = self.ax
-            print (self.gridaxes)
+            self.gridaxes[name] = self.ax
+            #update the axes widget
+            self.layoutopts.updateAxesList()
+        return
+
+    def removeSubplot(self):
+        """Remove a specific axis from the grid layout"""
+
+        axname = self.layoutopts.axeslistvar.get()
+        ax = self.gridaxes[axname]
+        if ax in self.fig.axes:
+            self.fig.delaxes(ax)
+        del self.gridaxes[axname]
+        self.canvas.show()
+        self.layoutopts.updateAxesList()
+        self.layoutopts.axeslistvar.set('')
+        return
+
+    def setSubplotTitle(self):
+        """Set a subplot title if using grid layout"""
+
+        axname = self.layoutopts.axeslistvar.get()
+        ax = self.gridaxes[axname]
+        name = simpledialog.askstring("Subplot title",
+                                      "Title:",initialvalue='',
+                                       parent=self.parent)
+        if name:
+            ax.set_title(name)
+            self.canvas.show()
         return
 
     def plot2D(self):
@@ -661,11 +690,6 @@ class PlotViewer(Frame):
         self.currfilename = filename
         return
 
-    def designLayout(self):
-        """Allow custom layout"""
-
-        return
-
     def showWarning(self, s='plot error', ax=None):
         if ax==None:
             ax=self.fig.gca()
@@ -763,7 +787,7 @@ class TkOptions(object):
             self.callback()
         return
 
-    def showDialog(self, parent, callback=None, layout='horizontal'):
+    def showDialog(self, parent, layout='horizontal'):
         """Auto create tk vars, widgets for corresponding options and
            and return the frame"""
 
@@ -908,21 +932,59 @@ class PlotLayoutOptions(TkOptions):
         """Setup variables"""
 
         self.parent = parent
-        self.groups = grps = {'grid':['rows','cols','clear'],
+        self.groups = grps = {'grid':['rows','cols','top','bottom'],
                              'current axis':['row','col','rowspan','colspan'],
+                             #'other':['clear'],
                              }
         self.groups = OrderedDict(sorted(grps.items()))
         opts = self.opts = {
-                'rows':{'type':'entry','default':2,'width':20,'label':'size (rows)'},
-                'cols':{'type':'entry','default':2,'width':20,'label':'size (cols)'},
-                'clear':{'type':'checkbutton','default':1,'label':'clear on grid update',
-                         'tooltip':'clear figure when the grid is altered'},
-                'row':{'type':'entry','default':1,'width':20},
-                'col':{'type':'entry','default':1,'width':20},
-                'rowspan':{'type':'entry','default':1,'width':20},
-                'colspan':{'type':'entry','default':1,'width':20},
+                'rows':{'type':'entry','default':2,'width':10,'label':'size (rows)'},
+                'cols':{'type':'entry','default':2,'width':10,'label':'size (cols)'},
+                #'clear':{'type':'checkbutton','default':1,'label':'clear on grid update',
+                #         'tooltip':'clear figure when the grid is altered'},
+                'row':{'type':'entry','default':1,'width':10},
+                'col':{'type':'entry','default':1,'width':10},
+                'rowspan':{'type':'entry','default':1,'width':10},
+                'colspan':{'type':'entry','default':1,'width':10},
+                'top':{'type':'entry','default':.9,'width':10},
+                'bottom':{'type':'entry','default':.1,'width':10},
                 }
         self.kwds = {}
+        return
+
+    def showDialog(self, parent, layout='horizontal'):
+        """Override because we need to add custom bits"""
+
+        dialog, self.tkvars, self.widgets = dialogFromOptions(parent,
+                                                              self.opts, self.groups,
+                                                              layout=layout)
+        self.main = dialog
+        self.subplotsWidget()
+        return dialog
+
+    def subplotsWidget(self):
+        """Custom dialog to allow selection/removal of individual subplots"""
+
+        frame = LabelFrame(self.main, text='subplots')
+        v = self.axeslistvar = StringVar()
+        v.set('')
+        axes = []
+        self.axeslist = Combobox(frame, values=axes,
+                        textvariable=v,width=14)
+        Label(frame,text='plot list:').pack()
+        self.axeslist.pack(fill=BOTH,pady=2)
+        b = Button(frame, text='remove axis', command=self.parent.removeSubplot)
+        b.pack(fill=X,pady=2)
+        b = Button(frame, text='set title', command=self.parent.setSubplotTitle)
+        b.pack(fill=X,pady=2)
+        frame.grid(row=0,column=4,sticky='news')
+        return
+
+    def updateAxesList(self):
+        """Update axes list"""
+
+        axes = list(self.parent.gridaxes.keys())
+        self.axeslist['values'] = axes
         return
 
 def addFigure(parent, figure=None, resize_callback=None):
