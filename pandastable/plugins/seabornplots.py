@@ -79,13 +79,13 @@ class SeabornPlugin(Plugin):
         bf = Frame(self.mainwin, padding=2)
         bf.pack(side=LEFT,fill=BOTH)
         b = Button(bf, text="Replot", command=self._plot)
-        b.pack(side=TOP,fill=X,expand=1)
+        b.pack(side=TOP,fill=X,pady=2)
         b = Button(bf, text="Clear", command=self.clear)
-        b.pack(side=TOP,fill=X,expand=1)
+        b.pack(side=TOP,fill=X,pady=2)
         b = Button(bf, text="Close", command=self.quit)
-        b.pack(side=TOP,fill=X,expand=1)
+        b.pack(side=TOP,fill=X,pady=2)
         b = Button(bf, text="About", command=self._aboutWindow)
-        b.pack(side=TOP,fill=X,expand=1)
+        b.pack(side=TOP,fill=X,pady=2)
 
         self.table = self.parent.getCurrentTable()
         df = self.table.model.df

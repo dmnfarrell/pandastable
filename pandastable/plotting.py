@@ -146,7 +146,7 @@ class PlotViewer(Frame):
         self.nb.add(w2, text='3D plot', sticky='news')
         self.mplopts3d.updateFromOptions()
         w3 = self.layoutopts.showDialog(self.nb,layout=self.layout)
-        self.nb.add(w3, text='Layout', sticky='news')
+        self.nb.add(w3, text='Grid Layout', sticky='news')
         if self.mode == 1:
             self.nb.select(w2)
         return
@@ -257,12 +257,14 @@ class PlotViewer(Frame):
         """Set a subplot title if using grid layout"""
 
         axname = self.layoutopts.axeslistvar.get()
+        if not axname in self.gridaxes:
+            return
         ax = self.gridaxes[axname]
-        name = simpledialog.askstring("Subplot title",
+        label = simpledialog.askstring("Subplot title",
                                       "Title:",initialvalue='',
                                        parent=self.parent)
-        if name:
-            ax.set_title(name)
+        if label:
+            ax.set_title(label)
             self.canvas.show()
         return
 

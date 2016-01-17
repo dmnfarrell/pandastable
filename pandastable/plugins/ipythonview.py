@@ -63,6 +63,11 @@ class IterableIPShell:
         os.environ['TERM'] = 'dumb'
         excepthook = sys.excepthook
 
+        #temp fix to import warning in frozen app
+        if getattr(sys, 'frozen', False):
+            import warnings
+            warnings.simplefilter("ignore")
+
         from IPython.config.loader import Config
         cfg = Config()
         cfg.InteractiveShell.colors = "Linux"

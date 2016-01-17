@@ -515,6 +515,11 @@ class ViewerApp(Frame):
 
         s = self.nb.index(self.nb.select())
         name = self.nb.tab(s, 'text')
+        w = messagebox.askyesno("Delete Sheet",
+                                 "Remove this sheet?",
+                                 parent=self.master)
+        if w==False:
+            return
         self.nb.forget(s)
         del self.sheets[name]
         del self.sheetframes[name]
