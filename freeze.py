@@ -12,7 +12,7 @@ includefiles = ["pandastable/dataexplore.gif","pandastable/datasets",
 
 # Dependencies are automatically detected, but it might need fine tuning.
 build_exe_options = {"packages": ["os","numpy","matplotlib","pandas",
-                                  "scipy","seaborn",
+                                  "scipy","seaborn","IPython",
                                   "statsmodels","pandastable"],
                      "excludes": [],
                      "namespace_packages": ['mpl_toolkits'],
