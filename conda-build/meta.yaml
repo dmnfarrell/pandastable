@@ -1,0 +1,73 @@
+package:
+  name: pandastable
+  version: "0.7.0"
+
+source:
+  fn: pandastable-0.7.0.tar.gz
+  url: https://pypi.python.org/packages/source/p/pandastable/pandastable-0.7.0.tar.gz
+  md5: d1e055e8583eeb6587a5c00f7bcfa46c
+#  patches:
+   # List any patch files here
+   # - fix.patch
+
+build:
+  # noarch_python: True
+  # preserve_egg_dir: True
+  entry_points:
+    # Put any entry points (scripts to be generated automatically) here. The
+    # syntax is module:function.  For example
+    #
+    # - pandastable = pandastable:main
+    #
+    # Would create an entry point called pandastable that calls pandastable.main()
+
+    - dataexplore = pandastable.app:main
+
+  # If this is a new build for the same version, increment the build
+  # number. If you do not include this key, it defaults to 0.
+  # number: 1
+
+requirements:
+  build:
+    - python
+    - setuptools
+    - numpy >=1.5
+    - matplotlib >=1.1
+    - pandas >=0.17
+    - numexpr >=2.4
+    - xlrd >=0.9
+
+  run:
+    - python
+    - numpy >=1.5
+    - matplotlib >=1.1
+    - pandas >=0.17
+    - numexpr >=2.4
+    - xlrd >=0.9
+
+test:
+  # Python imports
+  imports:
+    - pandastable
+
+  commands:
+    # You can put test commands to be run here.  Use this to test that the
+    # entry points work.
+
+    - dataexplore --help
+
+  # You can also put a file called run_test.py in the recipe that will be run
+  # at test time.
+
+  # requires:
+    # Put any additional test requirements here.  For example
+    # - nose
+
+about:
+  home: https://github.com/dmnfarrell/pandastable
+  license: GNU General Public License v3 (GPLv3)
+  summary: 'Library for embedding tables in Tkinter using pandas DataFrames'
+
+# See
+# http://docs.continuum.io/conda/build.html for
+# more information about meta.yaml
