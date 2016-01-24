@@ -62,6 +62,7 @@ class PlotViewer(Frame):
             self.orient = HORIZONTAL
         self.mplopts = MPLBaseOptions(parent=self)
         self.mplopts3d = MPL3DOptions(parent=self)
+        self.labelopts = AnnotationOptions(parent=self)
         self.layoutopts = PlotLayoutOptions(parent=self)
         self.gridaxes = {}
         self.setupGUI()
@@ -145,8 +146,11 @@ class PlotViewer(Frame):
         w2 = self.mplopts3d.showDialog(self.nb,layout=self.layout)
         self.nb.add(w2, text='3D plot', sticky='news')
         self.mplopts3d.updateFromOptions()
-        w3 = self.layoutopts.showDialog(self.nb,layout=self.layout)
-        self.nb.add(w3, text='Grid Layout', sticky='news')
+        #w3 = self.labelopts.showDialog(self.nb,layout=self.layout)
+        #self.nb.add(w3, text='Annotation', sticky='news')
+        w4 = self.layoutopts.showDialog(self.nb,layout=self.layout)
+        self.nb.add(w4, text='Grid Layout', sticky='news')
+
         if self.mode == 1:
             self.nb.select(w2)
         return
@@ -319,6 +323,7 @@ class PlotViewer(Frame):
         #initialise the figure
         self._initFigure()
         ax = self.ax
+        #plt.style.use('dark_background')
 
         if by != '':
             #groupby needs to be handled per group so we can add all the axes to
@@ -597,28 +602,33 @@ class PlotViewer(Frame):
 
         self.fig.clear()
         ax = self.ax = Axes3D(self.fig)
+        kind = kwds['kind']
+        mode = kwds['mode']
         rstride = kwds['rstride']
         cstride = kwds['cstride']
         lw = kwds['linewidth']
         alpha = kwds['alpha']
         cmap = kwds['colormap']
 
-        if kwds['kind'] == 'scatter':
+        if kind == 'scatter':
             self.scatter3D(data, ax, kwds)
-        elif kwds['kind'] == 'bar':
+        elif kind == 'bar':
             self.bar3D(data, ax, kwds)
-        elif kwds['kind'] == 'contour':
+        elif kind == 'contour':
             xi = np.linspace(x.min(), x.max())
             yi = np.linspace(y.min(), y.max())
             zi = griddata(x, y, z, xi, yi, interp='linear')
             surf = ax.contour(xi, yi, zi, rstride=rstride, cstride=cstride,
                               cmap=kwds['colormap'], alpha=alpha,
                               linewidth=lw, antialiased=True)
-        elif kwds['kind'] == 'wireframe':
-            X,Y,zi = self.meshData(x,y,z)
+        elif kind == 'wireframe':
+            if mode == '(x,y)->z':
+                X,Y,zi = self.meshData(x,y,z)
+            else:
+                X,Y,zi = x,y,z
             w = ax.plot_wireframe(X, Y, zi, rstride=rstride, cstride=cstride,
                                   linewidth=lw)
-        elif kwds['kind'] == 'surface':
+        elif kind == 'surface':
             X,Y,zi = self.meshData(x,y,z)
             surf = ax.plot_surface(X, Y, zi, rstride=rstride, cstride=cstride,
                                    cmap=cmap, alpha=alpha,
@@ -988,6 +998,23 @@ class PlotLayoutOptions(TkOptions):
         axes = list(self.parent.gridaxes.keys())
         self.axeslist['values'] = axes
         return
+
+class AnnotationOptions(TkOptions):
+    def __init__(self, parent=None):
+        """Setup variables"""
+
+        self.parent = parent
+        self.groups = grps = {'global labels':['title','xlabel','ylabel']
+                             }
+        self.groups = OrderedDict(sorted(grps.items()))
+        opts = self.opts = {
+                'title':{'type':'entry','default':'','width':20},
+                'xlabel':{'type':'entry','default':'','width':20},
+                'ylabel':{'type':'entry','default':'','width':20},
+                }
+        self.kwds = {}
+        return
+
 
 def addFigure(parent, figure=None, resize_callback=None):
     """Create a tk figure and canvas in the parent frame"""
