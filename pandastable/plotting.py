@@ -512,7 +512,7 @@ class PlotViewer(Frame):
             size=plots-1
             nrows = round(np.sqrt(size),0)
             ncols = np.ceil(size/nrows)
-            print (plots,nrows,ncols)
+            #print (plots,nrows,ncols)
             self.fig.clear()
         for i in range(s,plots):
             y = df[cols[i]]
@@ -530,6 +530,8 @@ class PlotViewer(Frame):
                 ax.set_xscale('log')
             if kwds['logy'] == 1:
                 ax.set_yscale('log')
+                print (y.min(),y.max())
+                #ax.set_ylim((y.min(),y.max()))
             if kwds['grid'] == 1:
                 ax.grid()
             if kwds['subplots'] == 1:
@@ -661,6 +663,9 @@ class PlotViewer(Frame):
     def scatter3D(self, data, ax, kwds):
         """3D scatter plot"""
 
+        lw = kwds['linewidth']
+        alpha = kwds['alpha']
+        s = kwds['s']
         data = data._get_numeric_data()
         l = len(data.columns)
         if l<3: return
@@ -671,7 +676,8 @@ class PlotViewer(Frame):
             y = X[:,i]
             z = X[:,i+1]
             c = cmap(float(i)/(l))
-            ax.scatter(x, y, z, edgecolor='black', color=c, linewidth=.5)
+            ax.scatter(x, y, z, edgecolor='black', color=c, linewidth=lw,
+                       alpha=alpha, s=s)
         return
 
     def updateData(self):
@@ -919,13 +925,14 @@ class MPL3DOptions(MPLBaseOptions):
         self.groups = grps = {'formats':['kind','mode','rstride','cstride','points'],
                              'styles':['colormap','alpha','font'],
                              'labels':['title','xlabel','ylabel','zlabel'],
-                             'sizes':['fontsize','linewidth']}
+                             'sizes':['fontsize','linewidth','s']}
         self.groups = OrderedDict(sorted(grps.items()))
         opts = self.opts = {'font':{'type':'combobox','default':self.defaultfont,'items':fonts},
                 'fontsize':{'type':'scale','default':12,'range':(5,40),'interval':1,'label':'font size'},
                 'kind':{'type':'combobox','default':'scatter','items':self.kinds,'label':'kind'},
                 'alpha':{'type':'scale','default':0.8,'range':(0,1),'interval':0.1,'label':'alpha'},
                 'linewidth':{'type':'scale','default':.5,'range':(0,4),'interval':0.1,'label':'linewidth'},
+                's':{'type':'scale','default':30,'range':(1,500),'interval':10,'label':'marker size'},
                 'title':{'type':'entry','default':'','width':20},
                 'xlabel':{'type':'entry','default':'','width':20},
                 'ylabel':{'type':'entry','default':'','width':20},

@@ -877,7 +877,7 @@ class Table(Canvas):
         df = self.model.df
         cols = list(df.columns[self.multiplecollist])
 
-        funcs = ['mean','std','max','min','log','exp','log10',
+        funcs = ['mean','std','max','min','log','exp','log10','log2',
                  'round','floor','ceil','trunc',
                  'sum','subtract','divide','mod','remainder','convolve',
                  'negative','sign','power',
@@ -2088,6 +2088,7 @@ class Table(Canvas):
                         "Save": self.save,
                         "Save as": self.saveAs,
                         "Import csv": lambda: self.importCSV(dialog=True),
+                        "Export": self.doExport,
                         "Plot Selected" : self.plotSelected,
                         "Hide plot" : self.hidePlot,
                         "Show plot" : self.showPlot,
@@ -2098,7 +2099,7 @@ class Table(Canvas):
         general = ["Add Row(s)", "Add Column(s)", "Select All", "Filter Rows",
                     "Show as Text", "Table Info", "Preferences"]
 
-        filecommands = ['New','Load','Import csv','Save','Save as']
+        filecommands = ['New','Load','Import csv','Save','Save as','Export']
         plotcommands = ['Plot Selected','Hide plot','Show plot']
 
         def createSubMenu(parent, label, commands):
@@ -2859,9 +2860,6 @@ class Table(Canvas):
                                                      #defaultextension='.mpk',
                                                      initialdir = self.currentdir,
                                                      filetypes=[("msgpack","*.mpk"),
-                                                                    ("csv","*.csv"),
-                                                                    ("excel","*.xls"),
-                                                                    ("html","*.html"),
                                                       ("All files","*.*")])
         if filename:
             self.model.save(filename)
@@ -2870,6 +2868,8 @@ class Table(Canvas):
         return
 
     def save(self):
+        """Save current file"""
+
         self.saveAs(self.filename)
         return
 
@@ -2924,10 +2924,11 @@ class Table(Canvas):
                                                       defaultextension='.csv',
                                                       initialdir = os.getcwd(),
                                                       filetypes=[("csv","*.csv"),
+                                                           ("excel","*.xls"),
+                                                           ("html","*.html"),
                                                         ("All files","*.*")])
         if filename:
-            df = self.model.df
-            df.to_csv(filename)
+            self.model.save(filename)
         return
 
     @classmethod

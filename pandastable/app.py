@@ -133,7 +133,7 @@ class ViewerApp(Frame):
         self.menu.add_cascade(label='Project',menu=self.proj_menu['var'])
 
         self.sheet_menu={'01Add Sheet':{'cmd': lambda: self.addSheet(select=True)},
-                         '02Remove Sheet':{'cmd':self.deleteSheet},
+                         '02Remove Sheet':{'cmd': lambda: self.deleteSheet(ask=True)},
                          '03Copy Sheet':{'cmd':self.copySheet},
                          '04Rename Sheet':{'cmd':self.renameSheet},
                          }
@@ -510,14 +510,16 @@ class ViewerApp(Frame):
             self.nb.select(s)
         return sheetname
 
-    def deleteSheet(self):
+    def deleteSheet(self, ask=False):
         """Delete a sheet"""
 
         s = self.nb.index(self.nb.select())
         name = self.nb.tab(s, 'text')
-        w = messagebox.askyesno("Delete Sheet",
-                                 "Remove this sheet?",
-                                 parent=self.master)
+        w=True
+        if ask == True:
+            w = messagebox.askyesno("Delete Sheet",
+                                     "Remove this sheet?",
+                                     parent=self.master)
         if w==False:
             return
         self.nb.forget(s)
