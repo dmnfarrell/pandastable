@@ -143,11 +143,12 @@ class PlotViewer(Frame):
         self.nb.add(w1, text='Base Options', sticky='news')
         #reload tkvars again from stored kwds variable
         self.mplopts.updateFromOptions()
-        w2 = self.mplopts3d.showDialog(self.nb,layout=self.layout)
-        self.nb.add(w2, text='3D plot', sticky='news')
+        w2 = self.labelopts.showDialog(self.nb,layout=self.layout)
+        self.nb.add(w2, text='Annotation', sticky='news')
+        self.labelopts.updateFromOptions()
+        w3 = self.mplopts3d.showDialog(self.nb,layout=self.layout)
+        self.nb.add(w3, text='3D plot', sticky='news')
         self.mplopts3d.updateFromOptions()
-        #w3 = self.labelopts.showDialog(self.nb,layout=self.layout)
-        #self.nb.add(w3, text='Annotation', sticky='news')
         w4 = self.layoutopts.showDialog(self.nb,layout=self.layout)
         self.nb.add(w4, text='Grid Layout', sticky='news')
 
@@ -182,7 +183,8 @@ class PlotViewer(Frame):
 
         if self.mode == 0:
             self.mplopts.applyOptions()
-        elif self.mode == 1:
+            self.labelopts.applyOptions()
+        elif self.mode == 2:
             self.mplopts3d.applyOptions()
 
         mpl.rcParams['savefig.dpi'] = self.dpivar.get()
@@ -192,10 +194,10 @@ class PlotViewer(Frame):
     def plotCurrent(self):
         """Plot current data"""
 
-        if self.mode == 0 or self.mode>1:
+        if self.mode <=1 or self.mode>2:
             #self.setFigure()
             self.plot2D()
-        elif self.mode == 1:
+        elif self.mode == 2:
             self.plot3D()
         return
 
@@ -216,7 +218,6 @@ class PlotViewer(Frame):
         #plot layout should be tracked by plotlayoutoptions
         self.layoutopts.applyOptions()
         kwds = self.layoutopts.kwds
-        print(kwds)
 
         if layout == 0:
             #default layout is just a single axis
@@ -284,7 +285,7 @@ class PlotViewer(Frame):
                           'linewidth', 'marker', 'subplots', 'rot', 'logx', 'logy',
                           'sharey', 'kind'],
                     'scatter': ['alpha', 'grid', 'linewidth', 'marker', 'subplots', 's',
-                            'legend', 'colormap','sharey', 'logx', 'logy', 'use_index'],
+                            'legend', 'colormap','sharey', 'logx', 'logy', 'use_index','c'],
                     'pie': ['colormap','legend'],
                     'hexbin': ['alpha', 'colormap', 'grid', 'linewidth'],
                     'bootstrap': ['grid'],
@@ -367,6 +368,8 @@ class PlotViewer(Frame):
                       loc='upper right', colWidths=[0.1 for i in tabledata.columns])
 
         #set options general for all plot types
+        #annotation options are separate
+        kwds.update(self.labelopts.kwds)
         self.setFigureOptions(axs, kwds)
         scf = 12/kwds['fontsize']
         try:
@@ -500,12 +503,21 @@ class PlotViewer(Frame):
         if len(df.columns)<2:
             return
         df = df._get_numeric_data()
-        cols = df.columns
+        cols = list(df.columns)
         x = df[cols[0]]
         s=1
-        plots = len(cols)
         cmap = plt.cm.get_cmap(kwds['colormap'])
         lw = kwds['linewidth']
+        c = kwds['c']
+        #
+
+        cscale = kwds['cscale']
+        norm = mpl.colors.LogNorm()
+        if c != '' and c in cols:
+            cols.remove(c)
+            c = df[c]
+        else:
+            c = None
         if marker == '':
             marker = 'o'
         if kwds['subplots'] == 1:
@@ -514,24 +526,32 @@ class PlotViewer(Frame):
             ncols = np.ceil(size/nrows)
             #print (plots,nrows,ncols)
             self.fig.clear()
+
+        plots = len(cols)
         for i in range(s,plots):
             y = df[cols[i]]
-            c = cmap(float(i)/(plots))
+            clr = cmap(float(i)/(plots))
+            if c is not None:
+                colormap = kwds['colormap']
+                clr=None
+            else:
+                colormap = None
+                c=[]
             if marker in ['x','+']:
-                ec=c
+                ec=clr
             else:
                 ec='black'
             if kwds['subplots'] == 1:
                 ax = self.fig.add_subplot(nrows,ncols,i)
-            ax.scatter(x, y, marker=marker, alpha=alpha, linewidth=lw,
-                       s=kwds['s'], edgecolors=ec, facecolor=c)
+            ax.scatter(x, y, marker=marker, alpha=alpha, linewidth=lw, c=c,
+                       s=kwds['s'], edgecolors=ec, facecolor=clr, cmap=colormap)
             ax.set_xlabel(cols[0])
             if kwds['logx'] == 1:
                 ax.set_xscale('log')
             if kwds['logy'] == 1:
                 ax.set_yscale('log')
                 print (y.min(),y.max())
-                #ax.set_ylim((y.min(),y.max()))
+                ax.set_ylim((y.min()+1e-6,y.max()))
             if kwds['grid'] == 1:
                 ax.grid()
             if kwds['subplots'] == 1:
@@ -857,12 +877,13 @@ class MPLBaseOptions(TkOptions):
         datacols = list(df.columns)
         datacols.insert(0,'')
         fonts = util.getFonts()
+        scales = ['linear','log']
         grps = {'data':['bins','by','by2','use_index','errorbars'],
                 'styles':['font','colormap','alpha','grid'],
                 'sizes':['fontsize','s','linewidth'],
                 'formats':['kind','marker','linestyle','stacked','subplots'],
                 'axes':['showxlabels','showylabels','sharex','sharey','logx','logy','rot'],
-                'labels':['title','xlabel','ylabel','legend','table']}
+                'other':['legend','table','c','cscale']}
         order = ['data','formats','sizes','axes','styles','labels']
         self.groups = OrderedDict(sorted(grps.items()))
         opts = self.opts = {'font':{'type':'combobox','default':self.defaultfont,'items':fonts},
@@ -876,6 +897,8 @@ class MPLBaseOptions(TkOptions):
                 'rot':{'type':'entry','default':0, 'label':'xlabel angle'},
                 'use_index':{'type':'checkbutton','default':1,'label':'use index'},
                 'errorbars':{'type':'checkbutton','default':0,'label':'use errorbars'},
+                'c':{'type':'combobox','items':datacols,'label':'color by','default':''},
+                'cscale':{'type':'combobox','items':scales,'label':'color scale','default':'linear'},
                 'showxlabels':{'type':'checkbutton','default':1,'label':'x tick labels'},
                 'showylabels':{'type':'checkbutton','default':1,'label':'y tick labels'},
                 'sharex':{'type':'checkbutton','default':0,'label':'share x'},
@@ -886,9 +909,6 @@ class MPLBaseOptions(TkOptions):
                 'stacked':{'type':'checkbutton','default':0,'label':'stacked'},
                 'linewidth':{'type':'scale','default':1.5,'range':(0,8),'interval':0.5,'label':'line width'},
                 'alpha':{'type':'scale','default':0.7,'range':(0,1),'interval':0.1,'label':'alpha'},
-                'title':{'type':'entry','default':'','width':20},
-                'xlabel':{'type':'entry','default':'','width':20},
-                'ylabel':{'type':'entry','default':'','width':20},
                 'subplots':{'type':'checkbutton','default':0,'label':'multiple subplots'},
                 'colormap':{'type':'combobox','default':'Spectral','items':colormaps},
                 'bins':{'type':'entry','default':20,'width':10},

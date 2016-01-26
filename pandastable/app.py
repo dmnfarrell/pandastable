@@ -340,11 +340,11 @@ class ViewerApp(Frame):
                     meta = data[s]['meta']
                 else:
                     meta=None
-                try:
-                    self.addSheet(s, df, meta)
-                except Exception as e:
+                #try:
+                self.addSheet(s, df, meta)
+                '''except Exception as e:
                     print ('error reading in options?')
-                    print (e)
+                    print (e)'''
         else:
             self.addSheet('sheet1')
         self.filename = None
@@ -412,10 +412,10 @@ class ViewerApp(Frame):
             data[i] = {}
             data[i]['table'] = table.model.df
             data[i]['meta'] = self.saveMeta(table)
-        try:
-            pd.to_msgpack(filename, data, encoding='utf-8')
-        except:
-            print('SAVE FAILED!!!')
+        #try:
+        pd.to_msgpack(filename, data, encoding='utf-8')
+        #except:
+        #    print('SAVE FAILED!!!')
         return
 
     def closeProject(self):
