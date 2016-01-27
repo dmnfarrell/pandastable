@@ -46,7 +46,7 @@ class PlotViewer(Frame):
         self.parent = parent
         self.table = table
         self.table.pf = self #opaque ref
-        self.mode = 0
+        self.mode = 'Base Options'
         if self.parent != None:
             Frame.__init__(self, parent)
             self.main = self.master
@@ -147,18 +147,19 @@ class PlotViewer(Frame):
         self.nb.add(w2, text='Annotation', sticky='news')
         self.labelopts.updateFromOptions()
         w3 = self.mplopts3d.showDialog(self.nb,layout=self.layout)
-        self.nb.add(w3, text='3D plot', sticky='news')
+        self.nb.add(w3, text='3D Plot', sticky='news')
         self.mplopts3d.updateFromOptions()
         w4 = self.layoutopts.showDialog(self.nb,layout=self.layout)
         self.nb.add(w4, text='Grid Layout', sticky='news')
 
-        if self.mode == 1:
+        if self.mode == '3D Plot':
             self.nb.select(w2)
         return
 
     def setMode(self, evt=None):
         """Set the plot mode based on selected tab"""
-        self.mode = self.nb.index(self.nb.select())
+        #self.mode = self.nb.index(self.nb.select())
+        self.mode = self.nb.tab(self.nb.select(), "text")
         return
 
     def replot(self):
@@ -181,11 +182,11 @@ class PlotViewer(Frame):
     def applyPlotoptions(self):
         """Apply the current plotter/options"""
 
-        if self.mode == 0:
+        if self.mode == '3D Plot':
+            self.mplopts3d.applyOptions()
+        else:
             self.mplopts.applyOptions()
             self.labelopts.applyOptions()
-        elif self.mode == 2:
-            self.mplopts3d.applyOptions()
 
         mpl.rcParams['savefig.dpi'] = self.dpivar.get()
         self.plotCurrent()
@@ -194,11 +195,10 @@ class PlotViewer(Frame):
     def plotCurrent(self):
         """Plot current data"""
 
-        if self.mode <=1 or self.mode>2:
-            #self.setFigure()
-            self.plot2D()
-        elif self.mode == 2:
+        if self.mode == '3D Plot':
             self.plot3D()
+        else:
+            self.plot2D()
         return
 
     def _checkNumeric(self, df):
@@ -286,7 +286,7 @@ class PlotViewer(Frame):
                           'sharey', 'kind'],
                     'scatter': ['alpha', 'grid', 'linewidth', 'marker', 'subplots', 's',
                             'legend', 'colormap','sharey', 'logx', 'logy', 'use_index','c',
-                            'cscale'],
+                            'cscale','colorbar'],
                     'pie': ['colormap','legend'],
                     'hexbin': ['alpha', 'colormap', 'grid', 'linewidth'],
                     'bootstrap': ['grid'],
@@ -512,9 +512,14 @@ class PlotViewer(Frame):
         lw = kwds['linewidth']
         c = kwds['c']
         cscale = kwds['cscale']
-        norm = mpl.colors.LogNorm()
+        grid = kwds['grid']
+        if cscale == 'log':
+            norm = mpl.colors.LogNorm()
+        else:
+            norm = None
         if c != '' and c in cols:
-            cols.remove(c)
+            if len(cols)>2:
+                cols.remove(c)
             c = df[c]
         else:
             c = None
@@ -543,20 +548,20 @@ class PlotViewer(Frame):
             if kwds['subplots'] == 1:
                 ax = self.fig.add_subplot(nrows,ncols,i)
             scplt = ax.scatter(x, y, marker=marker, alpha=alpha, linewidth=lw, c=c,
-                       s=kwds['s'], edgecolors=ec, facecolor=clr, cmap=colormap)
+                       s=kwds['s'], edgecolors=ec, facecolor=clr, cmap=colormap,
+                       norm=norm)
             ax.set_xlabel(cols[0])
             if kwds['logx'] == 1:
                 ax.set_xscale('log')
             if kwds['logy'] == 1:
                 ax.set_yscale('log')
-                print (y.min(),y.max())
                 ax.set_ylim((y.min()+1e-6,y.max()))
-            if kwds['grid'] == 1:
-                ax.grid()
+            if grid == 1:
+                ax.grid(True)
             if kwds['subplots'] == 1:
                 ax.set_title(cols[i])
-            #if colormap is not None:
-            #    plt.colorbar(scplt, ax=ax)
+            if colormap is not None and kwds['colorbar']==True:
+                self.fig.colorbar(scplt, ax=ax)
         if kwds['legend'] == 1 and kwds['subplots'] == 0:
             ax.legend(cols[1:])
         return ax
@@ -706,8 +711,6 @@ class PlotViewer(Frame):
 
         df = self.table.model.df
         self.mplopts.update(df)
-        if hasattr(self, 'factorplotter'):
-            self.factorplotter.update(df)
         return
 
     def savePlot(self):
@@ -835,18 +838,6 @@ class TkOptions(object):
                                                               layout=layout)
         return dialog
 
-    def update(self, df):
-        """Update data widget(s) when dataframe changes"""
-
-        if util.check_multiindex(df.columns) == 1:
-            cols = list(df.columns.get_level_values(0))
-        else:
-            cols = list(df.columns)
-        cols += ''
-        self.widgets['by']['values'] = cols
-        self.widgets['by2']['values'] = cols
-        return
-
     def updateFromOptions(self, kwds=None):
         """Update all widget tk vars using plot kwds dict"""
 
@@ -884,7 +875,7 @@ class MPLBaseOptions(TkOptions):
                 'sizes':['fontsize','s','linewidth'],
                 'formats':['kind','stacked','subplots','grid','legend','table'],
                 'axes':['showxlabels','showylabels','sharex','sharey','logx','logy','rot'],
-                'styles2':['colormap','c','cscale']}
+                'styles colors':['colormap','c','cscale','colorbar']}
         order = ['data','formats','sizes','axes','styles','labels']
         self.groups = OrderedDict(sorted(grps.items()))
         opts = self.opts = {'font':{'type':'combobox','default':self.defaultfont,'items':fonts},
@@ -900,6 +891,7 @@ class MPLBaseOptions(TkOptions):
                 'errorbars':{'type':'checkbutton','default':0,'label':'use errorbars'},
                 'c':{'type':'combobox','items':datacols,'label':'color by','default':''},
                 'cscale':{'type':'combobox','items':scales,'label':'color scale','default':'linear'},
+                'colorbar':{'type':'checkbutton','default':0,'label':'show colorbar'},
                 'showxlabels':{'type':'checkbutton','default':1,'label':'x tick labels'},
                 'showylabels':{'type':'checkbutton','default':1,'label':'y tick labels'},
                 'sharex':{'type':'checkbutton','default':0,'label':'share x'},
@@ -926,6 +918,19 @@ class MPLBaseOptions(TkOptions):
         size = self.kwds['fontsize']
         plt.rc("font", family=self.kwds['font'], size=size)
         plt.rc('legend', fontsize=size-1)
+        return
+
+    def update(self, df):
+        """Update data widget(s) when dataframe changes"""
+
+        if util.check_multiindex(df.columns) == 1:
+            cols = list(df.columns.get_level_values(0))
+        else:
+            cols = list(df.columns)
+        cols += ''
+        self.widgets['by']['values'] = cols
+        self.widgets['by2']['values'] = cols
+        self.widgets['c']['values'] = cols
         return
 
 class MPL3DOptions(MPLBaseOptions):
@@ -1032,13 +1037,14 @@ class AnnotationOptions(TkOptions):
         """Setup variables"""
 
         self.parent = parent
-        self.groups = grps = {'global labels':['title','xlabel','ylabel']
+        self.groups = grps = {'global labels':['title','xlabel','ylabel','zlabel']
                              }
         self.groups = OrderedDict(sorted(grps.items()))
         opts = self.opts = {
                 'title':{'type':'entry','default':'','width':20},
                 'xlabel':{'type':'entry','default':'','width':20},
                 'ylabel':{'type':'entry','default':'','width':20},
+                'zlabel':{'type':'entry','default':'','width':20}
                 }
         self.kwds = {}
         return
