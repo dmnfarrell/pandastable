@@ -285,7 +285,8 @@ class PlotViewer(Frame):
                           'linewidth', 'marker', 'subplots', 'rot', 'logx', 'logy',
                           'sharey', 'kind'],
                     'scatter': ['alpha', 'grid', 'linewidth', 'marker', 'subplots', 's',
-                            'legend', 'colormap','sharey', 'logx', 'logy', 'use_index','c'],
+                            'legend', 'colormap','sharey', 'logx', 'logy', 'use_index','c',
+                            'cscale'],
                     'pie': ['colormap','legend'],
                     'hexbin': ['alpha', 'colormap', 'grid', 'linewidth'],
                     'bootstrap': ['grid'],
@@ -368,9 +369,10 @@ class PlotViewer(Frame):
                       loc='upper right', colWidths=[0.1 for i in tabledata.columns])
 
         #set options general for all plot types
-        #annotation options are separate
-        kwds.update(self.labelopts.kwds)
-        self.setFigureOptions(axs, kwds)
+        #annotation optons are separate
+        lkwds = self.labelopts.kwds.copy()
+        lkwds.update(kwds)
+        self.setFigureOptions(axs, lkwds)
         scf = 12/kwds['fontsize']
         try:
             self.fig.tight_layout()
@@ -509,8 +511,6 @@ class PlotViewer(Frame):
         cmap = plt.cm.get_cmap(kwds['colormap'])
         lw = kwds['linewidth']
         c = kwds['c']
-        #
-
         cscale = kwds['cscale']
         norm = mpl.colors.LogNorm()
         if c != '' and c in cols:
@@ -524,26 +524,25 @@ class PlotViewer(Frame):
             size=plots-1
             nrows = round(np.sqrt(size),0)
             ncols = np.ceil(size/nrows)
-            #print (plots,nrows,ncols)
             self.fig.clear()
-
+        if c is not None:
+            colormap = kwds['colormap']
+        else:
+            colormap = None
+            c=[]
         plots = len(cols)
         for i in range(s,plots):
             y = df[cols[i]]
             clr = cmap(float(i)/(plots))
-            if c is not None:
-                colormap = kwds['colormap']
+            if colormap != None:
                 clr=None
-            else:
-                colormap = None
-                c=[]
             if marker in ['x','+']:
                 ec=clr
             else:
                 ec='black'
             if kwds['subplots'] == 1:
                 ax = self.fig.add_subplot(nrows,ncols,i)
-            ax.scatter(x, y, marker=marker, alpha=alpha, linewidth=lw, c=c,
+            scplt = ax.scatter(x, y, marker=marker, alpha=alpha, linewidth=lw, c=c,
                        s=kwds['s'], edgecolors=ec, facecolor=clr, cmap=colormap)
             ax.set_xlabel(cols[0])
             if kwds['logx'] == 1:
@@ -556,6 +555,8 @@ class PlotViewer(Frame):
                 ax.grid()
             if kwds['subplots'] == 1:
                 ax.set_title(cols[i])
+            #if colormap is not None:
+            #    plt.colorbar(scplt, ax=ax)
         if kwds['legend'] == 1 and kwds['subplots'] == 0:
             ax.legend(cols[1:])
         return ax
@@ -879,11 +880,11 @@ class MPLBaseOptions(TkOptions):
         fonts = util.getFonts()
         scales = ['linear','log']
         grps = {'data':['bins','by','by2','use_index','errorbars'],
-                'styles':['font','colormap','alpha','grid'],
+                'styles':['font','marker','linestyle','alpha'],
                 'sizes':['fontsize','s','linewidth'],
-                'formats':['kind','marker','linestyle','stacked','subplots'],
+                'formats':['kind','stacked','subplots','grid','legend','table'],
                 'axes':['showxlabels','showylabels','sharex','sharey','logx','logy','rot'],
-                'other':['legend','table','c','cscale']}
+                'styles2':['colormap','c','cscale']}
         order = ['data','formats','sizes','axes','styles','labels']
         self.groups = OrderedDict(sorted(grps.items()))
         opts = self.opts = {'font':{'type':'combobox','default':self.defaultfont,'items':fonts},
@@ -907,7 +908,7 @@ class MPLBaseOptions(TkOptions):
                 'table':{'type':'checkbutton','default':0,'label':'show table'},
                 'kind':{'type':'combobox','default':'line','items':self.kinds,'label':'kind'},
                 'stacked':{'type':'checkbutton','default':0,'label':'stacked'},
-                'linewidth':{'type':'scale','default':1.5,'range':(0,8),'interval':0.5,'label':'line width'},
+                'linewidth':{'type':'scale','default':1.5,'range':(0.1,8),'interval':0.1,'label':'line width'},
                 'alpha':{'type':'scale','default':0.7,'range':(0,1),'interval':0.1,'label':'alpha'},
                 'subplots':{'type':'checkbutton','default':0,'label':'multiple subplots'},
                 'colormap':{'type':'combobox','default':'Spectral','items':colormaps},
