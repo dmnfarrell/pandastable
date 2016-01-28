@@ -19,12 +19,20 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 """
 
+from __future__ import absolute_import, division, print_function
+from builtins import *
 import sys,os,types
 import platform
 import tkinter
 from tkinter import *
-from tkinter.ttk import *
+try:
+    from tkinter.ttk import *
+    from tkinter.simpledialog import Dialog
+except:
+    from ttk import *
+    import tkSimpleDialog as Dialog
 from tkinter.scrolledtext import ScrolledText
+from tkinter import filedialog, messagebox, simpledialog
 from collections import OrderedDict
 import webbrowser
 import pandas as pd
@@ -157,7 +165,7 @@ def addButton(frame, name, callback, img=None, tooltip=None,
         ToolTip.createToolTip(b, tooltip)
     return
 
-class MultipleValDialog(simpledialog.Dialog):
+class MultipleValDialog(Dialog):
     """Simple dialog to get multiple values"""
 
     def __init__(self, parent, title=None, initialvalues=None, labels=None,
@@ -167,7 +175,7 @@ class MultipleValDialog(simpledialog.Dialog):
             self.labels = labels
             self.types = types
             self.tooltips = tooltips
-        simpledialog.Dialog.__init__(self, parent, title)
+        Dialog.__init__(self, parent, title)
         return
 
     def body(self, master):

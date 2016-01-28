@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-    Module for pylab plotting helper classes.
+    Module for pandastable plotting classes .
 
     Created Jan 2014
     Copyright (C) Damien Farrell
@@ -20,9 +20,14 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 """
 
-import types
+from __future__ import absolute_import, division, print_function
+from builtins import *
 from tkinter import *
-from tkinter.ttk import *
+try:
+    from tkinter.ttk import *
+except:
+    from ttk import *
+import types
 import numpy as np
 import pandas as pd
 from pandas.tools import plotting
@@ -146,11 +151,11 @@ class PlotViewer(Frame):
         w2 = self.labelopts.showDialog(self.nb,layout=self.layout)
         self.nb.add(w2, text='Annotation', sticky='news')
         self.labelopts.updateFromOptions()
-        w3 = self.mplopts3d.showDialog(self.nb,layout=self.layout)
-        self.nb.add(w3, text='3D Plot', sticky='news')
+        w3 = self.layoutopts.showDialog(self.nb,layout=self.layout)
+        self.nb.add(w3, text='Grid Layout', sticky='news')
+        w4 = self.mplopts3d.showDialog(self.nb,layout=self.layout)
+        self.nb.add(w4, text='3D Plot', sticky='news')
         self.mplopts3d.updateFromOptions()
-        w4 = self.layoutopts.showDialog(self.nb,layout=self.layout)
-        self.nb.add(w4, text='Grid Layout', sticky='news')
 
         if self.mode == '3D Plot':
             self.nb.select(w2)
@@ -1033,20 +1038,110 @@ class PlotLayoutOptions(TkOptions):
         return
 
 class AnnotationOptions(TkOptions):
+    """This class also provides custom tools for adding items to the plot"""
     def __init__(self, parent=None):
         """Setup variables"""
 
+        from matplotlib import colors
+        import six
+        colors = list(six.iteritems(colors.cnames))
+        colors = [c[0] for c in colors]
+        fillpatterns = ['-', '+', 'x', '\\', '*', 'o', 'O', '.']
+        bstyles = ['square','round','round4','circle','rarrow','larrow','sawtooth']
+        fonts = util.getFonts()
+
         self.parent = parent
-        self.groups = grps = {'global labels':['title','xlabel','ylabel','zlabel']
+        self.groups = grps = {'global labels':['title','xlabel','ylabel','zlabel'],
+                              'box format': ['boxstyle','facecolor','linecolor','pad'],
+                              'text format': ['text','fontsize'],
                              }
         self.groups = OrderedDict(sorted(grps.items()))
         opts = self.opts = {
                 'title':{'type':'entry','default':'','width':20},
                 'xlabel':{'type':'entry','default':'','width':20},
                 'ylabel':{'type':'entry','default':'','width':20},
-                'zlabel':{'type':'entry','default':'','width':20}
+                'zlabel':{'type':'entry','default':'','width':20},
+                'facecolor':{'type':'combobox','default':'lightgray','items': colors},
+                'linecolor':{'type':'combobox','default':'black','items': colors},
+                #'fill':{'type':'combobox','default':'-','items': fillpatterns},
+                'pad':{'type':'scale','default':0.2,'range':(0,2),'interval':0.1,'label':'pad'},
+                'boxstyle':{'type':'combobox','default':'square','items': bstyles},
+                'text':{'type':'entry','default':'','width':20},
+                'fontsize':{'type':'scale','default':12,'range':(5,40),'interval':1,'label':'font size'},
                 }
         self.kwds = {}
+        self.objects = {}
+        return
+
+    def showDialog(self, parent, layout='horizontal'):
+        """Override because we need to add custom bits"""
+
+        dialog, self.tkvars, self.widgets = dialogFromOptions(parent,
+                                                              self.opts, self.groups,
+                                                              layout=layout)
+        self.main = dialog
+        self.addWidgets()
+        return dialog
+
+    def addWidgets(self):
+        """Custom dialogs for manually adding annotation items like text"""
+
+        frame = LabelFrame(self.main, text='add objects')
+        v = self.objectvar = StringVar()
+        v.set('textbox')
+        axes = []
+        self.objectselection = Combobox(frame, values=['textbox'],
+                         textvariable=v,width=14)
+        Label(frame,text='add object:').pack()
+        self.objectselection.pack(fill=BOTH,pady=2)
+        b = Button(frame, text='Create', command=self.addTextBox)
+        b.pack(fill=X,pady=2)
+        #b = Button(frame, text='Save', command=self.saveObject)
+        #b.pack(fill=X,pady=2)
+        frame.grid(row=0,column=4,sticky='news')
+        return
+
+    def addTextBox(self):
+        """Add a rectangle"""
+
+        from . import handlers
+        import matplotlib.patches as patches
+        from matplotlib.text import OffsetFrom
+        fig = self.parent.fig
+        ax = self.parent.ax
+        canvas = self.parent.canvas
+
+        '''rect = ax.add_patch(
+                    patches.Rectangle((0.1, 0.1), 0.5, 0.5, fill=False))
+        drs = []
+        dr = handlers.DraggableRectangle(rect)
+        dr.connect()
+        drs.append(dr)'''
+
+        self.applyOptions()
+        kwds = self.kwds
+        text = kwds['text']
+        fc = kwds['facecolor']
+        ec = kwds['linecolor']
+        pad=kwds['pad']
+        bstyle = kwds['boxstyle']
+        style = "%s,pad=%s" %(bstyle,pad)
+        #also use some of the base options?
+        #baseopts = self.parent.mplopts
+        #baseopts.applyOptions()
+        #basekwds = baseopts.kwds
+        fontsize = kwds['fontsize']
+        bbox_args = dict(boxstyle=bstyle, fc=fc, ec=ec, lw=1, alpha=0.9)
+        an = ax.annotate(text, xy=(.5, .5), xycoords='axes fraction',
+                   #arrowprops=dict(arrowstyle="->",
+                   #         connectionstyle="arc3"),
+                   ha="center", va="center",
+                   size=fontsize,
+                   bbox=bbox_args )
+        an.draggable()
+        canvas.show()
+        #label = text
+        #self.objects[text] = an
         return
 
 

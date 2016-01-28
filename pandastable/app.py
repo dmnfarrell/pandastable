@@ -19,10 +19,15 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 """
 
-import tkinter
+from __future__ import absolute_import, division, print_function, generators
+from builtins import *
 from tkinter import *
-from tkinter.ttk import *
+try:
+    from tkinter.ttk import *
+except:
+    from ttk import *
 from tkinter import filedialog, messagebox, simpledialog
+
 import matplotlib
 matplotlib.use('TkAgg')
 import pandas as pd

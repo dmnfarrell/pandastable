@@ -19,8 +19,15 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 """
 
-from tkinter import *
-from tkinter.ttk import *
+from __future__ import print_function
+import sys
+if (sys.version_info > (3, 0)):
+    from tkinter import *
+    from tkinter.ttk import *
+else:
+    from Tkinter import *
+    from ttk import *
+
 import math, time
 import os, types, string
 import numpy as np
