@@ -19,12 +19,19 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 """
 
+from __future__ import absolute_import, division, print_function
+from builtins import *
 import math, time
 import os, types
 import string, copy
 from configparser import ConfigParser
 from tkinter import *
-from tkinter.ttk import *
+try:
+    from tkinter.ttk import *
+except:
+    from ttk import *
+from .core import Table
+from .data import TableModel
 
 class Prefs():
     """This class implements a preferences system using configparser """
@@ -107,11 +114,6 @@ def createConfigParserfromOptions(opts, section):
     #cp.write(open(filename,'w'))
     return cp
 
-
-from tkinter import *
-from tkinter.ttk import *
-from .core import Table
-from .data import TableModel
 
 class App(Frame):
     """Test frame for table"""

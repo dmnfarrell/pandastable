@@ -15,14 +15,15 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 """
+
 import os, sys
 import pickle
 
 class Preferences:
 
-    def __init__(self,program,defaults):        
-        """Find and load the preferences file"""        
-     
+    def __init__(self,program,defaults):
+        """Find and load the preferences file"""
+
         filename='.'+program+'_preferences'
         dirs=self.get_dirs()
         self.noprefs = False
@@ -38,8 +39,8 @@ class Preferences:
                     self.noprefs = True
             if self.noprefs == True:
                 raise
-        except:            
-            # If we didn't find a file then set to default and save            
+        except:
+            # If we didn't find a file then set to default and save
             #print('Did not find preferences!!!')
             self.prefs=defaults.copy()
 	        #print(dirs)
@@ -47,7 +48,7 @@ class Preferences:
             self.prefs['_prefdir']=dirs[0]
             self.prefs['_preffile']=self.pref_file
             self.save_prefs()
-            
+
             if 'HOMEPATH' in os.environ:
                 self.prefs['datadir']=os.environ['HOMEPATH']
             if 'HOME' in os.environ:
@@ -79,21 +80,21 @@ class Preferences:
     def delete(self,key):
         if key in self.prefs:
             del self.prefs[key]
-        
+
         self.save_prefs()
         return
 
     def get_dirs(self):
 
         dirs=[]
-        keys=['HOME','HOMEPATH','HOMEDRIVE']    
+        keys=['HOME','HOMEPATH','HOMEDRIVE']
         for key in keys:
             if key in os.environ:
-                dirs.append(os.environ[key])        
+                dirs.append(os.environ[key])
         if 'HOMEPATH' in os.environ:
-              
+
             dirs.append(os.environ['HOMEPATH'])
- 
+
         possible_dirs=["C:\\","D:\\","/"]
         for pdir in possible_dirs:
             if os.path.isdir(pdir):
@@ -108,7 +109,7 @@ class Preferences:
     def load_prefs(self,filename):
 
         self.pref_file=filename
-        #print(("loading prefs from ",self.pref_file))        
+        #print(("loading prefs from ",self.pref_file))
         try:
             fd=open(filename)
             self.prefs=pickle.load(fd)
@@ -120,7 +121,7 @@ class Preferences:
             fd.close()
         return
 
-    def save_prefs(self): 
+    def save_prefs(self):
         try:
             fd=open(self.pref_file,'wb')
         except:
@@ -129,5 +130,3 @@ class Preferences:
         pickle.dump(self.prefs,fd)
         fd.close()
         return
-
-

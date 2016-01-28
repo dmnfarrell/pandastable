@@ -20,7 +20,7 @@
 """
 
 from __future__ import absolute_import, division, print_function
-from builtins import *
+#from builtins import *
 from tkinter import *
 try:
     from tkinter.ttk import *
@@ -2249,7 +2249,7 @@ class Table(Canvas):
         if not hasattr(self, 'pf') or self.pf == None:
             self.pf = PlotViewer(table=self)
         else:
-            if type(self.pf.main) is tkinter.Toplevel:
+            if type(self.pf.main) is Toplevel:
                 self.pf.main.deiconify()
         #plot could be hidden
         self.showPlot()
@@ -2448,7 +2448,7 @@ class Table(Canvas):
         tw,newlength = util.getTextLength(celltxt, w-pad,
                                        self.scratch, font=self.thefont)
         width=0
-        celltxt = celltxt[0:newlength]
+        celltxt = celltxt[0:int(newlength)]
         y=y1+h/2
         rect = self.create_text(x1+w/2,y,
                                   text=celltxt,

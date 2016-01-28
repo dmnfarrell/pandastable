@@ -28,9 +28,11 @@ from tkinter import *
 try:
     from tkinter.ttk import *
     from tkinter.simpledialog import Dialog
+    from tkinter import Scale
 except:
     from ttk import *
-    import tkSimpleDialog as Dialog
+    from tkSimpleDialog import Dialog
+    from Tkinter import Scale
 from tkinter.scrolledtext import ScrolledText
 from tkinter import filedialog, messagebox, simpledialog
 from collections import OrderedDict
@@ -138,7 +140,7 @@ def dialogFromOptions(parent, opts, groups=None, callback=None,
                 fr,to=opt['range']
                 tkvars[i] = v = DoubleVar()
                 v.set(opts[i]['default'])
-                w = tkinter.Scale(frame,label=opt['label'],
+                w = Scale(frame,label=opt['label'],
                          from_=fr,to=to,
                          orient='horizontal',
                          resolution=opt['interval'],
@@ -176,6 +178,7 @@ class MultipleValDialog(Dialog):
             self.types = types
             self.tooltips = tooltips
         Dialog.__init__(self, parent, title)
+        #super(MultipleValDialog, self).__init__(parent, title)
         return
 
     def body(self, master):

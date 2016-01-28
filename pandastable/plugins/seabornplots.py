@@ -19,11 +19,15 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 """
 
+from __future__ import absolute_import, division, print_function
 from pandastable.plugin import Plugin
 from pandastable import plotting, dialogs
 import tkinter
 from tkinter import *
-from tkinter.ttk import *
+try:
+    from tkinter.ttk import *
+except:
+    from ttk import *
 import pandas as pd
 import pylab as plt
 from collections import OrderedDict

@@ -19,12 +19,17 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 """
 
+from __future__ import absolute_import, division, print_function
+from builtins import *
 import sys
 import os
 import inspect
 import tkinter
 from tkinter import *
-from tkinter.ttk import *
+try:
+    from tkinter.ttk import *
+except:
+    from ttk import *
 from . import dialogs
 
 class Plugin(object):
