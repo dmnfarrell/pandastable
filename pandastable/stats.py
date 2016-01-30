@@ -20,9 +20,13 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 """
 
-import types
+from __future__ import absolute_import, division, print_function
 from tkinter import *
-from tkinter.ttk import *
+try:
+    from tkinter.ttk import *
+except:
+    from ttk import *
+import types
 import numpy as np
 import pandas as pd
 import pylab as plt
@@ -182,6 +186,7 @@ class StatsViewer(Frame):
         ax = fig.add_subplot(111)
 
         #plotframe options
+        pf.mplopts.applyOptions()
         kwds = pf.mplopts.kwds
         kind = self.plotvar.get()
         indvar = self.indvar.get()

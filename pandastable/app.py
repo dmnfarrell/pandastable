@@ -19,13 +19,16 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 """
 
-from __future__ import absolute_import, division, print_function, generators
+from __future__ import absolute_import, print_function
 from tkinter import *
 try:
     from tkinter.ttk import *
+    from tkinter import filedialog, messagebox, simpledialog
 except:
     from ttk import *
-from tkinter import filedialog, messagebox, simpledialog
+    import tkFileDialog as filedialog
+    import tkSimpleDialog as simpledialog
+    import tkMessageBox as messagebox
 
 import matplotlib
 matplotlib.use('TkAgg')

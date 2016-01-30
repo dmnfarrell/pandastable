@@ -21,7 +21,6 @@
 """
 
 from __future__ import absolute_import, division, print_function
-#from builtins import *
 from tkinter import *
 try:
     from tkinter.ttk import *
@@ -397,13 +396,23 @@ class PlotViewer(Frame):
         elif type(axs) is list:
             self.ax = axs[0]
         self.fig.suptitle(kwds['title'], fontsize=kwds['fontsize']*1.2)
-        for ax in self.fig.axes:
-            if kwds['xlabel'] != '':
-                ax.set_xlabel(kwds['xlabel'])
-            if kwds['ylabel'] != '':
-                ax.set_ylabel(kwds['ylabel'])
-            ax.xaxis.set_visible(kwds['showxlabels'])
-            ax.yaxis.set_visible(kwds['showylabels'])
+        layout = self.playoutvar.get()
+        if layout == 0:
+            for ax in self.fig.axes:
+                self.setAxisLabels(ax, kwds)
+        else:
+            self.setAxisLabels(self.ax, kwds)
+        return
+
+    def setAxisLabels(self, ax, kwds):
+        """Set a plots axis labels"""
+
+        if kwds['xlabel'] != '':
+            ax.set_xlabel(kwds['xlabel'])
+        if kwds['ylabel'] != '':
+            ax.set_ylabel(kwds['ylabel'])
+        ax.xaxis.set_visible(kwds['showxlabels'])
+        ax.yaxis.set_visible(kwds['showylabels'])
         return
 
     def _doplot(self, data, ax, kind, subplots, errorbars, useindex, kwargs):
@@ -1052,8 +1061,8 @@ class AnnotationOptions(TkOptions):
 
         self.parent = parent
         self.groups = grps = {'global labels':['title','xlabel','ylabel','zlabel'],
-                              'box format': ['boxstyle','facecolor','linecolor','pad'],
-                              'text format': ['text','fontsize'],
+                              #'box format': ['boxstyle','facecolor','linecolor','pad'],
+                              #'textbox': ['text','fontsize'],
                              }
         self.groups = OrderedDict(sorted(grps.items()))
         opts = self.opts = {
@@ -1061,13 +1070,13 @@ class AnnotationOptions(TkOptions):
                 'xlabel':{'type':'entry','default':'','width':20},
                 'ylabel':{'type':'entry','default':'','width':20},
                 'zlabel':{'type':'entry','default':'','width':20},
-                'facecolor':{'type':'combobox','default':'lightgray','items': colors},
-                'linecolor':{'type':'combobox','default':'black','items': colors},
+                #'facecolor':{'type':'combobox','default':'lightgray','items': colors},
+                #'linecolor':{'type':'combobox','default':'black','items': colors},
                 #'fill':{'type':'combobox','default':'-','items': fillpatterns},
-                'pad':{'type':'scale','default':0.2,'range':(0,2),'interval':0.1,'label':'pad'},
-                'boxstyle':{'type':'combobox','default':'square','items': bstyles},
-                'text':{'type':'entry','default':'','width':20},
-                'fontsize':{'type':'scale','default':12,'range':(5,40),'interval':1,'label':'font size'},
+                #'pad':{'type':'scale','default':0.2,'range':(0,2),'interval':0.1,'label':'pad'},
+                #'boxstyle':{'type':'combobox','default':'square','items': bstyles},
+                #'text':{'type':'entry','default':'','width':20},
+                #'fontsize':{'type':'scale','default':12,'range':(5,40),'interval':1,'label':'font size'},
                 }
         self.kwds = {}
         self.objects = {}
@@ -1080,7 +1089,7 @@ class AnnotationOptions(TkOptions):
                                                               self.opts, self.groups,
                                                               layout=layout)
         self.main = dialog
-        self.addWidgets()
+        #self.addWidgets()
         return dialog
 
     def addWidgets(self):
@@ -1104,7 +1113,7 @@ class AnnotationOptions(TkOptions):
     def addTextBox(self):
         """Add a rectangle"""
 
-        from . import handlers
+        #from . import handlers
         import matplotlib.patches as patches
         from matplotlib.text import OffsetFrom
         fig = self.parent.fig

@@ -19,17 +19,18 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 """
 
-'''Plugin for batch file renamining'''
-
-import os, string
-import re, glob
-import tkinter
+from __future__ import absolute_import, division, print_function
 from tkinter import *
-from tkinter.ttk import *
+import tkinter
 from tkinter import filedialog, messagebox, simpledialog
 from tkinter.scrolledtext import ScrolledText
+try:
+    from tkinter.ttk import *
+except:
+    from ttk import *
+import os, string
+import re, glob
 from pandastable.plugin import Plugin
-
 
 class BatchRenamePlugin(Plugin):
     """Batch renaming plugin for DataExplore"""

@@ -3,6 +3,15 @@ CHANGES
 =======
 
 ------
+0.7.1
+------
+
+Updated code for python 2.7 compatibility
+Plot labels now in separate annotation tab
+Added color by column value for scatter plots
+Can now only save as messagepack, other formats are under export
+
+------
 0.7.0
 ------
 

@@ -20,13 +20,18 @@
 """
 
 from __future__ import absolute_import, division, print_function
-#from builtins import *
 from tkinter import *
 try:
     from tkinter.ttk import *
+    from tkinter import filedialog, messagebox, simpledialog
+    from tkinter import Scale
 except:
     from ttk import *
-from tkinter import filedialog, messagebox, simpledialog
+    from ttk import Style
+    import tkFileDialog as filedialog
+    import tkSimpleDialog as simpledialog
+    import tkMessageBox as messagebox
+    from Tkinter import Scale
 import tkinter.font
 import math, time
 import os, types
@@ -1300,7 +1305,7 @@ class Table(Canvas):
             self.functionentry.insert(END,colvar.get())
             return
 
-        self.estyle = ttk.Style()
+        self.estyle = Style()
         self.estyle.configure("White.TCombobox",
                          fieldbackground="white")
         self.estyle.configure("Red.TCombobox",
@@ -2596,27 +2601,27 @@ class Table(Canvas):
         row=row+1
         lblrowheight = Label(frame1,text='Row Height:')
         lblrowheight.grid(row=row,column=0,padx=3,pady=2)
-        rowheightentry = tkinter.Scale(frame1,from_=12,to=50,resolution=1,orient='horizontal',
+        rowheightentry = Scale(frame1,from_=12,to=50,resolution=1,orient='horizontal',
                             variable=self.rowheightvar)
         rowheightentry.grid(row=row,column=1)
         row=row+1
         lblcellwidth = Label(frame1,text='Cell Width:')
         lblcellwidth.grid(row=row,column=0,padx=3,pady=2)
-        cellwidthentry = tkinter.Scale(frame1,from_=20,to=500,resolution=10,orient='horizontal',
+        cellwidthentry = Scale(frame1,from_=20,to=500,resolution=10,orient='horizontal',
                             variable=self.cellwidthvar)
         cellwidthentry.grid(row=row,column=1)
         row=row+1
 
         lbllinewidth = Label(frame1,text='Line Width:')
         lbllinewidth.grid(row=row,column=0,padx=3,pady=2)
-        linewidthentry = tkinter.Scale(frame1,from_=0,to=10,resolution=1,orient='horizontal',
+        linewidthentry = Scale(frame1,from_=0,to=10,resolution=1,orient='horizontal',
                             variable=self.linewidthvar)
         linewidthentry.grid(row=row,column=1)
         row=row+1
 
         rowhdrwidth=Label(frame1,text='Row Header Width:')
         rowhdrwidth.grid(row=row,column=0,padx=3,pady=2)
-        rowhdrentry = tkinter.Scale(frame1,from_=0,to=300,resolution=10,orient='horizontal',
+        rowhdrentry = Scale(frame1,from_=0,to=300,resolution=10,orient='horizontal',
                                     variable=self.rowheaderwidthvar)
         rowhdrentry.grid(row=row,column=1)
         row=row+1
@@ -2632,7 +2637,7 @@ class Table(Canvas):
 
         lblfontsize = Label(frame2,text='Text Size:')
         lblfontsize.grid(row=row,column=0,padx=3,pady=2)
-        fontsizeentry = tkinter.Scale(frame2,from_=6,to=50,resolution=1,orient='horizontal',
+        fontsizeentry = Scale(frame2,from_=6,to=50,resolution=1,orient='horizontal',
                                 variable=self.celltextsizevar)
 
         fontsizeentry.grid(row=row,column=1, sticky='wens',padx=3,pady=2)
@@ -2685,7 +2690,7 @@ class Table(Canvas):
 
     def getFonts(self):
 
-        fonts = set(list(tkinter.font.families()))
+        fonts = set(list(font.families()))
         fonts = sorted(list(fonts))
         return fonts
 
@@ -2726,7 +2731,7 @@ class Table(Canvas):
         self.cellalignvar = StringVar()
         self.cellalignvar.set(self.prefs.get('align'))
         self.align = self.cellalignvar.get()
-        self.linewidthvar = IntVar()
+        self.linewidthvar = StringVar()
         self.linewidthvar.set(self.prefs.get('linewidth'))
         self.horizlinesvar = IntVar()
         self.horizlinesvar.set(self.prefs.get('horizlines'))

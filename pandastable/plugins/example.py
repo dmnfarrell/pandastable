@@ -19,10 +19,14 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 """
 
-from pandastable.plugin import Plugin
-import tkinter
+from __future__ import absolute_import, division, print_function
 from tkinter import *
-from tkinter.ttk import *
+import tkinter
+try:
+    from tkinter.ttk import *
+except:
+    from ttk import *
+from pandastable.plugin import Plugin
 
 class ExamplePlugin(Plugin):
     """Template plugin for DataExplore"""

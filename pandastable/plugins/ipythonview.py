@@ -9,14 +9,18 @@
     with fixes for the Tkinter text widget.
 """
 
+from __future__ import absolute_import, division, print_function
+from tkinter import *
+try:
+    from tkinter.ttk import *
+except:
+    from ttk import *
 import re
 import sys
 import os
 import io
 import platform
 import subprocess
-from tkinter import *
-from tkinter.ttk import *
 import IPython
 from pkg_resources import parse_version
 from pandastable.plugin import Plugin
