@@ -48,12 +48,11 @@ see the [wiki page](https://github.com/dmnfarrell/pandastable/wiki/Installation)
 
 *What version of Python?*
 
-Python 3 compatible only since upgrading tkinter applications breaks too much for backwards compatibility. 
-For a similar table widget that works in Python 2 see the previous incarnation, tkintertable.
+Python versions >=2.7 and >=3.3 are compatible. However python 3.4 is recommended if possible. For a similar table widget that works without pandas dataframes and has minimal dependencies see the previous incarnation, tkintertable.
 
 *Why use Tkinter?*
 
-Tkinter is still the standard GUI toolkit for python 3 though it is sometimes disliked 
+Tkinter is still the standard GUI toolkit for python though it is sometimes disliked 
 for its outdated appearance (especially on linux) and somewhat limited widget set. However largely
 because this library is based on an older one called tkintertable for drawing the table, 
 I have stuck with tkinter rather than start from scratch using another toolkit.
@@ -104,9 +103,10 @@ pt.doImport('test.csv')
 
 ## Links
 
-http://bokeh.pydata.org/
+http://dmnfarrell.github.io/pandastable/
 
-http://stanford.edu/~mwaskom/software/seaborn/
+https://youtu.be/lA7bhbWOkSw
+
+http://decisionstats.com/2015/12/25/interview-damien-farrell-python-gui-dataexplore-python-rstats-pydata/
 
 http://jakevdp.github.io/blog/2013/03/23/matplotlib-and-the-future-of-visualization-in-python/
-
