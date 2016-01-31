@@ -20,11 +20,13 @@
 """
 
 from __future__ import absolute_import, print_function
-from tkinter import *
+
 try:
+    from tkinter import *
     from tkinter.ttk import *
     from tkinter import filedialog, messagebox, simpledialog
 except:
+    from Tkinter import *
     from ttk import *
     import tkFileDialog as filedialog
     import tkSimpleDialog as simpledialog
