@@ -3,11 +3,11 @@ python:
   - 2.7
   - 3.4  
 install:
-  - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then pip install future pyttk; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == 2* ]]; then pip install future pyttk; fi
   - pip install numpy matplotlib numexpr xlrd pandas
   - python setup.py install
 script:
-    python3 -m pandastable.tests
+    python -m pandastable.tests
 
 before_script:
   - "export DISPLAY=:99.0"
