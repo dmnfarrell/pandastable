@@ -20,18 +20,16 @@
 """
 
 from __future__ import absolute_import, division, print_function
-from tkinter import *
 try:
+    from tkinter import *
     from tkinter.ttk import *
     from tkinter import filedialog, messagebox, simpledialog
-    from tkinter import Scale
 except:
+    from Tkinter import *
     from ttk import *
-    from ttk import Style
     import tkFileDialog as filedialog
     import tkSimpleDialog as simpledialog
     import tkMessageBox as messagebox
-    from Tkinter import Scale
 import tkinter.font
 import math, time
 import os, types
