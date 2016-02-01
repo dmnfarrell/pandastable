@@ -124,6 +124,15 @@ class TableTests(unittest.TestCase):
         table.load('temp.mpk')
         return
 
+    '''def testE(self):
+        """Plugins test"""
+
+        from . import plugin
+        for plg in plugin.get_plugins_classes('gui'):
+            p = plg()
+            print (p)
+        return'''
+
     def quit(self):
         self.app.quit()
 

@@ -20,13 +20,16 @@
 """
 
 from __future__ import absolute_import, print_function
+import sys
 try:
     from tkinter import *
     from tkinter.ttk import *
-    from tkinter import filedialog, messagebox, simpledialog
 except:
     from Tkinter import *
     from ttk import *
+if (sys.version_info > (3, 0)):
+    from tkinter import filedialog, messagebox, simpledialog
+else:
     import tkFileDialog as filedialog
     import tkSimpleDialog as simpledialog
     import tkMessageBox as messagebox
