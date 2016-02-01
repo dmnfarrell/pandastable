@@ -24,13 +24,15 @@ try:
     from tkinter import *
     from tkinter.ttk import *
     from tkinter import filedialog, messagebox, simpledialog
+    import tkinter.font
 except:
     from Tkinter import *
     from ttk import *
     import tkFileDialog as filedialog
     import tkSimpleDialog as simpledialog
     import tkMessageBox as messagebox
-import tkinter.font
+    import tkFont
+
 import math, time
 import os, types
 import string, copy

@@ -23,22 +23,24 @@ from __future__ import absolute_import, division, print_function
 #from builtins import *
 import sys,os,types
 import platform
-import tkinter
-from tkinter import *
 try:
+    import tkinter
+    from tkinter import *
     from tkinter.ttk import *
     from tkinter import filedialog, messagebox, simpledialog
     from tkinter.simpledialog import Dialog
     from tkinter import Scale
+    from tkinter.scrolledtext import ScrolledText
 except:
+    import Tkinter
+    from Tkinter import *
     from ttk import *
     from tkSimpleDialog import Dialog
     from Tkinter import Scale
     import tkFileDialog as filedialog
     import tkSimpleDialog as simpledialog
     import tkMessageBox as messagebox
-
-from tkinter.scrolledtext import ScrolledText
+    import ScrolledText
 
 from collections import OrderedDict
 import webbrowser
