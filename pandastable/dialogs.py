@@ -23,14 +23,16 @@ from __future__ import absolute_import, division, print_function
 #from builtins import *
 import sys,os,types
 import platform
-import tkinter
-from tkinter import *
 try:
+    import tkinter
+    from tkinter import *
     from tkinter.ttk import *
     from tkinter import filedialog, messagebox, simpledialog
     from tkinter.simpledialog import Dialog
     from tkinter import Scale
 except:
+    import Tkinter
+    from Tkinter import *
     from ttk import *
     from tkSimpleDialog import Dialog
     from Tkinter import Scale
