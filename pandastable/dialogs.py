@@ -30,6 +30,7 @@ try:
     from tkinter import filedialog, messagebox, simpledialog
     from tkinter.simpledialog import Dialog
     from tkinter import Scale
+    from tkinter.scrolledtext import ScrolledText
 except:
     import Tkinter
     from Tkinter import *
@@ -39,8 +40,7 @@ except:
     import tkFileDialog as filedialog
     import tkSimpleDialog as simpledialog
     import tkMessageBox as messagebox
-
-from tkinter.scrolledtext import ScrolledText
+    import ScrolledText
 
 from collections import OrderedDict
 import webbrowser
