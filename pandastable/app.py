@@ -92,7 +92,7 @@ class ViewerApp(Frame):
         self.projopen = False
 
         opts = {'layout':{'type':'checkbutton','default':'horizontal'}}
-        self.prefs = Prefs('.dataexplore', opts=opts)
+        #self.prefs = Prefs('.dataexplore', opts=opts)
         if data != None:
             self.data = data
             self.newProject(data)
