@@ -291,7 +291,7 @@ class PlotViewer(Frame):
                           'sharey', 'kind'],
                     'scatter': ['alpha', 'grid', 'linewidth', 'marker', 'subplots', 's',
                             'legend', 'colormap','sharey', 'logx', 'logy', 'use_index','c',
-                            'cscale','colorbar'],
+                            'cscale','colorbar','bw'],
                     'pie': ['colormap','legend'],
                     'hexbin': ['alpha', 'colormap', 'grid', 'linewidth'],
                     'bootstrap': ['grid'],
@@ -324,6 +324,7 @@ class PlotViewer(Frame):
         by2 = kwds['by2']
         errorbars = kwds['errorbars']
         useindex = kwds['use_index']
+        bw = kwds['bw']
 
         #valid kwd args for this plot type
         kwargs = dict((k, kwds[k]) for k in valid[kind] if k in kwds)
@@ -365,7 +366,7 @@ class PlotViewer(Frame):
             #self.canvas.draw()
         else:
             axs = self._doplot(data, ax, kind, kwds['subplots'], errorbars,
-                               useindex, kwargs)
+                               useindex, bw=bw, kwargs=kwargs)
         if table == True:
             from pandas.tools.plotting import table
             if self.table.child != None:
@@ -416,7 +417,7 @@ class PlotViewer(Frame):
         ax.yaxis.set_visible(kwds['showylabels'])
         return
 
-    def _doplot(self, data, ax, kind, subplots, errorbars, useindex, kwargs):
+    def _doplot(self, data, ax, kind, subplots, errorbars, useindex, bw, kwargs):
         """Do core plotting"""
 
         cols = data.columns
@@ -427,6 +428,17 @@ class PlotViewer(Frame):
             kwargs['subplots'] = 0
         if 'colormap' in kwargs:
             cmap = plt.cm.get_cmap(kwargs['colormap'])
+        #change some things if we are plotting in b&w
+        styles = []
+        if bw == True:
+            cmap = None
+            color = 'k'
+            styles = ["-","--","-.",":"]
+            kwargs['colormap'] = None
+            if 'linestyle' in kwargs:
+                del kwargs['linestyle']
+        else:
+            color = None
         if subplots == 0:
             layout = None
         else:
@@ -509,7 +521,8 @@ class PlotViewer(Frame):
                 msg = "Not enough data.\nIf 'use index' is off select at least 2 columns"
                 self.showWarning(msg)
                 return
-            axs = data.plot(ax=ax, layout=layout, yerr=yerr, **kwargs)
+            axs = data.plot(ax=ax, layout=layout, yerr=yerr, color=color, style=styles,
+                            **kwargs)
         return axs
 
     def scatter(self, df, ax, alpha=0.8, marker='o', **kwds):
@@ -528,6 +541,7 @@ class PlotViewer(Frame):
         c = kwds['c']
         cscale = kwds['cscale']
         grid = kwds['grid']
+        bw = kwds['bw']
         if cscale == 'log':
             norm = mpl.colors.LogNorm()
         else:
@@ -553,13 +567,18 @@ class PlotViewer(Frame):
         plots = len(cols)
         for i in range(s,plots):
             y = df[cols[i]]
-            clr = cmap(float(i)/(plots))
+            ec = 'black'
+            if bw == True:
+                clr = 'white'
+                colormap = None
+            else:
+                clr = cmap(float(i)/(plots))
             if colormap != None:
                 clr=None
-            if marker in ['x','+']:
-                ec=clr
-            else:
-                ec='black'
+            if marker in ['x','+'] and bw == False:
+                ec = clr
+            #else:
+            #    ec='black'
             if kwds['subplots'] == 1:
                 ax = self.fig.add_subplot(nrows,ncols,i)
             scplt = ax.scatter(x, y, marker=marker, alpha=alpha, linewidth=lw, c=c,
@@ -890,7 +909,7 @@ class MPLBaseOptions(TkOptions):
                 'sizes':['fontsize','s','linewidth'],
                 'formats':['kind','stacked','subplots','grid','legend','table'],
                 'axes':['showxlabels','showylabels','sharex','sharey','logx','logy','rot'],
-                'styles colors':['colormap','c','cscale','colorbar']}
+                'styles colors':['colormap','bw','c','cscale','colorbar']}
         order = ['data','formats','sizes','axes','styles','labels']
         self.groups = OrderedDict(sorted(grps.items()))
         opts = self.opts = {'font':{'type':'combobox','default':self.defaultfont,'items':fonts},
@@ -904,16 +923,17 @@ class MPLBaseOptions(TkOptions):
                 'rot':{'type':'entry','default':0, 'label':'xlabel angle'},
                 'use_index':{'type':'checkbutton','default':1,'label':'use index'},
                 'errorbars':{'type':'checkbutton','default':0,'label':'use errorbars'},
-                'c':{'type':'combobox','items':datacols,'label':'color by','default':''},
+                'c':{'type':'combobox','items':datacols,'label':'color by value','default':''},
                 'cscale':{'type':'combobox','items':scales,'label':'color scale','default':'linear'},
                 'colorbar':{'type':'checkbutton','default':0,'label':'show colorbar'},
+                'bw':{'type':'checkbutton','default':0,'label':'black & white'},
                 'showxlabels':{'type':'checkbutton','default':1,'label':'x tick labels'},
                 'showylabels':{'type':'checkbutton','default':1,'label':'y tick labels'},
                 'sharex':{'type':'checkbutton','default':0,'label':'share x'},
                 'sharey':{'type':'checkbutton','default':0,'label':'share y'},
                 'legend':{'type':'checkbutton','default':1,'label':'legend'},
                 'table':{'type':'checkbutton','default':0,'label':'show table'},
-                'kind':{'type':'combobox','default':'line','items':self.kinds,'label':'kind'},
+                'kind':{'type':'combobox','default':'line','items':self.kinds,'label':'plot type'},
                 'stacked':{'type':'checkbutton','default':0,'label':'stacked'},
                 'linewidth':{'type':'scale','default':1.5,'range':(0.1,8),'interval':0.1,'label':'line width'},
                 'alpha':{'type':'scale','default':0.7,'range':(0,1),'interval':0.1,'label':'alpha'},
