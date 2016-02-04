@@ -600,6 +600,7 @@ class IPythonPlugin(Plugin):
         import numpy as np
         import pandastable as pt
         s.updateNamespace({'df':df, 'table':self.table,
+                           'app':self.parent,
                            'pd':pd, 'np':np, 'pt':pt})
         return
 

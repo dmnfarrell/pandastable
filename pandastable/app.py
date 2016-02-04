@@ -46,7 +46,7 @@ from .dialogs import MultipleValDialog
 from . import plugin
 from .preferences import Prefs
 
-class ViewerApp(Frame):
+class DataExplore(Frame):
     """Pandastable viewer application"""
 
     def __init__(self,parent=None, data=None, projfile=None, msgpack=None):
@@ -97,9 +97,9 @@ class ViewerApp(Frame):
             self.data = data
             self.newProject(data)
         elif projfile != None:
-            self.openProject(projfile)
+            self.loadProject(projfile)
         elif msgpack != None:
-            self.loadmsgpack(msgpack)
+            self.load_msgpack(msgpack)
         else:
             self.newProject()
 
@@ -133,7 +133,7 @@ class ViewerApp(Frame):
 
         self.menu=Menu(self.main)
         self.proj_menu={'01New':{'cmd': self.newProject},
-                        '02Open':{'cmd': lambda: self.openProject(asksave=True)},
+                        '02Open':{'cmd': lambda: self.loadProject(asksave=True)},
                         '03Close':{'cmd':self.closeProject},
                         '04Save':{'cmd':self.saveProject},
                         '05Save As':{'cmd':self.saveasProject},
@@ -363,7 +363,7 @@ class ViewerApp(Frame):
         self.main.title('DataExplore')
         return
 
-    def openProject(self, filename=None, asksave=False):
+    def loadProject(self, filename=None, asksave=False):
         """Open project file"""
 
         w=True
@@ -392,9 +392,11 @@ class ViewerApp(Frame):
         self.projopen = True
         return
 
-    def saveProject(self):
+    def saveProject(self, filename=None):
         """Save project"""
 
+        if filename != None:
+            self.filename = filename
         if not hasattr(self, 'filename') or self.filename == None:
             self.saveasProject()
         else:
@@ -451,13 +453,9 @@ class ViewerApp(Frame):
         self.main.title('DataExplore')
         return w
 
-    def loadmsgpack(self, filename):
-        """Load a msgpack file"""
+    def load_dataframe(self, df, name=None):
+        """Load a DataFrame into a new sheet"""
 
-        size = round((os.path.getsize(filename)/1.0485e6),2)
-        print (size)
-        df = pd.read_msgpack(filename)
-        name = os.path.splitext(os.path.basename(filename))[0]
         if hasattr(self,'sheets'):
             self.addSheet(sheetname=name, df=df)
         else:
@@ -465,11 +463,21 @@ class ViewerApp(Frame):
             self.newProject(data)
         return
 
+    def load_msgpack(self, filename):
+        """Load a msgpack file"""
+
+        size = round((os.path.getsize(filename)/1.0485e6),2)
+        print (size)
+        df = pd.read_msgpack(filename)
+        name = os.path.splitext(os.path.basename(filename))[0]
+        self.load_dataframe(df, name)
+        return
+
     def getData(self, name):
         """Get predefined data from dataset folder"""
 
         filename = os.path.join(self.modulepath, 'datasets', name)
-        self.loadmsgpack(filename)
+        self.load_msgpack(filename)
         return
 
     def addSheet(self, sheetname=None, df=None, meta=None, select=False):
@@ -840,11 +848,11 @@ def main():
                         help="Open a dataexplore project file", metavar="FILE")
     opts, remainder = parser.parse_args()
     if opts.projfile != None:
-        app = ViewerApp(projfile=opts.projfile)
+        app = DataExplore(projfile=opts.projfile)
     elif opts.msgpack != None:
-        app = ViewerApp(msgpack=opts.msgpack)
+        app = DataExplore(msgpack=opts.msgpack)
     else:
-        app = ViewerApp()
+        app = DataExplore()
     app.mainloop()
     return
 

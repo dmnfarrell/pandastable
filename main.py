@@ -19,7 +19,7 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 """
 
-from pandastable.app import ViewerApp
+from pandastable.app import DataExplore
 
 def main():
     """Run the application from outside the module - used for
@@ -34,11 +34,11 @@ def main():
                         help="Open a dataexplore project file", metavar="FILE")
     opts, remainder = parser.parse_args()
     if opts.projfile != None:
-        app = ViewerApp(projfile=opts.projfile)
+        app = DataExplore(projfile=opts.projfile)
     elif opts.msgpack != None:
-        app = ViewerApp(msgpack=opts.msgpack)
+        app = DataExplore(msgpack=opts.msgpack)
     else:
-        app = ViewerApp()
+        app = DataExplore()
     app.mainloop()
 
 if __name__ == '__main__':
