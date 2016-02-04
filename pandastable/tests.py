@@ -30,7 +30,7 @@ except:
 import pandas as pd
 from .core import Table
 from .data import TableModel
-from .app import ViewerApp
+from .app import DataExplore
 import unittest
 import threading
 
@@ -142,7 +142,7 @@ class DataExploreTests(unittest.TestCase):
 
     '''def testApp(self):
         """Basic dataexplore app test"""
-        app = ViewerApp()
+        app = DataExplore()
         table = app.getCurrentTable()
         app.deleteSheet()
         app.sampleData()
