@@ -20,7 +20,6 @@
 """
 
 from __future__ import absolute_import, division, print_function
-#from builtins import *
 from tkinter import *
 try:
     from tkinter.ttk import *
@@ -29,6 +28,7 @@ except:
 import math, time
 import os, types
 import string, copy
+import numpy as np
 import pandas as pd
 
 def getTextLength(text, w, scratch=None, font=None):
@@ -101,3 +101,12 @@ def getFonts():
      #f = matplotlib.font_manager.FontProperties(family='monospace')
      #print (matplotlib.font_manager.findfont(f))
      return fonts
+
+def adjustColorMap(cmap, minval=0.0, maxval=1.0, n=100):
+    """Adjust colormap to avoid using white in plots"""
+
+    from matplotlib import colors
+    new_cmap = colors.LinearSegmentedColormap.from_list(
+        'trunc({n},{a:.2f},{b:.2f})'.format(n=cmap.name, a=minval, b=maxval),
+        cmap(np.linspace(minval, maxval, n)))
+    return new_cmap

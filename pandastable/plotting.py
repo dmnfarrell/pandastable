@@ -430,15 +430,15 @@ class PlotViewer(Frame):
             cmap = plt.cm.get_cmap(kwargs['colormap'])
         #change some things if we are plotting in b&w
         styles = []
-        if bw == True:
+        if bw == True and kind not in ['pie','heatmap']:
             cmap = None
-            color = 'k'
-            styles = ["-","--","-.",":"]
+            kwargs['color'] = 'k'
             kwargs['colormap'] = None
+            styles = ["-","--","-.",":"]
             if 'linestyle' in kwargs:
                 del kwargs['linestyle']
-        else:
-            color = None
+        #else:
+            #color = ''
         if subplots == 0:
             layout = None
         else:
@@ -513,6 +513,7 @@ class PlotViewer(Frame):
             lw = kwargs['linewidth']
             axs = data.plot(ax=ax, layout=layout, xerr=yerr, **kwargs)
         else:
+            #line plot
             if useindex == False:
                 x=data.columns[0]
                 data.set_index(x,inplace=True)
@@ -521,8 +522,11 @@ class PlotViewer(Frame):
                 msg = "Not enough data.\nIf 'use index' is off select at least 2 columns"
                 self.showWarning(msg)
                 return
-            axs = data.plot(ax=ax, layout=layout, yerr=yerr, color=color, style=styles,
-                            **kwargs)
+            #adjust colormap to avoid white lines
+            if cmap != None:
+                kwargs['colormap'] = util.adjustColorMap(cmap, 0.2,1.0)
+            axs = data.plot(ax=ax, layout=layout, yerr=yerr, style=styles,
+                             **kwargs)
         return axs
 
     def scatter(self, df, ax, alpha=0.8, marker='o', **kwds):
