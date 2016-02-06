@@ -17,7 +17,8 @@ setup(
                       'matplotlib>=1.1',
                       'pandas>=0.17',
                       'numexpr>=2.4',
-                      'xlrd>=0.9'],
+                      'xlrd>=0.9',
+                      'future'],
     entry_points = { 'gui_scripts': [
                      'dataexplore = pandastable.app:main']},
     classifiers = ['Operating System :: OS Independent',

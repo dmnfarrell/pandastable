@@ -20,14 +20,20 @@
 """
 
 from __future__ import absolute_import, division, print_function
-from tkinter import *
-import tkinter
-from tkinter import filedialog, messagebox, simpledialog
-from tkinter.scrolledtext import ScrolledText
 try:
+    from tkinter import *
     from tkinter.ttk import *
+    from tkinter.scrolledtext import ScrolledText
 except:
+    from Tkinter import *
     from ttk import *
+    import ScrolledText
+if (sys.version_info > (3, 0)):
+    from tkinter import filedialog, messagebox, simpledialog
+else:
+    import tkFileDialog as filedialog
+    import tkSimpleDialog as simpledialog
+    import tkMessageBox as messagebox
 import os, string
 import re, glob
 from pandastable.plugin import Plugin

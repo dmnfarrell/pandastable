@@ -20,15 +20,15 @@
 """
 
 from __future__ import absolute_import, division, print_function
-from builtins import *
 import math, time
 import os, types
 import string, copy
 from configparser import ConfigParser
-from tkinter import *
 try:
+    from tkinter import *
     from tkinter.ttk import *
 except:
+    from Tkinter import *
     from ttk import *
 from .core import Table
 from .data import TableModel

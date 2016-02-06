@@ -10,10 +10,11 @@
 """
 
 from __future__ import absolute_import, division, print_function
-from tkinter import *
 try:
+    from tkinter import *
     from tkinter.ttk import *
 except:
+    from Tkinter import *
     from ttk import *
 import re
 import sys

@@ -30,7 +30,7 @@ except:
     import tkFileDialog as filedialog
     import tkSimpleDialog as simpledialog
     import tkMessageBox as messagebox
-import tkinter.font
+#import tkinter.font
 import math, time
 import os, types
 import string, copy
@@ -139,7 +139,7 @@ class Table(Canvas):
         return
 
     def setFontSize(self):
-        """Set font size to match font, we need to get rid of fontsize as
+        """Set font size to match font, we need to get rid of `size as
             a separate variable?"""
 
         if hasattr(self, 'thefont') and type(self.thefont) is tuple:

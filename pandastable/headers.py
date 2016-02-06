@@ -19,14 +19,15 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 """
 
-from __future__ import absolute_import, division, print_function
+#from __future__ import absolute_import, division, print_function
 import sys
 import math, time
 import os, types, string
-from tkinter import *
 try:
+    from tkinter import *
     from tkinter.ttk import *
 except:
+    from Tkinter import *
     from ttk import *
 import numpy as np
 import pandas as pd

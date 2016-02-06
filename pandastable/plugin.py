@@ -20,15 +20,14 @@
 """
 
 from __future__ import absolute_import, division, print_function
-from builtins import *
-import sys
-import os
+import sys, os
 import inspect
-import tkinter
-from tkinter import *
 try:
+    #import tkinter
+    from tkinter import *
     from tkinter.ttk import *
 except:
+    from Tkinter import *
     from ttk import *
 from . import dialogs
 

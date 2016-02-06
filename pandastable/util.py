@@ -20,11 +20,11 @@
 """
 
 from __future__ import absolute_import, division, print_function
-#from builtins import *
-from tkinter import *
 try:
+    from tkinter import *
     from tkinter.ttk import *
 except:
+    from Tkinter import *
     from ttk import *
 import math, time
 import os, types

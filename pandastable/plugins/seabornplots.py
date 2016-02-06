@@ -22,11 +22,11 @@
 from __future__ import absolute_import, division, print_function
 from pandastable.plugin import Plugin
 from pandastable import plotting, dialogs
-import tkinter
-from tkinter import *
 try:
+    from tkinter import *
     from tkinter.ttk import *
 except:
+    from Tkinter import *
     from ttk import *
 import pandas as pd
 import pylab as plt

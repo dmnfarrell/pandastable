@@ -1,10 +1,10 @@
 package:
   name: pandastable
-  version: "0.7.0"
+  version: "0.7.1"
 
 source:
-  fn: pandastable-0.7.0.tar.gz
-  url: https://pypi.python.org/packages/source/p/pandastable/pandastable-0.7.0.tar.gz
+  fn: pandastable-0.7.1.tar.gz
+  url: https://pypi.python.org/packages/source/p/pandastable/pandastable-0.7.1.tar.gz
   md5: d1e055e8583eeb6587a5c00f7bcfa46c
 #  patches:
    # List any patch files here
