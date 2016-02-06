@@ -30,7 +30,7 @@ except:
     import tkFileDialog as filedialog
     import tkSimpleDialog as simpledialog
     import tkMessageBox as messagebox
-#import tkinter.font
+from tkinter import font
 import math, time
 import os, types
 import string, copy
