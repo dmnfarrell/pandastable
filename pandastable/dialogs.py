@@ -79,10 +79,15 @@ def dialogFromOptions(parent, opts, groups=None, callback=None,
             continue
         if layout=='horizontal':
             row=0; c+=1
+            side=LEFT
+            fill=Y
         else:
             c=0; row+=1
+            side=TOP
+            fill=X
         frame = LabelFrame(dialog, text=g)
-        frame.grid(row=row,column=c,sticky=sticky)
+        #frame.grid(row=row,column=c,sticky=sticky)
+        frame.pack(side=side,fill=fill,expand=False)
 
         for i in groups[g]:
             w=None

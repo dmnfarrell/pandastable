@@ -83,7 +83,7 @@ class DataExplore(Frame):
             self.style.theme_use('default')
 
         self.style.configure("TButton", padding=(3, 3, 3, 3), relief="raised")
-        self.style.configure("TEntry", padding=(3, 3, 3, 3))
+        #self.style.configure("TEntry", padding=(3, 3, 3, 3))
         self.main.title('DataExplore')
         self.createMenuBar()
         self.discoverPlugins()
@@ -102,8 +102,8 @@ class DataExplore(Frame):
             self.load_msgpack(msgpack)
         else:
             self.newProject()
-
         self.main.protocol('WM_DELETE_WINDOW',self.quit)
+        self.main.lift()
         return
 
     def setConfigDir(self):
@@ -147,6 +147,7 @@ class DataExplore(Frame):
                          '02Remove Sheet':{'cmd': lambda: self.deleteSheet(ask=True)},
                          '03Copy Sheet':{'cmd':self.copySheet},
                          '04Rename Sheet':{'cmd':self.renameSheet},
+                         '05Sheet Description':{'cmd':self.editSheetDescription}
                          }
         self.sheet_menu=self.createPulldown(self.menu,self.sheet_menu)
         self.menu.add_cascade(label='Sheet',menu=self.sheet_menu['var'])
@@ -286,7 +287,7 @@ class DataExplore(Frame):
         return
 
     def loadMeta(self, table, meta):
-        """Load meta data for a table"""
+        """Load meta data for a sheet"""
 
         tablesettings = meta['table']
         rowheadersettings = meta['rowheader']
@@ -296,11 +297,13 @@ class DataExplore(Frame):
             childsettings = meta['childselected']
         else:
             childtable = None
-        #update plot options
+        #update plot options - find a neater way to load them
         plotopts = meta['plotoptions']
         plotopts3d = meta['plotoptions3d']
+        #labelopts = meta['labelopts']
         table.pf.mplopts.updateFromOptions(plotopts)
         table.pf.mplopts3d.updateFromOptions(plotopts3d)
+        #table.pf.labelopts.updateFromOptions(labelopts)
 
         util.setAttributes(table, tablesettings)
         util.setAttributes(table.rowheader, rowheadersettings)
@@ -566,6 +569,18 @@ class DataExplore(Frame):
             return
         self.copySheet(newname)
         self.deleteSheet()
+        return
+
+    def editSheetDescription(self):
+        """Add some meta data about the sheet"""
+
+        from .dialogs import SimpleEditor
+        w = Toplevel(self.main)
+        w.grab_set()
+        w.transient(self)
+        ed = SimpleEditor(w, height=25)
+        ed.pack(in_=w, fill=BOTH, expand=Y)
+        #ed.text.insert(END, buf.getvalue())
         return
 
     def getCurrentSheet(self):

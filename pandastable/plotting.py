@@ -138,10 +138,10 @@ class PlotViewer(Frame):
             sf.pack(side=TOP,fill=BOTH)
             self.nb = Notebook(sf.interior,width=100,height=1050)
         else:
-            self.nb = Notebook(self.ctrlfr,height=190)
+            self.nb = Notebook(self.ctrlfr,height=195)
 
         self.nb.bind('<<NotebookTabChanged>>', self.setMode)
-        self.nb.pack(side=TOP,fill=BOTH,expand=1)
+        self.nb.pack(side=TOP,fill=BOTH,expand=0)
 
         #add plotter tool dialogs
         w1 = self.mplopts.showDialog(self.nb, layout=self.layout)
@@ -557,10 +557,11 @@ class PlotViewer(Frame):
             c = df[c]
         else:
             c = None
+        plots = len(cols)
         if marker == '':
             marker = 'o'
         if kwds['subplots'] == 1:
-            size=plots-1
+            size = plots-1
             nrows = round(np.sqrt(size),0)
             ncols = np.ceil(size/nrows)
             self.fig.clear()
@@ -569,7 +570,7 @@ class PlotViewer(Frame):
         else:
             colormap = None
             c=[]
-        plots = len(cols)
+
         for i in range(s,plots):
             y = df[cols[i]]
             ec = 'black'
@@ -1064,7 +1065,8 @@ class PlotLayoutOptions(TkOptions):
         b.pack(fill=X,pady=2)
         b = Button(frame, text='set title', command=self.parent.setSubplotTitle)
         b.pack(fill=X,pady=2)
-        frame.grid(row=0,column=4,sticky='news')
+        #frame.grid(row=0,column=4,sticky='news')
+        frame.pack()
         return
 
     def updateAxesList(self):
@@ -1111,7 +1113,7 @@ class AnnotationOptions(TkOptions):
         return
 
     def showDialog(self, parent, layout='horizontal'):
-        """Override because we need to add custom bits"""
+        """Override because we need to add custom widgets"""
 
         dialog, self.tkvars, self.widgets = dialogFromOptions(parent,
                                                               self.opts, self.groups,
@@ -1135,7 +1137,8 @@ class AnnotationOptions(TkOptions):
         b.pack(fill=X,pady=2)
         #b = Button(frame, text='Save', command=self.saveObject)
         #b.pack(fill=X,pady=2)
-        frame.grid(row=0,column=4,sticky='news')
+        #frame.grid(row=0,column=4,sticky='news')
+        frame.pack()
         return
 
     def addTextBox(self):
