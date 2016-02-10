@@ -355,7 +355,8 @@ class PlotViewer(Frame):
                 ax = self.fig.add_subplot(nrows,ncols,i)
                 kwargs['legend'] = False #remove axis legends
                 d=df.drop(by,1) #remove grouping columns
-                self._doplot(d, ax, kind, False,  errorbars, useindex, kwargs)
+                self._doplot(d, ax, kind, False,  errorbars, useindex,
+                              bw=bw, kwargs=kwargs)
                 ax.set_title(n)
                 handles, labels = ax.get_legend_handles_labels()
                 i+=1
@@ -524,7 +525,7 @@ class PlotViewer(Frame):
                 return
             #adjust colormap to avoid white lines
             if cmap != None:
-                kwargs['colormap'] = util.adjustColorMap(cmap, 0.2,1.0)
+                kwargs['colormap'] = util.adjustColorMap(cmap, 0.15,1.0)
             axs = data.plot(ax=ax, layout=layout, yerr=yerr, style=styles,
                              **kwargs)
         return axs
@@ -852,6 +853,8 @@ class TkOptions(object):
 
         kwds = {}
         for i in self.opts:
+            if not i in self.tkvars:
+                continue
             if self.opts[i]['type'] == 'listbox':
                 items = self.widgets[i].curselection()
                 kwds[i] = [self.widgets[i].get(j) for j in items]
@@ -940,7 +943,7 @@ class MPLBaseOptions(TkOptions):
                 'kind':{'type':'combobox','default':'line','items':self.kinds,'label':'plot type'},
                 'stacked':{'type':'checkbutton','default':0,'label':'stacked'},
                 'linewidth':{'type':'scale','default':1.5,'range':(0.1,8),'interval':0.1,'label':'line width'},
-                'alpha':{'type':'scale','default':0.7,'range':(0,1),'interval':0.1,'label':'alpha'},
+                'alpha':{'type':'scale','default':0.8,'range':(0,1),'interval':0.1,'label':'alpha'},
                 'subplots':{'type':'checkbutton','default':0,'label':'multiple subplots'},
                 'colormap':{'type':'combobox','default':'Spectral','items':colormaps},
                 'bins':{'type':'entry','default':20,'width':10},
@@ -1086,8 +1089,8 @@ class AnnotationOptions(TkOptions):
 
         self.parent = parent
         self.groups = grps = {'global labels':['title','xlabel','ylabel','zlabel'],
-                              #'box format': ['boxstyle','facecolor','linecolor','pad'],
-                              #'textbox': ['text','fontsize'],
+                              'box format': ['boxstyle','facecolor','linecolor','pad'],
+                              'textbox': ['text','fontsize'],
                              }
         self.groups = OrderedDict(sorted(grps.items()))
         opts = self.opts = {
@@ -1095,13 +1098,13 @@ class AnnotationOptions(TkOptions):
                 'xlabel':{'type':'entry','default':'','width':20},
                 'ylabel':{'type':'entry','default':'','width':20},
                 'zlabel':{'type':'entry','default':'','width':20},
-                #'facecolor':{'type':'combobox','default':'lightgray','items': colors},
-                #'linecolor':{'type':'combobox','default':'black','items': colors},
-                #'fill':{'type':'combobox','default':'-','items': fillpatterns},
-                #'pad':{'type':'scale','default':0.2,'range':(0,2),'interval':0.1,'label':'pad'},
-                #'boxstyle':{'type':'combobox','default':'square','items': bstyles},
-                #'text':{'type':'entry','default':'','width':20},
-                #'fontsize':{'type':'scale','default':12,'range':(5,40),'interval':1,'label':'font size'},
+                'facecolor':{'type':'combobox','default':'lightgray','items': colors},
+                'linecolor':{'type':'combobox','default':'black','items': colors},
+                'fill':{'type':'combobox','default':'-','items': fillpatterns},
+                'pad':{'type':'scale','default':0.2,'range':(0,2),'interval':0.1,'label':'pad'},
+                'boxstyle':{'type':'combobox','default':'square','items': bstyles},
+                'text':{'type':'entry','default':'','width':20},
+                'fontsize':{'type':'scale','default':12,'range':(5,40),'interval':1,'label':'font size'},
                 }
         self.kwds = {}
         self.objects = {}
@@ -1114,7 +1117,7 @@ class AnnotationOptions(TkOptions):
                                                               self.opts, self.groups,
                                                               layout=layout)
         self.main = dialog
-        #self.addWidgets()
+        self.addWidgets()
         return dialog
 
     def addWidgets(self):
