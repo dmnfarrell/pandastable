@@ -279,7 +279,7 @@ class PlotViewer(Frame):
         return
 
     def plot2D(self):
-        """Draw method for current data. Relies on pandas plot functionality
+        """Plot method for current data. Relies on pandas plot functionality
            if possible. There is some temporary code here to make sure only the valid
            plot options are passed for each plot kind."""
 
@@ -342,7 +342,7 @@ class PlotViewer(Frame):
             if by2 != '' and by2 in data.columns:
                 by = [by,by2]
             g = data.groupby(by)
-            if len(g) >25:
+            if len(g) > 30:
                 self.showWarning('too many groups to plot')
                 return
             self.ax.set_visible(False)
@@ -351,20 +351,37 @@ class PlotViewer(Frame):
             nrows = round(np.sqrt(size),0)
             ncols = np.ceil(size/nrows)
             i=1
+
             for n,df in g:
                 ax = self.fig.add_subplot(nrows,ncols,i)
                 kwargs['legend'] = False #remove axis legends
-                d=df.drop(by,1) #remove grouping columns
+                d = df.drop(by,1) #remove grouping columns
                 self._doplot(d, ax, kind, False,  errorbars, useindex,
                               bw=bw, kwargs=kwargs)
                 ax.set_title(n)
                 handles, labels = ax.get_legend_handles_labels()
                 i+=1
-            self.fig.legend(handles, labels, loc='center right')#, bbox_to_anchor=(1, 0.5))
+
+            #single plot
+            '''cmap = plt.cm.get_cmap(kwargs['colormap'])
+            colors = []
+            names = []
+            for n,df in g:
+                ax = self.ax
+                kwargs['legend'] = False #remove axis legends
+                d = df.drop(by,1) #remove grouping columns
+                self._doplot(d, ax, kind, False,  errorbars, useindex,
+                              bw=bw, kwargs=kwargs)
+                names.append(n)
+            handles, labels = ax.get_legend_handles_labels()
+            print (labels)
+            labels = [l+' '+n for l in labels]
+            i+=1'''
+
+            self.fig.legend(handles, labels, loc='center right')
             self.fig.subplots_adjust(left=0.1, right=0.9, top=0.9,
                                      bottom=0.1, hspace=.25)
             axs = self.fig.get_axes()
-            #self.canvas.draw()
         else:
             axs = self._doplot(data, ax, kind, kwds['subplots'], errorbars,
                                useindex, bw=bw, kwargs=kwargs)
@@ -419,8 +436,9 @@ class PlotViewer(Frame):
         return
 
     def _doplot(self, data, ax, kind, subplots, errorbars, useindex, bw, kwargs):
-        """Do core plotting"""
+        """Core plotting method"""
 
+        kwargs = kwargs.copy()
         cols = data.columns
         if kind == 'line':
             data = data.sort_index()
@@ -429,6 +447,8 @@ class PlotViewer(Frame):
             kwargs['subplots'] = 0
         if 'colormap' in kwargs:
             cmap = plt.cm.get_cmap(kwargs['colormap'])
+        else:
+            cmap = None
         #change some things if we are plotting in b&w
         styles = []
         if bw == True and kind not in ['pie','heatmap']:
@@ -438,8 +458,7 @@ class PlotViewer(Frame):
             styles = ["-","--","-.",":"]
             if 'linestyle' in kwargs:
                 del kwargs['linestyle']
-        #else:
-            #color = ''
+
         if subplots == 0:
             layout = None
         else:
@@ -514,7 +533,7 @@ class PlotViewer(Frame):
             lw = kwargs['linewidth']
             axs = data.plot(ax=ax, layout=layout, xerr=yerr, **kwargs)
         else:
-            #line plot
+            #line, bar and area plots
             if useindex == False:
                 x=data.columns[0]
                 data.set_index(x,inplace=True)
@@ -525,8 +544,9 @@ class PlotViewer(Frame):
                 return
             #adjust colormap to avoid white lines
             if cmap != None:
-                kwargs['colormap'] = util.adjustColorMap(cmap, 0.15,1.0)
-            axs = data.plot(ax=ax, layout=layout, yerr=yerr, style=styles,
+                cmap = util.adjustColorMap(cmap, 0.15,1.0)
+                del kwargs['colormap']
+            axs = data.plot(ax=ax, layout=layout, yerr=yerr, style=styles, cmap=cmap,
                              **kwargs)
         return axs
 
@@ -583,13 +603,12 @@ class PlotViewer(Frame):
                 clr=None
             if marker in ['x','+'] and bw == False:
                 ec = clr
-            #else:
-            #    ec='black'
+
             if kwds['subplots'] == 1:
                 ax = self.fig.add_subplot(nrows,ncols,i)
             scplt = ax.scatter(x, y, marker=marker, alpha=alpha, linewidth=lw, c=c,
                        s=kwds['s'], edgecolors=ec, facecolor=clr, cmap=colormap,
-                       norm=norm)
+                       norm=norm, label=cols[i])
             ax.set_xlabel(cols[0])
             if kwds['logx'] == 1:
                 ax.set_xscale('log')
@@ -600,10 +619,11 @@ class PlotViewer(Frame):
                 ax.grid(True)
             if kwds['subplots'] == 1:
                 ax.set_title(cols[i])
-            if colormap is not None and kwds['colorbar']==True:
+            if colormap is not None and kwds['colorbar'] == True:
                 self.fig.colorbar(scplt, ax=ax)
         if kwds['legend'] == 1 and kwds['subplots'] == 0:
             ax.legend(cols[1:])
+
         return ax
 
     def heatmap(self, df, ax, kwds):
@@ -717,6 +737,8 @@ class PlotViewer(Frame):
         return
 
     def bar3D(self, data, ax, kwds):
+        """3D bar plot"""
+
         i=0
         plots=len(data.columns)
         cmap = plt.cm.get_cmap(kwds['colormap'])
@@ -773,6 +795,8 @@ class PlotViewer(Frame):
         return
 
     def showWarning(self, s='plot error', ax=None):
+        """Show warning message in the plot window"""
+
         if ax==None:
             ax=self.fig.gca()
         ax.clear()
@@ -1084,7 +1108,7 @@ class AnnotationOptions(TkOptions):
         from matplotlib import colors
         import six
         colors = list(six.iteritems(colors.cnames))
-        colors = [c[0] for c in colors]
+        colors = sorted([c[0] for c in colors])
         fillpatterns = ['-', '+', 'x', '\\', '*', 'o', 'O', '.']
         bstyles = ['square','round','round4','circle','rarrow','larrow','sawtooth']
         fonts = util.getFonts()
@@ -1092,7 +1116,7 @@ class AnnotationOptions(TkOptions):
         self.parent = parent
         self.groups = grps = {'global labels':['title','xlabel','ylabel','zlabel'],
                               'box format': ['boxstyle','facecolor','linecolor','pad'],
-                              'textbox': ['text','fontsize'],
+                              'textbox': ['text','fontsize','fontstyle'],
                              }
         self.groups = OrderedDict(sorted(grps.items()))
         opts = self.opts = {
@@ -1107,6 +1131,7 @@ class AnnotationOptions(TkOptions):
                 'boxstyle':{'type':'combobox','default':'square','items': bstyles},
                 'text':{'type':'entry','default':'','width':20},
                 'fontsize':{'type':'scale','default':12,'range':(5,40),'interval':1,'label':'font size'},
+                'fontstyle':{'type':'combobox','default':'plain','items': ['plain','bold','italic']},
                 }
         self.kwds = {}
         self.objects = {}
@@ -1150,14 +1175,6 @@ class AnnotationOptions(TkOptions):
         fig = self.parent.fig
         ax = self.parent.ax
         canvas = self.parent.canvas
-
-        '''rect = ax.add_patch(
-                    patches.Rectangle((0.1, 0.1), 0.5, 0.5, fill=False))
-        drs = []
-        dr = handlers.DraggableRectangle(rect)
-        dr.connect()
-        drs.append(dr)'''
-
         self.applyOptions()
         kwds = self.kwds
         text = kwds['text']
@@ -1181,7 +1198,7 @@ class AnnotationOptions(TkOptions):
         an.draggable()
         canvas.show()
         #label = text
-        #self.objects[text] = an
+        self.objects[text] = an
         return
 
 
