@@ -108,6 +108,9 @@ def dialogFromOptions(parent, opts, groups=None, callback=None,
                     tkvars[i] = v = StringVar()
                 v.set(opts[i]['default'])
                 w = Entry(frame,textvariable=v, width=w, command=callback)
+            elif opt['type'] == 'scrolledtext':
+                w = ScrolledText(frame, width=20, wrap=WORD)
+                tkvars[i] = None
             elif opt['type'] == 'checkbutton':
                 tkvars[i] = v = IntVar()
                 v.set(opts[i]['default'])

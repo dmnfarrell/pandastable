@@ -382,6 +382,7 @@ class PlotViewer(Frame):
             self.fig.subplots_adjust(left=0.1, right=0.9, top=0.9,
                                      bottom=0.1, hspace=.25)
             axs = self.fig.get_axes()
+            #self.ax = axs[0]
         else:
             axs = self._doplot(data, ax, kind, kwds['subplots'], errorbars,
                                useindex, bw=bw, kwargs=kwargs)
@@ -405,6 +406,8 @@ class PlotViewer(Frame):
             self.fig.subplots_adjust(left=0.1, right=0.9, top=0.89,
                                      bottom=0.1, hspace=.4/scf, wspace=.2/scf)
             print ('tight_layout failed')
+        #redraw annotations
+        self.labelopts.redraw()
         self.canvas.draw()
         return
 
@@ -880,10 +883,12 @@ class TkOptions(object):
         for i in self.opts:
             if not i in self.tkvars:
                 continue
+            #print (i, self.opts[i]['type'], self.widgets[i])
             if self.opts[i]['type'] == 'listbox':
                 items = self.widgets[i].curselection()
                 kwds[i] = [self.widgets[i].get(j) for j in items]
-                #print (items, kwds[i])
+            elif self.opts[i]['type'] == 'scrolledtext':
+                kwds[i] = self.widgets[i].get('1.0',END)
             else:
                 kwds[i] = self.tkvars[i].get()
         self.kwds = kwds
@@ -1112,11 +1117,15 @@ class AnnotationOptions(TkOptions):
         fillpatterns = ['-', '+', 'x', '\\', '*', 'o', 'O', '.']
         bstyles = ['square','round','round4','circle','rarrow','larrow','sawtooth']
         fonts = util.getFonts()
+        defaultfont = 'monospace'
+        fontweights = ['normal','bold','heavy','light','ultrabold','ultralight']
+        alignments = ['left','center','right']
 
         self.parent = parent
         self.groups = grps = {'global labels':['title','xlabel','ylabel','zlabel'],
                               'box format': ['boxstyle','facecolor','linecolor','pad'],
-                              'textbox': ['text','fontsize','fontstyle'],
+                              'textbox': ['fontsize','font','fontweight','align'],
+                              'text to add': ['text']
                              }
         self.groups = OrderedDict(sorted(grps.items()))
         opts = self.opts = {
@@ -1124,16 +1133,19 @@ class AnnotationOptions(TkOptions):
                 'xlabel':{'type':'entry','default':'','width':20},
                 'ylabel':{'type':'entry','default':'','width':20},
                 'zlabel':{'type':'entry','default':'','width':20},
-                'facecolor':{'type':'combobox','default':'lightgray','items': colors},
+                'facecolor':{'type':'combobox','default':'white','items': colors},
                 'linecolor':{'type':'combobox','default':'black','items': colors},
                 'fill':{'type':'combobox','default':'-','items': fillpatterns},
                 'pad':{'type':'scale','default':0.2,'range':(0,2),'interval':0.1,'label':'pad'},
                 'boxstyle':{'type':'combobox','default':'square','items': bstyles},
-                'text':{'type':'entry','default':'','width':20},
-                'fontsize':{'type':'scale','default':12,'range':(5,40),'interval':1,'label':'font size'},
-                'fontstyle':{'type':'combobox','default':'plain','items': ['plain','bold','italic']},
+                'text':{'type':'scrolledtext','default':'','width':20},
+                'align':{'type':'combobox','default':'center','items': alignments},
+                'font':{'type':'combobox','default':defaultfont,'items':fonts},
+                'fontsize':{'type':'scale','default':12,'range':(4,50),'interval':1,'label':'font size'},
+                'fontweight':{'type':'combobox','default':'normal','items': fontweights},
                 }
         self.kwds = {}
+        self.textboxes = {}
         self.objects = {}
         return
 
@@ -1160,47 +1172,61 @@ class AnnotationOptions(TkOptions):
         self.objectselection.pack(fill=BOTH,pady=2)
         b = Button(frame, text='Create', command=self.addTextBox)
         b.pack(fill=X,pady=2)
-        #b = Button(frame, text='Save', command=self.saveObject)
-        #b.pack(fill=X,pady=2)
-        #frame.grid(row=0,column=4,sticky='news')
-        frame.pack()
+        frame.pack(side=LEFT,fill=Y)
         return
 
-    def addTextBox(self):
+    def addTextBox(self, kwds=None):
         """Add a rectangle"""
 
         #from . import handlers
         import matplotlib.patches as patches
         from matplotlib.text import OffsetFrom
-        fig = self.parent.fig
-        ax = self.parent.ax
-        canvas = self.parent.canvas
         self.applyOptions()
-        kwds = self.kwds
-        text = kwds['text']
+        if kwds == None:
+            kwds = self.kwds
+        fig = self.parent.fig
+        #ax = self.parent.ax
+        ax = fig.get_axes()[0]
+        canvas = self.parent.canvas
+        text = kwds['text'].strip('\n')
         fc = kwds['facecolor']
         ec = kwds['linecolor']
         pad=kwds['pad']
         bstyle = kwds['boxstyle']
         style = "%s,pad=%s" %(bstyle,pad)
-        #also use some of the base options?
-        #baseopts = self.parent.mplopts
-        #baseopts.applyOptions()
-        #basekwds = baseopts.kwds
         fontsize = kwds['fontsize']
+        font = mpl.font_manager.FontProperties(family=kwds['font'],
+                            weight=kwds['fontweight'])
         bbox_args = dict(boxstyle=bstyle, fc=fc, ec=ec, lw=1, alpha=0.9)
+        arrowprops = dict(arrowstyle="->", connectionstyle="arc3")
+
         an = ax.annotate(text, xy=(.5, .5), xycoords='axes fraction',
-                   #arrowprops=dict(arrowstyle="->",
-                   #         connectionstyle="arc3"),
-                   ha="center", va="center",
+                   ha=kwds['align'], va="center",
                    size=fontsize,
-                   bbox=bbox_args )
+                   fontproperties=font,
+                   bbox=bbox_args)
         an.draggable()
         canvas.show()
-        #label = text
-        self.objects[text] = an
+        if text not in self.textboxes:
+            self.textboxes[text] = kwds
+            self.objects[text] = an
+        print (self.textboxes)
         return
 
+    def saveCoords(self, an):
+        """Save the coords of current annotations for redrawing"""
+
+        x = bbox.x0
+        y = bbox.y0
+        return
+
+    def redraw(self):
+        """Redraw all stored annotations after a plot update"""
+
+        print (self.textboxes)
+        for i in self.textboxes:
+            self.addTextBox(self.textboxes[i])
+        return
 
 def addFigure(parent, figure=None, resize_callback=None):
     """Create a tk figure and canvas in the parent frame"""
