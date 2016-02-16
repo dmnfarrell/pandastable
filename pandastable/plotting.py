@@ -159,6 +159,10 @@ class PlotViewer(Frame):
 
         if self.mode == '3D Plot':
             self.nb.select(w2)
+        #self.fig.canvas.mpl_connect('pick_event', self.onpick)
+        #self.fig.canvas.mpl_connect('button_release_event', self.onrelease)
+        from . import handlers
+        dr = handlers.DragHandler(self)
         return
 
     def setMode(self, evt=None):
@@ -611,7 +615,7 @@ class PlotViewer(Frame):
                 ax = self.fig.add_subplot(nrows,ncols,i)
             scplt = ax.scatter(x, y, marker=marker, alpha=alpha, linewidth=lw, c=c,
                        s=kwds['s'], edgecolors=ec, facecolor=clr, cmap=colormap,
-                       norm=norm, label=cols[i])
+                       norm=norm, label=cols[i], picker=True)
             ax.set_xlabel(cols[0])
             if kwds['logx'] == 1:
                 ax.set_xscale('log')
@@ -919,7 +923,8 @@ class TkOptions(object):
         else:
             return
         for i in kwds:
-            self.tkvars[i].set(kwds[i])
+            if i in self.tkvars and self.tkvars[i] != None:
+                self.tkvars[i].set(kwds[i])
         return
 
 class MPLBaseOptions(TkOptions):
@@ -1123,7 +1128,7 @@ class AnnotationOptions(TkOptions):
 
         self.parent = parent
         self.groups = grps = {'global labels':['title','xlabel','ylabel','zlabel'],
-                              'box format': ['boxstyle','facecolor','linecolor','pad'],
+                              'box format': ['boxstyle','facecolor','linecolor','rotate'],
                               'textbox': ['fontsize','font','fontweight','align'],
                               'text to add': ['text']
                              }
@@ -1136,7 +1141,7 @@ class AnnotationOptions(TkOptions):
                 'facecolor':{'type':'combobox','default':'white','items': colors},
                 'linecolor':{'type':'combobox','default':'black','items': colors},
                 'fill':{'type':'combobox','default':'-','items': fillpatterns},
-                'pad':{'type':'scale','default':0.2,'range':(0,2),'interval':0.1,'label':'pad'},
+                'rotate':{'type':'scale','default':0,'range':(-180,180),'interval':1,'label':'rotate'},
                 'boxstyle':{'type':'combobox','default':'square','items': bstyles},
                 'text':{'type':'scrolledtext','default':'','width':20},
                 'align':{'type':'combobox','default':'center','items': alignments},
@@ -1145,8 +1150,8 @@ class AnnotationOptions(TkOptions):
                 'fontweight':{'type':'combobox','default':'normal','items': fontweights},
                 }
         self.kwds = {}
+        #used to store annotations
         self.textboxes = {}
-        self.objects = {}
         return
 
     def showDialog(self, parent, layout='horizontal'):
@@ -1172,15 +1177,23 @@ class AnnotationOptions(TkOptions):
         self.objectselection.pack(fill=BOTH,pady=2)
         b = Button(frame, text='Create', command=self.addTextBox)
         b.pack(fill=X,pady=2)
+        b = Button(frame, text='Clear', command=self.clear)
+        b.pack(fill=X,pady=2)
         frame.pack(side=LEFT,fill=Y)
         return
 
-    def addTextBox(self, kwds=None):
-        """Add a rectangle"""
+    def clear(self):
+        """Clear annotations"""
+        self.textboxes = {}
+        self.parent.replot()
+        return
 
-        #from . import handlers
+    def addTextBox(self, kwds=None, key=None):
+        """Add a text annotation and store it using key"""
+
         import matplotlib.patches as patches
         from matplotlib.text import OffsetFrom
+
         self.applyOptions()
         if kwds == None:
             kwds = self.kwds
@@ -1191,42 +1204,48 @@ class AnnotationOptions(TkOptions):
         text = kwds['text'].strip('\n')
         fc = kwds['facecolor']
         ec = kwds['linecolor']
-        pad=kwds['pad']
         bstyle = kwds['boxstyle']
-        style = "%s,pad=%s" %(bstyle,pad)
+        style = "%s,pad=.2" %bstyle
         fontsize = kwds['fontsize']
         font = mpl.font_manager.FontProperties(family=kwds['font'],
                             weight=kwds['fontweight'])
         bbox_args = dict(boxstyle=bstyle, fc=fc, ec=ec, lw=1, alpha=0.9)
         arrowprops = dict(arrowstyle="->", connectionstyle="arc3")
+        if 'coords' in kwds:
+            xy = kwds['coords']
+            xycoords = 'data'
+            #xycoords='axes fraction'
+        else:
+            xy=(.5, .5)
+            xycoords='axes fraction'
 
-        an = ax.annotate(text, xy=(.5, .5), xycoords='axes fraction',
+        an = ax.annotate(text, xy=xy, xycoords=xycoords,
                    ha=kwds['align'], va="center",
                    size=fontsize,
-                   fontproperties=font,
+                   fontproperties=font, rotation=kwds['rotate'],
                    bbox=bbox_args)
         an.draggable()
-        canvas.show()
-        if text not in self.textboxes:
-            self.textboxes[text] = kwds
-            self.objects[text] = an
-        print (self.textboxes)
-        return
-
-    def saveCoords(self, an):
-        """Save the coords of current annotations for redrawing"""
-
-        x = bbox.x0
-        y = bbox.y0
+        if key == None:
+            import uuid
+            key = str(uuid.uuid4().fields[0])
+        #need to add the unique id to the annotation
+        #so it can be tracked in event handler
+        an._id = key
+        if key not in self.textboxes:
+            self.textboxes[key] = kwds
+        #canvas.show()
+        canvas.draw()
         return
 
     def redraw(self):
-        """Redraw all stored annotations after a plot update"""
+        """Redraw all stored annotations in the right places
+           after a plot update"""
 
-        print (self.textboxes)
-        for i in self.textboxes:
-            self.addTextBox(self.textboxes[i])
+        #print (self.textboxes)
+        for key in self.textboxes:
+            self.addTextBox(self.textboxes[key], key)
         return
+
 
 def addFigure(parent, figure=None, resize_callback=None):
     """Create a tk figure and canvas in the parent frame"""

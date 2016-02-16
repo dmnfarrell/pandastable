@@ -297,13 +297,13 @@ class DataExplore(Frame):
             childsettings = meta['childselected']
         else:
             childtable = None
-        #update plot options - find a neater way to load them
-        plotopts = meta['plotoptions']
-        plotopts3d = meta['plotoptions3d']
-        #labelopts = meta['labelopts']
-        table.pf.mplopts.updateFromOptions(plotopts)
-        table.pf.mplopts3d.updateFromOptions(plotopts3d)
-        #table.pf.labelopts.updateFromOptions(labelopts)
+        #update plot options
+        opts = {'mplopts': table.pf.mplopts,
+                'mplopts3d': table.pf.mplopts3d,
+                'labelopts': table.pf.labelopts }
+        for m in opts:
+            if m in meta:
+                opts[m].updateFromOptions(meta[m])
 
         util.setAttributes(table, tablesettings)
         util.setAttributes(table.rowheader, rowheadersettings)
@@ -322,8 +322,9 @@ class DataExplore(Frame):
 
         meta = {}
         #save plot options
-        meta['plotoptions'] = table.pf.mplopts.kwds
-        meta['plotoptions3d'] = table.pf.mplopts3d.kwds
+        meta['mplopts'] = table.pf.mplopts.kwds
+        meta['mplopts3d'] = table.pf.mplopts3d.kwds
+        meta['labelopts'] = table.pf.labelopts.kwds
         #save table selections
         meta['table'] = util.getAttributes(table)
         meta['rowheader'] = util.getAttributes(table.rowheader)
