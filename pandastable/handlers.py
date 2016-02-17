@@ -44,10 +44,18 @@ class DragHandler(object):
         fig = parent.fig
         # simple attibute to store the dragged text object
         self.dragged = None
+        self.selected = None
         fig.canvas.mpl_connect("pick_event", self.on_pick_event)
-        fig.canvas.mpl_connect('button_press_event', lambda event: fig.canvas._tkcanvas.focus_set())
+        fig.canvas.mpl_connect('button_press_event', self.button_press_event)
         fig.canvas.mpl_connect("button_release_event", self.on_release_event)
         fig.canvas.mpl_connect("key_press_event", self.key_press_event)
+        return
+
+    def button_press_event(self, event):
+
+        fig = self.parent.fig
+        fig.canvas._tkcanvas.focus_set()
+        #self.selected = None
         return
 
     def on_pick_event(self, event):
@@ -72,6 +80,7 @@ class DragHandler(object):
             text = event.artist
             print('onpick text:', text.get_text())
             self.selected = text
+
         return True
 
     def on_release_event(self, event):
@@ -104,6 +113,8 @@ class DragHandler(object):
         """Handle key press"""
 
         if event.key == 'delete':
+            if self.selected == None:
+                return
             self.selected.set_visible(False)
             fig = self.parent.fig
             fig.canvas.draw()

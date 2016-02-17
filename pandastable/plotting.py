@@ -1128,8 +1128,8 @@ class AnnotationOptions(TkOptions):
 
         self.parent = parent
         self.groups = grps = {'global labels':['title','xlabel','ylabel','zlabel'],
-                              'box format': ['boxstyle','facecolor','linecolor','rotate'],
-                              'textbox': ['fontsize','font','fontweight','align'],
+                              'textbox': ['boxstyle','facecolor','linecolor','rotate'],
+                              'textbox format': ['fontsize','font','fontweight','align'],
                               'text to add': ['text']
                              }
         self.groups = OrderedDict(sorted(grps.items()))
