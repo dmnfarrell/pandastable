@@ -8,6 +8,8 @@ CHANGES
 
 Added black and white option for plotting
 Fix to avoid white lines with some colormaps
+Can now add text annotations to plots
+Most plot options are now saved including grid settings
 
 ------
 0.7.1

@@ -31,6 +31,7 @@ from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle
 from matplotlib.text import Text, Annotation
 from matplotlib.collections import PathCollection
+from matplotlib.backend_bases import key_press_handler
 
 class DragHandler(object):
     """ A simple class to handle picking and dragging"""
@@ -44,7 +45,9 @@ class DragHandler(object):
         # simple attibute to store the dragged text object
         self.dragged = None
         fig.canvas.mpl_connect("pick_event", self.on_pick_event)
+        fig.canvas.mpl_connect('button_press_event', lambda event: fig.canvas._tkcanvas.focus_set())
         fig.canvas.mpl_connect("button_release_event", self.on_release_event)
+        fig.canvas.mpl_connect("key_press_event", self.key_press_event)
         return
 
     def on_pick_event(self, event):
@@ -68,6 +71,7 @@ class DragHandler(object):
         elif isinstance(self.dragged, Annotation):
             text = event.artist
             print('onpick text:', text.get_text())
+            self.selected = text
         return True
 
     def on_release_event(self, event):
@@ -85,7 +89,6 @@ class DragHandler(object):
             print (self.dragged.get_text(), key)
             d = self.parent.labelopts.textboxes[key]
             #print (d)
-
             bbox = self.dragged.get_window_extent()
             x = bbox.x0
             y = bbox.y0
@@ -96,6 +99,17 @@ class DragHandler(object):
             print (xy)
         self.dragged = None
         return True
+
+    def key_press_event(self, event):
+        """Handle key press"""
+
+        if event.key == 'delete':
+            self.selected.set_visible(False)
+            fig = self.parent.fig
+            fig.canvas.draw()
+            key = self.selected._id
+            del self.parent.labelopts.textboxes[key]
+            self.selected = None
 
     def disconnect(self):
         """disconnect all the stored connection ids"""

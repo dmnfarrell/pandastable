@@ -1147,7 +1147,7 @@ class AnnotationOptions(TkOptions):
                 'align':{'type':'combobox','default':'center','items': alignments},
                 'font':{'type':'combobox','default':defaultfont,'items':fonts},
                 'fontsize':{'type':'scale','default':12,'range':(4,50),'interval':1,'label':'font size'},
-                'fontweight':{'type':'combobox','default':'normal','items': fontweights},
+                'fontweight':{'type':'combobox','default':'normal','items': fontweights}
                 }
         self.kwds = {}
         #used to store annotations
@@ -1170,11 +1170,17 @@ class AnnotationOptions(TkOptions):
         frame = LabelFrame(self.main, text='add objects')
         v = self.objectvar = StringVar()
         v.set('textbox')
-        axes = []
-        self.objectselection = Combobox(frame, values=['textbox'],
+        w = Combobox(frame, values=['textbox'],
                          textvariable=v,width=14)
-        Label(frame,text='add object:').pack()
-        self.objectselection.pack(fill=BOTH,pady=2)
+        Label(frame,text='add object').pack()
+        w.pack(fill=BOTH,pady=2)
+        self.coordsvar = StringVar()
+        self.coordsvar.set('data')
+        w = Combobox(frame, values=['data'],
+                         textvariable=self.coordsvar,width=14)
+        Label(frame,text='coord system').pack()
+        w.pack(fill=BOTH,pady=2)
+
         b = Button(frame, text='Create', command=self.addTextBox)
         b.pack(fill=X,pady=2)
         b = Button(frame, text='Clear', command=self.clear)
@@ -1195,6 +1201,7 @@ class AnnotationOptions(TkOptions):
         from matplotlib.text import OffsetFrom
 
         self.applyOptions()
+        #kwds['xycoords'] = self.coordsvar.get()
         if kwds == None:
             kwds = self.kwds
         fig = self.parent.fig

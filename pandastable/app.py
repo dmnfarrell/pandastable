@@ -287,7 +287,8 @@ class DataExplore(Frame):
         return
 
     def loadMeta(self, table, meta):
-        """Load meta data for a sheet"""
+        """Load meta data for a sheet, this includes plot options and
+        table selections"""
 
         tablesettings = meta['table']
         rowheadersettings = meta['rowheader']
@@ -297,14 +298,17 @@ class DataExplore(Frame):
             childsettings = meta['childselected']
         else:
             childtable = None
-        #update plot options
+        #load plot options
         opts = {'mplopts': table.pf.mplopts,
                 'mplopts3d': table.pf.mplopts3d,
-                'labelopts': table.pf.labelopts }
+                'labelopts': table.pf.labelopts,
+                'layoutopts': table.pf.layoutopts}
         for m in opts:
             if m in meta:
-                opts[m].updateFromOptions(meta[m])
+                util.setAttributes(opts[m], meta[m])
+                opts[m].updateFromOptions()
 
+        #load table settings
         util.setAttributes(table, tablesettings)
         util.setAttributes(table.rowheader, rowheadersettings)
         if childtable is not None:
@@ -322,9 +326,11 @@ class DataExplore(Frame):
 
         meta = {}
         #save plot options
-        meta['mplopts'] = table.pf.mplopts.kwds
-        meta['mplopts3d'] = table.pf.mplopts3d.kwds
-        meta['labelopts'] = table.pf.labelopts.kwds
+        meta['mplopts'] = util.getAttributes(table.pf.mplopts)
+        meta['mplopts3d'] = util.getAttributes(table.pf.mplopts3d)
+        meta['labelopts'] = util.getAttributes(table.pf.labelopts)
+        meta['layoutopts'] = util.getAttributes(table.pf.layoutopts)
+
         #save table selections
         meta['table'] = util.getAttributes(table)
         meta['rowheader'] = util.getAttributes(table.rowheader)
@@ -332,6 +338,7 @@ class DataExplore(Frame):
         if table.child != None:
             meta['childtable'] = table.child.model.df
             meta['childselected'] = util.getAttributes(table.child)
+
         return meta
 
     def newProject(self, data=None, df=None):
