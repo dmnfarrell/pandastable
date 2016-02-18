@@ -45,6 +45,7 @@ class DragHandler(object):
         # simple attibute to store the dragged text object
         self.dragged = None
         self.selected = None
+        self.selectedrect = None
         fig.canvas.mpl_connect("pick_event", self.on_pick_event)
         fig.canvas.mpl_connect('button_press_event', self.button_press_event)
         fig.canvas.mpl_connect("button_release_event", self.on_release_event)
@@ -55,7 +56,8 @@ class DragHandler(object):
 
         fig = self.parent.fig
         fig.canvas._tkcanvas.focus_set()
-        #self.selected = None
+        if self.selectedrect != None:
+            self.selectedrect.set_visible(False)
         return
 
     def on_pick_event(self, event):
@@ -63,7 +65,6 @@ class DragHandler(object):
 
         df = self.parent.data
         self.dragged = event.artist
-
         if isinstance(event.artist, PathCollection):
             ind = event.ind
             print('onpick scatter:', ind, df.ix[ind])
@@ -80,7 +81,7 @@ class DragHandler(object):
             text = event.artist
             print('onpick text:', text.get_text())
             self.selected = text
-
+            #self.drawSelectionRect()
         return True
 
     def on_release_event(self, event):
@@ -95,17 +96,19 @@ class DragHandler(object):
         #if annotation object moved we record new coords
         if isinstance(self.dragged, Annotation):
             key = self.dragged._id
-            print (self.dragged.get_text(), key)
+            #print (self.dragged.get_text(), key)
             d = self.parent.labelopts.textboxes[key]
             #print (d)
             bbox = self.dragged.get_window_extent()
-            x = bbox.x0
-            y = bbox.y0
-            #print (bbox)
-            bbdata = ax.transAxes.inverted().transform(bbox)
-            #xy = bbdata[0]
-            d['coords'] = xy
-            print (xy)
+            #xy = bbox.x0, bbox.y0
+            if d['xycoords'] == 'axes fraction':
+                bbdata = ax.transAxes.inverted().transform(bbox)
+                xy = bbdata[0][0],bbdata[0][1]
+            elif d['xycoords'] == 'figure fraction':
+                bbdata = fig.transFigure.inverted().transform(bbox)
+                xy = bbdata[0][0],bbdata[0][1]
+            d['xy'] = xy
+            #print (xy)
         self.dragged = None
         return True
 
@@ -117,10 +120,36 @@ class DragHandler(object):
                 return
             self.selected.set_visible(False)
             fig = self.parent.fig
-            fig.canvas.draw()
             key = self.selected._id
             del self.parent.labelopts.textboxes[key]
             self.selected = None
+            if self.selectedrect != None:
+                self.selectedrect.set_visible(False)
+        fig.canvas.draw()
+        return
+
+    def drawSelectionRect(self):
+        """Draw a selection box"""
+
+        from matplotlib.patches import FancyBboxPatch
+        if self.selectedrect != None:
+            self.selectedrect.set_visible(False)
+        fig = self.parent.fig
+        ax = fig.axes[0]
+        bb = self.selected.get_window_extent()
+        bb = ax.transAxes.inverted().transform(bb)
+        x,y = bb[0]
+        x1,y1 = bb[1]
+        print (x,y,x1,y1)
+        pad = (x1-x)/10
+        self.selectedrect = FancyBboxPatch((x, y),
+                                 abs(x1-x), abs(y1-y),
+                                 boxstyle="round,pad=%s" %pad, lw=2, alpha=0.5,
+                                 ec="red", fc="red", zorder=10.,
+                                 transform=ax.transAxes)
+        ax.add_patch(self.selectedrect)
+        fig.canvas.draw()
+        return
 
     def disconnect(self):
         """disconnect all the stored connection ids"""

@@ -1170,18 +1170,18 @@ class AnnotationOptions(TkOptions):
         frame = LabelFrame(self.main, text='add objects')
         v = self.objectvar = StringVar()
         v.set('textbox')
-        w = Combobox(frame, values=['textbox'],
+        w = Combobox(frame, values=['textbox'],#'arrow'],
                          textvariable=v,width=14)
         Label(frame,text='add object').pack()
         w.pack(fill=BOTH,pady=2)
         self.coordsvar = StringVar()
         self.coordsvar.set('data')
-        w = Combobox(frame, values=['data'],
+        w = Combobox(frame, values=['data','axes fraction','figure fraction'],
                          textvariable=self.coordsvar,width=14)
         Label(frame,text='coord system').pack()
         w.pack(fill=BOTH,pady=2)
 
-        b = Button(frame, text='Create', command=self.addTextBox)
+        b = Button(frame, text='Create', command=self.addObject)
         b.pack(fill=X,pady=2)
         b = Button(frame, text='Clear', command=self.clear)
         b.pack(fill=X,pady=2)
@@ -1194,6 +1194,16 @@ class AnnotationOptions(TkOptions):
         self.parent.replot()
         return
 
+    def addObject(self):
+        """Add an annotation object"""
+
+        o = self.objectvar.get()
+        if o == 'textbox':
+            self.addTextBox()
+        elif o == 'arrow':
+            self.addArrow()
+        return
+
     def addTextBox(self, kwds=None, key=None):
         """Add a text annotation and store it using key"""
 
@@ -1201,9 +1211,9 @@ class AnnotationOptions(TkOptions):
         from matplotlib.text import OffsetFrom
 
         self.applyOptions()
-        #kwds['xycoords'] = self.coordsvar.get()
         if kwds == None:
             kwds = self.kwds
+            kwds['xycoords'] = self.coordsvar.get()
         fig = self.parent.fig
         #ax = self.parent.ax
         ax = fig.get_axes()[0]
@@ -1217,19 +1227,23 @@ class AnnotationOptions(TkOptions):
         font = mpl.font_manager.FontProperties(family=kwds['font'],
                             weight=kwds['fontweight'])
         bbox_args = dict(boxstyle=bstyle, fc=fc, ec=ec, lw=1, alpha=0.9)
-        arrowprops = dict(arrowstyle="->", connectionstyle="arc3")
-        if 'coords' in kwds:
-            xy = kwds['coords']
-            xycoords = 'data'
-            #xycoords='axes fraction'
+        arrowprops = dict(arrowstyle="-|>", connectionstyle="arc3")
+
+        xycoords = kwds['xycoords']
+        #if previously drawn will have xy values
+        if 'xy' in kwds:
+            xy = kwds['xy']
+            #print (text, xycoords, xy)
         else:
-            xy=(.5, .5)
+            xy=(.1, .8)
             xycoords='axes fraction'
 
         an = ax.annotate(text, xy=xy, xycoords=xycoords,
                    ha=kwds['align'], va="center",
                    size=fontsize,
                    fontproperties=font, rotation=kwds['rotate'],
+                   #arrowprops=arrowprops,
+                   zorder=10,
                    bbox=bbox_args)
         an.draggable()
         if key == None:
@@ -1240,8 +1254,21 @@ class AnnotationOptions(TkOptions):
         an._id = key
         if key not in self.textboxes:
             self.textboxes[key] = kwds
+            print(kwds)
         #canvas.show()
         canvas.draw()
+        return
+
+    def addArrow(self, kwds=None, key=None):
+        """Add line/arrow"""
+
+        fig = self.parent.fig
+        canvas = self.parent.canvas
+        ax = fig.get_axes()[0]
+        ax.arrow(0.2, 0.2, 0.5, 0.5, fc='k', ec='k',
+                 transform=ax.transAxes)
+        canvas.draw()
+        #self.lines.append(line)
         return
 
     def redraw(self):

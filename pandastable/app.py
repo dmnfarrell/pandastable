@@ -832,6 +832,7 @@ class DataExplore(Frame):
         from . import __version__
         pandasver = pd.__version__
         pythonver = platform.python_version()
+        mplver = matplotlib.__version__
 
         text='DataExplore Application\n'\
                 +'pandastable version '+__version__+'\n'\
@@ -840,7 +841,8 @@ class DataExplore(Frame):
                 +'modify it under the terms of the GNU General Public License\n'\
                 +'as published by the Free Software Foundation; either version 3\n'\
                 +'of the License, or (at your option) any later version.\n'\
-                +'Using pandas v%s, Python v%s' %(pandasver,pythonver)
+                +'Using Python v%s\n' %pythonver\
+                +'pandas v%s, matplotlib v%s' %(pandasver,mplver)
 
         row=1
         #for line in text:
