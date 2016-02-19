@@ -88,10 +88,9 @@ class DragHandler(object):
         " Update and store text/annotation position "
 
         fig = self.parent.fig
-        ax = fig.axes[0]
+        #ax = fig.axes[0]
+        ax = self.parent.ax
         xy = (event.xdata, event.ydata)
-        xyax = fig.transFigure.inverted().transform(xy)
-        print (xyax)
         #xy = (event.x, event.y)
         #if annotation object moved we record new coords
         if isinstance(self.dragged, Annotation):
@@ -99,16 +98,20 @@ class DragHandler(object):
             #print (self.dragged.get_text(), key)
             d = self.parent.labelopts.textboxes[key]
             #print (d)
+            fig.canvas.draw()
             bbox = self.dragged.get_window_extent()
-            #xy = bbox.x0, bbox.y0
+
             if d['xycoords'] == 'axes fraction':
-                bbdata = ax.transAxes.inverted().transform(bbox)
-                xy = bbdata[0][0],bbdata[0][1]
+                inv = ax.transAxes.inverted()
             elif d['xycoords'] == 'figure fraction':
-                bbdata = fig.transFigure.inverted().transform(bbox)
-                xy = bbdata[0][0],bbdata[0][1]
+                inv = fig.transFigure.inverted()
+            else:
+                inv = ax.transData.inverted()
+            bbdata = inv.transform(bbox)
+            xy = bbdata[0][0],bbdata[0][1]
             d['xy'] = xy
-            #print (xy)
+            print (inv.transform((4,3)))
+            print (xy)
         self.dragged = None
         return True
 

@@ -1243,6 +1243,8 @@ class AnnotationOptions(TkOptions):
                    size=fontsize,
                    fontproperties=font, rotation=kwds['rotate'],
                    #arrowprops=arrowprops,
+                   #xytext=(xy[0]+.2,xy[1]),
+                   textcoords='offset points',
                    zorder=10,
                    bbox=bbox_args)
         an.draggable()
