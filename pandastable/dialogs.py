@@ -37,7 +37,7 @@ except:
     import tkFileDialog as filedialog
     import tkSimpleDialog as simpledialog
     import tkMessageBox as messagebox
-    import ScrolledText
+    from ScrolledText import ScrolledText
 
 from collections import OrderedDict
 import webbrowser

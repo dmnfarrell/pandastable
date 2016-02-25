@@ -41,11 +41,16 @@ class DragHandler(object):
         """
 
         self.parent = parent
-        fig = parent.fig
-        # simple attibute to store the dragged text object
+        #store the dragged text object
         self.dragged = None
         self.selected = None
         self.selectedrect = None
+        return
+
+    def connect(self):
+        """Connect events"""
+
+        fig = self.parent.fig
         fig.canvas.mpl_connect("pick_event", self.on_pick_event)
         fig.canvas.mpl_connect('button_press_event', self.button_press_event)
         fig.canvas.mpl_connect("button_release_event", self.on_release_event)
@@ -54,6 +59,7 @@ class DragHandler(object):
 
     def button_press_event(self, event):
 
+        print (event)
         fig = self.parent.fig
         fig.canvas._tkcanvas.focus_set()
         if self.selectedrect != None:
@@ -65,6 +71,7 @@ class DragHandler(object):
 
         df = self.parent.data
         self.dragged = event.artist
+        print(self.dragged)
         if isinstance(event.artist, PathCollection):
             ind = event.ind
             print('onpick scatter:', ind, df.ix[ind])
@@ -92,6 +99,7 @@ class DragHandler(object):
         ax = self.parent.ax
         xy = (event.xdata, event.ydata)
         #xy = (event.x, event.y)
+        print (xy)
         #if annotation object moved we record new coords
         if isinstance(self.dragged, Annotation):
             key = self.dragged._id
@@ -110,7 +118,6 @@ class DragHandler(object):
             bbdata = inv.transform(bbox)
             xy = bbdata[0][0],bbdata[0][1]
             d['xy'] = xy
-            print (inv.transform((4,3)))
             print (xy)
         self.dragged = None
         return True

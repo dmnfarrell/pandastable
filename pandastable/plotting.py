@@ -159,10 +159,14 @@ class PlotViewer(Frame):
 
         if self.mode == '3D Plot':
             self.nb.select(w2)
-        #self.fig.canvas.mpl_connect('pick_event', self.onpick)
-        #self.fig.canvas.mpl_connect('button_release_event', self.onrelease)
+
+        def onpick(event):
+            print(event)
+        #self.fig.canvas.mpl_connect('pick_event', onpick)
+        #self.fig.canvas.mpl_connect('button_release_event', onpick)
         from . import handlers
         dr = handlers.DragHandler(self)
+        dr.connect()
         return
 
     def setMode(self, evt=None):
@@ -1099,8 +1103,7 @@ class PlotLayoutOptions(TkOptions):
         b.pack(fill=X,pady=2)
         b = Button(frame, text='set title', command=self.parent.setSubplotTitle)
         b.pack(fill=X,pady=2)
-        #frame.grid(row=0,column=4,sticky='news')
-        frame.pack()
+        frame.pack(side=LEFT,fill=Y)
         return
 
     def updateAxesList(self):
@@ -1244,7 +1247,7 @@ class AnnotationOptions(TkOptions):
                    fontproperties=font, rotation=kwds['rotate'],
                    #arrowprops=arrowprops,
                    #xytext=(xy[0]+.2,xy[1]),
-                   textcoords='offset points',
+                   #textcoords='offset points',
                    zorder=10,
                    bbox=bbox_args)
         an.draggable()

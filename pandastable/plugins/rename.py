@@ -27,13 +27,14 @@ try:
 except:
     from Tkinter import *
     from ttk import *
-    import ScrolledText
+
 if (sys.version_info > (3, 0)):
     from tkinter import filedialog, messagebox, simpledialog
 else:
     import tkFileDialog as filedialog
     import tkSimpleDialog as simpledialog
     import tkMessageBox as messagebox
+    from ScrolledText import ScrolledText
 import os, string
 import re, glob
 from pandastable.plugin import Plugin
