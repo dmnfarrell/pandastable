@@ -96,7 +96,10 @@ def getFonts():
      import matplotlib.font_manager
      #l = matplotlib.font_manager.get_fontconfig_fonts()
      l = matplotlib.font_manager.findSystemFonts()
-     fonts = [matplotlib.font_manager.FontProperties(fname=fname).get_name() for fname in l]
+     fonts = []
+     for fname in l:
+        try: fonts.append(matplotlib.font_manager.FontProperties(fname=fname).get_name())
+        except RuntimeError: pass
      fonts = list(set(fonts))
      fonts.sort()
      #f = matplotlib.font_manager.FontProperties(family='monospace')
