@@ -40,8 +40,8 @@ see the [wiki page](https://github.com/dmnfarrell/pandastable/wiki/Installation)
 
 ## Future features
 * present/manipulate time series data since pandas deals well with this
-* advanced categorical plots using Seaborn
-* statistical modelling using statsmodels
+* animated plotting e.g. time series data
+* saving workflows
 
 ## FAQ
 
@@ -102,6 +102,8 @@ pt.doImport('test.csv')
 
 ## Links
 
+http://openresearchsoftware.metajnl.com/articles/10.5334/jors.94/
+
 http://dmnfarrell.github.io/pandastable/
 
 https://youtu.be/lA7bhbWOkSw
@@ -109,3 +111,10 @@ https://youtu.be/lA7bhbWOkSw
 http://decisionstats.com/2015/12/25/interview-damien-farrell-python-gui-dataexplore-python-rstats-pydata/
 
 http://jakevdp.github.io/blog/2013/03/23/matplotlib-and-the-future-of-visualization-in-python/
+
+## Citation
+
+If you use this software in your work please cite the following article:
+
+Farrell, D 2016 DataExplore: An Application for General Data Analysis in Research and Education.
+Journal of Open Research Software, 4: e9, DOI: http://dx.doi.org/10.5334/jors.94
