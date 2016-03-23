@@ -35,7 +35,7 @@ else:
     import tkMessageBox as messagebox
 
 import matplotlib
-matplotlib.use('TkAgg')
+matplotlib.use('TkAgg', warn=False)
 import pandas as pd
 import re, os, platform, time
 from .core import Table
@@ -49,7 +49,7 @@ from .preferences import Prefs
 class DataExplore(Frame):
     """Pandastable viewer application"""
 
-    def __init__(self,parent=None, data=None, projfile=None, msgpack=None):
+    def __init__(self, parent=None, data=None, projfile=None, msgpack=None):
         "Initialize the application."
 
         self.parent=parent
@@ -862,6 +862,22 @@ class DataExplore(Frame):
         self.main.destroy()
         return
 
+class TestApp(Frame):
+    """Basic test frame for the table"""
+    def __init__(self, parent=None):
+        self.parent = parent
+        Frame.__init__(self)
+        self.main = self.master
+        self.main.geometry('600x400+200+100')
+        self.main.title('DataExplore Test')
+        f = Frame(self.main)
+        f.pack(fill=BOTH,expand=1)
+        df = TableModel.getSampleData()
+        self.table = pt = Table(f, dataframe=df,
+                                showtoolbar=True, showstatusbar=True)
+        pt.show()
+        return
+
 def main():
     "Run the application"
     import sys, os
@@ -871,13 +887,19 @@ def main():
                         help="Open a dataframe as msgpack", metavar="FILE")
     parser.add_option("-p", "--project", dest="projfile",
                         help="Open a dataexplore project file", metavar="FILE")
+    parser.add_option("-t", "--test", dest="test",  action="store_true",
+                        default=False, help="Run a basic test app")
+
     opts, remainder = parser.parse_args()
-    if opts.projfile != None:
-        app = DataExplore(projfile=opts.projfile)
-    elif opts.msgpack != None:
-        app = DataExplore(msgpack=opts.msgpack)
+    if opts.test == True:
+        app = TestApp()
     else:
-        app = DataExplore()
+        if opts.projfile != None:
+            app = DataExplore(projfile=opts.projfile)
+        elif opts.msgpack != None:
+            app = DataExplore(msgpack=opts.msgpack)
+        else:
+            app = DataExplore()
     app.mainloop()
     return
 

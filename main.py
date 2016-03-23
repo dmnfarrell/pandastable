@@ -19,7 +19,7 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 """
 
-from pandastable.app import DataExplore
+from pandastable.app import DataExplore, TestApp
 
 def main():
     """Run the application from outside the module - used for
@@ -32,13 +32,19 @@ def main():
                         help="Open a dataframe as msgpack", metavar="FILE")
     parser.add_option("-p", "--project", dest="projfile",
                         help="Open a dataexplore project file", metavar="FILE")
+    parser.add_option("-t", "--test", dest="test",  action="store_true",
+                        default=False, help="Run a basic test app")
+
     opts, remainder = parser.parse_args()
-    if opts.projfile != None:
-        app = DataExplore(projfile=opts.projfile)
-    elif opts.msgpack != None:
-        app = DataExplore(msgpack=opts.msgpack)
+    if opts.test == True:
+        app = TestApp()
     else:
-        app = DataExplore()
+        if opts.projfile != None:
+            app = DataExplore(projfile=opts.projfile)
+        elif opts.msgpack != None:
+            app = DataExplore(msgpack=opts.msgpack)
+        else:
+            app = DataExplore()
     app.mainloop()
 
 if __name__ == '__main__':
