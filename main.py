@@ -32,6 +32,8 @@ def main():
                         help="Open a dataframe as msgpack", metavar="FILE")
     parser.add_option("-p", "--project", dest="projfile",
                         help="Open a dataexplore project file", metavar="FILE")
+    parser.add_option("-i", "--csv", dest="csv",
+                        help="Open a csv file by trying to import it", metavar="FILE")
     parser.add_option("-t", "--test", dest="test",  action="store_true",
                         default=False, help="Run a basic test app")
 
@@ -43,6 +45,10 @@ def main():
             app = DataExplore(projfile=opts.projfile)
         elif opts.msgpack != None:
             app = DataExplore(msgpack=opts.msgpack)
+        elif opts.csv != None:
+            app = DataExplore()
+            t = app.getCurrentTable()
+            t.importCSV(opts.csv)
         else:
             app = DataExplore()
     app.mainloop()
