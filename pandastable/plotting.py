@@ -540,15 +540,15 @@ class PlotViewer(Frame):
                             autopct='%1.1f%%', subplots=True, **kwargs)
             if lbls == None:
                 axs[0].legend(labels=data.index)
-        elif kind == 'barh':
-            lw = kwargs['linewidth']
-            axs = data.plot(ax=ax, layout=layout, xerr=yerr, **kwargs)
+        #elif kind == 'barh':
+        #    lw = kwargs['linewidth']
+        #    axs = data.plot(ax=ax, layout=layout, xerr=yerr, **kwargs)
         else:
             #line, bar and area plots
             if useindex == False:
                 x=data.columns[0]
                 data.set_index(x,inplace=True)
-                data=data.sort()
+                #data=data.sort()
             if len(data.columns) == 0:
                 msg = "Not enough data.\nIf 'use index' is off select at least 2 columns"
                 self.showWarning(msg)

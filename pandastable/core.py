@@ -1758,21 +1758,21 @@ class Table(Canvas):
         """Copy from the clipboard"""
 
         df = self.model.df
-        df.to_clipboard()
+        df.to_clipboard(sep=',')
         return
 
     def pasteTable(self, event=None):
         """Paste a new table from the clipboard"""
 
         try:
-            df = pd.read_clipboard()
+            df = pd.read_clipboard(sep=',',error_bad_lines=False)
         except Exception as e:
             messagebox.showwarning("Could not read data", e,
                                     parent=self.parentframe)
             return
         if len(df) == 0:
             return
-        df = pd.read_clipboard()
+        df = pd.read_clipboard(sep=',', index_col=0, error_bad_lines=False)
         model = TableModel(df)
         self.updateModel(model)
         return
