@@ -10,6 +10,8 @@ Added black and white option for plotting
 Fix to avoid white lines with some colormaps
 Can now add text annotations to plots
 Most plot options are now saved including grid settings
+-t option for launching a test app
+fix to scatter colors
 
 ------
 0.7.1

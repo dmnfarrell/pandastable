@@ -293,11 +293,11 @@ class PlotViewer(Frame):
 
         if not hasattr(self, 'data'):
             return
-        #needs cleaning up
-        valid = {'line': ['alpha', 'colormap', 'grid', 'legend', 'linestyle',
+        #this is a hack to pass in the right args, needs to be improved
+        valid = {'line': ['alpha', 'colormap', 'grid', 'legend', 'linestyle','ms',
                           'linewidth', 'marker', 'subplots', 'rot', 'logx', 'logy',
                           'sharey', 'kind'],
-                    'scatter': ['alpha', 'grid', 'linewidth', 'marker', 'subplots', 's',
+                    'scatter': ['alpha', 'grid', 'linewidth', 'marker', 'subplots', 'ms',
                             'legend', 'colormap','sharey', 'logx', 'logy', 'use_index','c',
                             'cscale','colorbar','bw'],
                     'pie': ['colormap','legend'],
@@ -453,6 +453,7 @@ class PlotViewer(Frame):
         cols = data.columns
         if kind == 'line':
             data = data.sort_index()
+
         rows = int(round(np.sqrt(len(data.columns)),0))
         if len(data.columns) == 1 and kind not in ['pie']:
             kwargs['subplots'] = 0
@@ -600,8 +601,7 @@ class PlotViewer(Frame):
             colormap = kwds['colormap']
         else:
             colormap = None
-            c=[]
-
+            c=None
         for i in range(s,plots):
             y = df[cols[i]]
             ec = 'black'
@@ -617,8 +617,9 @@ class PlotViewer(Frame):
 
             if kwds['subplots'] == 1:
                 ax = self.fig.add_subplot(nrows,ncols,i)
+            ms = kwds['ms'] * 12
             scplt = ax.scatter(x, y, marker=marker, alpha=alpha, linewidth=lw, c=c,
-                       s=kwds['s'], edgecolors=ec, facecolor=clr, cmap=colormap,
+                       s=ms, edgecolors=ec, facecolor=clr, cmap=colormap,
                        norm=norm, label=cols[i], picker=True)
             ax.set_xlabel(cols[0])
             if kwds['logx'] == 1:
@@ -765,6 +766,7 @@ class PlotViewer(Frame):
         lw = kwds['linewidth']
         alpha = kwds['alpha']
         s = kwds['s']
+        marker = kwds['marker']
         data = data._get_numeric_data()
         l = len(data.columns)
         if l<3: return
@@ -775,8 +777,8 @@ class PlotViewer(Frame):
             y = X[:,i]
             z = X[:,i+1]
             c = cmap(float(i)/(l))
-            ax.scatter(x, y, z, edgecolor='black', color=c, linewidth=lw,
-                       alpha=alpha, s=s)
+            ax.scatter(x, y, z, edgecolor='black', c=c, linewidth=lw,
+                       alpha=alpha, s=s, marker=marker)
         return
 
     def updateData(self):
@@ -952,7 +954,7 @@ class MPLBaseOptions(TkOptions):
         scales = ['linear','log']
         grps = {'data':['bins','by','by2','use_index','errorbars'],
                 'styles':['font','marker','linestyle','alpha'],
-                'sizes':['fontsize','s','linewidth'],
+                'sizes':['fontsize','ms','linewidth'],
                 'formats':['kind','stacked','subplots','grid','legend','table'],
                 'axes':['showxlabels','showylabels','sharex','sharey','logx','logy','rot'],
                 'styles colors':['colormap','bw','c','cscale','colorbar']}
@@ -962,7 +964,7 @@ class MPLBaseOptions(TkOptions):
                 'fontsize':{'type':'scale','default':12,'range':(5,40),'interval':1,'label':'font size'},
                 'marker':{'type':'combobox','default':'','items':self.markers},
                 'linestyle':{'type':'combobox','default':'-','items':self.linestyles},
-                's':{'type':'scale','default':30,'range':(1,500),'interval':10,'label':'marker size'},
+                'ms':{'type':'scale','default':5,'range':(1,50),'interval':1,'label':'marker size'},
                 'grid':{'type':'checkbutton','default':0,'label':'show grid'},
                 'logx':{'type':'checkbutton','default':0,'label':'log x'},
                 'logy':{'type':'checkbutton','default':0,'label':'log y'},
@@ -1030,7 +1032,7 @@ class MPL3DOptions(MPLBaseOptions):
         fonts = util.getFonts()
         modes = ['parametric','(x,y)->z']
         self.groups = grps = {'formats':['kind','mode','rstride','cstride','points'],
-                             'styles':['colormap','alpha','font'],
+                             'styles':['colormap','marker','alpha','font'],
                              'labels':['title','xlabel','ylabel','zlabel'],
                              'sizes':['fontsize','linewidth','s']}
         self.groups = OrderedDict(sorted(grps.items()))
@@ -1040,6 +1042,7 @@ class MPL3DOptions(MPLBaseOptions):
                 'alpha':{'type':'scale','default':0.8,'range':(0,1),'interval':0.1,'label':'alpha'},
                 'linewidth':{'type':'scale','default':.5,'range':(0,4),'interval':0.1,'label':'linewidth'},
                 's':{'type':'scale','default':30,'range':(1,500),'interval':10,'label':'marker size'},
+                'marker':{'type':'combobox','default':'','items':self.markers},
                 'title':{'type':'entry','default':'','width':20},
                 'xlabel':{'type':'entry','default':'','width':20},
                 'ylabel':{'type':'entry','default':'','width':20},
