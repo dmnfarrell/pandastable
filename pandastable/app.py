@@ -169,20 +169,16 @@ class DataExplore(Frame):
         self.table_menu=self.createPulldown(self.menu,self.table_menu)
         self.menu.add_cascade(label='Table',menu=self.table_menu['var'])
 
-        #self.tools_menu={ }
-        #self.tools_menu=self.createPulldown(self.menu,self.tools_menu)
-        #self.menu.add_cascade(label='Tools',menu=self.tools_menu['var'])
-
         self.dataset_menu={'01Sample Data':{'cmd':self.sampleData},
-                         '03Iris Data':{'cmd': lambda: self.getData('iris.mpk')},
-                         '03Tips Data':{'cmd': lambda: self.getData('tips.mpk')},
+                         '03Iris Data':{'cmd': lambda: self.getData('iris.csv')},
+                         '03Tips Data':{'cmd': lambda: self.getData('tips.csv')},
                          '04Stacked Data':{'cmd':self.getStackedData},
                          '05Pima Diabetes':
-                             {'cmd': lambda: self.getData('pima.mpk')},
+                             {'cmd': lambda: self.getData('pima.csv')},
                          '06Titanic':
-                             {'cmd': lambda: self.getData('titanic3.mpk')},
+                             {'cmd': lambda: self.getData('titanic3.csv')},
                          '07miRNA expression':
-                             {'cmd': lambda: self.getData('miRNA.mpk')}
+                             {'cmd': lambda: self.getData('miRNA.csv')}
                          }
         self.dataset_menu=self.createPulldown(self.menu,self.dataset_menu)
         self.menu.add_cascade(label='Datasets',menu=self.dataset_menu['var'])
@@ -488,7 +484,9 @@ class DataExplore(Frame):
         """Get predefined data from dataset folder"""
 
         filename = os.path.join(self.modulepath, 'datasets', name)
-        self.load_msgpack(filename)
+        df = pd.read_csv(filename, index_col=0)
+        name = os.path.splitext(os.path.basename(filename))[0]
+        self.load_dataframe(df, name)
         return
 
     def addSheet(self, sheetname=None, df=None, meta=None, select=False):

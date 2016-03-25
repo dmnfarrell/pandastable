@@ -1042,7 +1042,7 @@ class MPL3DOptions(MPLBaseOptions):
                 'alpha':{'type':'scale','default':0.8,'range':(0,1),'interval':0.1,'label':'alpha'},
                 'linewidth':{'type':'scale','default':.5,'range':(0,4),'interval':0.1,'label':'linewidth'},
                 's':{'type':'scale','default':30,'range':(1,500),'interval':10,'label':'marker size'},
-                'marker':{'type':'combobox','default':'','items':self.markers},
+                'marker':{'type':'combobox','default':'o','items':self.markers},
                 'title':{'type':'entry','default':'','width':20},
                 'xlabel':{'type':'entry','default':'','width':20},
                 'ylabel':{'type':'entry','default':'','width':20},
