@@ -1652,7 +1652,13 @@ class Table(Canvas):
         if x == None:
             return
 
-        if event.keysym == 'Up':
+        if event.keysym == 'Return':
+            if self.currentrow >= self.rows:
+                self.currentrow = self.currentrow - 1
+            if self.currentcol >= self.cols:
+                self.currentcol = self.currentcol - 1
+        
+        elif event.keysym == 'Up':
             if self.currentrow == 0:
                 return
             else:
