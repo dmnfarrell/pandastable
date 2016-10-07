@@ -316,6 +316,17 @@ class TableModel(object):
         """Changed the dictionary when cell is updated by user"""
         if value == '':
             value = np.nan
+        dtype = self.df.dtypes[colindex]
+        #try to cast to column type
+        try:
+            if dtype == 'float64':
+                value = float(value)
+            elif dtype == 'int':
+                value = int(value)
+            elif dtype == 'datetime64[ns]':
+                value = pd.to_datetime(value)
+        except Exception as e:
+            print (e)
         self.df.iloc[rowindex,colindex] = value
         return
 

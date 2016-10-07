@@ -1548,7 +1548,6 @@ class Table(Canvas):
         self.focus_set()
 
         if hasattr(self, 'cellentry'):
-            #self.cellentryCallback()
             self.cellentry.destroy()
         #ensure popup menus are removed if present
         if hasattr(self, 'rightmenu'):
@@ -1738,8 +1737,8 @@ class Table(Canvas):
         if hasattr(self, 'cellentry'):
             self.cellentry.destroy()
         self.currentrow = self.currentrow+1
-        if self.currentcol >= self.cols-1:
-            self.currentcol = self.currentcol+1
+        #if self.currentcol >= self.cols-1:
+        #    self.currentcol = self.currentcol+1
         self.drawSelectedRect(self.currentrow, self.currentcol)
         return
 
@@ -2366,7 +2365,7 @@ class Table(Canvas):
         self.lower(recttag)
         return
 
-    def cellentryCallback(self, row, col):
+    def handleCellEntry(self, row, col):
         """Callback for cell entry"""
 
         value = self.cellentryvar.get()
@@ -2395,7 +2394,7 @@ class Table(Canvas):
                         takefocus=1,
                         font=self.thefont)
         self.cellentry.icursor(END)
-        self.cellentry.bind('<Return>', lambda x: self.cellentryCallback(row,col))
+        self.cellentry.bind('<Return>', lambda x: self.handleCellEntry(row,col))
         self.cellentry.focus_set()
         self.entrywin = self.create_window(x1,y1,
                                 width=w,height=h,
