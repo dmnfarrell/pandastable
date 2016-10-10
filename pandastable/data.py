@@ -100,18 +100,24 @@ class TableModel(object):
         ftype = os.path.splitext(filename)[1]
         if ftype == '.mpk':
             self.df.to_msgpack(filename)
-        elif ftype == '.pkl':
+        elif ftype == '.pickle':
             self.df.to_pickle(filename)
-        elif ftype == '.xls':
-            self.df.to_excel(filename)
-        elif ftype == '.csv':
-            self.df.to_csv(filename)
-        elif ftype == '.html':
-            self.df.to_html(filename)
+        #elif ftype == '.xls':
+        #    self.df.to_excel(filename)
+        #elif ftype == '.csv':
+        #    self.df.to_csv(filename)
+        #elif ftype == '.html':
+        #    self.df.to_html(filename)
         return
 
-    def load(self, filename):
-        self.df = pd.read_msgpack(filename)
+    def load(self, filename, filetype=None):
+        """Load file, if no filetype given assume it's msgpack format"""
+
+        print (filetype)
+        if filetype == '.pickle':
+            self.df = pd.read_pickle(filename)
+        else:
+            self.df = pd.read_msgpack(filename)
         return
 
     def getlongestEntry(self, colindex):

@@ -2846,13 +2846,15 @@ class Table(Canvas):
                                                       defaultextension='.mpk',
                                                       initialdir=os.getcwd(),
                                                       filetypes=[("msgpack","*.mpk"),
+                                                                 ("pickle","*.pickle"),
                                                         ("All files","*.*")])
         if not os.path.exists(filename):
             print('file does not exist')
             return
         if filename:
+            filetype = os.path.splitext(filename)[1]
             model = TableModel()
-            model.load(filename)
+            model.load(filename, filetype)
             self.updateModel(model)
             self.filename = filename
             self.adjustColumnWidths()
@@ -2867,7 +2869,8 @@ class Table(Canvas):
                                                      #defaultextension='.mpk',
                                                      initialdir = self.currentdir,
                                                      filetypes=[("msgpack","*.mpk"),
-                                                      ("All files","*.*")])
+                                                                ("pickle","*.pickle"),
+                                                                ("All files","*.*")])
         if filename:
             self.model.save(filename)
             self.filename = filename
@@ -2910,6 +2913,7 @@ class Table(Canvas):
 
     def loadExcel(self, filename=None):
         """Load excel file"""
+
         if filename == None:
             filename = filedialog.askopenfilename(parent=self.master,
                                                           defaultextension='.xls',
@@ -2926,6 +2930,7 @@ class Table(Canvas):
 
     def doExport(self, filename=None):
         """Do a simple export of the cell contents to csv"""
+
         if filename == None:
             filename = filedialog.asksaveasfilename(parent=self.master,
                                                       defaultextension='.csv',
@@ -2941,6 +2946,7 @@ class Table(Canvas):
     @classmethod
     def checkOS(cls):
         """Check the OS we are in"""
+
         from sys import platform as _platform
         if _platform == "linux" or _platform == "linux2":
             return 'linux'

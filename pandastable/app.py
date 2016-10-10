@@ -480,6 +480,14 @@ class DataExplore(Frame):
         self.load_dataframe(df, name)
         return
 
+    def load_pickle(self, filename):
+        """Load a pickle file"""
+
+        df = pd.read_pickle(filename)
+        name = os.path.splitext(os.path.basename(filename))[0]
+        self.load_dataframe(df, name)
+        return
+
     def getData(self, name):
         """Get predefined data from dataset folder"""
 
