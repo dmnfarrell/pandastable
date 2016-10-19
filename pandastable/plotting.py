@@ -317,13 +317,11 @@ class PlotViewer(Frame):
                     'boxplot': ['rot', 'grid', 'logy','colormap','alpha','linewidth'],
                     'scatter_matrix':['alpha', 'linewidth', 'marker', 'grid', 's'],
                     'contour': ['linewidth','colormap','alpha'],
-                    'imshow': ['colormap','alpha']
+                    'imshow': ['colormap','alpha'],
+                    'venn': ['colormap','alpha']
                     }
 
         data = self.data
-        if self._checkNumeric(data) == False:
-            self.showWarning('no numeric data to plot')
-            return
         #get all options from the mpl options object
         kwds = self.mplopts.kwds
         kind = kwds['kind']
@@ -333,6 +331,10 @@ class PlotViewer(Frame):
         errorbars = kwds['errorbars']
         useindex = kwds['use_index']
         bw = kwds['bw']
+
+        if self._checkNumeric(data) == False and kind != 'venn':
+            self.showWarning('no numeric data to plot')
+            return
 
         #valid kwd args for this plot type
         kwargs = dict((k, kwds[k]) for k in valid[kind] if k in kwds)
@@ -544,6 +546,8 @@ class PlotViewer(Frame):
         #elif kind == 'barh':
         #    lw = kwargs['linewidth']
         #    axs = data.plot(ax=ax, layout=layout, xerr=yerr, **kwargs)
+        elif kind == 'venn':
+            axs = self.venn(data, ax, **kwargs)
         else:
             #line, bar and area plots
             if useindex == False:
@@ -650,6 +654,29 @@ class PlotViewer(Frame):
         ax.set_yticklabels(X.index, minor=False)
         ax.set_ylim(0, len(X.index))
         return
+
+    def venn(self, data, ax, colormap=None, alpha=0.8):
+        """Plot venn diagram, requires matplotlb-venn"""
+
+        try:
+            from matplotlib_venn import venn2,venn3
+        except:
+            self.showWarning('requires matplotlib_venn')
+            return
+        l = len(data.columns)
+        if l<2: return
+        x = data.values[:,0]
+        y = data.values[:,1]
+        if l==2:
+            labels = list(data.columns[:2])
+            v = venn2([set(x), set(y)], set_labels=labels, ax=ax)
+        else:
+            labels = list(data.columns[:3])
+            z = data.values[:,2]
+            v = venn3([set(x), set(y), set(z)], set_labels=labels, ax=ax)
+        ax.axis('off')
+        ax.set_axis_off()
+        return ax
 
     def contourData(self, data):
         """Get data for contour plot"""
@@ -940,7 +967,7 @@ class MPLBaseOptions(TkOptions):
     markers = ['','o','.','^','v','>','<','s','+','x','p','d','h','*']
     linestyles = ['-','--','-.',':','steps']
     kinds = ['line', 'scatter', 'bar', 'barh', 'pie', 'histogram', 'boxplot',
-             'heatmap', 'area', 'hexbin', 'contour', 'imshow', 'scatter_matrix', 'density']
+             'heatmap', 'area', 'hexbin', 'contour', 'imshow', 'scatter_matrix', 'density', 'venn']
     defaultfont = 'monospace'
 
     def __init__(self, parent=None):
