@@ -97,7 +97,7 @@ pt.redraw()
 
 Import a csv file:
 ```
-pt.doImport('test.csv')
+pt.importCSV('test.csv')
 ```
 
 ## Links
