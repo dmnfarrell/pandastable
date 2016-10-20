@@ -1101,6 +1101,25 @@ class Table(Canvas):
         self.redraw()
         return
 
+    def convertDates(self):
+        """Convert single or multiple columns into datetime"""
+
+        df = self.model.df
+        col = df.columns[self.currentcol]
+
+        d = MultipleValDialog(title='Convert to datetime',
+                                initialvalues=['%Y-%m-%d'],
+                                labels=['Format:'],
+                                types=['string'],
+                                parent = self.parentframe)
+        #dateparse = lambda x: pd.datetime.strptime(x, '%Y-%m-%d %H:%M:%S')
+        if d.result == None:
+            return
+        t = d.results[0]
+        df[col] = pd.to_datetime(df[col])
+        self.redraw()
+        return
+
     def showAll(self):
         """Re-show unfiltered"""
 
@@ -2102,9 +2121,9 @@ class Table(Canvas):
                         "Preferences" : self.showPrefs}
 
         main = ["Copy", #"Fill Down","Fill Right",
-                "Clear Data", "Delete Column(s)"]
-        general = ["Add Row(s)", "Add Column(s)", "Select All", "Filter Rows",
-                    "Show as Text", "Table Info", "Preferences"]
+                "Clear Data"]#, "Delete Column(s)"]
+        general = ["Select All", "Filter Rows",
+                   "Show as Text", "Table Info", "Preferences"]
 
         filecommands = ['New','Load','Import csv','Save','Save as','Export']
         plotcommands = ['Plot Selected','Hide plot','Show plot']

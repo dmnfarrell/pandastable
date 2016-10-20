@@ -178,7 +178,9 @@ class DataExplore(Frame):
                          '06Titanic':
                              {'cmd': lambda: self.getData('titanic3.csv')},
                          '07miRNA expression':
-                             {'cmd': lambda: self.getData('miRNA.csv')}
+                             {'cmd': lambda: self.getData('miRNA.csv')},
+                         '08CO2 time series':
+                             {'cmd': lambda: self.getData('co2-ppm-mauna-loa.csv')}
                          }
         self.dataset_menu=self.createPulldown(self.menu,self.dataset_menu)
         self.menu.add_cascade(label='Datasets',menu=self.dataset_menu['var'])
@@ -648,7 +650,6 @@ class DataExplore(Frame):
         """Load sample table"""
 
         df = TableModel.getSampleData()
-
         name='sample'
         i=1
         while name in self.sheets:
