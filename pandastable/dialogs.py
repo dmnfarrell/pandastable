@@ -336,7 +336,7 @@ class ImportDialog(Frame):
         encodings = ['utf-8','ascii','iso8859_15','cp037','cp1252','big5','euc_jp']
         grps = {'formats':['delimiter','decimal','comment'],
                 'data':['header','skiprows','index_col','skipinitialspace',
-                        'skip_blank_lines','encoding','names'],
+                        'skip_blank_lines','parse_dates','encoding','names'],
                 'other':['rowsperfile']}
         grps = OrderedDict(sorted(grps.items()))
         opts = self.opts = {'delimiter':{'type':'combobox','default':',',
@@ -355,6 +355,8 @@ class ImportDialog(Frame):
                                 'tooltip':'rows to skip'},
                      'skip_blank_lines':  {'type':'checkbutton','default':0,'label':'skip blank lines',
                                 'tooltip':'do not use blank lines'},
+                     'parse_dates':  {'type':'checkbutton','default':1,'label':'parse dates',
+                                'tooltip':'try to parse date/time columns'},
                      'encoding':{'type':'combobox','default':'utf-8','items':encodings,
                                 'tooltip':'file encoding'},
                      #'prefix':{'type':'entry','default':None,'label':'prefix',
@@ -412,6 +414,8 @@ class ImportDialog(Frame):
                 val=None
             if val == '':
                 val=None
+            if self.opts[i]['type'] == 'checkbutton':
+                val = bool(val)
             elif type(self.opts[i]['default']) != int:
                 try:
                     val=int(val)
@@ -422,7 +426,6 @@ class ImportDialog(Frame):
 
         self.showText()
         f = pd.read_csv(self.filename, chunksize=400, error_bad_lines=False,
-                        parse_dates=True,
                         warn_bad_lines=False, **kwds)
         try:
             df = f.get_chunk()
