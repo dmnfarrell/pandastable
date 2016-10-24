@@ -762,7 +762,7 @@ class Table(Canvas):
 
         df = self.model.df
         col = df.columns[self.currentcol]
-        coltypes = ['object','str','int','float64','datetime64[ns]','category']
+        coltypes = ['object','str','int','float64','category']
         curr = df[col].dtype
         d = MultipleValDialog(title='current type is %s' %curr,
                                 initialvalues=[coltypes],
@@ -1105,19 +1105,41 @@ class Table(Canvas):
         """Convert single or multiple columns into datetime"""
 
         df = self.model.df
-        col = df.columns[self.currentcol]
+        cols = list(df.columns[self.multiplecollist])
+        if len(cols) == 1:
+            colname = cols[0]
+            temp = df[colname]
+        else:
+            colname = '-'.join(cols)
+            temp = df[cols]
 
+        formats = ['infer','%d%m%Y','%Y%m%d']
         d = MultipleValDialog(title='Convert to datetime',
-                                initialvalues=['%Y-%m-%d'],
-                                labels=['Format:'],
-                                types=['string'],
+                                initialvalues=['',formats,True],
+                                labels=['Column name:','Format:','In place:'],
+                                types=['string','combobox','checkbutton'],
                                 parent = self.parentframe)
-        #dateparse = lambda x: pd.datetime.strptime(x, '%Y-%m-%d %H:%M:%S')
+
         if d.result == None:
             return
-        t = d.results[0]
-        df[col] = pd.to_datetime(df[col])
-        self.redraw()
+        newname = d.results[0]
+        if newname != '':
+            colname = newname
+        fmt = d.results[1]
+        inplace = d.results[2]
+        if fmt == 'infer':
+            fmt = None
+        #dateparse = lambda x: pd.datetime.strptime(x, fmt)
+        try:
+            df[colname] = pd.to_datetime(temp, format=fmt, errors='coerce')
+        except Exception as e:
+            messagebox.showwarning("Convert error", e,
+                                    parent=self.parentframe)
+        if inplace == False or len(cols)>1:
+            print (cols[-1])
+            self.placeColumn(colname, cols[-1])
+        else:
+            self.redraw()
         return
 
     def showAll(self):
