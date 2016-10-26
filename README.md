@@ -77,17 +77,86 @@ See the home page for this application at http://dmnfarrell.github.io/pandastabl
 
 <img src=https://raw.githubusercontent.com/dmnfarrell/pandastable/master/img/viewerapp.png width=600px>
 
-## For programmers. 
-The basics for now. More details to be added here.
+## For programmers.
 
-Create a parent frame and then add the table to it:
+Here is the *Hello PandasTable World!* example, at the `pandastable/examples` directory, in order to run, execute:
+
+```bash
+$ python pandastable/examples/hello_pandastable_world.py
 ```
-from tkinter import *
-from pandastable import Table
-#assuming parent is the frame in which you want to place the table
-pt = Table(parent)
-pt.show()
+
+What follows are the contents of `pandastable/examples/hello_panadastable_world.py`:
+
+```python
+# coding: utf-8
+
+
+"""
+hello_pandastable_world.py
+"""
+
+
+from os import remove as rm
+from os.path import isfile
+
+from tkinter import Tk, Frame, TOP
+from tkinter.ttk import Notebook
+
+from pandastable import Table    
+
+from textwrap import dedent as dd
+
+
+TMP_CSV = "hello_pandastable.csv"
+
+def setup():
+    with open(TMP_CSV, "w") as f:
+        f.write(dd(
+            """
+            ID, Hello
+            1, PandasTable
+            2, World!
+            """
+        ))
+        
+
+def pandas_gui():
+    root = Tk()
+    root.title("Hello PandasTable World!")
+    
+    notebook = Notebook(root)
+    
+    frame = Frame(notebook)
+
+    table = Table(frame)
+    table.show()
+    table.importCSV(TMP_CSV)
+    table.redraw()
+    
+    notebook.add(frame, text = "Pandas Table",compound = TOP)
+    notebook.pack()
+    
+    root.mainloop()
+    
+
+def cleanup(): 
+    if isfile(TMP_CSV):
+        rm(TMP_CSV)    
+        
+    
+def main():
+    setup()
+    pandas_gui()
+    cleanup()    
+    
+
+if __name__ == '__main__':
+    main()
 ```
+
+Which should create a GUI similar to this one (example from Windows):
+
+![](http://s21.postimg.org/7ivhya2lz/pandastable_world.png)
 
 Update the table:
 ```
