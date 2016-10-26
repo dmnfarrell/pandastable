@@ -157,7 +157,7 @@ if __name__ == '__main__':
 
 Which should create a GUI similar to this one (example from Windows):
 
-![](examples/hello_pandastable_world.png)
+<img src=https://raw.githubusercontent.com/dmnfarrell/pandastable/master/img/hello_pandastable_world.png width=600px>
 
 Update the table:
 ```
