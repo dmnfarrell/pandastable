@@ -133,7 +133,8 @@ def pandas_gui():
     table.importCSV(TMP_CSV)
     table.redraw()
     
-    notebook.add(frame, text = "Pandas Table",compound = TOP)
+
+notebook.add(frame, text = "Pandas Table",compound = TOP)
     notebook.pack()
     
     root.mainloop()
@@ -161,12 +162,12 @@ Which should create a GUI similar to this one (example from Windows):
 Update the table:
 ```
 #alter the DataFrame in some way, then update
-pt.redraw()
+table.redraw()
 ```
 
 Import a csv file:
 ```
-pt.importCSV('test.csv')
+table.importCSV('test.csv')
 ```
 
 ## Links
