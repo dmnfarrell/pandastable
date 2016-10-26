@@ -17,7 +17,7 @@ from pandastable import Table
 from textwrap import dedent as dd
 
 
-TMP_CSV = "hello_pandastable.csv"
+TMP_CSV = "hello_pandastable_world.csv"
 
 def setup():
     with open(TMP_CSV, "w") as f:
