@@ -1,7 +1,8 @@
-<img align="right" src=https://raw.githubusercontent.com/dmnfarrell/pandastable/master/img/logo.png width=150px>
 # pandastable
 
 ## Introduction
+
+<img align="right" src=https://raw.githubusercontent.com/dmnfarrell/pandastable/master/img/logo.png width=150px>
 
 The pandastable library provides a table widget for Tkinter with plotting and data manipulation functionality. 
 It uses the pandas DataFrame class to store table data. Pandas is an open source Python library providing high-performance data structures and data analysis tools. Tkinter is the standard GUI toolkit for python. It is intended for the following uses:
