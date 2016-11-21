@@ -1,3 +1,4 @@
+<img align="right" src=https://raw.githubusercontent.com/dmnfarrell/pandastable/master/img/logo.png width=150px>
 # pandastable
 
 ## Introduction
