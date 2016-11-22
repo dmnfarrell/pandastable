@@ -352,15 +352,15 @@ class PlotViewer(Frame):
             if by2 != '' and by2 in data.columns:
                 by = [by,by2]
             g = data.groupby(by)
-            if len(g) > 30:
-                self.showWarning('%s is too many groups to plot' %len(g))
-                return
-            size = len(g)
-            nrows = round(np.sqrt(size),0)
-            ncols = np.ceil(size/nrows)
             i=1
 
             if kwargs['subplots'] == True:
+                if len(g) > 30:
+                    self.showWarning('%s is too many subplots' %len(g))
+                    return
+                size = len(g)
+                nrows = round(np.sqrt(size),0)
+                ncols = np.ceil(size/nrows)
                 self.ax.set_visible(False)
                 for n,df in g:
                     ax = self.fig.add_subplot(nrows,ncols,i)
@@ -389,7 +389,11 @@ class PlotViewer(Frame):
                     labels.append(n)
                     i+=1
                 handles, l = axs.get_legend_handles_labels()
-                axs.legend(handles,labels,loc='best')
+                if len(g)>10:
+                    lc = int(np.round(len(g)/10))
+                else:
+                    lc = 1
+                axs.legend(handles,labels,loc='best',ncol=lc)
         else:
             axs = self._doplot(data, ax, kind, kwds['subplots'], errorbars,
                                useindex, bw=bw, kwargs=kwargs)
@@ -480,7 +484,7 @@ class PlotViewer(Frame):
             yerr.columns = data.columns
         else:
             yerr = None
-        if kind == 'bar':
+        if kind == 'bar' or kind == 'barh':
             if len(data) > 50:
                 ax.get_xaxis().set_visible(False)
             if len(data) > 300:

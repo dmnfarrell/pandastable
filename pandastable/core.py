@@ -1132,9 +1132,9 @@ class Table(Canvas):
         if fmt == 'infer':
             fmt = None
 
-        #print (getattr(temp.dt, prop))
-        if len(cols) == 1 and type(temp) == pd.tslib.Timestamp:
+        if len(cols) == 1 and temp.dtype == 'datetime64[ns]':
             df[colname] = getattr(temp.dt, prop)
+            self.redraw()
             return
         try:
             df[colname] = pd.to_datetime(temp, format=fmt, errors='coerce')

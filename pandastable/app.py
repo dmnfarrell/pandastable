@@ -394,7 +394,9 @@ class DataExplore(Frame):
             #t.__init__(target=pd.read_msgpack, args=(filename))
             #t.start()
             data = pd.read_msgpack(filename)
-
+        else:
+            print ('no such file')
+            data=None
         self.newProject(data)
         self.filename = filename
         self.main.title('%s - DataExplore' %filename)
