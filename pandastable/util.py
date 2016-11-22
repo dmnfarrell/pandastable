@@ -32,15 +32,20 @@ import string, copy
 import numpy as np
 import pandas as pd
 
-def getTextLength(text, w, scratch=None, font=None):
+SCRATCH = None
+
+
+def getTextLength(text, w, font=None):
     """Get correct canvas text size (chars) that will fit in
     a given canvas width"""
-
-    if scratch == None:
-        scratch = Canvas()
+    global SCRATCH
+    if SCRATCH is None:
+        SCRATCH = Canvas()
+    scratch = SCRATCH
     length = len(str(text))
     t = scratch.create_text((0,0), text=text, font=font)
     b = scratch.bbox(t)
+    scratch.delete(t)
     twidth = b[2]-b[0]
     ratio = length/twidth
     length = math.floor(w*ratio)

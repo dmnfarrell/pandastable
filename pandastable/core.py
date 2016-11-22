@@ -107,7 +107,6 @@ class Table(Canvas):
         self.columnactions = {'text' : {"Edit":  'drawCellEntry' },
                               'number' : {"Edit": 'drawCellEntry' }}
         self.setFontSize()
-        self.scratch = Canvas()
         self.plotted = False
         self.importpath = None
         return
@@ -308,7 +307,6 @@ class Table(Canvas):
         """Redraw the visible portion of the canvas"""
 
         model = self.model
-        self.scratch = Canvas()
         self.rows = len(self.model.df.index)
         self.cols = len(self.model.df.columns)
         if self.cols == 0 or self.rows == 0:
@@ -406,7 +404,7 @@ class Table(Canvas):
             l = self.model.getlongestEntry(col)
             txt = ''.join(['X' for i in range(l+1)])
             tw,tl = util.getTextLength(txt, self.maxcellwidth,
-                                       self.scratch, font=self.thefont)
+                                       font=self.thefont)
             #print (col,txt,l,tw)
             if tw >= self.maxcellwidth:
                 tw = self.maxcellwidth
@@ -2488,8 +2486,7 @@ class Table(Canvas):
         elif align == 'e':
             x1 = x1+w/2-pad
 
-        tw,newlength = util.getTextLength(celltxt, w-pad,
-                                       self.scratch, font=self.thefont)
+        tw,newlength = util.getTextLength(celltxt, w-pad, font=self.thefont)
         width=0
         celltxt = celltxt[0:int(newlength)]
         y=y1+h/2
