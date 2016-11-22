@@ -3,6 +3,13 @@ CHANGES
 =======
 
 ------
+0.7.3
+------
+
+Added convert to datetime
+Fix to memory leak on redraws
+
+------
 0.7.2
 ------
 

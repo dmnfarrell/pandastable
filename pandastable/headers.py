@@ -351,7 +351,7 @@ class ColumnHeader(Canvas):
         popupmenu.add_command(label="Apply Function", command=self.table.applyFunction)
         popupmenu.add_command(label="Apply Function Col-wise", command=self.table.applyColumnWise)
         popupmenu.add_command(label="String Operation", command=self.table.applyStringMethod)
-        popupmenu.add_command(label="Convert to Date/Time", command=self.table.convertDates)
+        popupmenu.add_command(label="Date/Time Conversion", command=self.table.convertDates)
         popupmenu.bind("<FocusOut>", popupFocusOut)
         #self.bind("<Button-3>", popupFocusOut)
         popupmenu.focus_set()

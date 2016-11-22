@@ -314,7 +314,7 @@ class PlotViewer(Frame):
                              'kind','rot','logx'],
                     'density': ['alpha', 'colormap', 'grid', 'legend', 'linestyle',
                                  'linewidth', 'marker', 'subplots', 'rot', 'kind'],
-                    'boxplot': ['rot', 'grid', 'logy','colormap','alpha','linewidth'],
+                    'boxplot': ['rot','grid','logy','colormap','alpha','linewidth','subplots'],
                     'scatter_matrix':['alpha', 'linewidth', 'marker', 'grid', 's'],
                     'contour': ['linewidth','colormap','alpha'],
                     'imshow': ['colormap','alpha'],
@@ -353,46 +353,43 @@ class PlotViewer(Frame):
                 by = [by,by2]
             g = data.groupby(by)
             if len(g) > 30:
-                self.showWarning('too many groups to plot')
+                self.showWarning('%s is too many groups to plot' %len(g))
                 return
-            self.ax.set_visible(False)
-            kwargs['subplots'] = False
             size = len(g)
             nrows = round(np.sqrt(size),0)
             ncols = np.ceil(size/nrows)
             i=1
 
-            for n,df in g:
-                ax = self.fig.add_subplot(nrows,ncols,i)
-                kwargs['legend'] = False #remove axis legends
-                d = df.drop(by,1) #remove grouping columns
-                self._doplot(d, ax, kind, False,  errorbars, useindex,
-                              bw=bw, kwargs=kwargs)
-                ax.set_title(n)
-                handles, labels = ax.get_legend_handles_labels()
-                i+=1
-
-            #single plot
-            '''cmap = plt.cm.get_cmap(kwargs['colormap'])
-            colors = []
-            names = []
-            for n,df in g:
-                ax = self.ax
-                kwargs['legend'] = False #remove axis legends
-                d = df.drop(by,1) #remove grouping columns
-                self._doplot(d, ax, kind, False,  errorbars, useindex,
-                              bw=bw, kwargs=kwargs)
-                names.append(n)
-            handles, labels = ax.get_legend_handles_labels()
-            print (labels)
-            labels = [l+' '+n for l in labels]
-            i+=1'''
-
-            self.fig.legend(handles, labels, loc='center right')
-            self.fig.subplots_adjust(left=0.1, right=0.9, top=0.9,
-                                     bottom=0.1, hspace=.25)
-            axs = self.fig.get_axes()
-            #self.ax = axs[0]
+            if kwargs['subplots'] == True:
+                self.ax.set_visible(False)
+                for n,df in g:
+                    ax = self.fig.add_subplot(nrows,ncols,i)
+                    kwargs['legend'] = False #remove axis legends
+                    d = df.drop(by,1) #remove grouping columns
+                    self._doplot(d, ax, kind, False,  errorbars, useindex,
+                                  bw=bw, kwargs=kwargs)
+                    ax.set_title(n)
+                    handles, labels = ax.get_legend_handles_labels()
+                    i+=1
+                self.fig.legend(handles, labels, loc='center right')
+                self.fig.subplots_adjust(left=0.1, right=0.9, top=0.9,
+                                         bottom=0.1, hspace=.25)
+                axs = self.fig.get_axes()
+            else:
+                axs = self.ax
+                labels = []; handles=[]
+                cmap = plt.cm.get_cmap(kwargs['colormap'])
+                kwargs['legend'] = False
+                for n,df in g:
+                    d = df.drop(by,1) #remove grouping columns
+                    kwargs['color'] = cmap(float(i)/(len(g)))
+                    kwargs['colormap'] = None
+                    self._doplot(d, axs, kind, False,  errorbars, useindex,
+                                  bw=bw, kwargs=kwargs)
+                    labels.append(n)
+                    i+=1
+                handles, l = axs.get_legend_handles_labels()
+                axs.legend(handles,labels,loc='best')
         else:
             axs = self._doplot(data, ax, kind, kwds['subplots'], errorbars,
                                useindex, bw=bw, kwargs=kwargs)

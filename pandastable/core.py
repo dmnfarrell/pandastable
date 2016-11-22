@@ -1111,11 +1111,14 @@ class Table(Canvas):
             colname = '-'.join(cols)
             temp = df[cols]
 
-        formats = ['infer','%d%m%Y','%Y%m%d']
-        d = MultipleValDialog(title='Convert to datetime',
-                                initialvalues=['',formats,True],
-                                labels=['Column name:','Format:','In place:'],
-                                types=['string','combobox','checkbutton'],
+        timeformats = ['infer','%d%m%Y','%Y%m%d']
+        props = ['day','month','minute','second','year',
+                 'dayofyear','weekofyear','quarter']
+        d = MultipleValDialog(title='Data/time conversion',
+                                initialvalues=['',timeformats,props,True],
+                                labels=['Column name:','Convert to date:',
+                                        'Extract from datetime:','In place:'],
+                                types=['string','combobox','combobox','checkbutton'],
                                 parent = self.parentframe)
 
         if d.result == None:
@@ -1124,10 +1127,15 @@ class Table(Canvas):
         if newname != '':
             colname = newname
         fmt = d.results[1]
-        inplace = d.results[2]
+        prop = d.results[2]
+        inplace = d.results[3]
         if fmt == 'infer':
             fmt = None
-        #dateparse = lambda x: pd.datetime.strptime(x, fmt)
+
+        #print (getattr(temp.dt, prop))
+        if len(cols) == 1 and type(temp) == pd.tslib.Timestamp:
+            df[colname] = getattr(temp.dt, prop)
+            return
         try:
             df[colname] = pd.to_datetime(temp, format=fmt, errors='coerce')
         except Exception as e:
