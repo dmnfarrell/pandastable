@@ -1111,10 +1111,14 @@ class Table(Canvas):
             colname = '-'.join(cols)
             temp = df[cols]
 
+        if temp.dtype == 'datetime64[ns]':
+            title = 'Date->string extract'
+        else:
+            title = 'String->datetime convert'
         timeformats = ['infer','%d%m%Y','%Y%m%d']
         props = ['day','month','minute','second','year',
                  'dayofyear','weekofyear','quarter']
-        d = MultipleValDialog(title='Data/time conversion',
+        d = MultipleValDialog(title=title,
                                 initialvalues=['',timeformats,props,True],
                                 labels=['Column name:','Convert to date:',
                                         'Extract from datetime:','In place:'],
@@ -1133,19 +1137,21 @@ class Table(Canvas):
             fmt = None
 
         if len(cols) == 1 and temp.dtype == 'datetime64[ns]':
+            if newname == '':
+                colname = prop
             df[colname] = getattr(temp.dt, prop)
-            self.redraw()
-            return
-        try:
-            df[colname] = pd.to_datetime(temp, format=fmt, errors='coerce')
-        except Exception as e:
-            messagebox.showwarning("Convert error", e,
-                                    parent=self.parentframe)
-        if inplace == False or len(cols)>1:
-            print (cols[-1])
-            self.placeColumn(colname, cols[-1])
         else:
-            self.redraw()
+            try:
+                df[colname] = pd.to_datetime(temp, format=fmt, errors='coerce')
+            except Exception as e:
+                messagebox.showwarning("Convert error", e,
+                                        parent=self.parentframe)
+        if inplace == False or len(cols)>1:
+            #print (cols[-1])
+            self.placeColumn(colname, cols[-1])
+
+        self.redraw()
+        self.tableChanged()
         return
 
     def showAll(self):
@@ -1990,6 +1996,7 @@ class Table(Canvas):
         elif upper == 1:
             df.columns = df.columns.str.upper()
         self.redraw()
+        self.tableChanged()
         return
 
     def convertNumeric(self):
