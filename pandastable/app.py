@@ -394,6 +394,9 @@ class DataExplore(Frame):
             #t.__init__(target=pd.read_msgpack, args=(filename))
             #t.start()
             data = pd.read_msgpack(filename)
+            #create backup file before we change anything
+            backupfile = filename+'.bak'
+            pd.to_msgpack(backupfile, data, encoding='utf-8')
         else:
             print ('no such file')
             data=None

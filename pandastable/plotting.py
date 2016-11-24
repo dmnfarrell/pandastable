@@ -379,7 +379,7 @@ class PlotViewer(Frame):
                 axs = self.ax
                 labels = []; handles=[]
                 cmap = plt.cm.get_cmap(kwargs['colormap'])
-                kwargs['legend'] = False
+                #kwargs['legend'] = False
                 for n,df in g:
                     d = df.drop(by,1) #remove grouping columns
                     kwargs['color'] = cmap(float(i)/(len(g)))
@@ -393,7 +393,8 @@ class PlotViewer(Frame):
                     lc = int(np.round(len(g)/10))
                 else:
                     lc = 1
-                axs.legend(handles,labels,loc='best',ncol=lc)
+                if kwargs['legend'] == True:
+                    axs.legend(handles,labels,loc='best',ncol=lc)
         else:
             axs = self._doplot(data, ax, kind, kwds['subplots'], errorbars,
                                useindex, bw=bw, kwargs=kwargs)
