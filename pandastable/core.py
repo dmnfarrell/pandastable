@@ -37,6 +37,7 @@ import string, copy
 import platform
 import numpy as np
 import pandas as pd
+from pandas.util import clipboard
 from .data import TableModel
 from .headers import ColumnHeader, RowHeader, IndexHeader
 from .plotting import MPLBaseOptions, PlotViewer
@@ -1839,18 +1840,20 @@ class Table(Canvas):
         """Copy cell contents to clipboard"""
 
         rows = self.multiplerowlist
-        if len(rows)<=1:
+        if len(rows) < 1:
             rows = list(range(self.rows))
         cols = self.multiplecollist
         df = self.model.df
-        data = df.iloc[rows,cols]
+        data = df.iloc[rows, cols]
         try:
-            data.to_clipboard()#excel=True,sep=',')
-        except:
+            if len(cols) > 1:
+                data.to_clipboard()
+            else:
+                clipboard.clipboard_set(data.iloc[:, 0].to_string(index=False))
+        except clipboard.NoClipboardProgramError:
             messagebox.showwarning("Warning",
-                                    "No clipboard software.\nInstall xclip",
-                                    parent=self.parentframe)
-        return
+                                   "No clipboard software.\nInstall xclip",
+                                   parent=self.parentframe)
 
     def transpose(self):
         """Transpose table"""
