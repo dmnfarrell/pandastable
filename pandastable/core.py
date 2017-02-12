@@ -1112,7 +1112,7 @@ class Table(Canvas):
             colname = '-'.join(cols)
             temp = df[cols]
 
-        if temp.dtype == 'datetime64[ns]':
+        if len(cols) == 1 and temp.dtype == 'datetime64[ns]':
             title = 'Date->string extract'
         else:
             title = 'String->datetime convert'
@@ -2940,7 +2940,7 @@ class Table(Canvas):
         self.saveAs(self.filename)
         return
 
-    def importCSV(self, filename=None, dialog=False):
+    def importCSV(self, filename=None, dialog=False, **kwargs):
         """Import from csv file"""
 
         if self.importpath == None:
@@ -2961,7 +2961,7 @@ class Table(Canvas):
             if df is None:
                 return
         else:
-            df = pd.read_csv(filename)
+            df = pd.read_csv(filename, **kwargs)
         model = TableModel(dataframe=df)
         self.updateModel(model)
         self.redraw()

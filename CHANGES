@@ -6,8 +6,10 @@ CHANGES
 0.7.3
 ------
 
-Added convert to datetime
+Added datetime conversion dialog
+Can now plot in groups on one axis for some plot types (line, scatter)
 Fix to memory leak on redraws
+Changes to right click copy behaviour
 
 ------
 0.7.2

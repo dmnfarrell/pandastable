@@ -73,7 +73,8 @@ class IterableIPShell:
             import warnings
             warnings.simplefilter("ignore")
 
-        from IPython.config.loader import Config
+        #from IPython.config.loader import Config
+        from traitlets.config.loader import Config
         cfg = Config()
         cfg.InteractiveShell.colors = "Linux"
 

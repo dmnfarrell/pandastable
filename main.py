@@ -48,7 +48,7 @@ def main():
         elif opts.csv != None:
             app = DataExplore()
             t = app.getCurrentTable()
-            t.importCSV(opts.csv)
+            t.importCSV(opts.csv, dialog=True)
         else:
             app = DataExplore()
     app.mainloop()

@@ -379,10 +379,11 @@ class PlotViewer(Frame):
                 axs = self.ax
                 labels = []; handles=[]
                 cmap = plt.cm.get_cmap(kwargs['colormap'])
-                #kwargs['legend'] = False
+
                 for n,df in g:
                     d = df.drop(by,1) #remove grouping columns
-                    kwargs['color'] = cmap(float(i)/(len(g)))
+                    clr = cmap(float(i)/(len(g)))
+                    kwargs['color'] = clr
                     kwargs['colormap'] = None
                     self._doplot(d, axs, kind, False,  errorbars, useindex,
                                   bw=bw, kwargs=kwargs)
