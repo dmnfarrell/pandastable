@@ -1849,7 +1849,7 @@ class Table(Canvas):
             if len(cols) > 1:
                 data.to_clipboard()
             else:
-                clipboard.clipboard_set(data.iloc[:, 0].to_string(index=False))
+                clipboard.clipboard_set(data.to_csv(index=False, header=False))
         except clipboard.NoClipboardProgramError:
             messagebox.showwarning("Warning",
                                    "No clipboard software.\nInstall xclip",
@@ -2875,11 +2875,9 @@ class Table(Canvas):
         self.cols = self.model.getColumnCount()
         self.tablewidth = (self.cellwidth)*self.cols
         if hasattr(self, 'tablecolheader'):
-            self.tablecolheader.destroy()
-            self.rowheader.destroy()
             self.selectNone()
-        self.show()
-        return
+        else:
+            self.show()
 
     def new(self):
         """Clears all the data and makes a new table"""
