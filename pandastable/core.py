@@ -1843,7 +1843,7 @@ class Table(Canvas):
             if len(cols) > 1:
                 data.to_clipboard()
             else:
-                clipboard.clipboard_set(data.iloc[:, 0].to_string(index=False))
+                clipboard.clipboard_set(data.to_csv(index=False, header=False))
         except clipboard.NoClipboardProgramError:
             messagebox.showwarning("Warning",
                                    "No clipboard software.\nInstall xclip",
