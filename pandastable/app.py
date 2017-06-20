@@ -482,11 +482,11 @@ class DataExplore(Frame):
         self.main.title('DataExplore')
         return w
 
-    def load_dataframe(self, df, name=None):
+    def load_dataframe(self, df, name=None, select=False):
         """Load a DataFrame into a new sheet"""
 
         if hasattr(self,'sheets'):
-            self.addSheet(sheetname=name, df=df)
+            self.addSheet(sheetname=name, df=df, select=select)
         else:
             data = {name:{'table':df}}
             self.newProject(data)
