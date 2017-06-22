@@ -206,6 +206,21 @@ class DataExplore(Frame):
         self.main.config(menu=self.menu)
         return
 
+    def bring_to_foreground(self, set_focus=False):
+        self.main.deiconify()
+        self.main.attributes('-topmost', True)
+        self.main.after_idle(self.main.attributes, '-topmost', False)
+        self.main.lift()
+        
+        if set_focus:
+            # Looks like at least on Windows all following is required for the window to also get focus
+            # (deiconify, ..., iconify, deiconify)
+            import platform
+            if platform.system() != "Linux":
+                # http://stackoverflow.com/a/13867710/261181
+                self.main.iconify()
+                self.main.deiconify()
+        
     def getBestGeometry(self):
         """Calculate optimal geometry from screen size"""
 
@@ -467,11 +482,11 @@ class DataExplore(Frame):
         self.main.title('DataExplore')
         return w
 
-    def load_dataframe(self, df, name=None):
+    def load_dataframe(self, df, name=None, select=False):
         """Load a DataFrame into a new sheet"""
 
         if hasattr(self,'sheets'):
-            self.addSheet(sheetname=name, df=df)
+            self.addSheet(sheetname=name, df=df, select=select)
         else:
             data = {name:{'table':df}}
             self.newProject(data)
