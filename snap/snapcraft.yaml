@@ -9,7 +9,14 @@ description: |
 grade: stable 
 confinement: strict 
 
+apps:
+  dataexplore:
+    command: bin/dataexplore
 parts:
   dataexplore:    
     plugin: python
+    python-version: python3
     source: ../
+    stage-packages: 
+     - python3-dev
+     - python3-tk

@@ -1,6 +1,11 @@
 =======
 CHANGES
 =======
+------
+0.7.4
+------
+
+Fix for displaying small floats
 
 ------
 0.7.3

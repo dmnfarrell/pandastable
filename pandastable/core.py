@@ -37,7 +37,7 @@ import string, copy
 import platform
 import numpy as np
 import pandas as pd
-from pandas.util import clipboard
+#from pandas.util import clipboard
 from .data import TableModel
 from .headers import ColumnHeader, RowHeader, IndexHeader
 from .plotting import MPLBaseOptions, PlotViewer
@@ -2441,6 +2441,8 @@ class Table(Canvas):
         h = self.rowheight
         model = self.model
         text = self.model.getValueAt(row, col)
+        if pd.isnull(text):
+            text = ''
         x1,y1,x2,y2 = self.getCellCoords(row,col)
         w=x2-x1
         self.cellentryvar = txtvar = StringVar()
@@ -2483,8 +2485,8 @@ class Table(Canvas):
         w=x2-x1
         wrap = False
         pad=5
-        if type(celltxt) is np.float64:
-            celltxt = np.round(celltxt,3)
+        #if type(celltxt) is np.float64:
+        #    celltxt = np.round(celltxt,3)
         celltxt = str(celltxt)
         length = len(celltxt)
         if length == 0:
