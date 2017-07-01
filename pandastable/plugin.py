@@ -115,7 +115,7 @@ def init_plugin_system(folders):
         if not folder in sys.path:
              sys.path.insert(0, folder)
         plugins = parsefolder(folder)
-        print (plugins)
+        #print (plugins)
         failed = load_plugins(plugins)
     return failed
 
