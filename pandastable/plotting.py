@@ -32,6 +32,7 @@ import numpy as np
 import pandas as pd
 from pandas.tools import plotting
 import matplotlib as mpl
+mpl.use("TkAgg")
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.mlab import griddata
@@ -455,6 +456,7 @@ class PlotViewer(Frame):
         """Core plotting method"""
 
         kwargs = kwargs.copy()
+        print (kwargs)
         cols = data.columns
         if kind == 'line':
             data = data.sort_index()

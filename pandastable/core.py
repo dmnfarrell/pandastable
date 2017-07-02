@@ -2284,10 +2284,12 @@ class Table(Canvas):
 
         df = self.model.df
         rows = self.multiplerowlist
+        if not type(rows) is list:
+            rows = list(rows)
         if len(rows)<1 or self.allrows == True:
             rows = list(range(self.rows))
         cols = self.multiplecollist
-        data = df.iloc[rows,cols]
+        data = df.iloc[list(rows),cols]
         return data
 
     def getPlotData(self):

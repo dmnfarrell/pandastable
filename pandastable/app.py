@@ -75,12 +75,13 @@ class DataExplore(Frame):
         self.setConfigDir()
         if not hasattr(self,'defaultsavedir'):
             self.defaultsavedir = os.getcwd()
-
         self.style = Style()
         available_themes = self.style.theme_names()
         plf = Table.checkOS()
         if plf == 'linux':
             self.style.theme_use('default')
+        elif plf == 'darwin':
+            self.style.theme_use('clam')
 
         self.style.configure("TButton", padding=(3, 3, 3, 3), relief="raised")
         #self.style.configure("TEntry", padding=(3, 3, 3, 3))
@@ -211,7 +212,7 @@ class DataExplore(Frame):
         self.main.attributes('-topmost', True)
         self.main.after_idle(self.main.attributes, '-topmost', False)
         self.main.lift()
-        
+
         if set_focus:
             # Looks like at least on Windows all following is required for the window to also get focus
             # (deiconify, ..., iconify, deiconify)
@@ -220,7 +221,7 @@ class DataExplore(Frame):
                 # http://stackoverflow.com/a/13867710/261181
                 self.main.iconify()
                 self.main.deiconify()
-        
+
     def getBestGeometry(self):
         """Calculate optimal geometry from screen size"""
 
