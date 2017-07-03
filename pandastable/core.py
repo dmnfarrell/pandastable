@@ -784,16 +784,17 @@ class Table(Canvas):
         cols = df.columns
         fillopts = ['','fill scalar','ffill','bfill','interpolate']
         d = MultipleValDialog(title='Clean Data',
-                                initialvalues=(fillopts,'-','10',0,0,['any','all'],0),
+                                initialvalues=(fillopts,'-','10',0,0,['any','all'],0,0),
                                 labels=('Fill missing method:',
                                         'Fill symbol:',
                                         'Limit gaps:',
                                         'Drop columns with null data:',
                                         'Drop rows with null data:',
                                         'Drop method:',
-                                        'Drop duplicates:'),
+                                        'Drop duplicates:',
+                                        'Round numbers:'),
                                 types=('combobox','string','string','checkbutton',
-                                       'checkbutton','combobox','checkbutton'),
+                                       'checkbutton','combobox','checkbutton','string'),
                                 parent = self.parentframe)
         if d.result == None:
             return
@@ -804,6 +805,7 @@ class Table(Canvas):
         droprows = d.results[4]
         how = d.results[5]
         dropdups = d.results[6]
+        rounddecimals = int(d.results[7])
         if method == '':
             pass
         elif method == 'fill scalar':
@@ -818,6 +820,8 @@ class Table(Canvas):
             df = df.dropna(axis=0,how=how)
         if dropdups == 1:
             df = df.drop_duplicates()
+        if rounddecimals != 0:
+            df = df.round(rounddecimals)
         self.model.df = df
         self.redraw()
         return

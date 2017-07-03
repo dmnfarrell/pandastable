@@ -302,20 +302,21 @@ class PlotViewer(Frame):
                             'legend', 'colormap','sharey', 'logx', 'logy', 'use_index','c',
                             'cscale','colorbar','bw'],
                     'pie': ['colormap','legend'],
-                    'hexbin': ['alpha', 'colormap', 'grid', 'linewidth'],
+                    'hexbin': ['alpha', 'colormap', 'grid', 'linewidth','subplots'],
                     'bootstrap': ['grid'],
                     'bar': ['alpha', 'colormap', 'grid', 'legend', 'linewidth', 'subplots',
-                            'sharey',  'logy', 'stacked', 'rot', 'kind'],
+                            'sharey',  'logy', 'stacked', 'rot', 'kind', 'edgecolor'],
                     'barh': ['alpha', 'colormap', 'grid', 'legend', 'linewidth', 'subplots',
-                            'stacked', 'rot', 'kind', 'logx'],
+                            'stacked', 'rot', 'kind', 'logx', 'edgecolor'],
                     'histogram': ['alpha', 'linewidth','grid','stacked','subplots','colormap',
-                             'sharey','rot','bins', 'logx', 'logy'],
-                    'heatmap': ['colormap','rot'],
+                             'sharey','rot','bins', 'logx', 'logy', 'legend', 'edgecolor'],
+                    'heatmap': ['colormap','rot','subplots'],
                     'area': ['alpha','colormap','grid','linewidth','legend','stacked',
-                             'kind','rot','logx'],
+                             'kind','rot','logx','subplots'],
                     'density': ['alpha', 'colormap', 'grid', 'legend', 'linestyle',
                                  'linewidth', 'marker', 'subplots', 'rot', 'kind'],
-                    'boxplot': ['rot','grid','logy','colormap','alpha','linewidth','subplots'],
+                    'boxplot': ['rot','grid','logy','colormap','alpha','linewidth','legend',
+                                'subplots','edgecolor'],
                     'scatter_matrix':['alpha', 'linewidth', 'marker', 'grid', 's'],
                     'contour': ['linewidth','colormap','alpha'],
                     'imshow': ['colormap','alpha'],
@@ -337,6 +338,8 @@ class PlotViewer(Frame):
             self.showWarning('no numeric data to plot')
             return
 
+        #add this
+        kwds['edgecolor'] = 'black'
         #valid kwd args for this plot type
         kwargs = dict((k, kwds[k]) for k in valid[kind] if k in kwds)
         #initialise the figure
@@ -345,8 +348,8 @@ class PlotViewer(Frame):
         #plt.style.use('dark_background')
 
         if by != '':
-            #groupby needs to be handled per group so we can add all the axes to
-            #our figure correctly
+            #groupby needs to be handled per group so we can create the axes
+            #for our figure and add them outside the pandas logic
             if by not in data.columns:
                 self.showWarning('the grouping column must be in selected data')
                 return
@@ -363,23 +366,29 @@ class PlotViewer(Frame):
                 nrows = round(np.sqrt(size),0)
                 ncols = np.ceil(size/nrows)
                 self.ax.set_visible(False)
+                kwargs['subplots'] = None
                 for n,df in g:
                     ax = self.fig.add_subplot(nrows,ncols,i)
                     kwargs['legend'] = False #remove axis legends
                     d = df.drop(by,1) #remove grouping columns
-                    self._doplot(d, ax, kind, False,  errorbars, useindex,
+                    axs = self._doplot(d, ax, kind, False,  errorbars, useindex,
                                   bw=bw, kwargs=kwargs)
                     ax.set_title(n)
                     handles, labels = ax.get_legend_handles_labels()
                     i+=1
+
                 self.fig.legend(handles, labels, loc='center right')
                 self.fig.subplots_adjust(left=0.1, right=0.9, top=0.9,
                                          bottom=0.1, hspace=.25)
                 axs = self.fig.get_axes()
+                #if kwargs['sharey'] == True:
+                #    self.autoscale()
             else:
                 axs = self.ax
                 labels = []; handles=[]
                 cmap = plt.cm.get_cmap(kwargs['colormap'])
+                #kwargs['subplots'] = None
+                print (kwargs)
 
                 for n,df in g:
                     d = df.drop(by,1) #remove grouping columns
@@ -390,16 +399,21 @@ class PlotViewer(Frame):
                                   bw=bw, kwargs=kwargs)
                     labels.append(n)
                     i+=1
+
                 handles, l = axs.get_legend_handles_labels()
                 if len(g)>10:
                     lc = int(np.round(len(g)/10))
                 else:
                     lc = 1
-                if kwargs['legend'] == True:
-                    axs.legend(handles,labels,loc='best',ncol=lc)
+                #if kwargs['legend'] == True:
+                #    axs.legend(handles,labels,loc='best',ncol=lc)
         else:
+            #try:
             axs = self._doplot(data, ax, kind, kwds['subplots'], errorbars,
-                               useindex, bw=bw, kwargs=kwargs)
+                                 useindex, bw=bw, kwargs=kwargs)
+            #except Exception as e:
+            #    self.showWarning(e)
+            #    return
         if table == True:
             from pandas.tools.plotting import table
             if self.table.child != None:
@@ -452,11 +466,17 @@ class PlotViewer(Frame):
         ax.yaxis.set_visible(kwds['showylabels'])
         return
 
+    def autoscale(self):
+        lims = self.fig.axes[0].get_ylim()
+        print (lims)
+        for a in self.fig.axes:
+            a.set_ylim(lims)
+
     def _doplot(self, data, ax, kind, subplots, errorbars, useindex, bw, kwargs):
-        """Core plotting method"""
+        """Core plotting method where the individual plot functions are called"""
 
         kwargs = kwargs.copy()
-        print (kwargs)
+        #print (kwargs)
         cols = data.columns
         if kind == 'line':
             data = data.sort_index()
@@ -502,7 +522,7 @@ class PlotViewer(Frame):
                     a.set_ylim(lims)
         elif kind == 'boxplot':
             axs = data.boxplot(ax=ax, rot=kwargs['rot'], grid=kwargs['grid'],
-                               patch_artist=True)
+                               patch_artist=True, return_type='dict')
             lw = kwargs['linewidth']
             plt.setp(axs['boxes'], color='black', lw=lw)
             plt.setp(axs['whiskers'], color='black', lw=lw)
@@ -514,7 +534,7 @@ class PlotViewer(Frame):
             if kwargs['logy'] == 1:
                 ax.set_yscale('log')
         elif kind == 'histogram':
-            bins = int(kwargs['bins'])
+            #bins = int(kwargs['bins'])
             axs = data.plot(kind='hist',layout=layout, ax=ax, **kwargs)
         elif kind == 'heatmap':
             axs = self.heatmap(data, ax, kwargs)
@@ -540,6 +560,9 @@ class PlotViewer(Frame):
             self.fig.colorbar(im,ax=ax)
             axs = ax
         elif kind == 'pie':
+            #if np.sum(data[data<0].sum(1)) < 0:
+            #    self.showWarning('pie does not allow negative values')
+            #    return
             if kwargs['legend'] == True:
                 lbls=None
             else:
@@ -1006,6 +1029,7 @@ class MPLBaseOptions(TkOptions):
                 'c':{'type':'combobox','items':datacols,'label':'color by value','default':''},
                 'cscale':{'type':'combobox','items':scales,'label':'color scale','default':'linear'},
                 'colorbar':{'type':'checkbutton','default':0,'label':'show colorbar'},
+
                 'bw':{'type':'checkbutton','default':0,'label':'black & white'},
                 'showxlabels':{'type':'checkbutton','default':1,'label':'x tick labels'},
                 'showylabels':{'type':'checkbutton','default':1,'label':'y tick labels'},
@@ -1015,7 +1039,7 @@ class MPLBaseOptions(TkOptions):
                 'table':{'type':'checkbutton','default':0,'label':'show table'},
                 'kind':{'type':'combobox','default':'line','items':self.kinds,'label':'plot type'},
                 'stacked':{'type':'checkbutton','default':0,'label':'stacked'},
-                'linewidth':{'type':'scale','default':1.5,'range':(0.1,8),'interval':0.1,'label':'line width'},
+                'linewidth':{'type':'scale','default':1.5,'range':(0,8),'interval':0.1,'label':'line width'},
                 'alpha':{'type':'scale','default':0.8,'range':(0,1),'interval':0.1,'label':'alpha'},
                 'subplots':{'type':'checkbutton','default':0,'label':'multiple subplots'},
                 'colormap':{'type':'combobox','default':'Spectral','items':colormaps},
