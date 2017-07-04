@@ -133,16 +133,19 @@ class DataExplore(Frame):
         """Create the menu bar for the application. """
 
         self.menu=Menu(self.main)
-        self.proj_menu={'01New':{'cmd': self.newProject},
-                        '02Open':{'cmd': lambda: self.loadProject(asksave=True)},
+        self.file_menu={'01New Project':{'cmd': self.newProject},
+                        '02Open Project':{'cmd': lambda: self.loadProject(asksave=True)},
                         '03Close':{'cmd':self.closeProject},
                         '04Save':{'cmd':self.saveProject},
                         '05Save As':{'cmd':self.saveasProject},
-                        '08Quit':{'cmd':self.quit}}
+                        '06sep':'',
+                        '07Import CSV':{'cmd':self.importCSV},
+                        '08Import Excel':{'cmd':self.importExcel},
+                        '09Quit':{'cmd':self.quit}}
         if self.parent:
-            self.proj_menu['08Return to Database']={'cmd':self.return_data}
-        self.proj_menu=self.createPulldown(self.menu,self.proj_menu)
-        self.menu.add_cascade(label='Project',menu=self.proj_menu['var'])
+            self.file_menu['08Return to Database']={'cmd':self.return_data}
+        self.file_menu=self.createPulldown(self.menu,self.file_menu)
+        self.menu.add_cascade(label='File',menu=self.file_menu['var'])
 
         self.sheet_menu={'01Add Sheet':{'cmd': lambda: self.addSheet(select=True)},
                          '02Remove Sheet':{'cmd': lambda: self.deleteSheet(ask=True)},
@@ -153,9 +156,10 @@ class DataExplore(Frame):
         self.sheet_menu=self.createPulldown(self.menu,self.sheet_menu)
         self.menu.add_cascade(label='Sheet',menu=self.sheet_menu['var'])
 
-        self.edit_menu={'01Copy Table':{'cmd': self.copyTable},
-                        #'02Preferences..':{'cmd':self.preferencesDialog},
-                         }
+        self.edit_menu={#'01Undo':{'cmd': self.undo},
+                        '01Copy Table':{'cmd': self.copyTable},
+                        '02Display Formats':{'cmd': lambda: self._call('displayFormats')}
+                        }
         self.edit_menu = self.createPulldown(self.menu,self.edit_menu)
         self.menu.add_cascade(label='Edit',menu=self.edit_menu['var'])
 
@@ -166,7 +170,8 @@ class DataExplore(Frame):
                          '05Correlation Matrix':{'cmd': lambda: self._call('corrMatrix')},
                          '06Concatenate Tables':{'cmd':self.concat},
                          '07Table to Text':{'cmd': lambda: self._call('showasText')},
-                         '08Table Info':{'cmd': lambda: self._call('showInfo')} }
+                         '08Table Info':{'cmd': lambda: self._call('showInfo')}
+                        }
         self.table_menu=self.createPulldown(self.menu,self.table_menu)
         self.menu.add_cascade(label='Table',menu=self.table_menu['var'])
 
@@ -482,6 +487,20 @@ class DataExplore(Frame):
         self.projopen = False
         self.main.title('DataExplore')
         return w
+
+    def importCSV(self):
+        """Import csv to a new sheet"""
+
+        self.addSheet(select=True)
+        table = self.getCurrentTable()
+        table.importCSV(dialog=True)
+        return
+
+    def importExcel(self):
+        self.addSheet(select=True)
+        table = self.getCurrentTable()
+        table.loadExcel()
+        return
 
     def load_dataframe(self, df, name=None, select=False):
         """Load a DataFrame into a new sheet"""
@@ -831,6 +850,11 @@ class DataExplore(Frame):
             #fig.canvas = canvas
             pdf_pages.savefig(fig)
         pdf_pages.close()
+
+        return
+
+    def undo(self):
+        """Restores last version of current table"""
 
         return
 

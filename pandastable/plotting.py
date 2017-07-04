@@ -384,29 +384,48 @@ class PlotViewer(Frame):
                 #if kwargs['sharey'] == True:
                 #    self.autoscale()
             else:
+                #we handle single plot grouped as pivoted data for some plot
+                #types, the remainder are not supported
                 axs = self.ax
                 labels = []; handles=[]
                 cmap = plt.cm.get_cmap(kwargs['colormap'])
-                #kwargs['subplots'] = None
                 print (kwargs)
+                if kind in ['line','bar','barh']:
+                    df = pd.pivot_table(data,index=by)
+                    #print (df)
+                    self._doplot(df, axs, kind, False,  errorbars, useindex,
+                                      bw=bw, kwargs=kwargs)
+                elif kind == 'scatter':
+                    #handled separately
+                    for n,df in g:
+                        clr = cmap(float(i)/(len(g)))
+                        kwargs['color'] = clr
+                        d = df.drop(by,1) #remove grouping columns
+                        self.scatter(d, axs, **kwargs)
+                        #d.plot(x=kind='scatter', **kwargs)
+                        i+=1
 
-                for n,df in g:
+                    handles, l = axs.get_legend_handles_labels()
+                    if len(g)>10:
+                        lc = int(np.round(len(g)/10))
+                    else:
+                        lc = 1
+                    #if kwargs['legend'] == True:
+                    #    axs.legend(handles,labels,loc='best',ncol=lc)
+                else:
+                    self.showWarning('single grouped plots not supported for %s' %kind)
+
+                '''for n,df in g:
                     d = df.drop(by,1) #remove grouping columns
+                    #d = df.set_index(by)
                     clr = cmap(float(i)/(len(g)))
-                    kwargs['color'] = clr
+                    #kwargs['color'] = clr
                     kwargs['colormap'] = None
                     self._doplot(d, axs, kind, False,  errorbars, useindex,
                                   bw=bw, kwargs=kwargs)
                     labels.append(n)
-                    i+=1
+                    i+=1'''
 
-                handles, l = axs.get_legend_handles_labels()
-                if len(g)>10:
-                    lc = int(np.round(len(g)/10))
-                else:
-                    lc = 1
-                #if kwargs['legend'] == True:
-                #    axs.legend(handles,labels,loc='best',ncol=lc)
         else:
             #try:
             axs = self._doplot(data, ax, kind, kwds['subplots'], errorbars,

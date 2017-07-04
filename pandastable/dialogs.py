@@ -373,7 +373,7 @@ class ImportDialog(Frame):
 
         self.m = PanedWindow(self.main, orient=VERTICAL)
         self.m.pack(side=LEFT,fill=BOTH,expand=1)
-        self.textpreview = ScrolledText(self.main, width=80, height=10)
+        self.textpreview = ScrolledText(self.main, width=100, height=10)
         self.m.add(self.textpreview, weight=3)
         tf = Frame(self.main)
         self.m.add(tf, weight=1)

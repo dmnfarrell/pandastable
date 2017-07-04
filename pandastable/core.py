@@ -135,6 +135,8 @@ class Table(Canvas):
         self.multipleselectioncolor = '#E0F2F7'
         self.boxoutlinecolor = '#084B8A'
         self.colselectedcolor ='#F5E9EF'#F5E9EF
+
+        self.display_options = {'precision': 0}
         return
 
     def setFontSize(self):
@@ -345,12 +347,27 @@ class Table(Canvas):
         self.delete('fillrect')
         bgcolor = self.cellbackgr
         df = self.model.df
+
+        st=time.time()
+
+        def precision(x, p):
+            if not pd.isnull(x):
+                x = '{.{1}f}'.format(x, p)
+            return x
+
+        prec = self.display_options['precision']
         for row in self.visiblerows:
-            cols = df.iloc[row,:].fillna('')
+            coldata = df.iloc[row,:]
+            if prec != 0:
+                if coldata.dtype == 'float64':
+                    coldata = coldata.apply(lambda x: precision(x, prec), 1)
+                print (coldata)
+            coldata = coldata.astype(object).fillna('')
             for col in self.visiblecols:
-                text = cols.iloc[col]
+                text = coldata.iloc[col]
                 self.drawText(row, col, text, align)
 
+        print (time.time()-st)
         self.tablecolheader.redraw()
         self.rowheader.redraw(align=self.align)
         self.rowindexheader.redraw()
@@ -1156,6 +1173,26 @@ class Table(Canvas):
 
         self.redraw()
         self.tableChanged()
+        return
+
+    def displayFormats(self):
+        """Dialog for pandas display format options"""
+
+        df = self.model.df
+        cols = df.columns
+
+        d = MultipleValDialog(title='Display Formats',
+                                initialvalues=(0,0),
+                                labels=('Float precision:',
+                                        'Thousands separator:'),
+                                types=('string','string'),
+                                parent = self.parentframe)
+        if d.result == None:
+            return
+        prec = int(d.results[0])
+
+        self.display_options['precision'] = prec
+        self.redraw()
         return
 
     def showAll(self):
@@ -2983,6 +3020,7 @@ class Table(Canvas):
                                                             ("All files","*.*")])
         if not filename:
             return
+
         df = pd.read_excel(filename,sheetname=0)
         model = TableModel(dataframe=df)
         self.updateModel(model)
