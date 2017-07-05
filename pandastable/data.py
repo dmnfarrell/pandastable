@@ -62,8 +62,8 @@ class TableModel(object):
         df['b'] = df.a*np.random.normal(.8, 0.1, len(df))
         df = np.round(df, 3)
         #df = df.astype('object')
-        cats = ['green','blue','red','orange','yellow']
-        df['label'] = [cats[i] for i in np.random.randint(0,5,rows)]
+        cats = ['high','medium','low','unknown']
+        df['label'] = [cats[i] for i in np.random.randint(0,4,rows)]
         df['date'] = pd.date_range('1/1/2014', periods=rows, freq='H')
         return df
 

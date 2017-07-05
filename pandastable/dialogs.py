@@ -165,7 +165,7 @@ def dialogFromOptions(parent, opts, groups=None, callback=None,
     return dialog, tkvars, widgets
 
 def addButton(frame, name, callback, img=None, tooltip=None,
-              side=TOP, compound=None, width=None):
+              side=TOP, compound=None, width=None, pady=None):
     """Add a button with image, toolip to a tkinter frame"""
 
     if img==None:
@@ -174,7 +174,7 @@ def addButton(frame, name, callback, img=None, tooltip=None,
         b = Button(frame, text=name, command=callback, width=width,
                          image=img, compound=compound)
     b.image = img
-    b.pack(side=side,fill=X)
+    b.pack(side=side,fill=X,pady=pady)
     if tooltip != None:
         ToolTip.createToolTip(b, tooltip)
     return

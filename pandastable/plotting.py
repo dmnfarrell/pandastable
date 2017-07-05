@@ -72,6 +72,7 @@ class PlotViewer(Frame):
         self.layoutopts = PlotLayoutOptions(parent=self)
         self.gridaxes = {}
         self.setupGUI()
+        self.usestyle = False
         return
 
     def refreshLayout(self):
@@ -149,17 +150,20 @@ class PlotViewer(Frame):
         self.nb.add(w1, text='Base Options', sticky='news')
         #reload tkvars again from stored kwds variable
         self.mplopts.updateFromOptions()
-        w2 = self.labelopts.showDialog(self.nb,layout=self.layout)
-        self.nb.add(w2, text='Annotation', sticky='news')
+        w2 = StyleOptions(parent=self)
+        self.nb.add(w2, text='Styles', sticky='news')
+
+        w3 = self.labelopts.showDialog(self.nb,layout=self.layout)
+        self.nb.add(w3, text='Annotation', sticky='news')
         self.labelopts.updateFromOptions()
-        w3 = self.layoutopts.showDialog(self.nb,layout=self.layout)
-        self.nb.add(w3, text='Grid Layout', sticky='news')
-        w4 = self.mplopts3d.showDialog(self.nb,layout=self.layout)
-        self.nb.add(w4, text='3D Plot', sticky='news')
+        w4 = self.layoutopts.showDialog(self.nb,layout=self.layout)
+        self.nb.add(w4, text='Grid Layout', sticky='news')
+        w5 = self.mplopts3d.showDialog(self.nb,layout=self.layout)
+        self.nb.add(w5, text='3D Plot', sticky='news')
         self.mplopts3d.updateFromOptions()
 
         if self.mode == '3D Plot':
-            self.nb.select(w2)
+            self.nb.select(w5)
 
         def onpick(event):
             print(event)
@@ -486,11 +490,22 @@ class PlotViewer(Frame):
         for a in self.fig.axes:
             a.set_ylim(lims)
 
+    def _clearArgs(self, kwargs):
+        """Clear kwargs of formatting options so that a style can be used"""
+
+        keys = ['colormap','linewidth','grid']
+        for k in keys:
+            if k in kwargs:
+                kwargs[k] = None
+        return kwargs
+
     def _doplot(self, data, ax, kind, subplots, errorbars, useindex, bw, yerr, kwargs):
         """Core plotting method where the individual plot functions are called"""
 
         kwargs = kwargs.copy()
-        #print (kwargs)
+        if self.usestyle == True:
+            keargs = self._clearArgs(kwargs)
+
         cols = data.columns
         if kind == 'line':
             data = data.sort_index()
@@ -1358,6 +1373,51 @@ class AnnotationOptions(TkOptions):
             self.addTextBox(self.textboxes[key], key)
         return
 
+class StyleOptions(Frame):
+    """Class to allow choosing matplotlib styles"""
+    def __init__(self, parent=None):
+        """Setup variables"""
+
+        Frame.__init__(self)
+        self.parent = parent
+        self.main = self
+        self.styles = sorted(plt.style.available)
+        self.setup()
+        return
+
+    def setup(self):
+
+        main = self
+        frame = LabelFrame(main, text='styles')
+        v = self.stylevar = StringVar()
+        v.set('ggplot')
+        w = Combobox(frame, values=self.styles,
+                         textvariable=v,width=14)
+        w.pack(side=TOP,pady=2)
+        addButton(frame, 'Apply', self.apply, None,
+                  'apply', side=TOP, compound="left", width=20, pady=2)
+        addButton(frame, 'Reset', self.reset, None,
+                  'reset', side=TOP, compound="left", width=20, pady=2)
+        frame.pack(side=LEFT,fill='y')
+        return
+
+    def apply(self):
+        mpl.rcParams.update(mpl.rcParamsDefault)
+        style = self.stylevar.get()
+        plt.style.use(style)
+        self.parent.usestyle = True
+        self.parent.replot()
+        if style == 'dark_background':
+            self.parent.fig.set_facecolor('black')
+        else:
+            self.parent.fig.set_facecolor('white')
+        return
+
+    def reset(self):
+        mpl.rcParams.update(mpl.rcParamsDefault)
+        self.parent.usestyle = False
+        self.parent.replot()
+        return
 
 def addFigure(parent, figure=None, resize_callback=None):
     """Create a tk figure and canvas in the parent frame"""
