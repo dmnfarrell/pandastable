@@ -4,7 +4,7 @@ home=os.path.expanduser('~')
 
 setup(
     name = 'pandastable',
-    version = '0.7.3',
+    version = '0.8.0',
     description = 'Library for embedding tables in Tkinter using pandas DataFrames',
     url='https://github.com/dmnfarrell/pandastable',
     license='GPL v3',
@@ -13,8 +13,8 @@ setup(
     packages = ['pandastable'],
     package_data={'pandastable': ['dataexplore.gif','datasets/*.mpk',
                                   'plugins/*.py']},
-    install_requires=['matplotlib>=1.1',
-                      'pandas>=0.17',
+    install_requires=['matplotlib>=2.0',
+                      'pandas>=0.18',
                       'numexpr>=2.4',
                       'xlrd>=0.9',
                       'future'],

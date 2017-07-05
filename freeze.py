@@ -33,7 +33,7 @@ executables = [Executable("main.py", base=base,
                           icon="img/dataexplore.ico")]
 
 setup(  name = "DataExplore",
-	version = "0.7.3",
+	version = "0.8.0",
 	description = "Data analysis and plotter",
     options = {"build_exe": build_exe_options},
     executables = executables)

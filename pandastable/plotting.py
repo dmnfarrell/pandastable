@@ -299,7 +299,7 @@ class PlotViewer(Frame):
                           'linewidth', 'marker', 'subplots', 'rot', 'logx', 'logy',
                           'sharey', 'kind'],
                     'scatter': ['alpha', 'grid', 'linewidth', 'marker', 'subplots', 'ms',
-                            'legend', 'colormap','sharey', 'logx', 'logy', 'use_index','c',
+                            'legend', 'colormap','sharey', 'logx', 'logy', 'use_index','clrcol',
                             'cscale','colorbar','bw'],
                     'pie': ['colormap','legend'],
                     'hexbin': ['alpha', 'colormap', 'grid', 'linewidth','subplots'],
@@ -338,14 +338,13 @@ class PlotViewer(Frame):
             self.showWarning('no numeric data to plot')
             return
 
-        #add this
         kwds['edgecolor'] = 'black'
         #valid kwd args for this plot type
         kwargs = dict((k, kwds[k]) for k in valid[kind] if k in kwds)
         #initialise the figure
         self._initFigure()
         ax = self.ax
-        #plt.style.use('dark_background')
+        #print (kwargs)
 
         if by != '':
             #groupby needs to be handled per group so we can create the axes
@@ -356,9 +355,9 @@ class PlotViewer(Frame):
             if by2 != '' and by2 in data.columns:
                 by = [by,by2]
             g = data.groupby(by)
-            i=1
 
             if kwargs['subplots'] == True:
+                i=1
                 if len(g) > 30:
                     self.showWarning('%s is too many subplots' %len(g))
                     return
@@ -372,7 +371,7 @@ class PlotViewer(Frame):
                     kwargs['legend'] = False #remove axis legends
                     d = df.drop(by,1) #remove grouping columns
                     axs = self._doplot(d, ax, kind, False,  errorbars, useindex,
-                                  bw=bw, kwargs=kwargs)
+                                  bw=bw, yerr=None, kwargs=kwargs)
                     ax.set_title(n)
                     handles, labels = ax.get_legend_handles_labels()
                     i+=1
@@ -384,52 +383,48 @@ class PlotViewer(Frame):
                 #if kwargs['sharey'] == True:
                 #    self.autoscale()
             else:
-                #we handle single plot grouped as pivoted data for some plot
-                #types, the remainder are not supported
+                #single plot grouped only apply to some plot kinds
+                #the remainder are not supported
                 axs = self.ax
                 labels = []; handles=[]
                 cmap = plt.cm.get_cmap(kwargs['colormap'])
-                print (kwargs)
+                #handle as pivoted data for some line, bar
                 if kind in ['line','bar','barh']:
                     df = pd.pivot_table(data,index=by)
-                    #print (df)
-                    self._doplot(df, axs, kind, False,  errorbars, useindex,
+                    errs = data.groupby(by).std()
+                    self._doplot(df, axs, kind, False, errorbars, useindex=None, yerr=errs,
                                       bw=bw, kwargs=kwargs)
                 elif kind == 'scatter':
-                    #handled separately
-                    for n,df in g:
-                        clr = cmap(float(i)/(len(g)))
-                        kwargs['color'] = clr
-                        d = df.drop(by,1) #remove grouping columns
-                        self.scatter(d, axs, **kwargs)
-                        #d.plot(x=kind='scatter', **kwargs)
-                        i+=1
-
-                    handles, l = axs.get_legend_handles_labels()
-                    if len(g)>10:
-                        lc = int(np.round(len(g)/10))
-                    else:
-                        lc = 1
-                    #if kwargs['legend'] == True:
-                    #    axs.legend(handles,labels,loc='best',ncol=lc)
+                    #we plot multiple groups and series in different colors
+                    #this logic could be placed in the scatter method?
+                    d = data.drop(by,1)
+                    xcol = d.columns[0]
+                    ycols = d.columns[1:]
+                    c=0
+                    legnames = []
+                    slen = len(g)*len(ycols)
+                    clrs = [cmap(float(i)/slen) for i in range(slen)]
+                    for n, df in g:
+                        for y in ycols:
+                            kwargs['color'] = clrs[c]
+                            self.scatter(df[[xcol,y]], ax=axs, **kwargs)
+                            legnames.append((n,y))
+                            c+=1
+                    if kwargs['legend'] == True:
+                        if slen>10:
+                            lc = int(np.round(slen/10))
+                        else:
+                            lc = 1
+                        axs.legend(legnames, loc='best', ncol=lc)
                 else:
-                    self.showWarning('single grouped plots not supported for %s' %kind)
-
-                '''for n,df in g:
-                    d = df.drop(by,1) #remove grouping columns
-                    #d = df.set_index(by)
-                    clr = cmap(float(i)/(len(g)))
-                    #kwargs['color'] = clr
-                    kwargs['colormap'] = None
-                    self._doplot(d, axs, kind, False,  errorbars, useindex,
-                                  bw=bw, kwargs=kwargs)
-                    labels.append(n)
-                    i+=1'''
+                    self.showWarning('single grouped plots not supported for %s\n'
+                                     'try using multiple subplots' %kind)
 
         else:
+            #non-grouped plot
             #try:
             axs = self._doplot(data, ax, kind, kwds['subplots'], errorbars,
-                                 useindex, bw=bw, kwargs=kwargs)
+                                 useindex, bw=bw, yerr=None, kwargs=kwargs)
             #except Exception as e:
             #    self.showWarning(e)
             #    return
@@ -491,7 +486,7 @@ class PlotViewer(Frame):
         for a in self.fig.axes:
             a.set_ylim(lims)
 
-    def _doplot(self, data, ax, kind, subplots, errorbars, useindex, bw, kwargs):
+    def _doplot(self, data, ax, kind, subplots, errorbars, useindex, bw, yerr, kwargs):
         """Core plotting method where the individual plot functions are called"""
 
         kwargs = kwargs.copy()
@@ -521,12 +516,12 @@ class PlotViewer(Frame):
             layout = None
         else:
             layout=(rows,-1)
-        if errorbars == True:
+
+        if errorbars == True and yerr == None:
             yerr = data[data.columns[1::2]]
             data = data[data.columns[0::2]]
             yerr.columns = data.columns
-        else:
-            yerr = None
+
         if kind == 'bar' or kind == 'barh':
             if len(data) > 50:
                 ax.get_xaxis().set_visible(False)
@@ -590,9 +585,6 @@ class PlotViewer(Frame):
                             autopct='%1.1f%%', subplots=True, **kwargs)
             if lbls == None:
                 axs[0].legend(labels=data.index)
-        #elif kind == 'barh':
-        #    lw = kwargs['linewidth']
-        #    axs = data.plot(ax=ax, layout=layout, xerr=yerr, **kwargs)
         elif kind == 'venn':
             axs = self.venn(data, ax, **kwargs)
         else:
@@ -613,7 +605,7 @@ class PlotViewer(Frame):
                              **kwargs)
         return axs
 
-    def scatter(self, df, ax, alpha=0.8, marker='o', **kwds):
+    def scatter(self, df, ax, alpha=0.8, marker='o', color=None, **kwds):
         """A custom scatter plot rather than the pandas one. By default this
         plots the first column selected versus the others"""
 
@@ -626,18 +618,21 @@ class PlotViewer(Frame):
         s=1
         cmap = plt.cm.get_cmap(kwds['colormap'])
         lw = kwds['linewidth']
-        c = kwds['c']
+        clrcol = kwds['clrcol']  #color by values in a column
         cscale = kwds['cscale']
         grid = kwds['grid']
         bw = kwds['bw']
+
         if cscale == 'log':
             norm = mpl.colors.LogNorm()
         else:
             norm = None
-        if c != '' and c in cols:
+        if color != None:
+            c = color
+        elif clrcol != '' and clrcol in cols:
             if len(cols)>2:
-                cols.remove(c)
-            c = df[c]
+                cols.remove(clrcol)
+            c = df[clrcol]
         else:
             c = None
         plots = len(cols)
@@ -653,6 +648,7 @@ class PlotViewer(Frame):
         else:
             colormap = None
             c=None
+
         for i in range(s,plots):
             y = df[cols[i]]
             ec = 'black'
@@ -669,7 +665,7 @@ class PlotViewer(Frame):
             if kwds['subplots'] == 1:
                 ax = self.fig.add_subplot(nrows,ncols,i)
             ms = kwds['ms'] * 12
-            scplt = ax.scatter(x, y, marker=marker, alpha=alpha, linewidth=lw, c=c,
+            sc = ax.scatter(x, y, marker=marker, alpha=alpha, linewidth=lw, c=c,
                        s=ms, edgecolors=ec, facecolor=clr, cmap=colormap,
                        norm=norm, label=cols[i], picker=True)
             ax.set_xlabel(cols[0])
@@ -1027,13 +1023,13 @@ class MPLBaseOptions(TkOptions):
         fonts = util.getFonts()
         scales = ['linear','log']
         grps = {'data':['bins','by','by2','use_index','errorbars'],
-                'styles':['font','marker','linestyle','alpha'],
+                'formats':['font','marker','linestyle','alpha'],
                 'sizes':['fontsize','ms','linewidth'],
-                'formats':['kind','stacked','subplots','grid','legend','table'],
+                'general':['kind','stacked','subplots','grid','legend','table'],
                 'axes':['showxlabels','showylabels','sharex','sharey','logx','logy','rot'],
-                'styles colors':['colormap','bw','c','cscale','colorbar']}
-        order = ['data','formats','sizes','axes','styles','labels']
-        self.groups = OrderedDict(sorted(grps.items()))
+                'colors':['colormap','bw','clrcol','cscale','colorbar']}
+        order = ['general','data','axes','sizes','formats','colors']
+        self.groups = OrderedDict((key, grps[key]) for key in order)
         opts = self.opts = {'font':{'type':'combobox','default':self.defaultfont,'items':fonts},
                 'fontsize':{'type':'scale','default':12,'range':(5,40),'interval':1,'label':'font size'},
                 'marker':{'type':'combobox','default':'','items':self.markers},
@@ -1044,11 +1040,10 @@ class MPLBaseOptions(TkOptions):
                 'logy':{'type':'checkbutton','default':0,'label':'log y'},
                 'rot':{'type':'entry','default':0, 'label':'xlabel angle'},
                 'use_index':{'type':'checkbutton','default':1,'label':'use index'},
-                'errorbars':{'type':'checkbutton','default':0,'label':'use errorbars'},
-                'c':{'type':'combobox','items':datacols,'label':'color by value','default':''},
+                'errorbars':{'type':'checkbutton','default':0,'label':'errorbar column'},
+                'clrcol':{'type':'combobox','items':datacols,'label':'color by value','default':''},
                 'cscale':{'type':'combobox','items':scales,'label':'color scale','default':'linear'},
                 'colorbar':{'type':'checkbutton','default':0,'label':'show colorbar'},
-
                 'bw':{'type':'checkbutton','default':0,'label':'black & white'},
                 'showxlabels':{'type':'checkbutton','default':1,'label':'x tick labels'},
                 'showylabels':{'type':'checkbutton','default':1,'label':'y tick labels'},
@@ -1088,7 +1083,7 @@ class MPLBaseOptions(TkOptions):
         cols += ''
         self.widgets['by']['values'] = cols
         self.widgets['by2']['values'] = cols
-        self.widgets['c']['values'] = cols
+        self.widgets['clrcol']['values'] = cols
         return
 
 class MPL3DOptions(MPLBaseOptions):

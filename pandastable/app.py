@@ -141,7 +141,8 @@ class DataExplore(Frame):
                         '06sep':'',
                         '07Import CSV':{'cmd':self.importCSV},
                         '08Import Excel':{'cmd':self.importExcel},
-                        '09Quit':{'cmd':self.quit}}
+                        '09sep':'',
+                        '10Quit':{'cmd':self.quit}}
         if self.parent:
             self.file_menu['08Return to Database']={'cmd':self.return_data}
         self.file_menu=self.createPulldown(self.menu,self.file_menu)
