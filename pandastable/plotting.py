@@ -72,7 +72,9 @@ class PlotViewer(Frame):
         self.layoutopts = PlotLayoutOptions(parent=self)
         self.gridaxes = {}
         self.setupGUI()
-        self.usestyle = False
+        #reset style if it been set globally
+        self.style = None
+        self.updateStyle()
         return
 
     def refreshLayout(self):
@@ -184,6 +186,7 @@ class PlotViewer(Frame):
         """Re-plot from parent table when selected data changed"""
 
         self.data = self.table.getPlotData()
+        self.updateStyle()
         self.applyPlotoptions()
         return
 
@@ -301,22 +304,22 @@ class PlotViewer(Frame):
         #this is a hack to pass in the right args, needs to be improved
         valid = {'line': ['alpha', 'colormap', 'grid', 'legend', 'linestyle','ms',
                           'linewidth', 'marker', 'subplots', 'rot', 'logx', 'logy',
-                          'sharey', 'kind'],
+                          'sharex','sharey', 'kind'],
                     'scatter': ['alpha', 'grid', 'linewidth', 'marker', 'subplots', 'ms',
-                            'legend', 'colormap','sharey', 'logx', 'logy', 'use_index','clrcol',
-                            'cscale','colorbar','bw'],
+                            'legend', 'colormap','sharex','sharey', 'logx', 'logy', 'use_index',
+                            'clrcol', 'cscale','colorbar','bw'],
                     'pie': ['colormap','legend'],
                     'hexbin': ['alpha', 'colormap', 'grid', 'linewidth','subplots'],
                     'bootstrap': ['grid'],
                     'bar': ['alpha', 'colormap', 'grid', 'legend', 'linewidth', 'subplots',
-                            'sharey',  'logy', 'stacked', 'rot', 'kind', 'edgecolor'],
+                            'sharex','sharey', 'logy', 'stacked', 'rot', 'kind', 'edgecolor'],
                     'barh': ['alpha', 'colormap', 'grid', 'legend', 'linewidth', 'subplots',
-                            'stacked', 'rot', 'kind', 'logx', 'edgecolor'],
+                            'sharex','sharey','stacked', 'rot', 'kind', 'logx', 'edgecolor'],
                     'histogram': ['alpha', 'linewidth','grid','stacked','subplots','colormap',
-                             'sharey','rot','bins', 'logx', 'logy', 'legend', 'edgecolor'],
+                             'sharey','sharex','rot','bins', 'logx', 'logy', 'legend', 'edgecolor'],
                     'heatmap': ['colormap','rot','subplots'],
                     'area': ['alpha','colormap','grid','linewidth','legend','stacked',
-                             'kind','rot','logx','subplots'],
+                             'kind','rot','logx','sharex','sharey','subplots'],
                     'density': ['alpha', 'colormap', 'grid', 'legend', 'linestyle',
                                  'linewidth', 'marker', 'subplots', 'rot', 'kind'],
                     'boxplot': ['rot','grid','logy','colormap','alpha','linewidth','legend',
@@ -384,8 +387,10 @@ class PlotViewer(Frame):
                 self.fig.subplots_adjust(left=0.1, right=0.9, top=0.9,
                                          bottom=0.1, hspace=.25)
                 axs = self.fig.get_axes()
-                #if kwargs['sharey'] == True:
-                #    self.autoscale()
+                if kwargs['sharey'] == True:
+                    self.autoscale()
+                if kwargs['sharex'] == True:
+                    self.autoscale('x')
             else:
                 #single plot grouped only apply to some plot kinds
                 #the remainder are not supported
@@ -454,6 +459,10 @@ class PlotViewer(Frame):
             print ('tight_layout failed')
         #redraw annotations
         self.labelopts.redraw()
+        if self.style == 'dark_background':
+            self.fig.set_facecolor('black')
+        else:
+            self.fig.set_facecolor('white')
         self.canvas.draw()
         return
 
@@ -484,11 +493,28 @@ class PlotViewer(Frame):
         ax.yaxis.set_visible(kwds['showylabels'])
         return
 
-    def autoscale(self):
-        lims = self.fig.axes[0].get_ylim()
+    def autoscale(self, axis='y'):
+        """Set all subplots to limits of largest range"""
+
+        l=None
+        u=None
+        for ax in self.fig.axes:
+            if axis=='y':
+                a, b  = ax.get_ylim()
+            else:
+                a, b  = ax.get_xlim()
+            if l == None or a<l:
+                l=a
+            if u == None or b>u:
+                u=b
+        lims = (l, u)
         print (lims)
         for a in self.fig.axes:
-            a.set_ylim(lims)
+            if axis=='y':
+                a.set_ylim(lims)
+            else:
+                a.set_xlim(lims)
+        return
 
     def _clearArgs(self, kwargs):
         """Clear kwargs of formatting options so that a style can be used"""
@@ -503,7 +529,7 @@ class PlotViewer(Frame):
         """Core plotting method where the individual plot functions are called"""
 
         kwargs = kwargs.copy()
-        if self.usestyle == True:
+        if self.style != None:
             keargs = self._clearArgs(kwargs)
 
         cols = data.columns
@@ -871,6 +897,13 @@ class PlotViewer(Frame):
 
         df = self.table.model.df
         self.mplopts.update(df)
+        return
+
+    def updateStyle(self):
+        if self.style == None:
+            mpl.rcParams.update(mpl.rcParamsDefault)
+        else:
+            plt.style.use(self.style)
         return
 
     def savePlot(self):
@@ -1386,6 +1419,7 @@ class StyleOptions(Frame):
         return
 
     def setup(self):
+        """Set widgets"""
 
         main = self
         frame = LabelFrame(main, text='styles')
@@ -1403,19 +1437,13 @@ class StyleOptions(Frame):
 
     def apply(self):
         mpl.rcParams.update(mpl.rcParamsDefault)
-        style = self.stylevar.get()
-        plt.style.use(style)
-        self.parent.usestyle = True
+        self.parent.style = self.stylevar.get()
         self.parent.replot()
-        if style == 'dark_background':
-            self.parent.fig.set_facecolor('black')
-        else:
-            self.parent.fig.set_facecolor('white')
         return
 
     def reset(self):
         mpl.rcParams.update(mpl.rcParamsDefault)
-        self.parent.usestyle = False
+        self.parent.style = None
         self.parent.replot()
         return
 

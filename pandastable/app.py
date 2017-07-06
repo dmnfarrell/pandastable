@@ -192,7 +192,7 @@ class DataExplore(Frame):
         self.dataset_menu=self.createPulldown(self.menu,self.dataset_menu)
         self.menu.add_cascade(label='Datasets',menu=self.dataset_menu['var'])
 
-        self.plots_menu={'01Add plot':{'cmd':self.addPlot},
+        self.plots_menu={'01Store plot':{'cmd':self.addPlot},
                          '02Clear plots':{'cmd':self.updatePlotsMenu},
                          '03Plots to pdf':{'cmd':self.pdfReport},
                          '04sep':''}
