@@ -43,7 +43,7 @@ class Preferences:
             # If we didn't find a file then set to default and save
             #print('Did not find preferences!!!')
             self.prefs=defaults.copy()
-	        #print(dirs)
+            #print(dirs)
             self.pref_file=os.path.join(dirs[0],filename)
             self.prefs['_prefdir']=dirs[0]
             self.prefs['_preffile']=self.pref_file

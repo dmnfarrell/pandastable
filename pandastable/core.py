@@ -348,11 +348,10 @@ class Table(Canvas):
         bgcolor = self.cellbackgr
         df = self.model.df
 
-        st=time.time()
-
+        #st=time.time()
         def precision(x, p):
             if not pd.isnull(x):
-                x = '{.{1}f}'.format(x, p)
+                x = '{:.{}g}'.format(x, p)
             return x
 
         prec = self.display_options['precision']
@@ -367,7 +366,7 @@ class Table(Canvas):
                 text = coldata.iloc[col]
                 self.drawText(row, col, text, align)
 
-        print (time.time()-st)
+        #print (time.time()-st)
         self.tablecolheader.redraw()
         self.rowheader.redraw(align=self.align)
         self.rowindexheader.redraw()

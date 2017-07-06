@@ -316,14 +316,14 @@ class PlotViewer(Frame):
                     'barh': ['alpha', 'colormap', 'grid', 'legend', 'linewidth', 'subplots',
                             'sharex','sharey','stacked', 'rot', 'kind', 'logx', 'edgecolor'],
                     'histogram': ['alpha', 'linewidth','grid','stacked','subplots','colormap',
-                             'sharey','sharex','rot','bins', 'logx', 'logy', 'legend', 'edgecolor'],
+                             'sharex','sharey','rot','bins', 'logx', 'logy', 'legend', 'edgecolor'],
                     'heatmap': ['colormap','rot','subplots'],
                     'area': ['alpha','colormap','grid','linewidth','legend','stacked',
                              'kind','rot','logx','sharex','sharey','subplots'],
                     'density': ['alpha', 'colormap', 'grid', 'legend', 'linestyle',
                                  'linewidth', 'marker', 'subplots', 'rot', 'kind'],
                     'boxplot': ['rot','grid','logy','colormap','alpha','linewidth','legend',
-                                'subplots','edgecolor'],
+                                'subplots','edgecolor','sharex','sharey'],
                     'scatter_matrix':['alpha', 'linewidth', 'marker', 'grid', 's'],
                     'contour': ['linewidth','colormap','alpha'],
                     'imshow': ['colormap','alpha'],
@@ -383,14 +383,17 @@ class PlotViewer(Frame):
                     handles, labels = ax.get_legend_handles_labels()
                     i+=1
 
-                self.fig.legend(handles, labels, loc='center right')
-                self.fig.subplots_adjust(left=0.1, right=0.9, top=0.9,
-                                         bottom=0.1, hspace=.25)
-                axs = self.fig.get_axes()
                 if kwargs['sharey'] == True:
                     self.autoscale()
                 if kwargs['sharex'] == True:
                     self.autoscale('x')
+
+                self.fig.legend(handles, labels, loc = 'center right', #bbox_to_anchor=(0.9, 0),
+                                 bbox_transform=self.fig.transFigure )
+                #self.fig.subplots_adjust(left=0.1, right=0.9, top=0.8,
+                #                         bottom=0.1, hspace=.25)
+                axs = self.fig.get_axes()
+
             else:
                 #single plot grouped only apply to some plot kinds
                 #the remainder are not supported
@@ -420,7 +423,7 @@ class PlotViewer(Frame):
                             legnames.append((n,y))
                             c+=1
                     if kwargs['legend'] == True:
-                        if slen>10:
+                        if slen>6:
                             lc = int(np.round(slen/10))
                         else:
                             lc = 1
@@ -453,6 +456,8 @@ class PlotViewer(Frame):
         try:
             self.fig.tight_layout()
             self.fig.subplots_adjust(top=0.9)
+            if by != '':
+                self.fig.subplots_adjust(right=0.9)
         except:
             self.fig.subplots_adjust(left=0.1, right=0.9, top=0.89,
                                      bottom=0.1, hspace=.4/scf, wspace=.2/scf)
