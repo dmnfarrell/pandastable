@@ -159,7 +159,7 @@ class DataExplore(Frame):
 
         self.edit_menu={#'01Undo':{'cmd': self.undo},
                         '01Copy Table':{'cmd': self.copyTable},
-                        '02Display Formats':{'cmd': lambda: self._call('displayFormats')}
+                        '02Table Preferences':{'cmd': self.currentTablePrefs},
                         }
         self.edit_menu = self.createPulldown(self.menu,self.edit_menu)
         self.menu.add_cascade(label='Edit',menu=self.edit_menu['var'])
@@ -275,8 +275,13 @@ class DataExplore(Frame):
         t.resizable(width=False, height=False)
         return pb
 
+    def currentTablePrefs(self):
+        table = self.getCurrentTable()
+        table.showPrefs()
+        return
+
     def preferencesDialog(self):
-        """Prefs dialog from config parser info"""
+        """Prefs dialog from config parser info - not yet implemented"""
 
         def save():
             d = dialogs.getDictfromTkVars(opts, tkvars, widgets)

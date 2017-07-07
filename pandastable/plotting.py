@@ -374,7 +374,11 @@ class PlotViewer(Frame):
                 self.ax.set_visible(False)
                 kwargs['subplots'] = None
                 for n,df in g:
-                    ax = self.fig.add_subplot(nrows,ncols,i)
+                    if ncols==1 and nrows==1:
+                        ax = self.fig.add_subplot(111)
+                        self.ax.set_visible(True)
+                    else:
+                        ax = self.fig.add_subplot(nrows,ncols,i)
                     kwargs['legend'] = False #remove axis legends
                     d = df.drop(by,1) #remove grouping columns
                     axs = self._doplot(d, ax, kind, False,  errorbars, useindex,

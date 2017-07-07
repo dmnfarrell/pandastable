@@ -135,8 +135,8 @@ class Table(Canvas):
         self.multipleselectioncolor = '#E0F2F7'
         self.boxoutlinecolor = '#084B8A'
         self.colselectedcolor ='#F5E9EF'#F5E9EF
+        self.floatprecision = 0
 
-        self.display_options = {'precision': 0}
         return
 
     def setFontSize(self):
@@ -334,7 +334,7 @@ class Table(Canvas):
 
         self.rowrange = list(range(0,self.rows))
         self.configure(scrollregion=(0,0, self.tablewidth+self.x_start,
-                self.rowheight*self.rows+10))
+                        self.rowheight*self.rows+10))
 
         x1, y1, x2, y2 = self.getVisibleRegion()
         startvisiblerow, endvisiblerow = self.getVisibleRows(y1, y2)
@@ -349,21 +349,22 @@ class Table(Canvas):
         df = self.model.df
 
         #st=time.time()
-        def precision(x, p):
+        def set_precision(x, p):
             if not pd.isnull(x):
                 x = '{:.{}g}'.format(x, p)
             return x
 
-        prec = self.display_options['precision']
-        for row in self.visiblerows:
-            coldata = df.iloc[row,:]
+        prec = self.floatprecision
+        for col in self.visiblecols:
+            coldata = df.iloc[:,col]
+            #print (col, coldata.dtype)
             if prec != 0:
                 if coldata.dtype == 'float64':
-                    coldata = coldata.apply(lambda x: precision(x, prec), 1)
-                print (coldata)
+                    coldata = coldata.apply(lambda x: set_precision(x, prec), 1)
+                    #print (coldata)
             coldata = coldata.astype(object).fillna('')
-            for col in self.visiblecols:
-                text = coldata.iloc[col]
+            for row in self.visiblerows:
+                text = coldata.iloc[row]
                 self.drawText(row, col, text, align)
 
         #print (time.time()-st)
@@ -1174,7 +1175,7 @@ class Table(Canvas):
         self.tableChanged()
         return
 
-    def displayFormats(self):
+    '''def displayFormats(self):
         """Dialog for pandas display format options"""
 
         df = self.model.df
@@ -1192,7 +1193,7 @@ class Table(Canvas):
 
         self.display_options['precision'] = prec
         self.redraw()
-        return
+        return'''
 
     def showAll(self):
         """Re-show unfiltered"""
@@ -2745,6 +2746,13 @@ class Table(Canvas):
         alignentry_button.grid(row=row,column=1, sticky='nes', padx=3,pady=2)
         row=row+1
 
+        #float precision
+        lbl=Label(frame2,text='Float precision:')
+        lbl.grid(row=row,column=0,padx=3,pady=2)
+        fpentry = Entry(frame2, textvariable=self.floatprecvar, width=10)
+        fpentry.grid(row=row,column=1, sticky='nes', padx=3,pady=2)
+        row=row+1
+
         #colors
         style = Style()
         style.configure("cb.TButton", background=self.cellbackgr)
@@ -2798,6 +2806,7 @@ class Table(Canvas):
                         'cellwidth':80,
                         'autoresizecols': self.autoresizecols,
                         'align': 'w',
+                        'floatprecision': self.floatprecision,
                         'celltextsize':10, 'celltextfont':'Arial',
                         'cellbackgr': self.cellbackgr, 'grid_color': self.grid_color,
                         'linewidth' : self.linewidth,
@@ -2823,6 +2832,8 @@ class Table(Canvas):
         self.cellalignvar = StringVar()
         self.cellalignvar.set(self.prefs.get('align'))
         self.align = self.cellalignvar.get()
+        self.floatprecvar = IntVar()
+        self.floatprecvar.set(self.prefs.get('floatprecision'))
         self.linewidthvar = StringVar()
         self.linewidthvar.set(self.prefs.get('linewidth'))
         self.horizlinesvar = IntVar()
@@ -2858,6 +2869,8 @@ class Table(Canvas):
             self.cellwidth = self.cellwidthvar.get()
             self.prefs.set('align', self.cellalignvar.get())
             self.align = self.cellalignvar.get()
+            self.floatprecision = self.floatprecvar.get()
+            self.prefs.set('floatprecision', self.floatprecvar.get())
             self.prefs.set('linewidth', self.linewidthvar.get())
             self.linewidth = self.linewidthvar.get()
             self.prefs.set('celltextsize', self.celltextsizevar.get())
