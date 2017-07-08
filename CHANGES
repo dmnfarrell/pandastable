@@ -14,7 +14,9 @@ Added ability to choose pre-defined mpl styles
 Fix to memory leak on redraws
 Changes to right click copy behaviour
 Fix for displaying small floats
+Added floating precision to table preferences
 Clipboard bug fix
+Improvement to merge dialog
 
 ------
 0.7.2

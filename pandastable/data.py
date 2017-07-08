@@ -125,10 +125,13 @@ class TableModel(object):
 
         df = self.df
         col = df.columns[colindex]
-        if df.dtypes[col] == 'float64':
-            c = df[col].round(3)
-        else:
-            c = df[col]
+        try:
+            if df.dtypes[col] == 'float64':
+                c = df[col].round(3)
+            else:
+                c = df[col]
+        except:
+            return 1
         longest = c.astype('object').astype('str').str.len().max()
         if np.isnan(longest):
             return 1

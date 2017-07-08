@@ -466,11 +466,14 @@ class CombineDialog(Frame):
         self.main.protocol("WM_DELETE_WINDOW", self.quit)
         self.main.grab_set()
         self.main.transient(parent)
+        self.main.resizable(width=False, height=False)
         self.df1 = df1
         self.df2 = df2
         self.merged = None
 
-        f = Frame(self.main)
+        wf = Frame(self.main)
+        wf.pack(side=LEFT,fill=BOTH)
+        f=Frame(wf)
         f.pack(side=TOP,fill=BOTH)
         ops = ['merge','concat']
         self.opvar = StringVar()
@@ -493,6 +496,8 @@ class CombineDialog(Frame):
                             'items':cols1, 'tooltip':'left column'},
                             'right_on':{'type':'listbox','default':'',
                             'items':cols2, 'tooltip':'right column'},
+                            #'left_index':{'type':'checkbutton','default':0,'label':'use left index'},
+                            #'right_index':{'type':'checkbutton','default':0,'label':'use right index'},
                             'suffix1':{'type':'entry','default':'_1','label':'left suffix'},
                             'suffix2':{'type':'entry','default':'_2','label':'right suffix'},
                             'how':{'type':'combobox','default':'inner',
@@ -502,16 +507,15 @@ class CombineDialog(Frame):
                             'ignore_index':{'type':'checkbutton','default':0,'label':'ignore index',
                                 'tooltip':'do not use the index values on the concatenation axis'},
                             'verify_integrity':{'type':'checkbutton','default':0,'label':'check duplicates'},
-
                              }
-        optsframe, self.tkvars, w = dialogFromOptions(self.main, opts, grps, sticky='new')
+        optsframe, self.tkvars, w = dialogFromOptions(wf, opts, grps, sticky='new')
         optsframe.pack(side=TOP,fill=BOTH)
 
-        bf = Frame(self.main)
+        bf = Frame(wf)
         bf.pack(side=TOP,fill=BOTH)
         b = Button(bf, text="Apply", command=self.apply)
         b.pack(side=LEFT,fill=X,expand=1,pady=1)
-        b = Button(bf, text="Cancel", command=self.quit)
+        b = Button(bf, text="Close", command=self.quit)
         b.pack(side=LEFT,fill=X,expand=1,pady=1)
         b = Button(bf, text="Help", command=self.help)
         b.pack(side=LEFT,fill=X,expand=1,pady=1)
@@ -532,7 +536,7 @@ class CombineDialog(Frame):
             if val == '':
                 val=None
             kwds[i] = val
-        print (kwds)
+        #print (kwds)
         if method == 'merge':
             s=(kwds['suffix1'],kwds['suffix2'])
             del kwds['suffix1']
@@ -540,17 +544,45 @@ class CombineDialog(Frame):
             m = pd.merge(self.df1,self.df2,on=None,suffixes=s, **kwds)
         elif method == 'concat':
             m = pd.concat([self.df1,self.df2], **kwds)
-        print (m)
+        #print (m)
         #if successful ask user to replace table and close
         if len(m) > 0:
-            n = messagebox.askyesno("Join done",
-                                     "Merge/concat success.\nReplace table with new data?",
-                                     parent=self.parent)
-            if n == True:
-                self.merged = m
-                self.quit()
-            else:
-                self.merged = None
+            self.getResult(m)
+
+        return
+
+    def getResult(self, df):
+        """Show result of merge and let user choose to replace current table"""
+
+        self.result = df
+        from . import core
+        if hasattr(self, 'tbf'):
+            self.tbf.destroy()
+        f = self.tbf = Frame(self.main)
+        f.pack(side=LEFT,fill=BOTH)
+        newtable = core.Table(f, dataframe=df, showstatusbar=1)
+        newtable.adjustColumnWidths()
+        newtable.show()
+        bf = Frame(f)
+        bf.grid(row=4,column=0,columnspan=2,sticky='news',padx=2,pady=2)
+        b = Button(bf, text="Copy Table", command=lambda : self.result.to_clipboard(sep=','))
+        b.pack(side=RIGHT)
+        b = Button(bf, text="Replace Current Table", command=self.replaceTable)
+        b.pack(side=RIGHT)
+        return
+
+    def replaceTable(self):
+        """replace parent table"""
+
+        n = messagebox.askyesno("Replace with merged",
+                                 "Are you sure?",
+                                  parent=self.main)
+        if not n:
+            return
+        df = self.result
+        model = TableModel(dataframe=df)
+        self.parent.updateModel(model)
+        self.parent.redraw()
         return
 
     def help(self):
@@ -574,6 +606,7 @@ class AggregateDialog(Frame):
         self.main.protocol("WM_DELETE_WINDOW", self.quit)
         self.main.grab_set()
         self.main.transient(parent)
+        self.main.resizable(width=False, height=False)
         self.df = df
         self.result = None
         cols = list(self.df.columns)

@@ -651,6 +651,9 @@ class PlotViewer(Frame):
             if cmap != None:
                 cmap = util.adjustColorMap(cmap, 0.15,1.0)
                 del kwargs['colormap']
+            if kind == 'barh':
+                kwargs['xerr']=yerr
+                yerr=None
             axs = data.plot(ax=ax, layout=layout, yerr=yerr, style=styles, cmap=cmap,
                              **kwargs)
         return axs
@@ -723,7 +726,7 @@ class PlotViewer(Frame):
                 ax.set_xscale('log')
             if kwds['logy'] == 1:
                 ax.set_yscale('log')
-                ax.set_ylim((y.min()+1e-6,y.max()))
+                ax.set_ylim((x.min()+.1,x.max()))
             if grid == 1:
                 ax.grid(True)
             if kwds['subplots'] == 1:

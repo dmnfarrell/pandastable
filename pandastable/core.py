@@ -351,7 +351,10 @@ class Table(Canvas):
         #st=time.time()
         def set_precision(x, p):
             if not pd.isnull(x):
-                x = '{:.{}g}'.format(x, p)
+                if x<1:
+                    x = '{:.{}g}'.format(x, p)
+                else:
+                    x = '{:.{}f}'.format(x, p)
             return x
 
         prec = self.floatprecision
@@ -1061,7 +1064,7 @@ class Table(Canvas):
         df = self.model.df
         cols = list(df.columns[self.multiplecollist])
         col = cols[0]
-        funcs = ['','split','strip','lower','upper','title','swapcase','len',
+        funcs = ['','split','strip','lstrip','lower','upper','title','swapcase','len',
                  'slice','replace','concat']
         d = MultipleValDialog(title='Apply Function',
                                 initialvalues=(funcs,',',0,1,'','',0),
@@ -1098,6 +1101,8 @@ class Table(Canvas):
             return
         elif func == 'strip':
             x = df[col].str.strip()
+        elif func == 'lstrip':
+            x = df[col].str.lstrip(pat)
         elif func == 'upper':
             x = df[col].str.upper()
         elif func == 'lower':
@@ -1976,18 +1981,18 @@ class Table(Canvas):
         return
 
     def doCombine(self):
-        """Do combine operation"""
+        """Do combine/merge operation"""
 
         if self.child == None:
             return
         from .dialogs import CombineDialog
         cdlg = CombineDialog(self, df1=self.model.df, df2=self.child.model.df)
-        df = cdlg.merged
-        if df is None:
-            return
-        model = TableModel(dataframe=df)
-        self.updateModel(model)
-        self.redraw()
+        #df = cdlg.merged
+        #if df is None:
+        #    return
+        #model = TableModel(dataframe=df)
+        #self.updateModel(model)
+        #self.redraw()
         return
 
     def merge(self, table):
@@ -2330,7 +2335,11 @@ class Table(Canvas):
         if len(rows)<1 or self.allrows == True:
             rows = list(range(self.rows))
         cols = self.multiplecollist
-        data = df.iloc[list(rows),cols]
+        try:
+            data = df.iloc[list(rows),cols]
+        except Exception as e:
+            print ('error indexing data')
+            return pd.DataFrame()
         return data
 
     def getPlotData(self):
