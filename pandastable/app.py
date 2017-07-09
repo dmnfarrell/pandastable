@@ -75,20 +75,12 @@ class DataExplore(Frame):
         self.setConfigDir()
         if not hasattr(self,'defaultsavedir'):
             self.defaultsavedir = os.getcwd()
-        self.style = Style()
-        available_themes = self.style.theme_names()
-        plf = Table.checkOS()
-        if plf == 'linux':
-            self.style.theme_use('default')
-        elif plf == 'darwin':
-            self.style.theme_use('clam')
 
-        self.style.configure("TButton", padding=(3, 3, 3, 3), relief="raised")
-        #self.style.configure("TEntry", padding=(3, 3, 3, 3))
         self.main.title('DataExplore')
         self.createMenuBar()
         self.discoverPlugins()
         self.setupGUI()
+        self.setStyles()
         self.clipboarddf = None
         self.projopen = False
 
@@ -105,6 +97,31 @@ class DataExplore(Frame):
             self.newProject()
         self.main.protocol('WM_DELETE_WINDOW',self.quit)
         self.main.lift()
+        return
+
+    def setStyles(self):
+        """Set theme and widget styles"""
+
+        style = self.style = Style(self)
+        available_themes = self.style.theme_names()
+        plf = Table.checkOS()
+        if plf == 'linux':
+            style.theme_use('default')
+        elif plf == 'darwin':
+            style.theme_use('clam')
+
+        #widgets
+        bg = self.style.lookup('TLabel.label', 'background')
+        #bg = '#d9d9d9'
+        #self.menu.configure(fg='black', bg=bg,
+        #                    activeforeground='black', activebackground=bg)
+
+        style.configure("TMenubutton", bg='black')
+        style.configure("TCombobox", bg='black')
+        #style.configure("TButton", background='black' )
+        #style.configure('Color.TFrame', background=bg)
+
+        #print (style.layout("TMenu"))
         return
 
     def setConfigDir(self):
@@ -426,7 +443,8 @@ class DataExplore(Frame):
             pd.to_msgpack(backupfile, data, encoding='utf-8')
         else:
             print ('no such file')
-            data=None
+            self.quit()
+            return
         self.newProject(data)
         self.filename = filename
         self.main.title('%s - DataExplore' %filename)
