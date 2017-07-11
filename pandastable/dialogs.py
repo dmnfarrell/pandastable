@@ -126,10 +126,11 @@ def dialogFromOptions(parent, opts, groups=None, callback=None,
                 tkvars[i] = v = StringVar()
                 v.set(opts[i]['default'])
                 w = Combobox(frame, values=opt['items'],
-                         textvariable=v,width=14,
+                         textvariable=v,width=16,
                          validatecommand=callback,validate='key')
                 w.set(opt['default'])
-                w.configure(background='white')
+                #w.configure(background='white')
+                #w['state'] = 'readonly'
                 if 'tooltip' in opt:
                     ToolTip.createToolTip(w, opt['tooltip'])
             elif opt['type'] == 'listbox':
@@ -213,8 +214,10 @@ class MultipleValDialog(Dialog):
             self.labels = labels
             self.types = types
             self.tooltips = tooltips
+        s=Style()
+        #bg = s.lookup('TLabel.label', 'background')
+        #s.configure('TFrame', background='white')
         Dialog.__init__(self, parent, title)
-        #bg = Style().lookup('TLabel.label', 'background')
         #super(MultipleValDialog, self).__init__(parent, title)
         return
 

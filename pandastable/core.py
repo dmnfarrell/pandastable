@@ -136,7 +136,7 @@ class Table(Canvas):
         self.boxoutlinecolor = '#084B8A'
         self.colselectedcolor ='#F5E9EF'#F5E9EF
         self.floatprecision = 0
-
+        self.bg = Style().lookup('TLabel.label', 'background')
         return
 
     def setFontSize(self):
@@ -2711,12 +2711,14 @@ class Table(Canvas):
         lblrowheight.grid(row=row,column=0,padx=3,pady=2)
         rowheightentry = Scale(frame1,from_=12,to=50,resolution=1,orient='horizontal',
                             variable=self.rowheightvar)
+        rowheightentry.configure(fg='black', bg=self.bg)
         rowheightentry.grid(row=row,column=1)
         row=row+1
         lblcellwidth = Label(frame1,text='Cell Width:')
         lblcellwidth.grid(row=row,column=0,padx=3,pady=2)
         cellwidthentry = Scale(frame1,from_=20,to=500,resolution=10,orient='horizontal',
                             variable=self.cellwidthvar)
+        cellwidthentry.configure(fg='black', bg=self.bg)
         cellwidthentry.grid(row=row,column=1)
         row=row+1
 
@@ -2724,6 +2726,7 @@ class Table(Canvas):
         lbllinewidth.grid(row=row,column=0,padx=3,pady=2)
         linewidthentry = Scale(frame1,from_=0,to=10,resolution=1,orient='horizontal',
                             variable=self.linewidthvar)
+        linewidthentry.configure(fg='black', bg=self.bg)
         linewidthentry.grid(row=row,column=1)
         row=row+1
 
@@ -2731,6 +2734,7 @@ class Table(Canvas):
         rowhdrwidth.grid(row=row,column=0,padx=3,pady=2)
         rowhdrentry = Scale(frame1,from_=0,to=300,resolution=10,orient='horizontal',
                                     variable=self.rowheaderwidthvar)
+        rowhdrentry.configure(fg='black', bg=self.bg)
         rowhdrentry.grid(row=row,column=1)
         row=row+1
 
@@ -2747,7 +2751,7 @@ class Table(Canvas):
         lblfontsize.grid(row=row,column=0,padx=3,pady=2)
         fontsizeentry = Scale(frame2,from_=6,to=50,resolution=1,orient='horizontal',
                                 variable=self.celltextsizevar)
-
+        fontsizeentry.configure(fg='black', bg=self.bg)
         fontsizeentry.grid(row=row,column=1, sticky='wens',padx=3,pady=2)
         row=row+1
 

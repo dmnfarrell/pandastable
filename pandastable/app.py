@@ -110,10 +110,11 @@ class DataExplore(Frame):
         elif plf == 'darwin':
             style.theme_use('clam')
 
-        bg = self.style.lookup('TLabel.label', 'background')
+        self.bg = bg = self.style.lookup('TLabel.label', 'background')
+        style.configure('Horizontal.TScale', background=bg)
         #set common background style for all widgets because of color issues
-        if plf in ['linux','darwin']:
-            self.option_add("*background", bg)
+        #if plf in ['linux','darwin']:
+        #    self.option_add("*background", bg)
         dialogs.applyStyle(self.menu)
         return
 
@@ -894,6 +895,7 @@ class DataExplore(Frame):
         abwin.transient(self)
         abwin.grab_set()
         abwin.resizable(width=False, height=False)
+        abwin.configure(background=self.bg)
         logo = images.tableapp_logo()
         label = Label(abwin,image=logo,anchor=CENTER)
         label.image = logo

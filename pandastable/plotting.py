@@ -727,7 +727,7 @@ class PlotViewer(Frame):
                        norm=norm, label=cols[i], picker=True)
 
             #create proxy artist for markers so we can return these handles if needed
-            mkr = Line2D([0], [0], marker=marker, alpha=alpha, ms=ms/12, markerfacecolor=c,
+            mkr = Line2D([0], [0], marker=marker, alpha=alpha, ms=ms/20+5, markerfacecolor=c,
                         markeredgewidth=lw, markeredgecolor=ec, linewidth=0)
             handles.append(mkr)
             ax.set_xlabel(cols[0])
