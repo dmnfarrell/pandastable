@@ -36,6 +36,7 @@ mpl.use("TkAgg")
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.mlab import griddata
+from matplotlib.lines import Line2D
 #import matplotlib.animation as animation
 from collections import OrderedDict
 import operator
@@ -391,11 +392,8 @@ class PlotViewer(Frame):
                     self.autoscale()
                 if kwargs['sharex'] == True:
                     self.autoscale('x')
-
                 self.fig.legend(handles, labels, loc = 'center right', #bbox_to_anchor=(0.9, 0),
                                  bbox_transform=self.fig.transFigure )
-                #self.fig.subplots_adjust(left=0.1, right=0.9, top=0.8,
-                #                         bottom=0.1, hspace=.25)
                 axs = self.fig.get_axes()
 
             else:
@@ -414,28 +412,33 @@ class PlotViewer(Frame):
                     #we plot multiple groups and series in different colors
                     #this logic could be placed in the scatter method?
                     d = data.drop(by,1)
+                    d = d._get_numeric_data()
                     xcol = d.columns[0]
                     ycols = d.columns[1:]
                     c=0
                     legnames = []
+                    handles = []
                     slen = len(g)*len(ycols)
                     clrs = [cmap(float(i)/slen) for i in range(slen)]
                     for n, df in g:
                         for y in ycols:
                             kwargs['color'] = clrs[c]
-                            self.scatter(df[[xcol,y]], ax=axs, **kwargs)
-                            legnames.append((n,y))
+                            currax, sc = self.scatter(df[[xcol,y]], ax=axs, **kwargs)
+                            if type(n) is tuple:
+                                n = ','.join(n)
+                            legnames.append(','.join([n,y]))
+                            handles.append(sc[0])
                             c+=1
                     if kwargs['legend'] == True:
                         if slen>6:
                             lc = int(np.round(slen/10))
                         else:
                             lc = 1
-                        axs.legend(legnames, loc='best', ncol=lc)
+                        axs.legend([])
+                        self.fig.legend(handles, legnames, ncol=lc)
                 else:
                     self.showWarning('single grouped plots not supported for %s\n'
                                      'try using multiple subplots' %kind)
-
         else:
             #non-grouped plot
             #try:
@@ -579,7 +582,7 @@ class PlotViewer(Frame):
                 self.showWarning('too many bars to plot')
                 return
         if kind == 'scatter':
-            axs = self.scatter(data, ax, **kwargs)
+            axs, sc = self.scatter(data, ax, **kwargs)
             if kwargs['sharey'] == 1:
                 lims = self.fig.axes[0].get_ylim()
                 for a in self.fig.axes:
@@ -702,6 +705,7 @@ class PlotViewer(Frame):
             colormap = None
             c=None
 
+        handles = []
         for i in range(s,plots):
             y = df[cols[i]]
             ec = 'black'
@@ -721,6 +725,11 @@ class PlotViewer(Frame):
             sc = ax.scatter(x, y, marker=marker, alpha=alpha, linewidth=lw, c=c,
                        s=ms, edgecolors=ec, facecolor=clr, cmap=colormap,
                        norm=norm, label=cols[i], picker=True)
+
+            #create proxy artist for markers so we can return these handles if needed
+            mkr = Line2D([0], [0], marker=marker, alpha=alpha, ms=ms/12, markerfacecolor=c,
+                        markeredgewidth=lw, markeredgecolor=ec, linewidth=0)
+            handles.append(mkr)
             ax.set_xlabel(cols[0])
             if kwds['logx'] == 1:
                 ax.set_xscale('log')
@@ -736,7 +745,7 @@ class PlotViewer(Frame):
         if kwds['legend'] == 1 and kwds['subplots'] == 0:
             ax.legend(cols[1:])
 
-        return ax
+        return ax, handles
 
     def heatmap(self, df, ax, kwds):
         """Plot heatmap"""
@@ -1034,6 +1043,17 @@ class TkOptions(object):
         self.kwds = kwds
         return
 
+    def setWidgetStyles(self):
+
+        style = Style()
+        bg = style.lookup('TLabel.label', 'background')
+        for i in self.widgets:
+            try:
+                self.widgets[i].configure(fg='black', bg=bg,)
+            except:
+                pass
+        return
+
     def apply(self):
         self.applyOptions()
         if self.callback != None:
@@ -1047,6 +1067,7 @@ class TkOptions(object):
         dialog, self.tkvars, self.widgets = dialogFromOptions(parent,
                                                               self.opts, self.groups,
                                                               layout=layout)
+        self.setWidgetStyles()
         return dialog
 
     def updateFromOptions(self, kwds=None):
@@ -1298,6 +1319,7 @@ class AnnotationOptions(TkOptions):
                                                               layout=layout)
         self.main = dialog
         self.addWidgets()
+        self.setWidgetStyles()
         return dialog
 
     def addWidgets(self):

@@ -43,6 +43,7 @@ from collections import OrderedDict
 import webbrowser
 import pandas as pd
 from .data import TableModel
+from . import util
 
 def getParentGeometry(parent):
     x = parent.winfo_rootx()
@@ -128,6 +129,7 @@ def dialogFromOptions(parent, opts, groups=None, callback=None,
                          textvariable=v,width=14,
                          validatecommand=callback,validate='key')
                 w.set(opt['default'])
+                w.configure(background='white')
                 if 'tooltip' in opt:
                     ToolTip.createToolTip(w, opt['tooltip'])
             elif opt['type'] == 'listbox':
@@ -179,6 +181,28 @@ def addButton(frame, name, callback, img=None, tooltip=None,
         ToolTip.createToolTip(b, tooltip)
     return
 
+def applyStyle(w):
+    """Apply style to individual widget to prevent widget color issues on linux"""
+
+    plf = util.checkOS()
+    if plf in ['linux','darwin']:
+        bg = Style().lookup('TLabel.label', 'background')
+        w.configure(fg='black', bg=bg,
+                     activeforeground='white', activebackground='#0174DF')
+    return
+
+def setWidgetStyles(widgets):
+    """set styles of list of widgets"""
+
+    style = Style()
+    bg = style.lookup('TLabel.label', 'background')
+    for w in widgets:
+        try:
+            w.configure(fg='black', bg=bg,)
+        except:
+            pass
+    return
+
 class MultipleValDialog(Dialog):
     """Simple dialog to get multiple values"""
 
@@ -190,6 +214,7 @@ class MultipleValDialog(Dialog):
             self.types = types
             self.tooltips = tooltips
         Dialog.__init__(self, parent, title)
+        #bg = Style().lookup('TLabel.label', 'background')
         #super(MultipleValDialog, self).__init__(parent, title)
         return
 
@@ -231,7 +256,7 @@ class MultipleValDialog(Dialog):
             if self.tooltips != None:
                 ToolTip.createToolTip(self.entries[i], self.tooltips[i])
             r+=1
-
+        #setWidgetStyles(self.entries)
         return self.entries[0] # initial focus
 
     def apply(self):
@@ -373,7 +398,7 @@ class ImportDialog(Frame):
 
         self.m = PanedWindow(self.main, orient=VERTICAL)
         self.m.pack(side=LEFT,fill=BOTH,expand=1)
-        self.textpreview = ScrolledText(self.main, width=100, height=10)
+        self.textpreview = ScrolledText(self.main, width=100, height=10, bg='white')
         self.m.add(self.textpreview, weight=3)
         tf = Frame(self.main)
         self.m.add(tf, weight=1)
@@ -643,6 +668,7 @@ class AggregateDialog(Frame):
         colvar = StringVar()
         w = Combobox(f, values=cols,
                  textvariable=colvar,width=14)
+        w.configure(foreground='black',background='white')
         Label(f, text='column:').pack()
         w.pack()
         w,funcvar = addListBox(f, values=funcs,width=14)
@@ -764,6 +790,9 @@ class EasyListbox(Listbox):
                                  yscrollcommand = yscrollcommand,
                                  selectmode = MULTIPLE, exportselection=0)
         self.bind("<<ListboxSelect>>", self.triggerListItemSelected)
+        self.configure(background='white', foreground='black',
+                       selectbackground='#0174DF', selectforeground='white')
+        return
 
     def triggerListItemSelected(self, event):
         """Strategy method to respond to an item selection in the list box.
@@ -817,7 +846,7 @@ class SimpleEditor(Frame):
     def __init__(self, parent=None, width=100, height=40, font=None):
 
         Frame.__init__(self, parent)
-        st = self.text = ScrolledText(self, width=width, height=height)
+        st = self.text = ScrolledText(self, width=width, height=height, bg='white', fg='black')
         st.pack(in_=self, fill=BOTH, expand=1)
         if font == None:
             if 'Windows' in platform.system():

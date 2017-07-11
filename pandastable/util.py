@@ -119,3 +119,14 @@ def adjustColorMap(cmap, minval=0.0, maxval=1.0, n=100):
         'trunc({n},{a:.2f},{b:.2f})'.format(n=cmap.name, a=minval, b=maxval),
         cmap(np.linspace(minval, maxval, n)))
     return new_cmap
+
+def checkOS():
+    """Check the OS we are in"""
+
+    from sys import platform as _platform
+    if _platform == "linux" or _platform == "linux2":
+        return 'linux'
+    elif _platform == "darwin":
+        return 'darwin'
+    if "win" in _platform:
+        return 'windows'

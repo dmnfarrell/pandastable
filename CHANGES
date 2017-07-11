@@ -17,6 +17,8 @@ Fix for displaying small floats
 Added floating precision to table preferences
 Clipboard bug fix
 Improvement to merge dialog
+Fixes to widget styling issues on linux
+Added duplicate column removal in clean data
 
 ------
 0.7.2

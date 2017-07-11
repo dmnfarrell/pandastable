@@ -32,6 +32,7 @@ except:
 import numpy as np
 import pandas as pd
 from . import util
+from .dialogs import *
 
 class ColumnHeader(Canvas):
     """Class that takes it's size and rendering from a parent table
@@ -356,6 +357,7 @@ class ColumnHeader(Canvas):
         #self.bind("<Button-3>", popupFocusOut)
         popupmenu.focus_set()
         popupmenu.post(event.x_root, event.y_root)
+        applyStyle(popupmenu)
         return popupmenu
 
     def renameColumn(self):
@@ -639,6 +641,7 @@ class RowHeader(Canvas):
         popupmenu.bind("<FocusOut>", popupFocusOut)
         popupmenu.focus_set()
         popupmenu.post(event.x_root, event.y_root)
+        applyStyle(popupmenu)
         return popupmenu
 
     def drawSelectedRows(self, rows=None):

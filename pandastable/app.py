@@ -104,24 +104,17 @@ class DataExplore(Frame):
 
         style = self.style = Style(self)
         available_themes = self.style.theme_names()
-        plf = Table.checkOS()
+        plf = util.checkOS()
         if plf == 'linux':
             style.theme_use('default')
         elif plf == 'darwin':
             style.theme_use('clam')
 
-        #widgets
         bg = self.style.lookup('TLabel.label', 'background')
-        #bg = '#d9d9d9'
-        #self.menu.configure(fg='black', bg=bg,
-        #                    activeforeground='black', activebackground=bg)
-
-        style.configure("TMenubutton", bg='black')
-        style.configure("TCombobox", bg='black')
-        #style.configure("TButton", background='black' )
-        #style.configure('Color.TFrame', background=bg)
-
-        #print (style.layout("TMenu"))
+        #set common background style for all widgets because of color issues
+        if plf in ['linux','darwin']:
+            self.option_add("*background", bg)
+        dialogs.applyStyle(self.menu)
         return
 
     def setConfigDir(self):
@@ -237,13 +230,14 @@ class DataExplore(Frame):
         self.main.lift()
 
         if set_focus:
-            # Looks like at least on Windows all following is required for the window to also get focus
-            # (deiconify, ..., iconify, deiconify)
+            #Looks like at least on Windows the following is required for the window
+            #to also get focus (deiconify, ..., iconify, deiconify)
             import platform
             if platform.system() != "Linux":
                 # http://stackoverflow.com/a/13867710/261181
                 self.main.iconify()
                 self.main.deiconify()
+        return
 
     def getBestGeometry(self):
         """Calculate optimal geometry from screen size"""
@@ -261,9 +255,10 @@ class DataExplore(Frame):
         return
 
     def createPulldown(self,menu,dict):
-        """Create pulldown menu"""
+        """Create pulldown menu, returns a dict"""
 
         var = Menu(menu,tearoff=0)
+        dialogs.applyStyle(var)
         items = list(dict.keys())
         items.sort()
         for item in items:

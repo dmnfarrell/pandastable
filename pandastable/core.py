@@ -58,7 +58,7 @@ class Table(Canvas):
                          scrollregion=(0,0,300,200))
         self.parentframe = parent
         #get platform into a variable
-        self.ostyp = self.checkOS()
+        self.ostyp = util.checkOS()
         self.platform = platform.system()
         self.width = width
         self.height = height
@@ -804,17 +804,18 @@ class Table(Canvas):
         cols = df.columns
         fillopts = ['','fill scalar','ffill','bfill','interpolate']
         d = MultipleValDialog(title='Clean Data',
-                                initialvalues=(fillopts,'-','10',0,0,['any','all'],0,0),
+                                initialvalues=(fillopts,'-','10',0,0,['any','all'],0,0,0),
                                 labels=('Fill missing method:',
                                         'Fill symbol:',
                                         'Limit gaps:',
                                         'Drop columns with null data:',
                                         'Drop rows with null data:',
                                         'Drop method:',
-                                        'Drop duplicates:',
+                                        'Drop duplicate rows:',
+                                        'Drop duplicate columns:',
                                         'Round numbers:'),
                                 types=('combobox','string','string','checkbutton',
-                                       'checkbutton','combobox','checkbutton','string'),
+                                       'checkbutton','combobox','checkbutton','checkbutton','string'),
                                 parent = self.parentframe)
         if d.result == None:
             return
@@ -825,7 +826,8 @@ class Table(Canvas):
         droprows = d.results[4]
         how = d.results[5]
         dropdups = d.results[6]
-        rounddecimals = int(d.results[7])
+        dropdupcols = d.results[7]
+        rounddecimals = int(d.results[8])
         if method == '':
             pass
         elif method == 'fill scalar':
@@ -840,6 +842,8 @@ class Table(Canvas):
             df = df.dropna(axis=0,how=how)
         if dropdups == 1:
             df = df.drop_duplicates()
+        if dropdupcols == 1:
+            df = df.loc[:,~df.columns.duplicated()]
         if rounddecimals != 0:
             df = df.round(rounddecimals)
         self.model.df = df
@@ -2212,6 +2216,7 @@ class Table(Canvas):
             popupmenu.add_cascade(label=label,menu=menu)
             for action in commands:
                 menu.add_command(label=action, command=defaultactions[action])
+            applyStyle(menu)
             return menu
 
         def add_commands(fieldtype):
@@ -2255,6 +2260,7 @@ class Table(Canvas):
         popupmenu.bind("<FocusOut>", popupFocusOut)
         popupmenu.focus_set()
         popupmenu.post(event.x_root, event.y_root)
+        applyStyle(popupmenu)
         return popupmenu
 
     # --- spreadsheet type functions ---
@@ -3061,18 +3067,6 @@ class Table(Canvas):
         if filename:
             self.model.save(filename)
         return
-
-    @classmethod
-    def checkOS(cls):
-        """Check the OS we are in"""
-
-        from sys import platform as _platform
-        if _platform == "linux" or _platform == "linux2":
-            return 'linux'
-        elif _platform == "darwin":
-            return 'darwin'
-        if "win" in _platform:
-            return 'windows'
 
     def getGeometry(self, frame):
         """Get frame geometry"""
