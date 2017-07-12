@@ -272,7 +272,8 @@ class StatsViewer(Frame):
         marker=kwds['marker']
         if marker == '':
             marker='o'
-        s=kwds['s']
+        #s=kwds['s']
+        s = 10
         cmap = plt.cm.get_cmap(kwds['colormap'])
         ax.scatter(Xin[indvar], yin, alpha=0.6, color=cmap(.2), label='fitted data',
                     marker=marker,s=s)

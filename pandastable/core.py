@@ -1934,7 +1934,7 @@ class Table(Canvas):
         df = self.model.df
         cols = list(df.columns)
         valcols = list(df.select_dtypes(include=[np.float64,np.int32]))
-        d = MultipleValDialog(title='Pivot',
+        d = MultipleValDialog(title='Melt',
                                 initialvalues=(cols,valcols,'var'),
                                 labels=('ID vars:', 'Value vars:', 'var name:'),
                                 types=('combobox','listbox','entry'),
