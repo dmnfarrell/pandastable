@@ -37,7 +37,6 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.mlab import griddata
 from matplotlib.lines import Line2D
-#import matplotlib.animation as animation
 from collections import OrderedDict
 import operator
 from .dialogs import *
@@ -71,6 +70,7 @@ class PlotViewer(Frame):
         self.mplopts3d = MPL3DOptions(parent=self)
         self.labelopts = AnnotationOptions(parent=self)
         self.layoutopts = PlotLayoutOptions(parent=self)
+
         self.gridaxes = {}
         self.setupGUI()
         #reset style if it been set globally
@@ -164,6 +164,9 @@ class PlotViewer(Frame):
         w5 = self.mplopts3d.showDialog(self.nb,layout=self.layout)
         self.nb.add(w5, text='3D Plot', sticky='news')
         self.mplopts3d.updateFromOptions()
+
+        #w6 = Animator(parent=self)
+        #self.nb.add(w6, text='Animator', sticky='news')
 
         if self.mode == '3D Plot':
             self.nb.select(w5)
@@ -531,7 +534,7 @@ class PlotViewer(Frame):
     def _clearArgs(self, kwargs):
         """Clear kwargs of formatting options so that a style can be used"""
 
-        keys = ['colormap','linewidth','grid']
+        keys = ['colormap','grid']
         for k in keys:
             if k in kwargs:
                 kwargs[k] = None
@@ -971,37 +974,74 @@ class PlotViewer(Frame):
         self.main.destroy()
         return
 
-class animator(Frame):
+class Animator(Frame):
 
-    def __init__(self, parent, plotframe):
+    def __init__(self, parent):
         Frame.__init__(self, parent)
-        self.main = Frame(self)
-        self.main.pack(side=TOP, fill=BOTH, expand=1)
-        self.plotframe = plotframe
-        self.doGUI()
+        Frame.__init__(self)
+        self.parent = parent
+        self.main = self
+        self.parent = parent
+        self.setup()
         return
 
-    def doGUI(self):
-        b = Button(self.main, text='animate', command=self.animate)
-        b.pack(side=TOP)
-        l = Label(self.main, text='arse')
-        l.pack(side=TOP)
+    def setup(self):
+
+        frame = LabelFrame(self.main, text='options')
+
+        addButton(frame, 'Test', self.updatePlot, None,
+                  'test', side=TOP, compound="left", width=20, pady=2)
+        addButton(frame, 'Animate', self.animate, None,
+                  'animate', side=TOP, compound="left", width=20, pady=2)
+        addButton(frame, 'Save', self.save, None,
+                  'save', side=TOP, compound="left", width=20, pady=2)
+        frame.pack(side=LEFT,fill='y')
+        return
+
+    def updatePlot(self):
+        """update the current plot using data window settings"""
+
+        canvas = self.parent.canvas
+        table = self.parent.table
+        df = table.model.df
+        w = 20
+        inc = 10
+        for i in range(0,len(df),inc):
+            print (i)
+            data = df.iloc[i:i+w]
+            #print (data)
+            self.parent.data = data
+            self.parent.plotCurrent()
+            #canvas.draw()
         return
 
     def animate(self):
+        """Animate a function"""
 
-        def run(i):
-            line.set_ydata(np.sin(x+i/10.0))
+        import matplotlib.animation as animation
+        df = self.parent.table.model.df
+        canvas = self.parent.canvas
+
+        def update_line(num, data, line):
+            print (num)
+            line.set_data(data[..., :num])
             return line,
-        fig = self.plotframe.fig
-        data = self.plotframe.data
-        ax = self.plotframe.ax
+
+        fig = self.parent.fig
+        data = np.random.rand(2, 55)
+        ax = self.parent.ax
+        if ax==None:
+            ax=fig.add_subplot(111)
         ax.clear()
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
         x = np.arange(0, 2*np.pi, 0.01)
-        line, = ax.plot(x, np.sin(x))
-        ani = animation.FuncAnimation(fig, run, np.arange(1, 200),
-                            blit=True, interval=10,
-                            repeat=False)
+        l, = ax.plot([], [], 'b-', )
+        ani = animation.FuncAnimation(fig, update_line, 55,
+                                      fargs=(data, l), repeat=False,
+                                      interval=50, blit=True)
+        canvas.draw()
+        self.ani = ani
         return
 
     def run(data, ax):
@@ -1015,6 +1055,10 @@ class animator(Frame):
             ax.figure.canvas.draw()
         line.set_data(xdata, ydata)
         return line,
+
+    def save(self):
+        self.ani.save('test.mp4')
+        return
 
 class TkOptions(object):
     """Class to generate tkinter widget dialog for dict of options"""
