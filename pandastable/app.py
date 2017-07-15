@@ -184,10 +184,11 @@ class DataExplore(Frame):
                          '07Table to Text':{'cmd': lambda: self._call('showasText')},
                          '08Table Info':{'cmd': lambda: self._call('showInfo')},
                          '09sep':'',
-                         '10Groupby-Aggregate':{'cmd': lambda: self._call('aggregate')},
+                         '10Group-Aggregate':{'cmd': lambda: self._call('aggregate')},
                          '11Merge/Concat Tables': {'cmd': lambda: self._call('doCombine')},
                          '12Pivot Table':{'cmd': lambda: self._call('pivot')},
                          '13Melt Table':{'cmd': lambda: self._call('melt')},
+                         '14Time Series Resampling':{'cmd': lambda: self._call('resample')}
                         }
         self.table_menu=self.createPulldown(self.menu,self.table_menu)
         self.menu.add_cascade(label='Table',menu=self.table_menu['var'])

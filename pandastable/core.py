@@ -507,6 +507,8 @@ class Table(Canvas):
 
         cols = self.multiplecollist
         self.model.setindex(cols)
+        if self.model.df.index.name is not None:
+            self.showIndex()
         self.setSelectedCol(0)
         self.redraw()
         self.drawSelectedCol()
@@ -997,6 +999,39 @@ class Table(Canvas):
             self.redraw()
         else:
             self.createChildTable(new, index=True)
+        return
+
+    def resample(self):
+        """table resampling dialog"""
+
+        df = self.model.df
+        if not isinstance(df.index, pd.DatetimeIndex):
+            messagebox.showwarning("No datetime index", 'Index should be a datetime',
+                                   parent=self.parentframe)
+            return
+
+        conv = ['start','end']
+        freqs = ['M','W','D','H','min','S','Q','A','AS','L','U']
+        funcs = ['mean','sum','count','max','min','std','first','last']
+        d = MultipleValDialog(title='Resample',
+                                initialvalues=(freqs,1,funcs,conv),
+                                labels=('Frequency:','Periods','Function'),
+                                types=('combobox','string','combobox'),
+                                tooltips=('Unit of time e.g. M for months',
+                                          'How often to group e.g. every 2 months',
+                                          'Function to apply'),
+                                parent = self.parentframe)
+        if d.result == None:
+            return
+        freq = d.results[0]
+        period = d.results[1]
+        func = d.results[2]
+        #conv = d.results[3]
+
+        rule = str(period)+freq
+        new = df.resample(rule).apply(func)
+        self.createChildTable(new, index=True)
+        #df.groupby(pd.TimeGrouper(freq='M'))
         return
 
     def _callFunction(self, df, funcname):
@@ -1859,7 +1894,9 @@ class Table(Canvas):
     def copyTable(self, event=None):
         """Copy from the clipboard"""
 
-        df = self.model.df
+        df = self.model.df.copy()
+        #flatten multi-index
+        df.columns = df.columns.get_level_values(0)
         df.to_clipboard(sep=',')
         return
 

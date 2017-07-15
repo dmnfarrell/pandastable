@@ -214,9 +214,7 @@ class MultipleValDialog(Dialog):
             self.labels = labels
             self.types = types
             self.tooltips = tooltips
-        s=Style()
-        #bg = s.lookup('TLabel.label', 'background')
-        #s.configure('TFrame', background='white')
+
         Dialog.__init__(self, parent, title)
         #super(MultipleValDialog, self).__init__(parent, title)
         return
@@ -259,7 +257,12 @@ class MultipleValDialog(Dialog):
             if self.tooltips != None:
                 ToolTip.createToolTip(self.entries[i], self.tooltips[i])
             r+=1
-        #setWidgetStyles(self.entries)
+        s=Style()
+        bg = s.lookup('TLabel.label', 'background')
+        self.configure(background=bg)
+        master.configure(background=bg)
+        self.option_add("*background", bg)
+        self.option_add("*foreground", 'black')
         return self.entries[0] # initial focus
 
     def apply(self):
