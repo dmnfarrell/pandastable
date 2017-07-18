@@ -2217,7 +2217,7 @@ class Table(Canvas):
         defaultactions = {
                         "Copy" : lambda: self.copy(rows, cols),
                         #"Paste" : lambda: self.paste(rows, cols),
-                        #"Fill Down" : lambda: self.fillDown(rows, cols),
+                        "Fill Down" : lambda: self.fillDown(rows, cols),
                         #"Fill Right" : lambda: self.fillAcross(cols, rows),
                         "Add Row(s)" : lambda: self.addRows(),
                         #"Delete Row(s)" : lambda: self.deleteRow(),
@@ -2240,7 +2240,7 @@ class Table(Canvas):
                         "Show plot" : self.showPlot,
                         "Preferences" : self.showPrefs}
 
-        main = ["Copy", #"Fill Down","Fill Right",
+        main = ["Copy", "Fill Down", #"Fill Right",
                 "Clear Data"]#, "Delete Column(s)"]
         general = ["Select All", "Filter Rows",
                    "Show as Text", "Table Info", "Preferences"]
@@ -2305,9 +2305,11 @@ class Table(Canvas):
     def fillDown(self, rowlist, collist):
         """Fill down a column, or multiple columns"""
 
-        model = self.model
+        df = self.model.df
+        val = df.iloc[rowlist[0],collist[0]]
         #remove first element as we don't want to overwrite it
         rowlist.remove(rowlist[0])
+        df.iloc[rowlist,collist] = val
         self.redraw()
         return
 
