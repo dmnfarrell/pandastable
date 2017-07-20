@@ -168,9 +168,9 @@ class DataExplore(Frame):
         self.sheet_menu=self.createPulldown(self.menu,self.sheet_menu)
         self.menu.add_cascade(label='Sheet',menu=self.sheet_menu['var'])
 
-        self.edit_menu={#'01Undo':{'cmd': self.undo},
-                        '01Copy Table':{'cmd': self.copyTable},
-                        '02Table Preferences':{'cmd': self.currentTablePrefs},
+        self.edit_menu={'01Undo':{'cmd': self.undo},
+                        '02Copy Table':{'cmd': self.copyTable},
+                        '03Table Preferences':{'cmd': self.currentTablePrefs},
                         }
         self.edit_menu = self.createPulldown(self.menu,self.edit_menu)
         self.menu.add_cascade(label='Edit',menu=self.edit_menu['var'])
@@ -882,6 +882,8 @@ class DataExplore(Frame):
     def undo(self):
         """Restores last version of current table"""
 
+        table = self.getCurrentTable()
+        table.undo()
         return
 
     def _call(self, func):

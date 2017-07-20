@@ -109,6 +109,7 @@ class Table(Canvas):
         self.setFontSize()
         self.plotted = False
         self.importpath = None
+        self.prevdf = None
         return
 
     def set_defaults(self):
@@ -595,6 +596,7 @@ class Table(Canvas):
                                              parent=self.parentframe)
         if not num:
             return
+        self.storeCurrent()
         keys = self.model.autoAddRows(num)
         self.redraw()
         return
@@ -622,6 +624,7 @@ class Table(Canvas):
                                         "Name already exists!",
                                         parent=self.parentframe)
             else:
+                self.storeCurrent()
                 self.model.addColumn(newname, dtype)
                 self.parentframe.configure(width=self.width)
                 self.redraw()
@@ -636,6 +639,7 @@ class Table(Canvas):
                                       "Delete selected rows?",
                                       parent=self.parentframe)
             if n == True:
+                self.storeCurrent()
                 rows = self.multiplerowlist
                 self.model.deleteRows(rows)
                 self.setSelectedRow(0)
@@ -646,6 +650,7 @@ class Table(Canvas):
                                       "Delete this row?",
                                       parent=self.parentframe)
             if n:
+                self.storeCurrent()
                 row = self.getSelectedRow()
                 self.model.deleteRow(row)
                 self.setSelectedRow(row-1)
@@ -661,6 +666,7 @@ class Table(Canvas):
                                    parent=self.parentframe)
         if not n:
             return
+        self.storeCurrent()
         cols = self.multiplecollist
         self.model.deleteColumns(cols)
         self.setSelectedCol(0)
@@ -678,6 +684,22 @@ class Table(Canvas):
             self.pf.updateData()
         return
 
+    def storeCurrent(self):
+        """Store current version of the table before a process"""
+
+        self.prevdf = self.model.df.copy()
+        return
+
+    def undo(self):
+        """Undo last major table change"""
+
+        if self.prevdf is None:
+            return
+        self.model.df = self.prevdf
+        self.redraw()
+        self.prevdf = None
+        return
+
     def deleteCells(self, rows, cols, answer=None):
         """Clear the cell contents"""
 
@@ -687,6 +709,7 @@ class Table(Canvas):
                                     parent=self.parentframe)
         if not answer:
             return
+        self.storeCurrent()
         self.model.deleteCells(rows, cols)
         self.redraw()
         return
@@ -709,6 +732,7 @@ class Table(Canvas):
                                    parent=self.parentframe)
         if not n:
             return
+        self.storeCurrent()
         model = TableModel(pd.DataFrame())
         self.updateModel(model)
         self.redraw()
@@ -821,6 +845,7 @@ class Table(Canvas):
                                 parent = self.parentframe)
         if d.result == None:
             return
+        self.storeCurrent()
         method = d.results[0]
         symbol = d.results[1]
         limit = int(d.results[2])
@@ -872,6 +897,7 @@ class Table(Canvas):
                                 parent = self.parentframe)
         if d.result == None:
             return
+        self.storeCurrent()
         convert = d.results[0]
         name = d.results[1]
         dummies = d.results[2]
@@ -933,6 +959,7 @@ class Table(Canvas):
                                 parent = self.parentframe)
         if d.result == None:
             return
+        self.storeCurrent()
         funcname = d.results[0]
         newcol = d.results[1]
         inplace = d.results[2]
@@ -1125,6 +1152,7 @@ class Table(Canvas):
                                 parent = self.parentframe)
         if d.result == None:
             return
+        self.storeCurrent()
         func = d.results[0]
         sep = d.results[1]
         start = d.results[2]
@@ -1192,6 +1220,7 @@ class Table(Canvas):
 
         if d.result == None:
             return
+        self.storeCurrent()
         newname = d.results[0]
         if newname != '':
             colname = newname
@@ -1218,26 +1247,6 @@ class Table(Canvas):
         self.redraw()
         self.tableChanged()
         return
-
-    '''def displayFormats(self):
-        """Dialog for pandas display format options"""
-
-        df = self.model.df
-        cols = df.columns
-
-        d = MultipleValDialog(title='Display Formats',
-                                initialvalues=(0,0),
-                                labels=('Float precision:',
-                                        'Thousands separator:'),
-                                types=('string','string'),
-                                parent = self.parentframe)
-        if d.result == None:
-            return
-        prec = int(d.results[0])
-
-        self.display_options['precision'] = prec
-        self.redraw()
-        return'''
 
     def showAll(self):
         """Re-show unfiltered"""
@@ -1903,6 +1912,7 @@ class Table(Canvas):
     def pasteTable(self, event=None):
         """Paste a new table from the clipboard"""
 
+        self.storeCurrent()
         try:
             df = pd.read_clipboard(sep=',',error_bad_lines=False)
         except Exception as e:
@@ -2026,6 +2036,7 @@ class Table(Canvas):
 
         if self.child == None:
             return
+        self.storeCurrent()
         from .dialogs import CombineDialog
         cdlg = CombineDialog(self, df1=self.model.df, df2=self.child.model.df)
         #df = cdlg.merged
@@ -2175,6 +2186,12 @@ class Table(Canvas):
         ed.text.insert(END, buf.getvalue())
         return
 
+    def get_memory(self, ):
+        """memory usage of current table"""
+
+        df = self.model.df
+        return df.memory_usage()
+
     def showasText(self):
         """Get table as formatted text - for printing"""
 
@@ -2305,6 +2322,7 @@ class Table(Canvas):
     def fillDown(self, rowlist, collist):
         """Fill down a column, or multiple columns"""
 
+        self.storeCurrent()
         df = self.model.df
         val = df.iloc[rowlist[0],collist[0]]
         #remove first element as we don't want to overwrite it
@@ -2316,6 +2334,7 @@ class Table(Canvas):
     def fillAcross(self, collist, rowlist):
         """Fill across a row, or multiple rows"""
 
+        self.storeCurrent()
         model = self.model
         frstcol = collist[0]
         collist.remove(frstcol)
