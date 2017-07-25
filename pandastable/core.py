@@ -685,7 +685,7 @@ class Table(Canvas):
         return
 
     def storeCurrent(self):
-        """Store current version of the table before a process"""
+        """Store current version of the table before a major change is made"""
 
         self.prevdf = self.model.df.copy()
         return

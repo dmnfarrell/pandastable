@@ -168,7 +168,7 @@ class DataExplore(Frame):
         self.sheet_menu=self.createPulldown(self.menu,self.sheet_menu)
         self.menu.add_cascade(label='Sheet',menu=self.sheet_menu['var'])
 
-        self.edit_menu={'01Undo':{'cmd': self.undo},
+        self.edit_menu={'01Undo Last Change':{'cmd': self.undo},
                         '02Copy Table':{'cmd': self.copyTable},
                         '03Table Preferences':{'cmd': self.currentTablePrefs},
                         }
@@ -606,6 +606,8 @@ class DataExplore(Frame):
             table.child.plotSelected()
         self.saved = 0
         self.currenttable = table
+        #attach menu state of undo item so that it's disabled after an undo
+        #table.undo_callback = lambda: self.toggleUndoMenu('active')
         self.sheets[sheetname] = table
 
         if select == True:
@@ -678,6 +680,9 @@ class DataExplore(Frame):
         name = self.nb.tab(s, 'text')
         table = self.sheets[name]
         return table
+
+    def getSheetList(self):
+        return list(self.sheets.keys())
 
     def describe(self):
         """Describe dataframe"""
@@ -884,6 +889,12 @@ class DataExplore(Frame):
 
         table = self.getCurrentTable()
         table.undo()
+        #self.toggleUndoMenu('disabled')
+        return
+
+    def toggleUndoMenu(self, state='active'):
+        menu = self.edit_menu['var']
+        menu.entryconfigure(0, state=state)
         return
 
     def _call(self, func):
