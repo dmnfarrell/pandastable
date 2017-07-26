@@ -24,7 +24,7 @@ import sys,os
 import subprocess
 import numpy as np
 from pandastable.plugin import Plugin
-from pandastable import plotting, dialogs
+from pandastable import core, plotting, dialogs
 try:
     from tkinter import *
     from tkinter.ttk import *
@@ -34,7 +34,6 @@ except:
 import pandas as pd
 import pylab as plt
 from collections import OrderedDict
-#import seaborn as sns
 
 class DiffExpressionPlugin(Plugin):
     """Plugin for DataExplore"""
@@ -46,7 +45,7 @@ class DiffExpressionPlugin(Plugin):
     version = '0.1'
 
     def __init__(self):
-
+        self.result = None
         return
 
     def main(self, parent):
@@ -57,7 +56,7 @@ class DiffExpressionPlugin(Plugin):
         self._doFrame()
 
         grps = {'data':['sample_labels','sample_col','factors_col','conditions'],
-                'options':['method','cutoff','plot_kind']
+                'options':['method','logfc_cutoff','read_cutoff','plot_kind']
                     }
         self.groups = grps = OrderedDict(grps)
         kinds = ['point', 'bar', 'box', 'violin', 'strip']
@@ -68,7 +67,8 @@ class DiffExpressionPlugin(Plugin):
                      'factors_col': {'type':'combobox','default':'','items':[]},
                      'conditions': {'type':'entry','default':'','label':'conditions'},
                      'method': {'type':'combobox','default':'limma','items':methods},
-                     'cutoff': {'type':'entry','default':1.5,'label':'cutoff'},
+                     'logfc_cutoff': {'type':'entry','default':1.5,'label':'fold change cutoff'},
+                     'read_cutoff': {'type':'entry','default':10,'label':'reads cutoff'},
                      'plot_kind': {'type':'combobox','default':'box','items':kinds},
                      }
         fr = self._createWidgets(self.mainwin)
@@ -79,9 +79,13 @@ class DiffExpressionPlugin(Plugin):
 
         b = Button(bf, text="Run DE", command=self.runDE)
         b.pack(side=TOP,fill=X,pady=2)
+        b = Button(bf, text="View Results", command=self.showResults)
+        b.pack(side=TOP,fill=X,pady=2)
         b = Button(bf, text="Plot Result", command=self.plotGenes)
         b.pack(side=TOP,fill=X,pady=2)
         b = Button(bf, text="MD plot", command=self.MDplot)
+        b.pack(side=TOP,fill=X,pady=2)
+        b = Button(bf, text="Gene Cluster", command=self.clustermap)
         b.pack(side=TOP,fill=X,pady=2)
 
         bf = Frame(self.mainwin, padding=2)
@@ -93,10 +97,7 @@ class DiffExpressionPlugin(Plugin):
         b = Button(bf, text="About", command=self._aboutWindow)
         b.pack(side=TOP,fill=X,pady=2)
 
-        #self.table = self.parent.getCurrentTable()
-        #df = self.table.model.df
         self.update()
-
         sheet = self.parent.getCurrentSheet()
         #reference to parent frame in sheet
         pw = self.parent.sheetframes[sheet]
@@ -147,30 +148,54 @@ class DiffExpressionPlugin(Plugin):
 
         method = self.tkvars['method'].get()
         labels = self.labels
-        counts = self.table.model.df
-        cutoff = float(self.tkvars['cutoff'].get())
+        cutoff = float(self.tkvars['read_cutoff'].get())
         sc = self.samplecol = self.tkvars['sample_col'].get()
         fc = self.factorcol = self.tkvars['factors_col'].get()
         self.conditions = conds = self.tkvars['conditions'].get().split(',')
 
+        counts = self.table.model.df
+        scols,ncols = get_column_names(counts)
+        counts['mean_reads'] = counts[scols].mean(1)
+
+        counts = counts[counts.mean_reads>=cutoff]
+        print (counts)
         self.data = get_factor_samples(counts,
                                      labels, [(fc,conds[0]),(fc,conds[1])],
                                      samplecol=sc, index='name')
 
         if method == 'edger':
-            self.result = run_edgeR(data=self.data, cutoff=cutoff)
+            self.result = run_edgeR(data=self.data)
         elif method == 'limma':
-            self.result = run_limma(data=self.data, cutoff=cutoff)
+            self.result = run_limma(data=self.data)
         return
 
     def showResults(self):
 
+        if self.result is None:
+            return
+        w = self.resultswin = Toplevel(width=600,height=800)
+        w.title('de results')
+        fr=Frame(w)
+        fr.pack(fill=BOTH,expand=1)
+        df = self.getFiltered()
+        t = core.Table(fr, dataframe=df)
+        t.show()
         return
+
+    def getFiltered(self):
+        cutoff = float(self.tkvars['logfc_cutoff'].get())
+        res = self.result
+        key = 'adj.P.Val'
+        if not key in res.columns:
+            key = 'PValue'
+        res = res[(res.logFC>cutoff) | (res.logFC<-cutoff)]
+        res = res[res[key]<=0.05]
+        return res
 
     def plotGenes(self):
 
-        res = self.result
-        names = res[(res.logFC>1.5) | (res.logFC<-1.5)].name[:50]
+        res = self.getFiltered()
+        names = res.name[:50]
         counts = self.table.model.df
         m = melt_samples(counts, self.labels, names, samplecol=self.samplecol)
         import seaborn as sns
@@ -178,7 +203,7 @@ class DiffExpressionPlugin(Plugin):
         xorder = self.conditions
 
         g = sns.factorplot(self.factorcol,'read count', data=m, col='name', kind=kind,
-                                col_wrap=4, size=3, aspect=1.1,
+                                col_wrap=5, size=3, aspect=.9,
                                 legend_out=True,sharey=False, order=xorder)
         plt.show()
         return
@@ -187,7 +212,16 @@ class DiffExpressionPlugin(Plugin):
 
         data = self.data
         de = self.result
-        md_plot(data, de, title='')
+        s = '-'.join(self.conditions)
+        md_plot(data, de, title=s)
+        plt.show()
+        return
+
+    def clustermap(self):
+
+        data = self.data
+        res = res = self.getFiltered()
+        cluster_map(data, res.name)
         plt.show()
         return
 
@@ -202,7 +236,7 @@ class DiffExpressionPlugin(Plugin):
 
         txt = "This plugin implements differential expression\n"+\
               "for gene counts from sequencing data. \n"+\
-              "see . \n"+\
+              "see http://dmnfarrell.github.io/dataexplore/2017/07/24/diff-expression. \n"+\
                "version: %s" %self.version
 
         return txt
@@ -292,7 +326,7 @@ def melt_samples(df, labels, names, samplecol='filename', index='name'):
                  var_name='name',value_name='read count')
     return m
 
-def run_edgeR(countsfile=None, data=None, cutoff=1.5):
+def run_edgeR(countsfile=None, data=None):
     """Run edgeR from R script"""
 
     if data is not None:
@@ -307,10 +341,10 @@ def run_edgeR(countsfile=None, data=None, cutoff=1.5):
     #read result back in
     de = pd.read_csv('edger_output.csv')
     de.rename(columns={'Unnamed: 0':'name'}, inplace=True)
-    de = de[(de.FDR<0.05) & ((de.logFC>cutoff) | (de.logFC<-cutoff))]
+    #de = de[(de.FDR<0.05) & ((de.logFC>cutoff) | (de.logFC<-cutoff))]
     return de
 
-def run_limma(countsfile=None, data=None, cutoff=1.5):
+def run_limma(countsfile=None, data=None):
     """Run limma de from R script"""
 
     if data is not None:
@@ -324,7 +358,7 @@ def run_limma(countsfile=None, data=None, cutoff=1.5):
     de = pd.read_csv('limma_output.csv')
     de.rename(columns={'Unnamed: 0':'name'}, inplace=True)
     #md_plot(data, de)
-    de = de[(de['adj.P.Val']<0.05) & ((de.logFC>cutoff) | (de.logFC<-cutoff))]
+    #de = de[(de['.P.Val']<0.05) & ((de.logFC>cutoff) | (de.logFC<-cutoff))]
     de = de.sort_values('logFC',ascending=False)
     return de
 
@@ -334,13 +368,25 @@ def md_plot(data, de, title=''):
     data = data.reset_index()
     data['mean log expr'] = data.mean(1).apply(np.log)
     df = data.merge(de,on='name')
-    df['s'] = pd.cut(df.logFC, [-100,-1.5,1.5], labels=[1,0])
-    #print (df[:10])
-    a = df[df['adj.P.Val']<0.05]
+    key = 'adj.P.Val'
+    if not key in df.columns:
+        key = 'PValue'
+    a = df[df[key]<=0.05]
     b = df[-df.name.isin(a.name)]
+    print (b)
     c = a[a.logFC<0]
-    ax=a.plot('mean log expr','logFC',kind='scatter',figsize=(10,10),color='red',s=60)
+    ax=a.plot('mean log expr','logFC',kind='scatter',figsize=(8,8),color='red',s=60)
     c.plot('mean log expr','logFC',kind='scatter',ax=ax,color='g',s=60)
     b.plot('mean log expr','logFC',kind='scatter',ax=ax,color='black')
     ax.set_title(title, fontsize=20)
     return ax
+
+def cluster_map(data, names):
+    import seaborn as sns
+    import pylab as plt
+    data = data.ix[names]
+    X = np.log(data).fillna(0)
+    cg = sns.clustermap(X,cmap='RdYlBu',figsize=(8,9),lw=1,linecolor='gray')
+    mt = plt.setp(cg.ax_heatmap.yaxis.get_majorticklabels(), rotation=0)
+    cg.fig.subplots_adjust(right=.75)
+    return cg
