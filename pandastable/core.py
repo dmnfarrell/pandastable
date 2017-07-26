@@ -2233,6 +2233,7 @@ class Table(Canvas):
 
         defaultactions = {
                         "Copy" : lambda: self.copy(rows, cols),
+                        "Undo" : lambda: self.undo(),
                         #"Paste" : lambda: self.paste(rows, cols),
                         "Fill Down" : lambda: self.fillDown(rows, cols),
                         #"Fill Right" : lambda: self.fillAcross(cols, rows),
@@ -2257,7 +2258,7 @@ class Table(Canvas):
                         "Show plot" : self.showPlot,
                         "Preferences" : self.showPrefs}
 
-        main = ["Copy", "Fill Down", #"Fill Right",
+        main = ["Copy", "Undo", "Fill Down", #"Fill Right",
                 "Clear Data"]#, "Delete Column(s)"]
         general = ["Select All", "Filter Rows",
                    "Show as Text", "Table Info", "Preferences"]
@@ -2296,6 +2297,8 @@ class Table(Canvas):
                     if action == 'Fill Down' and (rows == None or len(rows) <= 1):
                         continue
                     if action == 'Fill Right' and (cols == None or len(cols) <= 1):
+                        continue
+                    if action == 'Undo' and self.prevdf is None:
                         continue
                     else:
                         popupmenu.add_command(label=action, command=defaultactions[action])

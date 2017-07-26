@@ -156,9 +156,8 @@ class DiffExpressionPlugin(Plugin):
         counts = self.table.model.df
         scols,ncols = get_column_names(counts)
         counts['mean_reads'] = counts[scols].mean(1)
-
         counts = counts[counts.mean_reads>=cutoff]
-        print (counts)
+
         self.data = get_factor_samples(counts,
                                      labels, [(fc,conds[0]),(fc,conds[1])],
                                      samplecol=sc, index='name')
@@ -178,7 +177,7 @@ class DiffExpressionPlugin(Plugin):
         fr=Frame(w)
         fr.pack(fill=BOTH,expand=1)
         df = self.getFiltered()
-        t = core.Table(fr, dataframe=df)
+        t = core.Table(fr, dataframe=df, showtoolbar=True)
         t.show()
         return
 
@@ -388,5 +387,6 @@ def cluster_map(data, names):
     X = np.log(data).fillna(0)
     cg = sns.clustermap(X,cmap='RdYlBu',figsize=(8,9),lw=1,linecolor='gray')
     mt = plt.setp(cg.ax_heatmap.yaxis.get_majorticklabels(), rotation=0)
+    plt.setp(cg.ax_heatmap.xaxis.get_majorticklabels(), rotation=90)
     cg.fig.subplots_adjust(right=.75)
     return cg

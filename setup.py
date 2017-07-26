@@ -2,11 +2,14 @@ from setuptools import setup
 import sys,os
 home=os.path.expanduser('~')
 
+with open('README.rst') as f:
+    long_description = f.read()
+
 setup(
     name = 'pandastable',
     version = '0.8.1',
     description = 'Library for embedding tables in Tkinter using pandas DataFrames',
-    long_description = 'see http://dmnfarrell.github.io/pandastable/',
+    long_description = long_description,
     url='https://github.com/dmnfarrell/pandastable',
     license='GPL v3',
     author = 'Damien Farrell',

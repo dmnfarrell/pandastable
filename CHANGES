@@ -7,6 +7,8 @@ CHANGES
 
 Added table operations to main menu
 Added time series resample (table menu)
+Can now undo last change for most operations
+Differential expression plugin
 
 ------
 0.8.0

@@ -72,9 +72,9 @@ class PlotViewer(Frame):
         self.layoutopts = PlotLayoutOptions(parent=self)
 
         self.gridaxes = {}
-        self.setupGUI()
         #reset style if it been set globally
         self.style = None
+        self.setupGUI()
         self.updateStyle()
         return
 
