@@ -2696,9 +2696,12 @@ class Table(Canvas):
     def drawMultipleCells(self):
         """Draw an outline box for multiple cell selection"""
 
+        self.delete('currentrect')
         self.delete('multicellrect')
         rows = self.multiplerowlist
         cols = self.multiplecollist
+        if len(rows) == 0 or len(cols) == 0:
+            return
         w=2
         x1,y1,a,b = self.getCellCoords(rows[0],cols[0])
         c,d,x2,y2 = self.getCellCoords(rows[len(rows)-1],cols[len(cols)-1])

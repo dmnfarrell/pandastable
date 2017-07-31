@@ -165,6 +165,7 @@ class ColumnHeader(Canvas):
             self.rightmenu.destroy()
         #finally, draw the selected col on the table
         self.table.drawSelectedCol()
+        self.table.drawMultipleCells()
         return
 
     def handle_left_release(self,event):
@@ -293,6 +294,7 @@ class ColumnHeader(Canvas):
         for c in self.table.multiplecollist:
             self.drawRect(c, delete=0)
             self.table.drawSelectedCol(c, delete=0)
+        self.table.drawMultipleCells()
         return
 
     def handle_left_ctrl_click(self, event):
@@ -311,6 +313,7 @@ class ColumnHeader(Canvas):
         for c in self.table.multiplecollist:
             self.drawRect(c, delete=0)
             self.table.drawSelectedCol(c, delete=0)
+        self.table.drawMultipleCells()
         return
 
     def handle_double_click(self, event):
