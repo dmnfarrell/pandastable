@@ -108,7 +108,7 @@ http://openresearchsoftware.metajnl.com/articles/10.5334/jors.94/
 
 http://dmnfarrell.github.io/pandastable/
 
-https://youtu.be/lA7bhbWOkSw
+https://youtu.be/Ss0QIFywt74
 
 http://decisionstats.com/2015/12/25/interview-damien-farrell-python-gui-dataexplore-python-rstats-pydata/
 
