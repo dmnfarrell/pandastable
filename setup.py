@@ -2,7 +2,7 @@ from setuptools import setup
 import sys,os
 home=os.path.expanduser('~')
 
-with open('README.rst') as f:
+with open('description.txt') as f:
     long_description = f.read()
 
 setup(

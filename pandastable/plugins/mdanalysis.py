@@ -40,7 +40,7 @@ class DiffExpressionPlugin(Plugin):
 
     capabilities = ['gui','uses_sidepane']
     requires = ['']
-    menuentry = 'Multidimensional Analysis'
+    menuentry = 'Multivariate Analysis'
     gui_methods = {}
     version = '0.1'
 
@@ -56,7 +56,7 @@ class DiffExpressionPlugin(Plugin):
         self._doFrame()
 
         grps = {'data':['class_labels','target_col','use_selected'],
-                'options':['method','transform']  }
+                'options':['analysis','transform']  }
         self.groups = grps = OrderedDict(grps)
         kinds = ['']
         methods = ['pca','mds','feature selection']
@@ -64,7 +64,7 @@ class DiffExpressionPlugin(Plugin):
         sheets = self.parent.getSheetList()
         self.opts = {'class_labels': {'type':'combobox','default':'','items':sheets},
                      'target_col': {'type':'combobox','default':'','items':[]},
-                     'method': {'type':'combobox','default':'pca','items':methods},
+                     'analysis': {'type':'combobox','default':'pca','items':methods},
                      'use_selected': {'type':'checkbutton','default':False,'label':'use selected data'},
                      'transform': {'type':'combobox','default':'','items':transforms},
                      }
@@ -135,7 +135,7 @@ class DiffExpressionPlugin(Plugin):
     def run(self):
         """Run chosen method"""
 
-        method = self.tkvars['method'].get()
+        method = self.tkvars['analysis'].get()
         sel = self.tkvars['use_selected'].get()
         cats = self.tkvars['class_labels'].get()
         target = self.tkvars['target_col'].get()
