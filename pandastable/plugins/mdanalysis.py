@@ -33,9 +33,10 @@ except:
     from ttk import *
 import pandas as pd
 import pylab as plt
+from mpl_toolkits.mplot3d import Axes3D
 from collections import OrderedDict
 
-class DiffExpressionPlugin(Plugin):
+class MultivariatePlugin(Plugin):
     """Plugin for DataExplore"""
 
     capabilities = ['gui','uses_sidepane']
@@ -56,17 +57,18 @@ class DiffExpressionPlugin(Plugin):
         self._doFrame()
 
         grps = {'data':['class_labels','target_col','use_selected'],
-                'options':['analysis','transform']  }
+                'options':['analysis','transform','3d_plot']  }
         self.groups = grps = OrderedDict(grps)
         kinds = ['']
-        methods = ['pca','mds','feature selection']
+        methods = ['PCA','LDA','MDS','feature selection']
         transforms = ['','log']
         sheets = self.parent.getSheetList()
         self.opts = {'class_labels': {'type':'combobox','default':'','items':sheets},
                      'target_col': {'type':'combobox','default':'','items':[]},
-                     'analysis': {'type':'combobox','default':'pca','items':methods},
+                     'analysis': {'type':'combobox','default':'PCA','items':methods},
                      'use_selected': {'type':'checkbutton','default':False,'label':'use selected data'},
                      'transform': {'type':'combobox','default':'','items':transforms},
+                     '3d_plot': {'type':'checkbutton','default':False,'label':'3d plot'},
                      }
         fr = self._createWidgets(self.mainwin)
         fr.pack(side=LEFT,fill=BOTH)
@@ -93,8 +95,7 @@ class DiffExpressionPlugin(Plugin):
         #reference to parent frame in sheet
         pw = self.parent.sheetframes[sheet]
         self.pf = self.table.pf
-        self.pf.mplopts.applyOptions()
-        self.pf.labelopts.applyOptions()
+
         return
 
     def applyOptions(self):
@@ -116,7 +117,8 @@ class DiffExpressionPlugin(Plugin):
         """Auto create tk vars, widgets for corresponding options and
            and return the frame"""
 
-        dialog, self.tkvars, self.widgets = plotting.dialogFromOptions(parent, self.opts, self.groups)
+        dialog, self.tkvars, self.widgets = plotting.dialogFromOptions(parent,
+                                                                       self.opts, self.groups)
         #self.widgets['class_labels'].bind("<<ComboboxSelected>>", self.update)
         return dialog
 
@@ -139,47 +141,66 @@ class DiffExpressionPlugin(Plugin):
         sel = self.tkvars['use_selected'].get()
         cats = self.tkvars['class_labels'].get()
         target = self.tkvars['target_col'].get()
+        plot3d = self.tkvars['3d_plot'].get()
 
         if sel == 1:
             data = self.table.getSelectedDataFrame()
         else:
             data = self.table.model.df
 
+        #setup plot
         self.pf._initFigure()
-        ax = self.pf.ax
+        if plot3d == True:
+            fig = self.pf.fig
+            ax = self.pf.ax = ax = Axes3D(fig)
+        else:
+            ax = self.pf.ax
+        self.pf.mplopts.applyOptions()
+        self.pf.labelopts.applyOptions()
         opts = self.pf.mplopts.kwds
         lopts = self.pf.labelopts.kwds
         #print (opts)
-        ms = opts['ms']*12
 
         X = pre_process(data)
         if cats != '':
             X = X.set_index(cats)
             print (X)
-        if method == 'pca':
-            pX = do_pca(X=X)
-            plot_pca(pX, ax=ax)
-        elif method == 'mds':
-            pX = do_mds(X=X)
-            plot_pca(pX, ax=ax)
+        if method == 'PCA':
+            pX, result = do_pca(X=X)
+            plot_pca(pX, ax=ax, plot3d=plot3d, **opts)
+        elif method == 'LDA':
+            pX, result = do_lda(X=X)
+            plot_pca(pX, ax=ax, plot3d=plot3d, **opts)
+        elif method == 'MDS':
+            pX, result = do_mds(X=X)
+            plot_pca(pX, ax=ax, plot3d=plot3d, **opts)
         elif method == 'feature selection':
             y=X[target]
             X=X.drop(target, 1)
             pX = feature_selection(X.values, y=y)
 
+        self.result = result
         self.pf.ax.set_title(lopts['title'])
         self.pf.canvas.draw()
         return
 
     def showResults(self):
 
-        if self.result is None:
+        import sklearn
+        result = self.result
+        print (type(result))
+        if result is None:
             return
         w = self.resultswin = Toplevel(width=600,height=800)
         w.title('de results')
         fr=Frame(w)
         fr.pack(fill=BOTH,expand=1)
-        df = self.getFiltered()
+
+        if type(result) is sklearn.decomposition.pca.PCA:
+            print (result.components_)
+        elif type(result) is sklearn.discriminant_analysis.LinearDiscriminantAnalysis:
+            print (result)
+
         t = core.Table(fr, dataframe=df, showtoolbar=True)
         t.show()
         return
@@ -222,53 +243,77 @@ def do_pca(X, c=3):
     from sklearn.decomposition.pca import PCA, RandomizedPCA
     #do PCA
     #S = standardize_data(X)
+    #remove non numeric
+    X = X._get_numeric_data()
     S = pd.DataFrame(preprocessing.scale(X),columns = X.columns)
     pca = PCA(n_components=c)
     pca.fit(S)
-    print (pca.explained_variance_ratio_)
+    out = 'explained variance %s' %pca.explained_variance_ratio_
+    print (out)
     #print pca.components_
-    w = pd.DataFrame(pca.components_,columns=S.columns)#,index=['PC1','PC2'])
+    w = pd.DataFrame(pca.components_,columns=S.columns)
     #print w.T.max(1).sort_values()
     pX = pca.fit_transform(S)
     pX = pd.DataFrame(pX,index=X.index)
-    return pX
+    return pX, pca
 
-def plot_pca(pX, kind='2d', palette='Spectral', labels=False, ax=None, colors=None, s=100):
+def plot_pca(pX, plot3d=False, palette='Spectral', labels=False, ax=None,
+             colors=None, **kwargs):
     """Plot PCA result, input should be a dataframe"""
 
     if ax==None:
-        fig,ax=plt.subplots(1,1,figsize=(6,6))
+        fig,ax = plt.subplots(1,1,figsize=(6,6))
+    #print (kwargs)
+    colormap = kwargs['colormap']
+    fs = kwargs['fontsize']
+    ms = kwargs['ms']*12
+    kwargs = {k:kwargs[k] for k in ('linewidth','alpha','marker')}
+
     cats = pX.index.unique()
     import seaborn as sns
-    colors = sns.mpl_palette(palette, len(cats))
-    print (len(cats), len(colors))
-    print (cats)
+    colors = sns.mpl_palette(colormap, len(cats))
+
     for c, i in zip(colors, cats):
-        #print (i, len(pX.ix[i]))
-        #if not i in pX.index: continue
-        s = ax.scatter(pX.ix[i, 0], pX.ix[i, 1], color=c, s=100, label=i,
-                   lw=.8, edgecolor='black', alpha=0.8)
+        print (i, len(pX.ix[i]))
+        if plot3d == True:
+            ax.scatter(pX.ix[i, 0], pX.ix[i, 1], pX.ix[i, 2], color=c, s=ms, label=i,
+                        edgecolor='black', **kwargs)
+        else:
+            ax.scatter(pX.ix[i, 0], pX.ix[i, 1], color=c, s=ms, label=i,
+                        edgecolor='black', **kwargs)
+
     ax.set_xlabel('PC1')
     ax.set_ylabel('PC2')
     if labels == True:
         for i, point in pX.iterrows():
             ax.text(point[0]+.3, point[1]+.3, str(i),fontsize=(9))
-    #handles, labels = ax.get_legend_handles_labels()
-    ax.legend(fontsize=10)#,bbox_to_anchor=(1.5, 1.05))
-    #sns.despine()
-    #plt.tight_layout()
+    if len(cats)<20:
+        ax.legend(fontsize=fs*.8)
     return
 
-def do_mds(X):
+def do_lda(X, c=3):
+
+    from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+    idx = X.index
+    c = pd.Categorical(idx)
+    y = c.codes
+    X = X._get_numeric_data()
+    lda = LinearDiscriminantAnalysis(n_components=c)
+    pX = lda.fit(X, y).transform(X)
+    pX = pd.DataFrame(pX,index=idx)
+    return pX, lda
+
+def do_mds(X, c=3):
     """Do MDS"""
 
+    X = X._get_numeric_data()
     from sklearn import manifold
     seed = np.random.RandomState(seed=3)
-    mds = manifold.MDS(n_components=3, max_iter=500, eps=1e-9, random_state=seed,
+    mds = manifold.MDS(n_components=c, max_iter=500, eps=1e-9, random_state=seed,
                         n_jobs=1)
     pX = mds.fit(X.values).embedding_
     pX = pd.DataFrame(pX,index=X.index)
-    return pX
+    return pX, mds
 
 def feature_selection(data, y):
     """feature selection"""

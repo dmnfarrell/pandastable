@@ -444,12 +444,12 @@ class PlotViewer(Frame):
                                      'try using multiple subplots' %kind)
         else:
             #non-grouped plot
-            #try:
-            axs = self._doplot(data, ax, kind, kwds['subplots'], errorbars,
+            try:
+                axs = self._doplot(data, ax, kind, kwds['subplots'], errorbars,
                                  useindex, bw=bw, yerr=None, kwargs=kwargs)
-            #except Exception as e:
-            #    self.showWarning(e)
-            #    return
+            except Exception as e:
+                self.showWarning(e)
+                return
         if table == True:
             from pandas.tools.plotting import table
             if self.table.child != None:
