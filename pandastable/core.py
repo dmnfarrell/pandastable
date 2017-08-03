@@ -2009,22 +2009,25 @@ class Table(Canvas):
         df = self.model.df
         cols = list(df.columns)
         valcols = list(df.select_dtypes(include=[np.float64,np.int32]))
+        funcs = ['mean','sum','count','max','min','std','first','last']
         d = MultipleValDialog(title='Pivot',
-                                initialvalues=(cols,cols,valcols),
-                                labels=('Index:', 'Column:', 'Values:'),
-                                types=('combobox','combobox','listbox'),
+                                initialvalues=(cols,cols,valcols,funcs),
+                                labels=('Index:', 'Column:', 'Values:','Agg Function:'),
+                                types=('combobox','combobox','listbox','combobox'),
                                 tooltips=('a unique index to reshape on','column with variables',
-                                    'selecting no values uses all remaining cols'),
+                                    'selecting no values uses all remaining cols',
+                                    'function to aggregate on'),
                                 parent = self.parentframe)
         if d.result == None:
             return
         index = d.results[0]
         column = d.results[1]
         values = d.results[2]
+        func = d.results[3]
         if values == '': values = None
         elif len(values) == 1: values = values[0]
 
-        p = pd.pivot_table(df, index=index, columns=column, values=values)
+        p = pd.pivot_table(df, index=index, columns=column, values=values, aggfunc=func)
         print (p)
         if type(p) is pd.Series:
             p = pd.DataFrame(p)

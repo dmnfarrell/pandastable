@@ -23,7 +23,7 @@ from __future__ import absolute_import, division, print_function
 import math, time
 import os, types
 import string, copy
-from configparser import ConfigParser
+#from configparser import ConfigParser
 try:
     from tkinter import *
     from tkinter.ttk import *

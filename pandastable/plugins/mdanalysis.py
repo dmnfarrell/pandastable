@@ -267,7 +267,7 @@ def plot_pca(pX, plot3d=False, palette='Spectral', labels=False, ax=None,
     colormap = kwargs['colormap']
     fs = kwargs['fontsize']
     ms = kwargs['ms']*12
-    kwargs = {k:kwargs[k] for k in ('linewidth','alpha','marker')}
+    kwargs = {k:kwargs[k] for k in ('linewidth','alpha')}
 
     cats = pX.index.unique()
     import seaborn as sns
