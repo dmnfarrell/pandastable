@@ -1956,6 +1956,41 @@ class Table(Canvas):
         self.redraw()
         return
 
+    def transform(self):
+        """Apply element-wise transform"""
+
+        df = self.model.df
+        cols = list(df.columns[self.multiplecollist])
+
+        funcs = ['log','exp','log10','log2',
+                 'round','floor','ceil','trunc',
+                 'subtract','divide','mod',
+                 'negative','power',
+                 'sin','cos','tan','degrees','radians']
+
+        d = MultipleValDialog(title='Apply Function',
+                                initialvalues=(funcs,1,False),
+                                labels=('Function:','Constant:','Use Selected'),
+                                types=('combobox','string','checkbutton'),
+                                tooltips=(None,'value to apply with arithmetic operations',
+                                          'apply to selected data only'),
+                                parent = self.parentframe)
+        if d.result == None:
+            return
+        self.storeCurrent()
+        funcname = d.results[0]
+        func = getattr(np, funcname)
+        const = float(d.results[1])
+        use_sel = float(d.results[2])
+
+        if funcname in ['subtract','divide','mod','power']:
+            df = df.applymap( lambda x: func(x, const))
+        else:
+            df = df.applymap(func)
+        self.model.df = df
+        self.redraw()
+        return
+
     def aggregate(self):
         """Show aggregate dialog"""
 

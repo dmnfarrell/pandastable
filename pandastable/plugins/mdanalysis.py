@@ -60,7 +60,7 @@ class MultivariatePlugin(Plugin):
                 'options':['analysis','transform','3d_plot']  }
         self.groups = grps = OrderedDict(grps)
         kinds = ['']
-        methods = ['PCA','LDA','MDS','feature selection']
+        methods = ['PCA','LDA','MDS','logistic_regression']#,'feature selection']
         transforms = ['','log']
         sheets = self.parent.getSheetList()
         self.opts = {'class_labels': {'type':'combobox','default':'','items':sheets},
@@ -137,11 +137,13 @@ class MultivariatePlugin(Plugin):
     def run(self):
         """Run chosen method"""
 
+        import sklearn
         method = self.tkvars['analysis'].get()
         sel = self.tkvars['use_selected'].get()
         cats = self.tkvars['class_labels'].get()
         target = self.tkvars['target_col'].get()
         plot3d = self.tkvars['3d_plot'].get()
+        transform = self.tkvars['transform'].get()
 
         if sel == 1:
             data = self.table.getSelectedDataFrame()
@@ -161,25 +163,27 @@ class MultivariatePlugin(Plugin):
         lopts = self.pf.labelopts.kwds
         #print (opts)
 
-        X = pre_process(data)
+        X = pre_process(data, transform=transform)
+        result = None
         if cats != '':
             X = X.set_index(cats)
             print (X)
         if method == 'PCA':
             pX, result = do_pca(X=X)
-            plot_pca(pX, ax=ax, plot3d=plot3d, **opts)
+            plot_matrix(pX, ax=ax, plot3d=plot3d, **opts)
         elif method == 'LDA':
             pX, result = do_lda(X=X)
-            plot_pca(pX, ax=ax, plot3d=plot3d, **opts)
+            plot_matrix(pX, ax=ax, plot3d=plot3d, **opts)
         elif method == 'MDS':
             pX, result = do_mds(X=X)
-            plot_pca(pX, ax=ax, plot3d=plot3d, **opts)
+            plot_matrix(pX, ax=ax, plot3d=plot3d, **opts)
         elif method == 'feature selection':
-            y=X[target]
-            X=X.drop(target, 1)
-            pX = feature_selection(X.values, y=y)
+            pX = feature_selection(X)#, y=y)
+        elif method == 'logistic_regression':
+            pX = logistic_regression(X, ax, **opts)
 
-        self.result = result
+        self.result_obj = result
+        self.result_mat = pX
         self.pf.ax.set_title(lopts['title'])
         self.pf.canvas.draw()
         return
@@ -187,12 +191,12 @@ class MultivariatePlugin(Plugin):
     def showResults(self):
 
         import sklearn
-        result = self.result
-        print (type(result))
-        if result is None:
+        df = self.result_mat
+        result = self.result_obj
+        if df is None:
             return
         w = self.resultswin = Toplevel(width=600,height=800)
-        w.title('de results')
+        w.title('results')
         fr=Frame(w)
         fr.pack(fill=BOTH,expand=1)
 
@@ -227,13 +231,14 @@ class MultivariatePlugin(Plugin):
         return
 
 
-def pre_process(data, log=False):
+def pre_process(X, transform='log'):
 
-    if log == True:
-        X = data.fillna(1)
+    X = X._get_numeric_data()
+    if transform == 'log':
+        X = X+1
         X = np.log(X)
-    else:
-        X = data.fillna(0)
+    #print (X)
+    X = X.fillna(0)
     return X
 
 def do_pca(X, c=3):
@@ -252,12 +257,12 @@ def do_pca(X, c=3):
     print (out)
     #print pca.components_
     w = pd.DataFrame(pca.components_,columns=S.columns)
-    #print w.T.max(1).sort_values()
+    print (w.T.max(1).sort_values())
     pX = pca.fit_transform(S)
     pX = pd.DataFrame(pX,index=X.index)
     return pX, pca
 
-def plot_pca(pX, plot3d=False, palette='Spectral', labels=False, ax=None,
+def plot_matrix(pX, plot3d=False, palette='Spectral', labels=False, ax=None,
              colors=None, **kwargs):
     """Plot PCA result, input should be a dataframe"""
 
@@ -295,8 +300,8 @@ def do_lda(X, c=3):
 
     from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
     idx = X.index
-    c = pd.Categorical(idx)
-    y = c.codes
+    cla = pd.Categorical(idx)
+    y = cla.codes
     X = X._get_numeric_data()
     lda = LinearDiscriminantAnalysis(n_components=c)
     pX = lda.fit(X, y).transform(X)
@@ -315,14 +320,47 @@ def do_mds(X, c=3):
     pX = pd.DataFrame(pX,index=X.index)
     return pX, mds
 
-def feature_selection(data, y):
+def feature_selection(X, y=None):
     """feature selection"""
 
+    if y is None:
+        idx = X.index
+        cla = pd.Categorical(idx)
+        y = cla.codes
+    X = X._get_numeric_data()
     from sklearn.feature_selection import SelectKBest
     from sklearn.feature_selection import chi2
-    X_new = SelectKBest(chi2, k=2).fit_transform(X, y)
-    X_new.shape
-    return
+    pX = SelectKBest(chi2, k='all').fit_transform(X, y)
+    pX.shape
+    pX = pd.DataFrame(pX,index=X.index)
+    return pX
+
+def logistic_regression(X, ax, **kwargs):
+
+    idx = X.index
+    cla = pd.Categorical(idx)
+    y = cla.codes
+    from sklearn import linear_model
+    logreg = linear_model.LogisticRegression(C=1e5)
+    X = X.values
+    X = X[:, :2]
+    logreg.fit(X, y)
+    h = .02
+    cmap = plt.cm.get_cmap(kwargs['colormap'])
+    kwargs = {k:kwargs[k] for k in ('linewidth','alpha')}
+
+    x_min, x_max = X[:, 0].min() - .5, X[:, 0].max() + .5
+    y_min, y_max = X[:, 1].min() - .5, X[:, 1].max() + .5
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
+    Z = logreg.predict(np.c_[xx.ravel(), yy.ravel()])
+
+    # Put the result into a color plot
+    Z = Z.reshape(xx.shape)
+    ax.pcolormesh(xx, yy, Z, cmap=cmap)
+    Z = logreg.predict(np.c_[xx.ravel(), yy.ravel()])
+    ax.scatter(X[:, 0], X[:, 1], c=y, edgecolors='k', cmap=plt.cm.Paired, **kwargs)
+
+    return Z
 
 def cluster_map(data, names):
     import seaborn as sns
