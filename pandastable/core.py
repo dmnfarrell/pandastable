@@ -1982,8 +1982,9 @@ class Table(Canvas):
         func = getattr(np, funcname)
         const = float(d.results[1])
         use_sel = float(d.results[2])
-
-        if funcname in ['subtract','divide','mod','power']:
+        if funcname in ['round']:
+            const = int(const)
+        if funcname in ['subtract','divide','mod','power','round']:
             df = df.applymap( lambda x: func(x, const))
         else:
             df = df.applymap(func)
@@ -2190,7 +2191,7 @@ class Table(Canvas):
 
         df = self.getSelectedDataFrame()
         if len(df) <=1:
-            return
+            df = pd.DataFrame()
         self.createChildTable(df, 'selection')
         return
 
@@ -2234,11 +2235,11 @@ class Table(Canvas):
         """Get table as formatted text - for printing"""
 
         d = MultipleValDialog(title='Table to Text',
-                                initialvalues=(['left','right'],1,1,0,'',0),
+                                initialvalues=(['left','right'],1,1,0,'',0,0),
                                 labels=['justify:','header ','include index:',
-                                        'sparsify:','na_rep:','max_cols'],
+                                        'sparsify:','na_rep:','max_cols','use selected'],
                                 types=('combobox','checkbutton','checkbutton',
-                                       'checkbutton','string','int'),
+                                       'checkbutton','string','int','checkbutton'),
                                 parent = self.parentframe)
         if d.result == None:
             return
@@ -2248,9 +2249,14 @@ class Table(Canvas):
         sparsify = d.results[3]
         na_rep = d.results[4]
         max_cols = d.results[5]
+        selected = d.results[6]
+
         if max_cols == 0:
             max_cols=None
-        df = self.model.df
+        if selected == True:
+            df = self.getSelectedDataFrame()
+        else:
+            df = self.model.df
         s = df.to_string(justify=justify,header=header,index=index,
                          sparsify=sparsify,na_rep=na_rep,max_cols=max_cols)
         #from tkinter.scrolledtext import ScrolledText
