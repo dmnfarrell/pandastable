@@ -9,6 +9,8 @@ Added table operations to main menu
 Added time series resample (table menu)
 Can now undo last change for most operations
 Differential expression plugin
+Element-wise transform menu item
+Added aggfunc to pivot dialog
 
 ------
 0.8.0

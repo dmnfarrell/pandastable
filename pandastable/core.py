@@ -1961,7 +1961,7 @@ class Table(Canvas):
 
         df = self.model.df
         cols = list(df.columns[self.multiplecollist])
-
+        rows = self.multiplerowlist
         funcs = ['log','exp','log10','log2',
                  'round','floor','ceil','trunc',
                  'subtract','divide','mod',
@@ -1982,12 +1982,21 @@ class Table(Canvas):
         func = getattr(np, funcname)
         const = float(d.results[1])
         use_sel = float(d.results[2])
+
         if funcname in ['round']:
             const = int(const)
+
         if funcname in ['subtract','divide','mod','power','round']:
-            df = df.applymap( lambda x: func(x, const))
+            if use_sel == True:
+                df.ix[rows, cols] = df.ix[rows, cols].applymap(lambda x: func(x, const))
+            else:
+                df = df.applymap( lambda x: func(x, const))
         else:
-            df = df.applymap(func)
+            if use_sel == True:
+                df.ix[rows, cols] = df.ix[rows, cols].applymap(func)
+            else:
+                df = df.applymap(func)
+
         self.model.df = df
         self.redraw()
         return
