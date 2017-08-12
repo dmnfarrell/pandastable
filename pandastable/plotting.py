@@ -153,7 +153,8 @@ class PlotViewer(Frame):
         self.nb.add(w1, text='Base Options', sticky='news')
         #reload tkvars again from stored kwds variable
         self.mplopts.updateFromOptions()
-        w2 = StyleOptions(parent=self)
+        styleopts = StyleOptions(parent=self)
+        w2 = styleopts.showDialog(self.nb)
         self.nb.add(w2, text='Styles', sticky='news')
 
         w3 = self.labelopts.showDialog(self.nb,layout=self.layout)
@@ -229,9 +230,8 @@ class PlotViewer(Frame):
     def _checkNumeric(self, df):
         """Get only numeric data that can be plotted"""
 
-        x = df.convert_objects()._get_numeric_data()
-        #x = df.apply(pd.to_numeric, args=('coerce',))
-        #x = df.select_dtypes(include=['int','float','int64'])
+        #x = df.convert_objects()._get_numeric_data()
+        x = df.apply( lambda x: pd.to_numeric(x,errors='ignore') )
         if x.empty==True:
             return False
 
@@ -1484,22 +1484,19 @@ class AnnotationOptions(TkOptions):
             self.addTextBox(self.textboxes[key], key)
         return
 
-class StyleOptions(Frame):
+class StyleOptions(object):
     """Class to allow choosing matplotlib styles"""
     def __init__(self, parent=None):
         """Setup variables"""
 
-        Frame.__init__(self)
         self.parent = parent
-        self.main = self
         self.styles = sorted(plt.style.available)
-        self.setup()
         return
 
-    def setup(self):
-        """Set widgets"""
+    def showDialog(self, parent):
+        """Create dialog widgets"""
 
-        main = self
+        main = Frame(parent)
         frame = LabelFrame(main, text='styles')
         v = self.stylevar = StringVar()
         v.set('ggplot')
@@ -1511,7 +1508,7 @@ class StyleOptions(Frame):
         addButton(frame, 'Reset', self.reset, None,
                   'reset', side=TOP, compound="left", width=20, pady=2)
         frame.pack(side=LEFT,fill='y')
-        return
+        return main
 
     def apply(self):
         mpl.rcParams.update(mpl.rcParamsDefault)
