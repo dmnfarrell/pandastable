@@ -961,7 +961,7 @@ class TestApp(Frame):
         self.parent = parent
         Frame.__init__(self)
         self.main = self.master
-        self.main.geometry('600x400+200+100')
+        self.main.geometry('800x500+200+100')
         self.main.title('DataExplore Test')
         f = Frame(self.main)
         f.pack(fill=BOTH,expand=1)

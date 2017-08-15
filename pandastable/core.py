@@ -1273,6 +1273,12 @@ class Table(Canvas):
             self.sv = StatsViewer(table=self,parent=sf)
         return self.sv
 
+    def getRowsFromIndex(self, idx):
+        """Get row positions from index values"""
+
+        df = self.model.df
+        return [df.index.get_loc(i) for i in idx]
+
     def query(self, evt=None):
         """Do query"""
 
@@ -1284,10 +1290,16 @@ class Table(Canvas):
             self.model.df = self.dataframe
         df = self.model.df
         filtdf = df.query(s)
+
         #replace current dataframe but keep a copy!
         self.dataframe = self.model.df.copy()
-        self.model.df = filtdf
-        self.filtered = True
+        if self.applyfiltervar.get() == 1:
+            self.multiplerowlist = []
+            self.model.df = filtdf
+            self.filtered = True
+        else:
+            idx = filtdf.index
+            self.multiplerowlist = self.getRowsFromIndex(idx)
         self.redraw()
         return
 
@@ -1303,13 +1315,20 @@ class Table(Canvas):
             return
         qf = self.qframe = Frame(self.parentframe)
         self.qframe.grid(row=self.queryrow,column=0,columnspan=3,sticky='news')
-        Label(qf, text='Query:').pack(side=LEFT)
+        Label(qf, text='Enter Query:').pack(side=TOP)
         self.queryvar = StringVar()
         e = Entry(qf, textvariable=self.queryvar, font="Courier 12 bold")#, validatecommand=self.query)
         e.bind('<Return>', self.query)
-        e.pack(fill=BOTH,side=LEFT,expand=1,padx=2,pady=2)
-        addButton(qf, 'find', self.query, images.filtering(), 'apply filter', side=LEFT)
-        addButton(qf, 'close', reset, images.cross(), 'close', side=LEFT)
+        e.pack(fill=BOTH,side=TOP,expand=1,padx=2,pady=2)
+
+        f=Frame(qf)
+        f.pack(side=TOP, fill=BOTH, padx=2, pady=2)
+        addButton(f, 'find', self.query, images.filtering(), 'apply filter', side=LEFT)
+        addButton(f, 'close', reset, images.cross(), 'close', side=LEFT)
+        self.applyfiltervar = BooleanVar()
+        c=Checkbutton(f, text='show filtered only', variable=self.applyfiltervar,
+                      command=self.query)
+        c.pack(side=LEFT)
         return
 
     def _eval(self, df, ex):
@@ -2732,7 +2751,7 @@ class Table(Canvas):
             x1,y1,x2,y2 = self.getCellCoords(r,0)
             x2 = self.tablewidth
             rect = self.create_rectangle(x1,y1,x2,y2,
-                                      fill=self.multipleselectioncolor,
+                                      fill=self.rowselectedcolor,
                                       outline=self.rowselectedcolor,
                                       tag=('multiplesel','rowrect'))
         self.lower('multiplesel')
