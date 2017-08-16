@@ -359,19 +359,20 @@ class Table(Canvas):
             return x
 
         prec = self.floatprecision
+        rows = self.visiblerows
         for col in self.visiblecols:
-            coldata = df.iloc[:,col]
+            coldata = df.iloc[rows,col]
             #print (col, coldata.dtype)
             if prec != 0:
                 if coldata.dtype == 'float64':
                     coldata = coldata.apply(lambda x: set_precision(x, prec), 1)
                     #print (coldata)
             coldata = coldata.astype(object).fillna('')
+            offset = rows[0]
             for row in self.visiblerows:
-                text = coldata.iloc[row]
+                text = coldata.iloc[row-offset]
                 self.drawText(row, col, text, align)
 
-        #print (time.time()-st)
         self.tablecolheader.redraw()
         self.rowheader.redraw(align=self.align)
         self.rowindexheader.redraw()
@@ -1301,6 +1302,10 @@ class Table(Canvas):
             idx = filtdf.index
             self.multiplerowlist = self.getRowsFromIndex(idx)
         self.redraw()
+        self.queryresultvar.set('%s rows found' %len(filtdf))
+
+        #col, val, op, b = self.filterbar.getFilter()
+        #df = df[col].apply(lambda x: op)
         return
 
     def queryBar(self, evt=None):
@@ -1315,7 +1320,7 @@ class Table(Canvas):
             return
         qf = self.qframe = Frame(self.parentframe)
         self.qframe.grid(row=self.queryrow,column=0,columnspan=3,sticky='news')
-        Label(qf, text='Enter Query:').pack(side=TOP)
+        Label(qf, text='Enter String Query:').pack(side=TOP)
         self.queryvar = StringVar()
         e = Entry(qf, textvariable=self.queryvar, font="Courier 12 bold")#, validatecommand=self.query)
         e.bind('<Return>', self.query)
@@ -1328,7 +1333,14 @@ class Table(Canvas):
         self.applyfiltervar = BooleanVar()
         c=Checkbutton(f, text='show filtered only', variable=self.applyfiltervar,
                       command=self.query)
-        c.pack(side=LEFT)
+        c.pack(side=LEFT,padx=2)
+        self.queryresultvar = StringVar()
+        l=Label(f,textvariable=self.queryresultvar, font="Helvetica 10 bold")
+        l.pack(side=RIGHT)
+
+        df = self.model.df
+        self.filterbar = fb = FilterBar(qf, list(df.columns))
+        fb.pack(side=TOP, fill=BOTH, padx=2, pady=2)
         return
 
     def _eval(self, df, ex):

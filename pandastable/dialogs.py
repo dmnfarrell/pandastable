@@ -426,7 +426,10 @@ class ImportDialog(Frame):
         """show text contents"""
 
         with open(self.filename, 'r') as stream:
-            text = stream.read()
+            try:
+                text = stream.read()
+            except:
+                text = 'failed to preview, check encoding and then update preview'
         self.textpreview.delete('1.0', END)
         self.textpreview.insert('1.0', text)
         return
@@ -456,8 +459,12 @@ class ImportDialog(Frame):
         self.kwds = kwds
 
         self.showText()
-        f = pd.read_csv(self.filename, chunksize=400, error_bad_lines=False,
+        try:
+            f = pd.read_csv(self.filename, chunksize=400, error_bad_lines=False,
                         warn_bad_lines=False, **kwds)
+        except:
+            print ('read csv error')
+            return
         try:
             df = f.get_chunk()
         except pd.parser.CParserError:
@@ -898,3 +905,61 @@ class SimpleEditor(Frame):
                 self.text.mark_set(INSERT, pastit)
                 self.text.see(INSERT)
                 self.text.focus()
+
+class FilterBar(Frame):
+    """Class providing filter widgets"""
+
+    operators = ['contains','excludes','=','!=','>','<','starts with',
+                 'ends with','has length','is number']
+    booleanops = ['AND','OR','NOT']
+
+    def __init__(self, parent, fields):
+
+        Frame.__init__(self, parent)
+        self.parent = parent
+        self.filtercol = StringVar()
+        initial = fields[0]
+        filtercolmenu = Combobox(self,
+                textvariable = self.filtercol,
+                values = fields,
+                #initialitem = initial,
+                width = 10)
+        filtercolmenu.grid(row=0,column=1,sticky='news',padx=2,pady=2)
+        self.operator = StringVar()
+        operatormenu = Combobox(self,
+                textvariable = self.operator,
+                values = self.operators,
+                width = 8)
+        operatormenu.grid(row=0,column=2,sticky='news',padx=2,pady=2)
+        self.filtercolvalue=StringVar()
+        valsbox = Entry(self,textvariable=self.filtercolvalue,width=20)
+        valsbox.grid(row=0,column=3,sticky='news',padx=2,pady=2)
+        #valsbox.bind("<Return>", self.parent.callback)
+        self.booleanop = StringVar()
+        booleanopmenu = Combobox(self,
+                textvariable = self.booleanop,
+                values = self.booleanops,
+                width = 6)
+        booleanopmenu.grid(row=0,column=0,sticky='news',padx=2,pady=2)
+        #disable the boolean operator if it's the first filter
+        #if self.index == 0:
+        #    booleanopmenu.component('menubutton').configure(state=DISABLED)
+        cbutton = Button(self,text='-', command=self.close)
+        cbutton.grid(row=0,column=5,sticky='news',padx=2,pady=2)
+        return
+
+    def close(self):
+        """Destroy and remove from parent"""
+
+        self.parent.filters.remove(self)
+        self.destroy()
+        return
+
+    def getFilter(self):
+        """Get filter values for this instance"""
+
+        col = self.filtercol.get()
+        val = self.filtercolvalue.get()
+        op = self.operator.get()
+        booleanop = self.booleanop.get()
+        return col, val, op, booleanop

@@ -11,6 +11,8 @@ Can now undo last change for most operations
 Differential expression plugin
 Element-wise transform menu item
 Added aggfunc to pivot dialog
+Filtering tool highlights filtered rows by default
+Fixed slow drawing of large tables
 
 ------
 0.8.0
