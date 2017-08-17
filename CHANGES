@@ -12,6 +12,7 @@ Differential expression plugin
 Element-wise transform menu item
 Added aggfunc to pivot dialog
 Filtering tool highlights filtered rows by default
+Added predefined widget filters to filtering dialog
 Fixed slow drawing of large tables
 
 ------

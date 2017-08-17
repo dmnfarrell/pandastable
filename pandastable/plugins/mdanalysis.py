@@ -39,7 +39,7 @@ from collections import OrderedDict
 class MultivariatePlugin(Plugin):
     """Plugin for DataExplore"""
 
-    capabilities = ['gui','uses_sidepane']
+    capabilities = [] #['gui','uses_sidepane']
     requires = ['']
     menuentry = 'Multivariate Analysis'
     gui_methods = {}

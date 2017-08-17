@@ -984,7 +984,9 @@ class QueryDialog(Frame):
             table.filtered = True
         else:
             idx = filtdf.index
-            table.multiplerowlist = table.getRowsFromIndex(idx)
+            rows = table.multiplerowlist = table.getRowsFromIndex(idx)
+            if len(rows)>0:
+                table.currentrow = rows[0]
 
         table.redraw()
         return
@@ -1025,6 +1027,14 @@ class QueryDialog(Frame):
                 m = -df[col].str.contains(val)
             elif op == 'starts with':
                 m = df[col].str.startswith(val)
+            elif op == 'has length':
+                m = df[col].str.len()>val
+            elif op == 'is number':
+                m = df[col].astype('object').str.isnumeric()
+            elif op == 'is lowercase':
+                m = df[col].astype('object').str.islower()
+            elif op == 'is uppercase':
+                m = df[col].astype('object').str.isupper()
             else:
                 continue
             if b == 'AND':
@@ -1039,7 +1049,7 @@ class FilterBar(Frame):
     """Class providing filter widgets"""
 
     operators = ['contains','excludes','equals','not equals','>','<','starts with',
-                 'ends with','has length','is number']
+                 'ends with','has length','is number','is lowercase','is uppercase']
     booleanops = ['AND','OR','NOT']
 
     def __init__(self, parent, parentframe, cols):
@@ -1059,7 +1069,7 @@ class FilterBar(Frame):
         operatormenu = Combobox(self,
                 textvariable = self.operator,
                 values = self.operators,
-                width = 8)
+                width = 10)
         operatormenu.grid(row=0,column=2,sticky='news',padx=2,pady=2)
         self.filtercolvalue=StringVar()
         valsbox = Entry(self,textvariable=self.filtercolvalue,width=30)
