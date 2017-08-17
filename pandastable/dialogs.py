@@ -43,7 +43,7 @@ from collections import OrderedDict
 import webbrowser
 import pandas as pd
 from .data import TableModel
-from . import util
+from . import util, images
 
 def getParentGeometry(parent):
     x = parent.winfo_rootx()
@@ -906,36 +906,167 @@ class SimpleEditor(Frame):
                 self.text.see(INSERT)
                 self.text.focus()
 
+class QueryDialog(Frame):
+    """Use string query to filter. Will not work with spaces in column
+        names, so these would need to be converted first."""
+
+    def __init__(self, table):
+        parent = table.parentframe
+        Frame.__init__(self, parent)
+        self.parent = parent
+        self.table = table
+        self.setup()
+        self.filters = []
+        return
+
+    def setup(self):
+
+        qf = self
+        sfont = "Helvetica 10 bold"
+        Label(qf, text='Enter String Query:', font=sfont).pack(side=TOP,fill=X)
+        self.queryvar = StringVar()
+        e = Entry(qf, textvariable=self.queryvar, font="Courier 12 bold")
+        e.bind('<Return>', self.query)
+        e.pack(fill=BOTH,side=TOP,expand=1,padx=2,pady=2)
+        self.fbar = Frame(qf)
+        self.fbar.pack(side=TOP,fill=BOTH,expand=1,padx=2,pady=2)
+        f = Frame(qf)
+        f.pack(side=TOP, fill=BOTH, padx=2, pady=2)
+        addButton(f, 'find', self.query, images.filtering(), 'apply filters', side=LEFT)
+        addButton(f, 'add manual filter', self.addFilter, images.add(),
+                  'add manual filter', side=LEFT)
+        addButton(f, 'close', self.close, images.cross(), 'close', side=LEFT)
+        self.applyqueryvar = BooleanVar()
+        c = Checkbutton(f, text='show filtered only', variable=self.applyqueryvar,
+                      command=self.query)
+        c.pack(side=LEFT,padx=2)
+        self.queryresultvar = StringVar()
+        l = Label(f,textvariable=self.queryresultvar, font=sfont)
+        l.pack(side=RIGHT)
+        return
+
+    def close(self):
+        self.destroy()
+        self.table.qframe = None
+        self.table.showAll()
+
+    def query(self, evt=None):
+        """Do query"""
+
+        table = self.table
+        s = self.queryvar.get()
+
+        if table.filtered == True:
+            table.model.df = table.dataframe
+        df = table.model.df
+        mask = None
+
+        #string query first
+        if s!='':
+            mask = df.eval(s)
+        #add any filters from widgets
+        if len(self.filters)>0:
+            mask = self.applyFilter(df, mask)
+        if mask is None:
+            table.showAll()
+            self.queryresultvar.set('')
+            return
+        #apply the final mask
+        filtdf = df[mask]
+        self.queryresultvar.set('%s rows found' %len(filtdf))
+
+        if self.applyqueryvar.get() == 1:
+            #replace current dataframe but keep a copy!
+            table.dataframe = table.model.df.copy()
+            table.delete('rowrect')
+            table.multiplerowlist = []
+            table.model.df = filtdf
+            table.filtered = True
+        else:
+            idx = filtdf.index
+            table.multiplerowlist = table.getRowsFromIndex(idx)
+
+        table.redraw()
+        return
+
+    def addFilter(self):
+        """Add a filter using widgets"""
+
+        df = self.table.model.df
+        fb = FilterBar(self, self.fbar, list(df.columns))
+        fb.pack(side=TOP, fill=BOTH, padx=2, pady=2)
+        self.filters.append(fb)
+        return
+
+    def applyFilter(self, df, mask=None):
+        """Apply the widget based filters, returns a boolean mask"""
+
+        if mask is None:
+            mask = df.index==df.index
+
+        for f in self.filters:
+            col, val, op, b = f.getFilter()
+            try:
+                val = float(val)
+            except:
+                pass
+            #print (col, val, op, b)
+            if op == 'contains':
+                m = df[col].str.contains(val)
+            elif op == 'equals':
+                m = df[col]==val
+            elif op == 'not equals':
+                m = df[col]!=val
+            elif op == '>':
+                m = df[col]>val
+            elif op == '<':
+                m = df[col]<val
+            elif op == 'excludes':
+                m = -df[col].str.contains(val)
+            elif op == 'starts with':
+                m = df[col].str.startswith(val)
+            else:
+                continue
+            if b == 'AND':
+                mask = mask & m
+            elif b == 'OR':
+                mask = mask | m
+            elif b == 'NOT':
+                mask = mask ^ m
+        return mask
+
 class FilterBar(Frame):
     """Class providing filter widgets"""
 
-    operators = ['contains','excludes','=','!=','>','<','starts with',
+    operators = ['contains','excludes','equals','not equals','>','<','starts with',
                  'ends with','has length','is number']
     booleanops = ['AND','OR','NOT']
 
-    def __init__(self, parent, fields):
+    def __init__(self, parent, parentframe, cols):
 
-        Frame.__init__(self, parent)
+        Frame.__init__(self, parentframe)
         self.parent = parent
         self.filtercol = StringVar()
-        initial = fields[0]
+        initial = cols[0]
         filtercolmenu = Combobox(self,
                 textvariable = self.filtercol,
-                values = fields,
+                values = cols,
                 #initialitem = initial,
                 width = 10)
         filtercolmenu.grid(row=0,column=1,sticky='news',padx=2,pady=2)
         self.operator = StringVar()
+        #self.operator.set('equals')
         operatormenu = Combobox(self,
                 textvariable = self.operator,
                 values = self.operators,
                 width = 8)
         operatormenu.grid(row=0,column=2,sticky='news',padx=2,pady=2)
         self.filtercolvalue=StringVar()
-        valsbox = Entry(self,textvariable=self.filtercolvalue,width=20)
+        valsbox = Entry(self,textvariable=self.filtercolvalue,width=30)
         valsbox.grid(row=0,column=3,sticky='news',padx=2,pady=2)
         #valsbox.bind("<Return>", self.parent.callback)
         self.booleanop = StringVar()
+        self.booleanop.set('AND')
         booleanopmenu = Combobox(self,
                 textvariable = self.booleanop,
                 values = self.booleanops,
@@ -944,8 +1075,10 @@ class FilterBar(Frame):
         #disable the boolean operator if it's the first filter
         #if self.index == 0:
         #    booleanopmenu.component('menubutton').configure(state=DISABLED)
-        cbutton = Button(self,text='-', command=self.close)
-        cbutton.grid(row=0,column=5,sticky='news',padx=2,pady=2)
+        img = images.cross()
+        cb = Button(self,text='-', image=img, command=self.close)
+        cb.image = img
+        cb.grid(row=0,column=5,sticky='news',padx=2,pady=2)
         return
 
     def close(self):

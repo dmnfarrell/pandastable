@@ -1283,64 +1283,16 @@ class Table(Canvas):
     def query(self, evt=None):
         """Do query"""
 
-        s = self.queryvar.get()
-        if s=='':
-            self.showAll()
-            return
-        if self.filtered == True:
-            self.model.df = self.dataframe
-        df = self.model.df
-        filtdf = df.query(s)
-
-        #replace current dataframe but keep a copy!
-        self.dataframe = self.model.df.copy()
-        if self.applyfiltervar.get() == 1:
-            self.multiplerowlist = []
-            self.model.df = filtdf
-            self.filtered = True
-        else:
-            idx = filtdf.index
-            self.multiplerowlist = self.getRowsFromIndex(idx)
-        self.redraw()
-        self.queryresultvar.set('%s rows found' %len(filtdf))
-
-        #col, val, op, b = self.filterbar.getFilter()
-        #df = df[col].apply(lambda x: op)
+        self.qframe.query()
         return
 
     def queryBar(self, evt=None):
-        """Use string query to filter. Will not work with spaces in column
-        names, so these would need to be converted first."""
+        """Query/filtering dialog"""
 
-        def reset():
-            self.qframe.destroy()
-            self.qframe = None
-            self.showAll()
         if hasattr(self, 'qframe') and self.qframe != None:
             return
-        qf = self.qframe = Frame(self.parentframe)
+        self.qframe = QueryDialog(self)
         self.qframe.grid(row=self.queryrow,column=0,columnspan=3,sticky='news')
-        Label(qf, text='Enter String Query:').pack(side=TOP)
-        self.queryvar = StringVar()
-        e = Entry(qf, textvariable=self.queryvar, font="Courier 12 bold")#, validatecommand=self.query)
-        e.bind('<Return>', self.query)
-        e.pack(fill=BOTH,side=TOP,expand=1,padx=2,pady=2)
-
-        f=Frame(qf)
-        f.pack(side=TOP, fill=BOTH, padx=2, pady=2)
-        addButton(f, 'find', self.query, images.filtering(), 'apply filter', side=LEFT)
-        addButton(f, 'close', reset, images.cross(), 'close', side=LEFT)
-        self.applyfiltervar = BooleanVar()
-        c=Checkbutton(f, text='show filtered only', variable=self.applyfiltervar,
-                      command=self.query)
-        c.pack(side=LEFT,padx=2)
-        self.queryresultvar = StringVar()
-        l=Label(f,textvariable=self.queryresultvar, font="Helvetica 10 bold")
-        l.pack(side=RIGHT)
-
-        df = self.model.df
-        self.filterbar = fb = FilterBar(qf, list(df.columns))
-        fb.pack(side=TOP, fill=BOTH, padx=2, pady=2)
         return
 
     def _eval(self, df, ex):
