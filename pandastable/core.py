@@ -137,6 +137,7 @@ class Table(Canvas):
         self.boxoutlinecolor = '#084B8A'
         self.colselectedcolor ='#F5E9EF'#F5E9EF
         self.floatprecision = 0
+        self.columncolors = {}
         self.bg = Style().lookup('TLabel.label', 'background')
         return
 
@@ -318,6 +319,7 @@ class Table(Canvas):
             self.delete('currentrect','fillrect')
             self.delete('gridline','text')
             self.delete('multicellrect','multiplesel')
+            self.delete('colorrect')
             self.setColPositions()
             if self.cols == 0:
                 self.tablecolheader.redraw()
@@ -372,7 +374,9 @@ class Table(Canvas):
             for row in self.visiblerows:
                 text = coldata.iloc[row-offset]
                 self.drawText(row, col, text, align)
-
+            if col in self.columncolors:
+                clr = self.columncolors[col]
+                self.colorColumn(col, clr)
         self.tablecolheader.redraw()
         self.rowheader.redraw(align=self.align)
         self.rowindexheader.redraw()
@@ -398,6 +402,25 @@ class Table(Canvas):
         text = self.model.getValueAt(row,col)
         self.delete('celltext'+str(col)+'_'+str(row))
         self.drawText(row, col, text)
+        return
+
+    def setColumnColors(self):
+        """Set a column color and store it"""
+
+        clr = self.getaColor('#dcf1fc')
+        if clr == None:
+            return
+        cols = self.multiplecollist
+
+        for c in cols:
+            self.columncolors[c] = clr
+        self.redraw()
+        return
+
+    def colorColumn(self, col, color='gray'):
+        """"Color a specific column"""
+
+        self.drawSelectedCol(col, delete=0, color=color, tag='colorrect')
         return
 
     def getScale(self):
@@ -2682,14 +2705,17 @@ class Table(Canvas):
                                   tag='rowrect')
         self.lower('rowrect')
         self.lower('fillrect')
+        self.lower('colorrect')
         self.rowheader.drawSelectedRows(self.currentrow)
         return
 
-    def drawSelectedCol(self, col=None, delete=1):
+    def drawSelectedCol(self, col=None, delete=1, color=None, tag='colrect'):
         """Draw a highlight rect for the current column selection"""
 
+        if color == None:
+            color = self.colselectedcolor
         if delete == 1:
-            self.delete('colrect')
+            self.delete(tag)
         if len(self.model.df.columns) == 0:
             return
         if col == None:
@@ -2698,8 +2724,9 @@ class Table(Canvas):
         x1,y1,x2,y2 = self.getCellCoords(0,col)
         y2 = self.rows * self.rowheight
         rect = self.create_rectangle(x1+w/2,y1+w/2,x2,y2+w/2,
-                                     width=w,fill=self.colselectedcolor,outline='',
-                                     tag='colrect')
+                                     width=w,fill=color,outline='',
+                                     tag=tag)
+        #self.lower('colorrect')
         self.lower('colrect')
         self.lower('rowrect')
         #self.delete('currentrect')

@@ -339,12 +339,13 @@ class ColumnHeader(Canvas):
         popupmenu = Menu(self, tearoff = 0)
         def popupFocusOut(event):
             popupmenu.unpost()
-        popupmenu.add_command(label="Rename Column", command=self.renameColumn)
+
         popupmenu.add_command(label="Sort by " + colnames + ' \u2193',
                     command=lambda : self.table.sortTable(ascending=[1 for i in multicols]))
         popupmenu.add_command(label="Sort by " + colnames + ' \u2191',
             command=lambda : self.table.sortTable(ascending=[0 for i in multicols]))
         popupmenu.add_command(label="Set %s as Index" %colnames, command=self.table.setindex)
+        popupmenu.add_command(label="Rename Column", command=self.renameColumn)
         if ismulti == True:
             popupmenu.add_command(label="Flatten Index", command=self.table.flattenIndex)
         popupmenu.add_command(label="Add Column(s)" , command=self.table.addColumn)
@@ -356,6 +357,7 @@ class ColumnHeader(Canvas):
         popupmenu.add_command(label="Apply Function Col-wise", command=self.table.applyColumnWise)
         popupmenu.add_command(label="String Operation", command=self.table.applyStringMethod)
         popupmenu.add_command(label="Date/Time Conversion", command=self.table.convertDates)
+        popupmenu.add_command(label="Set Color", command=self.table.setColumnColors)
         popupmenu.bind("<FocusOut>", popupFocusOut)
         #self.bind("<Button-3>", popupFocusOut)
         popupmenu.focus_set()
