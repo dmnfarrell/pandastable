@@ -374,9 +374,9 @@ class Table(Canvas):
             for row in self.visiblerows:
                 text = coldata.iloc[row-offset]
                 self.drawText(row, col, text, align)
-            if col in self.columncolors:
-                clr = self.columncolors[col]
-                self.colorColumn(col, clr)
+            colname = df.columns[col]
+
+        self.colorColumns()
         self.tablecolheader.redraw()
         self.rowheader.redraw(align=self.align)
         self.rowindexheader.redraw()
@@ -411,16 +411,23 @@ class Table(Canvas):
         if clr == None:
             return
         cols = self.multiplecollist
-
-        for c in cols:
+        colnames = self.model.df.columns[cols]
+        for c in colnames:
             self.columncolors[c] = clr
         self.redraw()
         return
 
-    def colorColumn(self, col, color='gray'):
+    def colorColumns(self, cols=None, color='gray'):
         """"Color a specific column"""
 
-        self.drawSelectedCol(col, delete=0, color=color, tag='colorrect')
+        if cols is None:
+            cols = self.visiblecols
+        self.delete('colorrect')
+        for c in cols:
+            colname = self.model.df.columns[c]
+            if colname in self.columncolors:
+                clr = self.columncolors[colname]
+                self.drawSelectedCol(c, delete=0, color=clr, tag='colorrect')
         return
 
     def getScale(self):
