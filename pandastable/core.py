@@ -2743,17 +2743,29 @@ class Table(Canvas):
         """Draw more than one row selection"""
 
         self.delete('multiplesel')
-        for r in rowlist:
-            if r not in self.visiblerows or r > self.rows-1:
-                continue
-            x1,y1,x2,y2 = self.getCellCoords(r,0)
-            x2 = self.tablewidth
-            rect = self.create_rectangle(x1,y1,x2,y2,
-                                      fill=self.rowselectedcolor,
-                                      outline=self.rowselectedcolor,
-                                      tag=('multiplesel','rowrect'))
+        self.delete('rowrect')
+        cols = self.visiblecols
+        for col in cols:
+            colname = self.model.df.columns[col]
+            #if col is colored we darken it
+            if colname in self.columncolors:
+                clr = self.columncolors[colname]
+                clr = util.colorScale(clr, -20)
+            else:
+                clr = self.rowselectedcolor
+            for r in rowlist:
+                if r not in self.visiblerows or r > self.rows-1:
+                    continue
+                x1,y1,x2,y2 = self.getCellCoords(r,col)
+                #x2 = self.tablewidth
+                rect = self.create_rectangle(x1,y1,x2,y2,
+                                          fill=clr,
+                                          outline=self.rowselectedcolor,
+                                          tag=('multiplesel','rowrect'))
+
         self.lower('multiplesel')
         self.lower('fillrect')
+        self.lower('colorrect')
         return
 
     def drawMultipleCols(self):

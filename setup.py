@@ -7,7 +7,7 @@ with open('description.txt') as f:
 
 setup(
     name = 'pandastable',
-    version = '0.8.1',
+    version = '0.8.2',
     description = 'Library for embedding tables in Tkinter using pandas DataFrames',
     long_description = long_description,
     url='https://github.com/dmnfarrell/pandastable',
