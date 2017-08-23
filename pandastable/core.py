@@ -404,13 +404,15 @@ class Table(Canvas):
         self.drawText(row, col, text)
         return
 
-    def setColumnColors(self):
+    def setColumnColors(self, cols=None, clr=None):
         """Set a column color and store it"""
 
-        clr = self.getaColor('#dcf1fc')
+        if clr is None:
+            clr = self.getaColor('#dcf1fc')
         if clr == None:
             return
-        cols = self.multiplecollist
+        if cols == None:
+            cols = self.multiplecollist
         colnames = self.model.df.columns[cols]
         for c in colnames:
             self.columncolors[c] = clr
@@ -418,7 +420,7 @@ class Table(Canvas):
         return
 
     def colorColumns(self, cols=None, color='gray'):
-        """"Color a specific column"""
+        """"Color visible columns"""
 
         if cols is None:
             cols = self.visiblecols
@@ -2322,7 +2324,10 @@ class Table(Canvas):
                         "Plot Selected" : self.plotSelected,
                         "Hide plot" : self.hidePlot,
                         "Show plot" : self.showPlot,
-                        "Preferences" : self.showPrefs}
+                        "Preferences" : self.showPrefs,
+                        "Table to Text" : self.showasText,
+                        "Clean Data" : self.cleanData,
+                        "Clear Formatting" : self.clearFormatting}
 
         main = ["Copy", "Undo", "Fill Down", #"Fill Right",
                 "Clear Data"]#, "Delete Column(s)"]
@@ -2331,6 +2336,7 @@ class Table(Canvas):
 
         filecommands = ['New','Load','Import csv','Save','Save as','Export']
         plotcommands = ['Plot Selected','Hide plot','Show plot']
+        tablecommands = ['Table to Text','Clean Data','Clear Formatting']
 
         def createSubMenu(parent, label, commands):
             menu = Menu(parent, tearoff = 0)
@@ -2380,6 +2386,7 @@ class Table(Canvas):
         popupmenu.add_separator()
         createSubMenu(popupmenu, 'File', filecommands)
         createSubMenu(popupmenu, 'Plot', plotcommands)
+        createSubMenu(popupmenu, 'Table', tablecommands)
         popupmenu.bind("<FocusOut>", popupFocusOut)
         popupmenu.focus_set()
         popupmenu.post(event.x_root, event.y_root)
@@ -2750,7 +2757,7 @@ class Table(Canvas):
             #if col is colored we darken it
             if colname in self.columncolors:
                 clr = self.columncolors[colname]
-                clr = util.colorScale(clr, -20)
+                clr = util.colorScale(clr, -30)
             else:
                 clr = self.rowselectedcolor
             for r in rowlist:
@@ -3222,6 +3229,11 @@ class Table(Canvas):
         """Get frame geometry"""
         return frame.winfo_rootx(), frame.winfo_rooty(), frame.winfo_width(), frame.winfo_height()
 
+    def clearFormatting(self):
+        self.set_defaults()
+        self.columncolors = {}
+        self.redraw()
+        return
 
 class ToolBar(Frame):
     """Uses the parent instance to provide the functions"""
