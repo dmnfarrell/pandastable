@@ -123,6 +123,9 @@ def adjustColorMap(cmap, minval=0.0, maxval=1.0, n=100):
 def colorScale(hex_color, brightness_offset=1):
     """ takes a color like #87c95f and produces a lighter or darker variant """
 
+    #if not hex_color.startswith('#'):
+        #import matplotlib
+        #hex_color = matplotlib.colors.cnames[hex_color].lower()
     if len(hex_color) != 7:
         raise Exception("Passed %s into color_variant(), needs to be in #87c95f format." % hex_color)
     rgb_hex = [hex_color[x:x+2] for x in [1, 3, 5]]

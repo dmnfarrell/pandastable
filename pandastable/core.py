@@ -135,7 +135,7 @@ class Table(Canvas):
         self.rowselectedcolor = '#E4DED4'
         self.multipleselectioncolor = '#E0F2F7'
         self.boxoutlinecolor = '#084B8A'
-        self.colselectedcolor ='#F5E9EF'#F5E9EF
+        self.colselectedcolor = '#e4e3e4'
         self.floatprecision = 0
         self.columncolors = {}
         self.bg = Style().lookup('TLabel.label', 'background')
@@ -1306,11 +1306,19 @@ class Table(Canvas):
             self.sv = StatsViewer(table=self,parent=sf)
         return self.sv
 
-    def getRowsFromIndex(self, idx):
+    def getRowsFromIndex(self, idx=None):
         """Get row positions from index values"""
 
         df = self.model.df
-        return [df.index.get_loc(i) for i in idx]
+        if idx is not None:
+            return [df.index.get_loc(i) for i in idx]
+        return []
+
+    def getRowsFromMask(self, mask):
+        df = self.model.df
+        if mask is not None:
+            idx = df.ix[mask].index
+        return self.getRowsFromIndex(idx)
 
     def query(self, evt=None):
         """Do query"""
@@ -1515,8 +1523,9 @@ class Table(Canvas):
         colname = self.model.getColumnName(col)
         self.model.columnwidths[colname] = width
         self.setColPositions()
+        self.delete('colrect')
+        #self.drawSelectedCol(self.currentcol)
         self.redraw()
-        self.drawSelectedCol(self.currentcol)
         return
 
     def get_row_clicked(self, event):

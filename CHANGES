@@ -1,6 +1,14 @@
 =======
 CHANGES
 =======
+
+------
+0.8.2
+------
+
+Fixed setup.py error that stopped pip install
+Added column coloring functionality
+
 ------
 0.8.1
 ------
