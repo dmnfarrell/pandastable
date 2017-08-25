@@ -126,7 +126,7 @@ class Table(Canvas):
         self.x_start=0
         self.y_start=1
         self.linewidth=1.0
-        self.rowheaderwidth=40
+        self.rowheaderwidth=50
         self.showkeynamesinheader=False
         self.thefont = ('Arial',12)
         self.cellbackgr = '#F4F4F3'
@@ -777,7 +777,7 @@ class Table(Canvas):
 
         dists = ['normal','gamma','uniform','random integer','logistic']
         d = MultipleValDialog(title='New Column',
-                                initialvalues=(0,1,False,dists,1,1),
+                                initialvalues=(0,1,False,dists,1.0,1.0),
                                 labels=('Low','High','Random Noise','Distribution','Mean','Std'),
                                 types=('string','string','checkbutton','combobox','float','float'),
                                 tooltips=('start value if filling with data',
@@ -794,8 +794,8 @@ class Table(Canvas):
             high = d.results[1]
             random = d.results[2]
             dist = d.results[3]
-            param1 = d.results[4]
-            param2 = d.results[5]
+            param1 = float(d.results[4])
+            param2 = float(d.results[5])
 
         df = self.model.df
         if low != '' and high != '':
@@ -2749,10 +2749,8 @@ class Table(Canvas):
         rect = self.create_rectangle(x1+w/2,y1+w/2,x2,y2+w/2,
                                      width=w,fill=color,outline='',
                                      tag=tag)
-        #self.lower('colorrect')
-        self.lower('colrect')
         self.lower('rowrect')
-        #self.delete('currentrect')
+        self.lower('colrect')
         return
 
     def drawMultipleRows(self, rowlist):
@@ -3074,6 +3072,7 @@ class Table(Canvas):
 
         self.savePrefs()
         self.autoResizeColumns()
+        #self.show()
         self.redraw()
         return
 

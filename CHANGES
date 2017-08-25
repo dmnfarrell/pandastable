@@ -8,6 +8,7 @@ CHANGES
 
 Fixed setup.py error that stopped pip install
 Added column coloring functionality
+Fixed slow adding of multiple rows
 
 ------
 0.8.1

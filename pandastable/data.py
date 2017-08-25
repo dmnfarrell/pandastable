@@ -156,20 +156,20 @@ class TableModel(object):
         return
 
     def autoAddRows(self, num):
-        """Aut add n rows. Not efficient - fix this!"""
+        """Add n rows to end of dataframe. Will create rows with index starting
+           from highest previous row count"""
 
         df = self.df
         if len(df) == 0:
             self.df = pd.DataFrame(pd.Series(range(num)))
             print (df)
             return
-
         try:
             ind = self.df.index.max()+1
         except:
             ind = len(df)+1
-        for i in range(num):
-            self.addRow(i+ind)
+        new = pd.DataFrame(np.nan, index=range(ind,ind+num), columns=df.columns)
+        self.df = pd.concat([df, new])
         return
 
     def addRow(self, rowindex):

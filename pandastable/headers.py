@@ -150,7 +150,7 @@ class ColumnHeader(Canvas):
         if colclicked == None:
             return
         #set all rows for plotting if no multi selection
-        if len(self.table.multiplerowlist) <= 1 or self.table.startrow == self.table.endrow:
+        if len(self.table.multiplerowlist) <= 1:
             self.table.allrows = True
 
         self.table.setSelectedCol(colclicked)
@@ -166,6 +166,7 @@ class ColumnHeader(Canvas):
         #finally, draw the selected col on the table
         self.table.drawSelectedCol()
         self.table.drawMultipleCells()
+        self.table.drawMultipleRows(self.table.multiplerowlist)
         return
 
     def handle_left_release(self,event):
@@ -429,7 +430,7 @@ class RowHeader(Canvas):
        This also handles row/record selection as opposed to cell
        selection"""
 
-    def __init__(self, parent=None, table=None, width=40):
+    def __init__(self, parent=None, table=None, width=50):
         Canvas.__init__(self, parent, bg='gray75', width=width, height=None)
         if table != None:
             self.table = table
