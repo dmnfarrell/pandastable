@@ -488,17 +488,18 @@ class RowHeader(Canvas):
                 cols = [r]
                 xpos = [xstart]
             w = np.sum(widths)
-            if w>maxw:
-                w=maxw
-            elif w<45:
-                w=45
         else:
             rows = [i+1 for i in v]
             cols = [rows]
-            w=45
+            l = max([len(str(i)) for i in rows])
+            w = l * scale + 6
             widths = [w]
             xpos = [xstart]
 
+        if w>maxw:
+            w = maxw
+        elif w<45:
+            w = 45
         if self.width != w:
             self.config(width=w)
             self.width = w
