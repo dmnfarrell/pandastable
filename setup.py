@@ -16,7 +16,7 @@ setup(
     author_email = 'farrell.damien@gmail.com',
     packages = ['pandastable'],
     package_data={'pandastable': ['dataexplore.gif', '../description.txt',
-                                  'datasets/*.mpk',
+                                  'datasets/*.csv',
                                   'plugins/*.py','plugins/*.R']},
     install_requires=['matplotlib>=2.0',
                       'pandas>=0.18',
