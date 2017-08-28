@@ -444,22 +444,27 @@ class Table(Canvas):
         rc = self.rowcolors
         if col not in rc.columns:
             rc[col] = pd.Series()
-        rc[col] = rc[col].where(mask, clr)
+        rc[col] = rc[col].where(-mask, clr)
         #print (rc)
         return
 
     def colorRows(self):
+        """Color individual cells in column(s). Requires that the rowcolors
+         dataframe has been set. This needs to be updatedif the index is reset"""
+
+        #if len(self.rowcolors==0):
+        #    return
         df = self.model.df
         rc = self.rowcolors
-        #print (rc.columns)
         rows = self.visiblerows
+        offset = rows[0]
+        idx = df.index[rows]
         for col in self.visiblecols:
             colname = df.columns[col]
             if colname in list(rc.columns):
-                offset = rows[0]
+                colors = rc[colname].ix[idx]
                 for row in rows:
-                    clr = rc[colname].iloc[row-offset]
-                    #print (colname, clr)
+                    clr = colors.iloc[row-offset]
                     if not pd.isnull(clr):
                         self.drawRect(row, col, color=clr, tag='colorrect', delete=1)
         return
@@ -576,6 +581,7 @@ class Table(Canvas):
         if self.model.df.index.name is not None:
             self.showIndex()
         self.setSelectedCol(0)
+        self.update_rowcolors()
         self.redraw()
         self.drawSelectedCol()
         if hasattr(self, 'pf'):
@@ -586,6 +592,7 @@ class Table(Canvas):
         """Reset index and redraw row header"""
 
         self.model.resetIndex()
+        self.update_rowcolors()
         self.redraw()
         self.drawSelectedCol()
         if hasattr(self, 'pf'):
@@ -626,6 +633,14 @@ class Table(Canvas):
         """Show the row index"""
 
         self.rowheader.showindex = True
+        return
+
+    def update_rowcolors(self):
+        """Update row colors if present"""
+        
+        df = self.model.df
+        if len(self.rowcolors) == len(df):
+            self.rowcolors.set_index(df.index, inplace=True)
         return
 
     def set_xviews(self,*args):
@@ -3272,7 +3287,7 @@ class Table(Canvas):
     def clearFormatting(self):
         self.set_defaults()
         self.columncolors = {}
-        self.redraw()
+        self.rowcolors = pd.DataFrame()
         return
 
 class ToolBar(Frame):
