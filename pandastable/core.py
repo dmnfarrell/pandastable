@@ -138,6 +138,7 @@ class Table(Canvas):
         self.colselectedcolor = '#e4e3e4'
         self.floatprecision = 0
         self.columncolors = {}
+        self.rowcolors = pd.DataFrame()
         self.bg = Style().lookup('TLabel.label', 'background')
         return
 
@@ -377,6 +378,7 @@ class Table(Canvas):
             colname = df.columns[col]
 
         self.colorColumns()
+        self.colorRows()
         self.tablecolheader.redraw()
         self.rowheader.redraw(align=self.align)
         self.rowindexheader.redraw()
@@ -386,6 +388,7 @@ class Table(Canvas):
             self.rowheader.drawSelectedRows(self.multiplerowlist)
             self.drawMultipleRows(self.multiplerowlist)
             self.drawMultipleCells()
+
         return
 
     def redraw(self, event=None, callback=None):
@@ -420,7 +423,7 @@ class Table(Canvas):
         return
 
     def colorColumns(self, cols=None, color='gray'):
-        """"Color visible columns"""
+        """Color visible columns"""
 
         if cols is None:
             cols = self.visiblecols
@@ -430,6 +433,35 @@ class Table(Canvas):
             if colname in self.columncolors:
                 clr = self.columncolors[colname]
                 self.drawSelectedCol(c, delete=0, color=clr, tag='colorrect')
+        return
+
+    def setColorByMask(self, col, mask, clr):
+        """Color individual cells in a column using a mask."""
+
+        df = self.model.df
+        if len(self.rowcolors) == 0:
+            self.rowcolors = pd.DataFrame(index=range(len(df)))
+        rc = self.rowcolors
+        if col not in rc.columns:
+            rc[col] = pd.Series()
+        rc[col] = rc[col].where(mask, clr)
+        #print (rc)
+        return
+
+    def colorRows(self):
+        df = self.model.df
+        rc = self.rowcolors
+        #print (rc.columns)
+        rows = self.visiblerows
+        for col in self.visiblecols:
+            colname = df.columns[col]
+            if colname in list(rc.columns):
+                offset = rows[0]
+                for row in rows:
+                    clr = rc[colname].iloc[row-offset]
+                    #print (colname, clr)
+                    if not pd.isnull(clr):
+                        self.drawRect(row, col, color=clr, tag='colorrect', delete=1)
         return
 
     def getScale(self):
