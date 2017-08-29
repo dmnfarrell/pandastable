@@ -469,6 +469,45 @@ class Table(Canvas):
                         self.drawRect(row, col, color=clr, tag='colorrect', delete=1)
         return
 
+    def setColorbyValue(self):
+        """Set row colors in a column by values"""
+
+        import pylab as plt
+        cmaps = sorted(m for m in plt.cm.datad if not m.endswith("_r"))
+        cols = self.multiplecollist
+        d = MultipleValDialog(title='color by value',
+                                initialvalues=[cmaps],
+                                labels=['colormap:'],
+                                types=['combobox'],
+                                parent = self.parentframe)
+        if d.result == None:
+            return
+        cmap = d.results[0]
+        df = self.model.df
+        for col in cols:
+            colname = df.columns[col]
+            x = df[colname]
+            clrs = self.values_to_colors(x, cmap)
+            clrs = pd.Series(clrs,index=df.index)
+            rc = self.rowcolors
+            rc[colname] = clrs
+        self.redraw()
+        return
+
+    def values_to_colors(self, x, cmap='jet'):
+        """Convert columnn values to colors"""
+
+        import pylab as plt
+        import matplotlib as mpl
+        cmap = plt.cm.get_cmap(cmap)
+        #if x.dtype in ['int','float64']:
+        if x.dtype in ['object']:#,'category']:
+            x = pd.Categorical(x).codes
+        x = (x-x.min())/(x.max()-x.min())
+        clrs = cmap(x)
+        clrs = [mpl.colors.rgb2hex(i) for i in clrs]
+        return clrs
+
     def getScale(self):
         try:
             fontsize = self.thefont[1]
@@ -637,7 +676,7 @@ class Table(Canvas):
 
     def update_rowcolors(self):
         """Update row colors if present"""
-        
+
         df = self.model.df
         if len(self.rowcolors) == len(df):
             self.rowcolors.set_index(df.index, inplace=True)

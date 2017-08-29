@@ -359,6 +359,7 @@ class ColumnHeader(Canvas):
         popupmenu.add_command(label="String Operation", command=self.table.applyStringMethod)
         popupmenu.add_command(label="Date/Time Conversion", command=self.table.convertDates)
         popupmenu.add_command(label="Set Color", command=self.table.setColumnColors)
+        popupmenu.add_command(label="Color by Value", command=self.table.setColorbyValue)
         popupmenu.bind("<FocusOut>", popupFocusOut)
         #self.bind("<Button-3>", popupFocusOut)
         popupmenu.focus_set()
