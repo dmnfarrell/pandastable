@@ -308,7 +308,7 @@ class DataExplore(Frame):
             p.writeConfig(d)
         from . import plotting
         defaultfont = 'monospace'
-        p=Prefs('.dataexplore')
+        p = Prefs('.dataexplore')
         opts = {'layout':{'type':'checkbutton','default':False,'label':'vertical plot tools'},
             'fontsize':{'type':'scale','default':12,'range':(5,40),'interval':1,'label':'font size'},
             'colormap':{'type':'combobox','default':'Spectral','items':plotting.colormaps},
@@ -379,6 +379,8 @@ class DataExplore(Frame):
         #save table selections
         meta['table'] = util.getAttributes(table)
         meta['rowheader'] = util.getAttributes(table.rowheader)
+        #save row colors since its a dataframe and isn't picked up by getattributes currently
+        meta['table']['rowcolors'] = table.rowcolors
         #save child table if present
         if table.child != None:
             meta['childtable'] = table.child.model.df

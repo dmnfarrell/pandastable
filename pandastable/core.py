@@ -469,6 +469,26 @@ class Table(Canvas):
                         self.drawRect(row, col, color=clr, tag='colorrect', delete=1)
         return
 
+    def setRowColors(self, rows=None, clr=None):
+        """Set rows color from menu"""
+
+        if clr is None:
+            clr = self.getaColor('#dcf1fc')
+        if clr == None:
+            return
+        if rows == None:
+            rows = self.multiplerowlist
+        df = self.model.df
+        idx = df.index[rows]
+        rc = self.rowcolors
+        colnames = df.columns[self.multiplecollist]
+        for c in colnames:
+            if c not in rc.columns:
+                rc[c] = pd.Series(np.nan,index=df.index)
+            rc[c][idx] = clr
+        self.redraw()
+        return
+
     def setColorbyValue(self):
         """Set row colors in a column by values"""
 
@@ -476,25 +496,26 @@ class Table(Canvas):
         cmaps = sorted(m for m in plt.cm.datad if not m.endswith("_r"))
         cols = self.multiplecollist
         d = MultipleValDialog(title='color by value',
-                                initialvalues=[cmaps],
-                                labels=['colormap:'],
-                                types=['combobox'],
+                                initialvalues=[cmaps,1.0],
+                                labels=['colormap:','alpha:'],
+                                types=['combobox','string'],
                                 parent = self.parentframe)
         if d.result == None:
             return
         cmap = d.results[0]
+        alpha =float(d.results[1])
         df = self.model.df
         for col in cols:
             colname = df.columns[col]
             x = df[colname]
-            clrs = self.values_to_colors(x, cmap)
+            clrs = self.values_to_colors(x, cmap, alpha)
             clrs = pd.Series(clrs,index=df.index)
             rc = self.rowcolors
             rc[colname] = clrs
         self.redraw()
         return
 
-    def values_to_colors(self, x, cmap='jet'):
+    def values_to_colors(self, x, cmap='jet', alpha=1):
         """Convert columnn values to colors"""
 
         import pylab as plt
@@ -505,6 +526,7 @@ class Table(Canvas):
             x = pd.Categorical(x).codes
         x = (x-x.min())/(x.max()-x.min())
         clrs = cmap(x)
+        clrs = mpl.colors.to_rgba_array(clrs, alpha)
         clrs = [mpl.colors.rgb2hex(i) for i in clrs]
         return clrs
 
@@ -2408,6 +2430,7 @@ class Table(Canvas):
                         "Select All" : self.selectAll,
                         #"Auto Fit Columns" : self.autoResizeColumns,
                         "Table Info" : self.showInfo,
+                        "Set Color" : self.setRowColors,
                         "Show as Text" : self.showasText,
                         "Filter Rows" : self.queryBar,
                         "New": self.new,
@@ -2425,7 +2448,7 @@ class Table(Canvas):
                         "Clear Formatting" : self.clearFormatting}
 
         main = ["Copy", "Undo", "Fill Down", #"Fill Right",
-                "Clear Data"]#, "Delete Column(s)"]
+                "Clear Data", "Set Color"]
         general = ["Select All", "Filter Rows",
                    "Show as Text", "Table Info", "Preferences"]
 

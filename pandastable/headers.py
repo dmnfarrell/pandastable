@@ -635,10 +635,11 @@ class RowHeader(Canvas):
                          "Sort columns by row" : lambda: self.table.sortColumnIndex(),
                          "Select All" : self.table.selectAll,
                          "Add Row(s)" : lambda: self.table.addRows(),
-                         "Delete Row(s)" : lambda: self.table.deleteRow()}
+                         "Delete Row(s)" : lambda: self.table.deleteRow(),
+                         "Set Row Color" : lambda: self.table.setRowColors()}
         main = ["Sort by index","Reset index","Toggle index",
                 "Rename index","Sort columns by row","Copy index to column",
-                "Add Row(s)","Delete Row(s)"]
+                "Add Row(s)","Delete Row(s)", "Set Row Color"]
 
         popupmenu = Menu(self, tearoff = 0)
         def popupFocusOut(event):
