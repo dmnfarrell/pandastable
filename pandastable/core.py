@@ -46,7 +46,24 @@ from . import images, util
 from .dialogs import *
 
 class Table(Canvas):
-    """A tkinter class for providing table functionality"""
+    """A tkinter class for providing table functionality.
+
+    Args:
+        parent: parent Frame
+        model: a TableModel with some data
+        dataframe: a pandas DataFrame
+        width: width of frame
+        height: height of frame
+        rows: number of rows if creating empty table
+        cols: number of columns if creating empty table
+        showtoolbar: whether to show the toolbar, default False
+        showstatusbar: whether to show the statusbar
+
+    Example:
+        Create from DataFrame::
+            df = pd.DataFrame()
+            table = Table(frame, dataframe=df)
+    """
 
     def __init__(self, parent=None, model=None, dataframe=None,
                    width=None, height=None,
