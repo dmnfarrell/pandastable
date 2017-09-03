@@ -47,24 +47,23 @@ from .dialogs import *
 
 class Table(Canvas):
     """A tkinter class for providing table functionality.
-
-    Args:
-        parent: parent Frame
-        model: a TableModel with some data
-        dataframe: a pandas DataFrame
-        width: width of frame
-        height: height of frame
-        rows: number of rows if creating empty table
-        cols: number of columns if creating empty table
-        showtoolbar: whether to show the toolbar, default False
-        showstatusbar: whether to show the statusbar
-
+        Args:
+            parent: parent Frame
+            model: a TableModel with some data
+            dataframe: a pandas DataFrame
+            width: width of frame
+            height: height of frame
+            rows: number of rows if creating empty table
+            cols: number of columns if creating empty table
+            showtoolbar: whether to show the toolbar, default False
+            showstatusbar: whether to show the statusbar
     """
 
     def __init__(self, parent=None, model=None, dataframe=None,
                    width=None, height=None,
                    rows=20, cols=5, showtoolbar=False, showstatusbar=False,
                    **kwargs):
+
         Canvas.__init__(self, parent, bg='white',
                          width=width, height=height,
                          relief=GROOVE,

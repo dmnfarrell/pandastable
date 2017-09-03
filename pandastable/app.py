@@ -47,10 +47,16 @@ from . import plugin
 from .preferences import Prefs
 
 class DataExplore(Frame):
-    """Pandastable viewer application"""
+    """DataExplore application using pandastable widget.
+        Args:
+            parent: parent tkinter Frame, default None
+            data: data, a pandas DataFrame
+            projfile: path to a project file, opened on launch
+            msgpack: path to a dataframe stored as msgpack, default None
+    """
 
     def __init__(self, parent=None, data=None, projfile=None, msgpack=None):
-        "Initialize the application."
+        """Initialize the application. """
 
         self.parent=parent
         if not self.parent:
