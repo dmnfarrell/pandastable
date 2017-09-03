@@ -35,7 +35,12 @@ class TableModel(object):
     keywords = {'colors':'colors'}
 
     def __init__(self, dataframe=None, rows=20, columns=5):
-        """Constructor"""
+        """Constructor for table model.
+        Args:
+            dataframe: pandas dataframe
+            rows: number of rows if empty table
+            columns: number of columns if empty table
+        """
         self.initialiseFields()
         self.setup(dataframe, rows, columns)
         return

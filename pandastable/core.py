@@ -59,10 +59,6 @@ class Table(Canvas):
         showtoolbar: whether to show the toolbar, default False
         showstatusbar: whether to show the statusbar
 
-    Example:
-        Create from DataFrame::
-            df = pd.DataFrame()
-            table = Table(frame, dataframe=df)
     """
 
     def __init__(self, parent=None, model=None, dataframe=None,
