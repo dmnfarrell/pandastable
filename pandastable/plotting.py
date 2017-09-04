@@ -45,7 +45,13 @@ from . import util, images
 colormaps = sorted(m for m in plt.cm.datad if not m.endswith("_r"))
 
 class PlotViewer(Frame):
-    """Provides a frame for figure canvas and MPL settings"""
+    """Provides a frame for figure canvas and MPL settings.
+
+    Args:
+        table: parent table, required
+        parent: parent tkinter frame
+        layout: 'horizontal' or 'vertical'
+    """
 
     def __init__(self, table, parent=None, layout='horizontal'):
 

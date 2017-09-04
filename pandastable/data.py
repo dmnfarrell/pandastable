@@ -30,23 +30,25 @@ import pandas as pd
 from . import util
 
 class TableModel(object):
-    """A data model for the Table class that uses pandas"""
+    """A data model for the Table class that uses pandas
+
+    Args:
+        dataframe: pandas dataframe
+        rows: number of rows if empty table
+        columns: number of columns if empty table
+    """
 
     keywords = {'colors':'colors'}
 
     def __init__(self, dataframe=None, rows=20, columns=5):
-        """Constructor for table model.
-        Args:
-            dataframe: pandas dataframe
-            rows: number of rows if empty table
-            columns: number of columns if empty table
-        """
+        """Constructor for table model. """
         self.initialiseFields()
         self.setup(dataframe, rows, columns)
         return
 
     def setup(self, dataframe, rows=20, columns=5):
         """Create table model"""
+
         if not dataframe is None:
             self.df = dataframe
         else:

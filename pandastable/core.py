@@ -47,16 +47,17 @@ from .dialogs import *
 
 class Table(Canvas):
     """A tkinter class for providing table functionality.
-        Args:
-            parent: parent Frame
-            model: a TableModel with some data
-            dataframe: a pandas DataFrame
-            width: width of frame
-            height: height of frame
-            rows: number of rows if creating empty table
-            cols: number of columns if creating empty table
-            showtoolbar: whether to show the toolbar, default False
-            showstatusbar: whether to show the statusbar
+
+    Args:
+        parent: parent Frame
+        model: a TableModel with some data
+        dataframe: a pandas DataFrame
+        width: width of frame
+        height: height of frame
+        rows: number of rows if creating empty table
+        cols: number of columns if creating empty table
+        showtoolbar: whether to show the toolbar, default False
+        showstatusbar: whether to show the statusbar
     """
 
     def __init__(self, parent=None, model=None, dataframe=None,
@@ -321,7 +322,13 @@ class Table(Canvas):
         return start, end
 
     def redrawVisible(self, event=None, callback=None):
-        """Redraw the visible portion of the canvas"""
+        """Redraw the visible portion of the canvas. This is the core redraw
+        method. Refreshes all table elements. Called by redraw() method as shorthand.
+
+        Args:
+            event: tkinter event to trigger method, default None
+            callback: function to be called after redraw, default None
+        """
 
         model = self.model
         self.rows = len(self.model.df.index)
