@@ -1,22 +1,23 @@
 name: dataexplore 
-version: '0.7.3' 
-summary: data analysis package
+version: 'latest' 
+summary: data plotting and analysis package
 description: |
   DataExplore is an open source desktop application for data analysis and plotting
   intended for use in both research and education. It is intended primarily for
    non-programmers who need to do relatively advanced table manipulation methods.
 
 grade: stable 
-confinement: strict 
-
+confinement: devmode
+icon: ../img/logo.png
+  
 apps:
   dataexplore:
     command: bin/dataexplore
+    plugs: [home,x11]
 parts:
   dataexplore:    
     plugin: python
     python-version: python3
     source: ../
     stage-packages: 
-     - python3-dev
-     - python3-tk
+      [tcl,tk,python3-tk]
