@@ -1,5 +1,5 @@
 name: dataexplore 
-version: 'latest' 
+version: '0.8.3' 
 summary: data plotting and analysis package
 description: |
   DataExplore is an open source desktop application for data analysis and plotting
@@ -12,12 +12,15 @@ icon: ../img/logo.png
   
 apps:
   dataexplore:
-    command: bin/dataexplore
-    plugs: [home,x11]
+    command: desktop-launch $SNAP/bin/dataexplore
+    plugs: [home,x11,unity7]
 parts:
   dataexplore:    
     plugin: python
     python-version: python3
     source: ../
     stage-packages: 
-      [tcl,tk,python3-tk]
+      [python3-tk,fontconfig-config,fonts-freefont-ttf,ttf-ubuntu-font-family,
+       ttf-mscorefonts-installer]
+    after: [desktop-glib-only]
+      
