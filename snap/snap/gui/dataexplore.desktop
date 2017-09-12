@@ -1,5 +1,5 @@
 [Desktop Entry]
-Name=DataExplore Application
+Name=DataExplore
 Exec=dataexplore
 Type=Application
 Icon=${SNAP}/meta/gui/icon.png

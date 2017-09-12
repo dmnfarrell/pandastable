@@ -1,5 +1,5 @@
 name: dataexplore 
-version: '0.8.3' 
+version: 'latest' 
 summary: data plotting and analysis package
 description: |
   DataExplore is an open source desktop application for data analysis and plotting
@@ -7,13 +7,14 @@ description: |
    non-programmers who need to do relatively advanced table manipulation methods.
 
 grade: stable 
-confinement: devmode
+confinement: strict
 icon: ../img/logo.png
   
 apps:
   dataexplore:
     command: desktop-launch $SNAP/bin/dataexplore
     plugs: [home,x11,unity7]
+    
 parts:
   dataexplore:    
     plugin: python
@@ -24,3 +25,8 @@ parts:
        ttf-mscorefonts-installer]
     after: [desktop-glib-only]
       
+  files: #to deal with problem finding init.tcl
+    plugin: dump
+    source: /usr/share/tcltk/
+    organize:
+        '*': ./usr/lib/
