@@ -23,6 +23,10 @@ Requires python>=3.3 or 2.7 and numpy, matplotlib and pandas. These requirements
 or
 ```easy_install pandastable```
 
+You can also install the dataexplore snap package on any linux distribution that supports snaps. This installs everything you need as one app:
+
+```sudo snap install dataexplore```
+
 see the [wiki page](https://github.com/dmnfarrell/pandastable/wiki/Installation) for more details on installing.
 
 ## Current features
@@ -39,11 +43,6 @@ see the [wiki page](https://github.com/dmnfarrell/pandastable/wiki/Installation)
 * basic table manipulations like aggregate and pivot
 * filter table using built in dataframe functionality
 * graphical way to perform split-apply-combine operations
-
-## Future features
-* present/manipulate time series data since pandas deals well with this
-* animated plotting e.g. time series data
-* saving workflows
 
 ## FAQ
 
@@ -80,27 +79,8 @@ See the home page for this application at http://dmnfarrell.github.io/pandastabl
 <img src=https://raw.githubusercontent.com/dmnfarrell/pandastable/master/img/viewerapp.png width=600px>
 
 ## For programmers. 
-The basics for now. More details to be added here.
 
-Create a parent frame and then add the table to it:
-```
-from tkinter import *
-from pandastable import Table
-#assuming parent is the frame in which you want to place the table
-pt = Table(parent)
-pt.show()
-```
-
-Update the table:
-```
-#alter the DataFrame in some way, then update
-pt.redraw()
-```
-
-Import a csv file:
-```
-pt.importCSV('test.csv')
-```
+See See http://pandastable.readthedocs.io/en/latest/ for API docs or the wiki.
 
 ## Links
 
@@ -111,8 +91,6 @@ http://dmnfarrell.github.io/pandastable/
 https://youtu.be/Ss0QIFywt74
 
 http://decisionstats.com/2015/12/25/interview-damien-farrell-python-gui-dataexplore-python-rstats-pydata/
-
-http://jakevdp.github.io/blog/2013/03/23/matplotlib-and-the-future-of-visualization-in-python/
 
 ## Citation
 
