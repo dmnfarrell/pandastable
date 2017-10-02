@@ -188,18 +188,21 @@ class TableModel(object):
         self.df = pd.concat([a,b])
         return
 
-    def deleteRow(self, rowindex=None, update=True):
+    def deleteRow(self, row, unique=True):
         """Delete a row"""
 
-        df = self.df
-        df.drop(df.index[rowindex],inplace=True)
+        self.deleteRows([row], unique)
         return
 
-    def deleteRows(self, rowlist=None):
+    def deleteRows(self, rowlist=None, unique=True):
         """Delete multiple or all rows"""
 
         df = self.df
-        df.drop(df.index[rowlist],inplace=True)
+        if unique == True:
+            rows = list(set(range(len(df))) - set(rowlist))
+            self.df = df.iloc[rows]
+        else:
+            df.drop(df.index[rowlist],inplace=True)
         return
 
     def addColumn(self, colname=None, dtype=None, data=None):

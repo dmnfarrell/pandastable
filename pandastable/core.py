@@ -812,7 +812,7 @@ class Table(Canvas):
             if n:
                 self.storeCurrent()
                 row = self.getSelectedRow()
-                self.model.deleteRow(row)
+                self.model.deleteRows([row])
                 self.setSelectedRow(row-1)
                 self.clearSelected()
                 self.redraw()
