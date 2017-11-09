@@ -151,6 +151,9 @@ class Table(Canvas):
         self.colselectedcolor = '#e4e3e4'
         self.floatprecision = 0
         self.columncolors = {}
+        #store general per column formatting as sub dicts
+        self.columnformats = {}
+        self.columnformats['alignment'] = {}
         self.rowcolors = pd.DataFrame()
         self.bg = Style().lookup('TLabel.label', 'background')
         return
@@ -385,6 +388,12 @@ class Table(Canvas):
         for col in self.visiblecols:
             coldata = df.iloc[rows,col]
             #print (col, coldata.dtype)
+            colname = df.columns[col]
+            cfa = self.columnformats['alignment']
+            if colname in cfa:
+                align = cfa[colname]
+            else:
+                align = self.align
             if prec != 0:
                 if coldata.dtype == 'float64':
                     coldata = coldata.apply(lambda x: set_precision(x, prec), 1)
@@ -394,7 +403,6 @@ class Table(Canvas):
             for row in self.visiblerows:
                 text = coldata.iloc[row-offset]
                 self.drawText(row, col, text, align)
-            colname = df.columns[col]
 
         self.colorColumns()
         self.colorRows()
@@ -548,6 +556,28 @@ class Table(Canvas):
         clrs = mpl.colors.to_rgba_array(clrs, alpha)
         clrs = [mpl.colors.rgb2hex(i) for i in clrs]
         return clrs
+
+    def setAlignment(self, colnames=None):
+        """Set column alignments, overrides global value"""
+
+        cols = self.multiplecollist
+        df = self.model.df
+        cf = self.columnformats
+        cfa = cf['alignment']
+        vals = ['w','e','center']
+        d = MultipleValDialog(title='set alignment',
+                                initialvalues=[vals],
+                                labels=['Align:'],
+                                types=['combobox'],
+                                parent = self.parentframe)
+        if d.result == None:
+            return
+        aln = d.results[0]
+        for col in cols:
+            colname = df.columns[col]
+            cfa[colname] = aln
+        self.redraw()
+        return
 
     def getScale(self):
         try:
@@ -3369,6 +3399,8 @@ class Table(Canvas):
         self.set_defaults()
         self.columncolors = {}
         self.rowcolors = pd.DataFrame()
+        self.columnformats['alignment'] = {}
+        self.redraw()
         return
 
 class ToolBar(Frame):

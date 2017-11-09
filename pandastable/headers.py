@@ -34,6 +34,14 @@ import pandas as pd
 from . import util
 from .dialogs import *
 
+def createSubMenu(parent, label, commands):
+    menu = Menu(parent, tearoff = 0)
+    parent.add_cascade(label=label,menu=menu)
+    for action in commands:
+        menu.add_command(label=action, command=commands[action])
+    applyStyle(menu)
+    return menu
+
 class ColumnHeader(Canvas):
     """Class that takes it's size and rendering from a parent table
         and column names from the table model."""
@@ -358,10 +366,12 @@ class ColumnHeader(Canvas):
         popupmenu.add_command(label="Apply Function Col-wise", command=self.table.applyColumnWise)
         popupmenu.add_command(label="String Operation", command=self.table.applyStringMethod)
         popupmenu.add_command(label="Date/Time Conversion", command=self.table.convertDates)
-        popupmenu.add_command(label="Set Color", command=self.table.setColumnColors)
-        popupmenu.add_command(label="Color by Value", command=self.table.setColorbyValue)
+        formatcommands = {'Set Color': self.table.setColumnColors,
+                          'Color by Value': self.table.setColorbyValue,
+                          'Alignment': self.table.setAlignment
+                         }
+        createSubMenu(popupmenu, 'Format', formatcommands)
         popupmenu.bind("<FocusOut>", popupFocusOut)
-        #self.bind("<Button-3>", popupFocusOut)
         popupmenu.focus_set()
         popupmenu.post(event.x_root, event.y_root)
         applyStyle(popupmenu)
