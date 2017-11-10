@@ -3,6 +3,17 @@ CHANGES
 =======
 
 ------
+0.8.3
+------
+
+Cell color by mask added
+Set color by value added
+Can now set per column alignment
+Snap now works
+Fix to deleterows
+Added copy column to menu
+
+------
 0.8.2
 ------
 

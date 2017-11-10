@@ -359,6 +359,7 @@ class ColumnHeader(Canvas):
             popupmenu.add_command(label="Flatten Index", command=self.table.flattenIndex)
         popupmenu.add_command(label="Add Column(s)" , command=self.table.addColumn)
         popupmenu.add_command(label="Delete Column(s)", command=self.table.deleteColumn)
+        popupmenu.add_command(label="Copy Column", command=self.table.copyColumn)
         popupmenu.add_command(label="Fill With Data", command=self.table.fillColumn)
         popupmenu.add_command(label="Set Column Type", command=self.table.setColumnType)
         popupmenu.add_command(label="Create Categorical", command=self.table.createCategorical)

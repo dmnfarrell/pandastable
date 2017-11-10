@@ -1,5 +1,6 @@
 name: dataexplore 
-version: 'latest' 
+version: 'latest'
+version-script: git describe --abbrev=1 --tags
 summary: data plotting and analysis package
 description: |
   DataExplore is an open source desktop application for data analysis and plotting

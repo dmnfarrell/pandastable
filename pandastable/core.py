@@ -865,6 +865,24 @@ class Table(Canvas):
         self.tableChanged()
         return
 
+    def copyColumn(self):
+        """Copy a column"""
+
+        col = self.currentcol
+        df = self.model.df
+        name = df.columns[col]
+
+        new = simpledialog.askstring("New name",
+                                     "New name:",initialvalue=name+'1',
+                                     parent=self.parentframe)
+        if new is None:
+            return
+        df[new] = df[name]
+        self.placeColumn(new, name)
+        #self.redraw()
+        self.tableChanged()
+        return
+
     def tableChanged(self):
         """Callback to be used when dataframe changes so that other
             widgets and data can be updated"""
