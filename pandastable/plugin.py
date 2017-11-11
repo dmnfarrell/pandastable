@@ -36,6 +36,7 @@ class Plugin(object):
 
     capabilities = []
     requires = []
+    menuentry = ''
 
     def __init__(self, parent=None):
         self.parent = parent
@@ -49,7 +50,7 @@ class Plugin(object):
         self._doFrame()
         return
 
-    def _doFrame(self):
+    def _doFrame(self, width=600, height=600):
         """Create main frame and add to parent. The plugin should usually
            handle this."""
 
@@ -60,7 +61,8 @@ class Plugin(object):
         else:
             self.mainwin = Toplevel()
             self.mainwin.title('Plugin')
-            self.mainwin.geometry('600x600+200+100')
+            self.mainwin.geometry('%dx%d+200+200' %(width, height))
+
         self.mainwin.bind("<Destroy>", self.quit)
         self.ID=self.menuentry
         return

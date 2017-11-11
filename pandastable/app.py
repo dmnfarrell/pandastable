@@ -20,7 +20,7 @@
 """
 
 from __future__ import absolute_import, print_function
-import sys
+import sys, datetime
 try:
     from tkinter import *
     from tkinter.ttk import *
@@ -538,7 +538,12 @@ class DataExplore(Frame):
         return
 
     def load_dataframe(self, df, name=None, select=False):
-        """Load a DataFrame into a new sheet"""
+        """Load a DataFrame into a new sheet
+           Args:
+            df: dataframe
+            name: name of new sheet
+            select: set new sheet as selected
+        """
 
         if hasattr(self,'sheets'):
             self.addSheet(sheetname=name, df=df, select=select)
