@@ -122,11 +122,15 @@ def dialogFromOptions(parent, opts, groups=None, callback=None,
                    label=opt['label']
                 else:
                     label = i
+                if 'width' in opt:
+                    w=opt['width']
+                else:
+                    w=16
                 Label(frame,text=label).pack()
                 tkvars[i] = v = StringVar()
                 v.set(opts[i]['default'])
                 w = Combobox(frame, values=opt['items'],
-                         textvariable=v,width=16,
+                         textvariable=v,width=w,
                          validatecommand=callback,validate='key')
                 w.set(opt['default'])
                 #w.configure(background='white')

@@ -51,19 +51,22 @@ class DataReaderPlugin(Plugin):
         if parent==None:
             return
         self.parent = parent
-        self._doFrame(width=400,height=160)
+        self._doFrame(width=450,height=140)
         self.mainwin.title('Remote Data')
-        sources = ['Yahoo','Google Finance','OECD','FRED','World Bank','Eurostat','TSP']
-
-        grps = {'sources':['source','dataset'], 'time':['start','end']}
+        self.mainwin.resizable(width=False,height=False)
+        sources = ['Yahoo Finance','Google Finance','OECD',
+                   'FRED','World Bank','Eurostat','TSP','FAMA/French']
+        dformats = ['%m/%d/%Y','%d/%m/%Y']
+        grps = {'sources':['source','dataset'], 'time':['start','end','dateformat']}
         self.groups = grps = OrderedDict(grps)
 
         datacols = []
         self.opts = {
-                     'source': {'type':'combobox','default':'yahoo','items':sources},
+                     'source': {'type':'combobox','default':'OECD','items':sources,'width':20},
                      'dataset': {'type':'combobox','default':'F','items':['F']},
-                     'start': {'type':'entry','default':'','label':'start date'},
-                     'end': {'type':'entry','default':'','label':'end date'}
+                     'start': {'type':'entry','default':'01/01/16','label':'start date','width':15},
+                     'end': {'type':'entry','default':'31/12/16','label':'end date'},
+                     'dateformat': {'type':'combobox','default':'%m/%d/%Y','items':dformats}
                      }
         fr = self._createWidgets(self.mainwin)
         fr.pack(side=LEFT,fill=BOTH)
@@ -76,9 +79,7 @@ class DataReaderPlugin(Plugin):
         b = Button(bf, text="About", command=self._aboutWindow)
         b.pack(side=TOP,fill=X,pady=2)
 
-        #self.table = self.parent.getCurrentTable()
-        #df = self.table.model.df
-        #self.update(df)
+        self.update()
         return
 
     def fetch(self):
@@ -89,10 +90,17 @@ class DataReaderPlugin(Plugin):
 
         self.applyOptions()
         source = self.kwds['source']
-        start = datetime.datetime(2013, 1, 1)
-        end = datetime.datetime(2016, 1, 27)
-        if source == 'Yahoo':
-            df = web.DataReader("F", source, start, end)
+        dataset = self.kwds['dataset']
+        st = self.kwds['start']
+        e = self.kwds['end']
+        dateformat = self.kwds['dateformat']
+        start = pd.to_datetime(st, format=dateformat, errors='ignore')
+        end = pd.to_datetime(e, format=dateformat, errors='ignore')
+
+        if source == 'Yahoo Finance':
+            df = web.DataReader("F", 'yahoo', start, end)
+        elif source == 'Google Finance':
+            df = web.DataReader("F", 'google', start, end)
         elif source == 'FRED':
             df = web.DataReader("GDP", "fred", start, end)
         elif source == 'OECD':
@@ -105,8 +113,29 @@ class DataReaderPlugin(Plugin):
             import pandas_datareader.tsp as tsp
             tspreader = tsp.TSPReader(start='2015-10-1', end='2015-12-31')
             df = tspreader.read()
+        elif source == 'FAMA/French':
+            ds = web.DataReader(dataset, "famafrench")
+            df = ds[0]
+        label = source+'_'+dataset
+        self.parent.load_dataframe(df, label, True)
+        return
 
-        self.parent.load_dataframe(df, source, True)
+    def update(self, evt=None):
+        """Update data widget(s)"""
+
+        datasets = []
+        self.applyOptions()
+        source = self.kwds['source']
+        x = ['F']
+        if source == 'Yahoo Finance':
+            x = ['F']
+        elif source == 'FAMA/French':
+            from pandas_datareader.famafrench import get_available_datasets
+            x = get_available_datasets()
+
+        w = self.widgets['dataset']
+        w['values'] = x
+        w.set(x[0])
         return
 
     def applyOptions(self):
@@ -117,7 +146,6 @@ class DataReaderPlugin(Plugin):
             if self.opts[i]['type'] == 'listbox':
                 items = self.widgets[i].curselection()
                 kwds[i] = [self.widgets[i].get(j) for j in items]
-                print (items, kwds[i])
             else:
                 kwds[i] = self.tkvars[i].get()
         self.kwds = kwds
@@ -132,13 +160,6 @@ class DataReaderPlugin(Plugin):
         self.widgets['source'].bind("<<ComboboxSelected>>", self.update)
         return dialog
 
-    def update(self, df):
-        """Update data widget(s)"""
-
-        #self.widgets['hue']['values'] = cols
-
-        return
-
     def quit(self, evt=None):
         """Override this to handle pane closing"""
 
@@ -149,6 +170,7 @@ class DataReaderPlugin(Plugin):
         """About this plugin"""
 
         txt = "This plugin allows fetching of remote data from\n"+\
-              "multiple sources of public data.\n"+\
-               "version: %s" %self.version
+              "multiple sources of public data using the pandas\n"+\
+              "datareader. See https://pandas-datareader.readthedocs.io\n"+\
+              "version: %s" %self.version
         return txt
