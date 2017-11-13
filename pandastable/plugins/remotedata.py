@@ -57,13 +57,14 @@ class DataReaderPlugin(Plugin):
         sources = ['Yahoo Finance','Google Finance','OECD',
                    'FRED','World Bank','Eurostat','TSP','FAMA/French']
         dformats = ['%m/%d/%Y','%d/%m/%Y']
-        grps = {'sources':['source','dataset'], 'time':['start','end','dateformat']}
+        grps = {'sources':['source','dataset','url'], 'time':['start','end','dateformat']}
         self.groups = grps = OrderedDict(grps)
 
         datacols = []
         self.opts = {
                      'source': {'type':'combobox','default':'OECD','items':sources,'width':20},
                      'dataset': {'type':'combobox','default':'F','items':['F']},
+                     'url': {'type':'entry','default':'','label':'raw url'},
                      'start': {'type':'entry','default':'01/01/16','label':'start date','width':15},
                      'end': {'type':'entry','default':'31/12/16','label':'end date'},
                      'dateformat': {'type':'combobox','default':'%m/%d/%Y','items':dformats}
@@ -91,11 +92,20 @@ class DataReaderPlugin(Plugin):
         self.applyOptions()
         source = self.kwds['source']
         dataset = self.kwds['dataset']
+        url = self.kwds['url']
         st = self.kwds['start']
         e = self.kwds['end']
         dateformat = self.kwds['dateformat']
         start = pd.to_datetime(st, format=dateformat, errors='ignore')
         end = pd.to_datetime(e, format=dateformat, errors='ignore')
+
+        if url != '':
+            df = self.fetch_url(url)
+            if df is None:
+                return
+            label = os.path.basename(url)
+            self.parent.load_dataframe(df, label, True)
+            return
 
         if source == 'Yahoo Finance':
             df = web.DataReader("F", 'yahoo', start, end)
@@ -119,6 +129,28 @@ class DataReaderPlugin(Plugin):
         label = source+'_'+dataset
         self.parent.load_dataframe(df, label, True)
         return
+
+    def fetch_url(self, url):
+        """fetch url"""
+
+        ext = os.path.splitext(url)[1]
+        if ext == '.zip':
+            import zipfile, io, urllib
+            r = urllib.request.urlopen(url)
+            z = zipfile.ZipFile(io.BytesIO(r.read()))
+            info = z.infolist()
+            print (info)
+            #for i in info:
+            #    name = info.filename
+
+        try:
+            df = pd.read_csv(url)
+        except Exception as e:
+            messagebox.showwarning("Failed to read URL",
+                                   "%s" %e,
+                                   parent=self.parent)
+            df=None
+        return df
 
     def update(self, evt=None):
         """Update data widget(s)"""
