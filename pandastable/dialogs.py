@@ -941,6 +941,7 @@ class QueryDialog(Frame):
                   'add manual filter', side=LEFT)
         addButton(f, 'close', self.close, images.cross(), 'close', side=LEFT)
         self.applyqueryvar = BooleanVar()
+        self.applyqueryvar.set(True)
         c = Checkbutton(f, text='show filtered only', variable=self.applyqueryvar,
                       command=self.query)
         c.pack(side=LEFT,padx=2)
@@ -1000,7 +1001,7 @@ class QueryDialog(Frame):
 
         df = self.table.model.df
         fb = FilterBar(self, self.fbar, list(df.columns))
-        fb.pack(side=TOP, fill=BOTH, padx=2, pady=2)
+        fb.pack(side=TOP, fill=BOTH, expand=1, padx=2, pady=2)
         self.filters.append(fb)
         return
 
@@ -1066,7 +1067,7 @@ class FilterBar(Frame):
                 textvariable = self.filtercol,
                 values = cols,
                 #initialitem = initial,
-                width = 10)
+                width = 15)
         filtercolmenu.grid(row=0,column=1,sticky='news',padx=2,pady=2)
         self.operator = StringVar()
         #self.operator.set('equals')
@@ -1076,7 +1077,7 @@ class FilterBar(Frame):
                 width = 10)
         operatormenu.grid(row=0,column=2,sticky='news',padx=2,pady=2)
         self.filtercolvalue=StringVar()
-        valsbox = Entry(self,textvariable=self.filtercolvalue,width=30)
+        valsbox = Entry(self,textvariable=self.filtercolvalue,width=26)
         valsbox.grid(row=0,column=3,sticky='news',padx=2,pady=2)
         #valsbox.bind("<Return>", self.parent.callback)
         self.booleanop = StringVar()
