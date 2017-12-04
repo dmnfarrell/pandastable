@@ -139,7 +139,7 @@ class Table(Canvas):
         self.x_start=0
         self.y_start=1
         self.linewidth=1.0
-        self.rowheaderwidth=50
+        #self.rowheaderwidth=50
         self.showkeynamesinheader=False
         self.thefont = ('Arial',12)
         self.cellbackgr = '#F4F4F3'
@@ -226,7 +226,7 @@ class Table(Canvas):
            Table is then redrawn."""
 
         #Add the table and header to the frame
-        self.rowheader = RowHeader(self.parentframe, self, width=self.rowheaderwidth)
+        self.rowheader = RowHeader(self.parentframe, self)
         self.tablecolheader = ColumnHeader(self.parentframe, self)
         self.rowindexheader = IndexHeader(self.parentframe, self)
         self.Yscrollbar = AutoScrollbar(self.parentframe,orient=VERTICAL,command=self.set_yviews)
@@ -246,7 +246,8 @@ class Table(Canvas):
         self.grid(row=1,column=1,rowspan=1,sticky='news',pady=0,ipady=0)
 
         self.adjustColumnWidths()
-        self.parentframe.bind("<Configure>", self.redrawVisible)
+        #bind redraw to resize, may trigger redraws when widgets added
+        self.parentframe.bind("<Configure>", self.resized) #self.redrawVisible)
         self.tablecolheader.xview("moveto", 0)
         self.xview("moveto", 0)
         if self.showtoolbar == True:
@@ -255,10 +256,21 @@ class Table(Canvas):
         if self.showstatusbar == True:
             self.statusbar = statusBar(self.parentframe, self)
             self.statusbar.grid(row=3,column=0,columnspan=2,sticky='ew')
-        self.redraw(callback=callback)
+        #self.redraw(callback=callback)
+        self.currwidth = self.parentframe.winfo_width()
+        self.currheight = self.parentframe.winfo_height()
         if hasattr(self, 'pf'):
             self.pf.updateData()
         return
+
+    def resized(self, event):
+        """Check if size changed when event triggered to avoid unnecessary redraws"""
+
+        if self.currwidth !=self.parentframe.winfo_width() or \
+           self.currheight != self.parentframe.winfo_height():
+            self.redrawVisible()
+        self.currwidth = self.parentframe.winfo_width()
+        self.currheight = self.parentframe.winfo_height()
 
     def remove(self):
         """Close table frame"""
@@ -333,6 +345,7 @@ class Table(Canvas):
             callback: function to be called after redraw, default None
         """
 
+        print (self.rowheader.showindex, self.rowheader.width)
         model = self.model
         self.rows = len(self.model.df.index)
         self.cols = len(self.model.df.columns)
@@ -3066,14 +3079,6 @@ class Table(Canvas):
         linewidthentry.grid(row=row,column=1)
         row=row+1
 
-        rowhdrwidth=Label(frame1,text='Row Header Width:')
-        rowhdrwidth.grid(row=row,column=0,padx=3,pady=2)
-        rowhdrentry = Scale(frame1,from_=0,to=300,resolution=10,orient='horizontal',
-                                    variable=self.rowheaderwidthvar)
-        rowhdrentry.configure(fg='black', bg=self.bg)
-        rowhdrentry.grid(row=row,column=1)
-        row=row+1
-
         #fonts
         fts = self.getFonts()
         Label(frame2,text='font').grid(row=row,column=0)
@@ -3165,8 +3170,7 @@ class Table(Canvas):
                         'celltextsize':10, 'celltextfont':'Arial',
                         'cellbackgr': self.cellbackgr, 'grid_color': self.grid_color,
                         'linewidth' : self.linewidth,
-                        'rowselectedcolor': self.rowselectedcolor,
-                        'rowheaderwidth': self.rowheaderwidth}
+                        'rowselectedcolor': self.rowselectedcolor}
 
         for prop in list(defaultprefs.keys()):
             try:
@@ -3204,9 +3208,9 @@ class Table(Canvas):
         self.rowselectedcolor = self.prefs.get('rowselectedcolor')
         self.fontsize = self.celltextsizevar.get()
         self.thefont = (self.prefs.get('celltextfont'), self.prefs.get('celltextsize'))
-        self.rowheaderwidthvar = IntVar()
-        self.rowheaderwidthvar.set(self.prefs.get('rowheaderwidth'))
-        self.rowheaderwidth = self.rowheaderwidthvar.get()
+        #self.rowheaderwidthvar = IntVar()
+        #self.rowheaderwidthvar.set(self.prefs.get('rowheaderwidth'))
+        #self.rowheaderwidth = self.rowheaderwidthvar.get()
         return
 
     def savePrefs(self):
@@ -3233,8 +3237,8 @@ class Table(Canvas):
             self.prefs.set('cellbackgr', self.cellbackgr)
             self.prefs.set('grid_color', self.grid_color)
             self.prefs.set('rowselectedcolor', self.rowselectedcolor)
-            self.prefs.set('rowheaderwidth', self.rowheaderwidth)
-            self.rowheaderwidth = self.rowheaderwidthvar.get()
+            #self.prefs.set('rowheaderwidth', self.rowheaderwidth)
+            #self.rowheaderwidth = self.rowheaderwidthvar.get()
             self.thefont = (self.prefs.get('celltextfont'), self.prefs.get('celltextsize'))
             self.fontsize = self.prefs.get('celltextsize')
 

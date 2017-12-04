@@ -606,9 +606,11 @@ class DataExplore(Frame):
         f1 = Frame(main)
         main.add(f1)
         table = Table(f1, dataframe=df, showtoolbar=1, showstatusbar=1)
-        table.show()
+
         f2 = Frame(main)
         main.add(f2, weight=2)
+        #draw table
+        table.show()
         #show the plot frame
         pf = table.showPlotViewer(f2, layout='horizontal')
         #load meta data

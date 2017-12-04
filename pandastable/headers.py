@@ -87,6 +87,7 @@ class ColumnHeader(Canvas):
         df = self.model.df
         cols = self.model.getColumnCount()
         self.tablewidth=self.table.tablewidth
+        self.thefont = self.table.thefont
         self.configure(scrollregion=(0,0,
                                      self.table.tablewidth+self.table.x_start,
                                      self.height))
@@ -450,7 +451,7 @@ class RowHeader(Canvas):
             self.inset = 1
             self.color = '#C8C8C8'
             self.showindex = False
-            self.maxwidth = 200
+            self.maxwidth = 300
             self.config(height = self.table.height)
             self.startrow = self.endrow = None
             self.model = self.table.model
@@ -512,6 +513,7 @@ class RowHeader(Canvas):
             w = maxw
         elif w<45:
             w = 45
+
         if self.width != w:
             self.config(width=w)
             self.width = w
@@ -705,7 +707,7 @@ class IndexHeader(Canvas):
     """Class that displays the row index headings."""
 
     def __init__(self, parent=None, table=None, width=40, height=20):
-        Canvas.__init__(self, parent, bg='gray75', width=width, height=height)
+        Canvas.__init__(self, parent, bg='gray50', width=width, height=height)
         if table != None:
             self.table = table
             self.width = width
