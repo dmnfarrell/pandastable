@@ -342,7 +342,8 @@ class DataExplore(Frame):
         table selections"""
 
         tablesettings = meta['table']
-        rowheadersettings = meta['rowheader']
+        #rowheadersettings = meta['rowheader']
+        #print (meta['rowheader'])
 
         if 'childtable' in meta:
             childtable = meta['childtable']
@@ -361,7 +362,7 @@ class DataExplore(Frame):
 
         #load table settings
         util.setAttributes(table, tablesettings)
-        util.setAttributes(table.rowheader, rowheadersettings)
+        #util.setAttributes(table.rowheader, rowheadersettings)
         if childtable is not None:
             table.createChildTable(df=childtable)
             util.setAttributes(table.child, childsettings)
@@ -384,7 +385,7 @@ class DataExplore(Frame):
 
         #save table selections
         meta['table'] = util.getAttributes(table)
-        meta['rowheader'] = util.getAttributes(table.rowheader)
+        #meta['rowheader'] = util.getAttributes(table.rowheader)
         #save row colors since its a dataframe and isn't picked up by getattributes currently
         meta['table']['rowcolors'] = table.rowcolors
         #save child table if present
@@ -604,18 +605,18 @@ class DataExplore(Frame):
         self.sheetframes[sheetname] = main
         self.nb.add(main, text=sheetname)
         f1 = Frame(main)
-        main.add(f1)
         table = Table(f1, dataframe=df, showtoolbar=1, showstatusbar=1)
-
         f2 = Frame(main)
-        main.add(f2, weight=2)
-        #draw table
-        table.show()
         #show the plot frame
         pf = table.showPlotViewer(f2, layout='horizontal')
         #load meta data
         if meta != None:
             self.loadMeta(table, meta)
+        #add table last so we have save options loaded already
+        main.add(f1,weight=3)
+        table.show()
+        main.add(f2,weight=4)
+
         if table.plotted == 'main':
             table.plotSelected()
         elif table.plotted == 'child' and table.child != None:

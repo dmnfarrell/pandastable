@@ -150,6 +150,7 @@ class Table(Canvas):
         self.boxoutlinecolor = '#084B8A'
         self.colselectedcolor = '#e4e3e4'
         self.floatprecision = 0
+        self.showindex = False
         self.columncolors = {}
         #store general per column formatting as sub dicts
         self.columnformats = {}
@@ -345,7 +346,6 @@ class Table(Canvas):
             callback: function to be called after redraw, default None
         """
 
-        print (self.rowheader.showindex, self.rowheader.width)
         model = self.model
         self.rows = len(self.model.df.index)
         self.cols = len(self.model.df.columns)
@@ -755,7 +755,7 @@ class Table(Canvas):
     def showIndex(self):
         """Show the row index"""
 
-        self.rowheader.showindex = True
+        self.showindex = True
         return
 
     def update_rowcolors(self):
@@ -3505,14 +3505,16 @@ class statusBar(Frame):
         Frame.__init__(self, parent)
         self.parentframe = parent
         self.parentapp = parentapp
+        df = self.parentapp.model.df
         sfont = ("Helvetica bold", 10)
         clr = '#A10000'
         self.rowsvar = StringVar()
+        self.rowsvar.set(len(df))
         l=Label(self,textvariable=self.rowsvar,font=sfont,foreground=clr)
         l.pack(fill=X, side=LEFT)
         Label(self,text='rows x',font=sfont,foreground=clr).pack(side=LEFT)
         self.colsvar = StringVar()
-        self.colsvar.set(len(self.parentapp.model.df))
+        self.colsvar.set(len(df.columns))
         l=Label(self,textvariable=self.colsvar,font=sfont,foreground=clr)
         l.pack(fill=X, side=LEFT)
         Label(self,text='columns',font=sfont,foreground=clr).pack(side=LEFT)

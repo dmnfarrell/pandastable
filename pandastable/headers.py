@@ -482,7 +482,7 @@ class RowHeader(Canvas):
         index = self.model.df.index
         names = index.names
 
-        if self.showindex == True:
+        if self.table.showindex == True:
             if util.check_multiindex(index) == 1:
                 ind = index.values[v]
                 cols = [pd.Series(i).astype('object').astype(str) for i in list(zip(*ind))]
@@ -629,10 +629,10 @@ class RowHeader(Canvas):
     def toggleIndex(self):
         """Toggle index display"""
 
-        if self.showindex == True:
-            self.showindex = False
+        if self.table.showindex == True:
+            self.table.showindex = False
         else:
-            self.showindex = True
+            self.table.showindex = True
         self.redraw()
         return
 
@@ -722,7 +722,7 @@ class IndexHeader(Canvas):
         """Redraw row index header"""
 
         rowheader = self.table.rowheader
-        if rowheader.showindex == False:
+        if self.table.showindex == False:
             return
         self.delete('text','rect')
         xstart = 1
@@ -737,7 +737,7 @@ class IndexHeader(Canvas):
             l = [len(n) for n in names]
             widths = [i * scale + 6 for i in l]
 
-        i=0; x=1; y=0
+        i=0; x=1; y=2
         for name in names:
             if name != None:
                 self.create_text(x+pad,y+h/2,text=name,
