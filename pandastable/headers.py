@@ -350,29 +350,34 @@ class ColumnHeader(Canvas):
         def popupFocusOut(event):
             popupmenu.unpost()
 
+        columncommands = {"Rename": self.renameColumn,
+                          "Add": self.table.addColumn,
+                          "Delete": self.table.deleteColumn,
+                          "Copy": self.table.copyColumn,
+                          "Move to Start": self.table.moveColumns,
+                          "Move to End": lambda: self.table.moveColumns(pos='end'),
+                          "Set Data Type": self.table.setColumnType
+                         }
+        formatcommands = {'Set Color': self.table.setColumnColors,
+                          'Color by Value': self.table.setColorbyValue,
+                          'Alignment': self.table.setAlignment
+                         }
         popupmenu.add_command(label="Sort by " + colnames + ' \u2193',
                     command=lambda : self.table.sortTable(ascending=[1 for i in multicols]))
         popupmenu.add_command(label="Sort by " + colnames + ' \u2191',
             command=lambda : self.table.sortTable(ascending=[0 for i in multicols]))
         popupmenu.add_command(label="Set %s as Index" %colnames, command=self.table.setindex)
-        popupmenu.add_command(label="Rename Column", command=self.renameColumn)
         if ismulti == True:
             popupmenu.add_command(label="Flatten Index", command=self.table.flattenIndex)
-        popupmenu.add_command(label="Add Column(s)" , command=self.table.addColumn)
-        popupmenu.add_command(label="Delete Column(s)", command=self.table.deleteColumn)
-        popupmenu.add_command(label="Copy Column", command=self.table.copyColumn)
+        createSubMenu(popupmenu, 'Column', columncommands)
+        createSubMenu(popupmenu, 'Format', formatcommands)
         popupmenu.add_command(label="Fill With Data", command=self.table.fillColumn)
-        popupmenu.add_command(label="Set Column Type", command=self.table.setColumnType)
         popupmenu.add_command(label="Create Categorical", command=self.table.createCategorical)
         popupmenu.add_command(label="Apply Function", command=self.table.applyFunction)
         popupmenu.add_command(label="Apply Function Col-wise", command=self.table.applyColumnWise)
         popupmenu.add_command(label="String Operation", command=self.table.applyStringMethod)
         popupmenu.add_command(label="Date/Time Conversion", command=self.table.convertDates)
-        formatcommands = {'Set Color': self.table.setColumnColors,
-                          'Color by Value': self.table.setColorbyValue,
-                          'Alignment': self.table.setAlignment
-                         }
-        createSubMenu(popupmenu, 'Format', formatcommands)
+
         popupmenu.bind("<FocusOut>", popupFocusOut)
         popupmenu.focus_set()
         popupmenu.post(event.x_root, event.y_root)
@@ -451,7 +456,7 @@ class RowHeader(Canvas):
             self.inset = 1
             self.color = '#C8C8C8'
             self.showindex = False
-            self.maxwidth = 300
+            self.maxwidth = 350
             self.config(height = self.table.height)
             self.startrow = self.endrow = None
             self.model = self.table.model
@@ -485,7 +490,8 @@ class RowHeader(Canvas):
         if self.table.showindex == True:
             if util.check_multiindex(index) == 1:
                 ind = index.values[v]
-                cols = [pd.Series(i).astype('object').astype(str) for i in list(zip(*ind))]
+                cols = [pd.Series(i).astype('object').astype(str)\
+                        .replace('nan','') for i in list(zip(*ind))]
                 nl = [len(n) if n is not None else 0 for n in names]
                 l = [c.str.len().max() for c in cols]
                 #pick higher of index names and row data
@@ -495,7 +501,7 @@ class RowHeader(Canvas):
             else:
                 ind = index[v]
                 dtype = ind.dtype
-                r = ind.astype('object').astype('str')
+                r = ind.fillna('').astype('object').astype('str')
                 l = r.str.len().max()
                 widths = [l * scale + 6]
                 cols = [r]
@@ -509,6 +515,7 @@ class RowHeader(Canvas):
             widths = [w]
             xpos = [xstart]
 
+        self.widths = widths
         if w>maxw:
             w = maxw
         elif w<45:
@@ -523,6 +530,7 @@ class RowHeader(Canvas):
             r=v[0]
             x = xpos[i]
             i+=1
+            #col=pd.Series(col.tolist()).replace('nan','')
             for row in col:
                 text = row
                 x1,y1,x2,y2 = self.table.getCellCoords(r,0)
@@ -634,6 +642,7 @@ class RowHeader(Canvas):
         else:
             self.table.showindex = True
         self.redraw()
+        self.table.rowindexheader.redraw()
         return
 
     def popupMenu(self, event, rows=None, cols=None, outside=None):
@@ -722,9 +731,9 @@ class IndexHeader(Canvas):
         """Redraw row index header"""
 
         rowheader = self.table.rowheader
+        self.delete('text','rect')
         if self.table.showindex == False:
             return
-        self.delete('text','rect')
         xstart = 1
         pad = 5
         scale = self.table.getScale()
@@ -734,17 +743,21 @@ class IndexHeader(Canvas):
         if names[0] == None:
             widths = [self.width]
         else:
-            l = [len(n) for n in names]
-            widths = [i * scale + 6 for i in l]
+            widths = rowheader.widths
 
         i=0; x=1; y=2
         for name in names:
             if name != None:
+                w=widths[i]
+                if self.table.showindex == True:
+                    self.create_rectangle(x,y-1,x+w,y+h, fill='gray50',tag='rect',
+                                            outline='white', width=1)
                 self.create_text(x+pad,y+h/2,text=name,
                                     fill='white', font=self.table.thefont,
                                     tag='text', anchor=align)
                 x=x+widths[i]
                 i+=1
+
         return
 
     def handle_left_click(self, event):

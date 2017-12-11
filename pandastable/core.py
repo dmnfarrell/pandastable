@@ -896,6 +896,23 @@ class Table(Canvas):
         self.tableChanged()
         return
 
+    def moveColumns(self, names=None, pos='start'):
+        """Move column(s) to start/end, used for large tables"""
+
+        df = self.model.df
+        if names is None:
+            cols = self.multiplecollist
+            names = df.columns[cols]
+        m = df[names]
+        df.drop(labels=names, axis=1,inplace=True)
+        if pos == 'start':
+            self.model.df = m.join(df)
+        else:
+            self.model.df = df.join(m)
+        self.redraw()
+        self.tableChanged()
+        return
+
     def tableChanged(self):
         """Callback to be used when dataframe changes so that other
             widgets and data can be updated"""
@@ -986,6 +1003,7 @@ class Table(Canvas):
             param2 = float(d.results[5])
 
         df = self.model.df
+        self.storeCurrent()
         if low != '' and high != '':
             try:
                 low=float(low); high=float(high)
@@ -1008,6 +1026,7 @@ class Table(Canvas):
         col = df.columns[self.currentcol]
         df[col] = data
         self.redraw()
+        self.tableChanged()
         return
 
     def autoAddColumns(self, numcols=None):
@@ -1430,10 +1449,10 @@ class Table(Canvas):
         else:
             title = 'String->datetime convert'
         timeformats = ['infer','%d%m%Y','%Y%m%d']
-        props = ['day','month','minute','second','year',
+        props = ['day','month','hour','minute','second','year',
                  'dayofyear','weekofyear','quarter']
         d = MultipleValDialog(title=title,
-                                initialvalues=['',timeformats,props,True],
+                                initialvalues=['',timeformats,props,False],
                                 labels=['Column name:','Convert to date:',
                                         'Extract from datetime:','In place:'],
                                 types=['string','combobox','combobox','checkbutton'],
@@ -1462,7 +1481,6 @@ class Table(Canvas):
                 messagebox.showwarning("Convert error", e,
                                         parent=self.parentframe)
         if inplace == False or len(cols)>1:
-            #print (cols[-1])
             self.placeColumn(colname, cols[-1])
 
         self.redraw()
