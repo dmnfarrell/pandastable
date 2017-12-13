@@ -490,7 +490,7 @@ class Table(Canvas):
 
     def colorRows(self):
         """Color individual cells in column(s). Requires that the rowcolors
-         dataframe has been set. This needs to be updatedif the index is reset"""
+         dataframe has been set. This needs to be updated if the index is reset"""
 
         #if len(self.rowcolors==0):
         #    return
@@ -509,7 +509,7 @@ class Table(Canvas):
                         self.drawRect(row, col, color=clr, tag='colorrect', delete=1)
         return
 
-    def setRowColors(self, rows=None, clr=None):
+    def setRowColors(self, rows=None, clr=None, cols=None):
         """Set rows color from menu"""
 
         if clr is None:
@@ -521,7 +521,9 @@ class Table(Canvas):
         df = self.model.df
         idx = df.index[rows]
         rc = self.rowcolors
-        colnames = df.columns[self.multiplecollist]
+        if cols is None:
+            cols = self.multiplecollist
+        colnames = df.columns[cols]
         for c in colnames:
             if c not in rc.columns:
                 rc[c] = pd.Series(np.nan,index=df.index)
@@ -918,6 +920,7 @@ class Table(Canvas):
             widgets and data can be updated"""
 
         self.updateFunctions()
+        self.updateWidgets()
         if hasattr(self, 'pf'):
             self.pf.updateData()
         return
@@ -1539,6 +1542,13 @@ class Table(Canvas):
             return
         self.qframe = QueryDialog(self)
         self.qframe.grid(row=self.queryrow,column=0,columnspan=3,sticky='news')
+        return
+
+    def updateWidgets(self):
+        """Update some dialogs when table changed"""
+
+        if hasattr(self, 'qframe') and self.qframe != None:
+            self.qframe.update()
         return
 
     def _eval(self, df, ex):

@@ -971,3 +971,11 @@ def font():
             +'LiKCBzYgiCc1GgoJETshhw46BYMELyOHNCSFKyqFCSUqHwGCABAWFQKf3t/g'
             +'QIEAOw==')
      return img
+
+def color_swatch():
+     img = tk.PhotoImage(format='gif',data=
+             'R0lGODlhEAAQAPMAAP5va1DMbf+qc/DVZ1h6sP93sWCw69Drstmb3QAAAAAA'
+            +'AAAAAAAAAAAAAAAAAAAAACH5BAEAAAkAIf8LSW1hZ2VNYWdpY2sKZ2FtbWE9'
+            +'MC40NQAsAAAAABAAEAAABEAwyUmrvRboJHoaYKUBnAcO4tYJX4i90yEnQZ0Y'
+            +'eCUftI0bulktcMvBYIRkAsFMFJ6VJGHZfBaiSibCCT16v+AIADs=')
+     return img

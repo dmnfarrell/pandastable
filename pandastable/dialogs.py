@@ -945,6 +945,8 @@ class QueryDialog(Frame):
         c = Checkbutton(f, text='show filtered only', variable=self.applyqueryvar,
                       command=self.query)
         c.pack(side=LEFT,padx=2)
+        addButton(f, 'color rows', self.colorResult, images.color_swatch(), 'color found rows', side=LEFT)
+
         self.queryresultvar = StringVar()
         l = Label(f,textvariable=self.queryresultvar, font=sfont)
         l.pack(side=RIGHT)
@@ -977,7 +979,7 @@ class QueryDialog(Frame):
             self.queryresultvar.set('')
             return
         #apply the final mask
-        filtdf = df[mask]
+        self.filtdf = filtdf = df[mask]
         self.queryresultvar.set('%s rows found' %len(filtdf))
 
         if self.applyqueryvar.get() == 1:
@@ -1019,7 +1021,7 @@ class QueryDialog(Frame):
                 pass
             #print (col, val, op, b)
             if op == 'contains':
-                m = df[col].str.contains(val)
+                m = df[col].str.contains(str(val))
             elif op == 'equals':
                 m = df[col]==val
             elif op == 'not equals':
@@ -1050,6 +1052,27 @@ class QueryDialog(Frame):
                 mask = mask ^ m
         return mask
 
+    def colorResult(self):
+        table=self.table
+        if not hasattr(self.table,'dataframe'):
+            return
+        clr = self.table.getaColor('#dcf1fc')
+        if clr is None: return
+        df = table.model.df = table.dataframe
+        #df=self.table.dataframe
+        idx = self.filtdf.index
+        #print (self.table.rowcolors)
+        rows = table.multiplerowlist = table.getRowsFromIndex(idx)
+        table.setRowColors(rows, clr, cols=range(len(df.columns)))
+        return
+
+    def update(self):
+        df = self.table.model.df
+        cols = list(df.columns)
+        for f in self.filters:
+            f.update(cols)
+        return
+
 class FilterBar(Frame):
     """Class providing filter widgets"""
 
@@ -1063,12 +1086,12 @@ class FilterBar(Frame):
         self.parent = parent
         self.filtercol = StringVar()
         initial = cols[0]
-        filtercolmenu = Combobox(self,
+        self.filtercolmenu = Combobox(self,
                 textvariable = self.filtercol,
                 values = cols,
                 #initialitem = initial,
-                width = 15)
-        filtercolmenu.grid(row=0,column=1,sticky='news',padx=2,pady=2)
+                width = 14)
+        self.filtercolmenu.grid(row=0,column=1,sticky='news',padx=2,pady=2)
         self.operator = StringVar()
         #self.operator.set('equals')
         operatormenu = Combobox(self,
@@ -1111,3 +1134,7 @@ class FilterBar(Frame):
         op = self.operator.get()
         booleanop = self.booleanop.get()
         return col, val, op, booleanop
+
+    def update(self, cols):
+        self.filtercolmenu['values'] = cols
+        return
