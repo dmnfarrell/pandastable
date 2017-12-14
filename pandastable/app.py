@@ -490,6 +490,7 @@ class DataExplore(Frame):
     def doSaveProject(self, filename):
         """Save sheets as dict in msgpack"""
 
+        self._checkTables()
         data={}
         for i in self.sheets:
             table = self.sheets[i]
@@ -500,6 +501,16 @@ class DataExplore(Frame):
         pd.to_msgpack(filename, data, encoding='utf-8')
         #except:
         #    print('SAVE FAILED!!!')
+        return
+
+    def _checkTables(self):
+        """Check tables before saving that so we are not saving
+        filtered copies"""
+
+        for s in self.sheets:
+            t=self.sheets[s]
+            if t.filtered==True:
+                t.showAll()
         return
 
     def closeProject(self):

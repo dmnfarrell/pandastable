@@ -945,7 +945,7 @@ class QueryDialog(Frame):
         c = Checkbutton(f, text='show filtered only', variable=self.applyqueryvar,
                       command=self.query)
         c.pack(side=LEFT,padx=2)
-        addButton(f, 'color rows', self.colorResult, images.color_swatch(), 'color found rows', side=LEFT)
+        addButton(f, 'color rows', self.colorResult, images.color_swatch(), 'color filtered rows', side=LEFT)
 
         self.queryresultvar = StringVar()
         l = Label(f,textvariable=self.queryresultvar, font=sfont)
@@ -962,7 +962,6 @@ class QueryDialog(Frame):
 
         table = self.table
         s = self.queryvar.get()
-
         if table.filtered == True:
             table.model.df = table.dataframe
         df = table.model.df
@@ -1053,17 +1052,17 @@ class QueryDialog(Frame):
         return mask
 
     def colorResult(self):
+        """Color filtered rows in main table"""
+
         table=self.table
-        if not hasattr(self.table,'dataframe'):
+        if not hasattr(self.table,'dataframe') or not hasattr(self, filtdf):
             return
         clr = self.table.getaColor('#dcf1fc')
         if clr is None: return
         df = table.model.df = table.dataframe
-        #df=self.table.dataframe
         idx = self.filtdf.index
-        #print (self.table.rowcolors)
         rows = table.multiplerowlist = table.getRowsFromIndex(idx)
-        table.setRowColors(rows, clr, cols=range(len(df.columns)))
+        table.setRowColors(rows, clr, cols='all')
         return
 
     def update(self):

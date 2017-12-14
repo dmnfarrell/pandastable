@@ -658,7 +658,7 @@ class RowHeader(Canvas):
                          "Select All" : self.table.selectAll,
                          "Add Row(s)" : lambda: self.table.addRows(),
                          "Delete Row(s)" : lambda: self.table.deleteRow(),
-                         "Set Row Color" : lambda: self.table.setRowColors()}
+                         "Set Row Color" : lambda: self.table.setRowColors(cols='all')}
         main = ["Sort by index","Reset index","Toggle index",
                 "Rename index","Sort columns by row","Copy index to column",
                 "Add Row(s)","Delete Row(s)", "Set Row Color"]

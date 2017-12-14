@@ -510,7 +510,12 @@ class Table(Canvas):
         return
 
     def setRowColors(self, rows=None, clr=None, cols=None):
-        """Set rows color from menu"""
+        """Set rows color from menu.
+        Args:
+            rows: row numbers to be colored
+            clr: color in hex
+            cols: column numbers, can also use 'all'
+        """
 
         if clr is None:
             clr = self.getaColor('#dcf1fc')
@@ -523,6 +528,8 @@ class Table(Canvas):
         rc = self.rowcolors
         if cols is None:
             cols = self.multiplecollist
+        elif cols is 'all':
+            cols = range(len(df.columns))
         colnames = df.columns[cols]
         for c in colnames:
             if c not in rc.columns:
