@@ -34,6 +34,8 @@ def main():
                         help="Open a dataexplore project file", metavar="FILE")
     parser.add_option("-i", "--csv", dest="csv",
                         help="Open a csv file by trying to import it", metavar="FILE")
+    parser.add_option("-x", "--excel", dest="excel",
+                        help="Import an excel file", metavar="FILE")
     parser.add_option("-t", "--test", dest="test",  action="store_true",
                         default=False, help="Run a basic test app")
 
@@ -49,6 +51,9 @@ def main():
             app = DataExplore()
             t = app.getCurrentTable()
             t.importCSV(opts.csv, dialog=True)
+        elif opts.excel != None:
+            app = DataExplore()
+            app.importExcel(opts.excel)
         else:
             app = DataExplore()
     app.mainloop()

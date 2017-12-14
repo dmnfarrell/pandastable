@@ -37,7 +37,7 @@ from collections import OrderedDict
 class DataReaderPlugin(Plugin):
     """Plugin for using pandas datareader for remote data access"""
 
-    capabilities = ['gui']
+    #capabilities = ['gui']
     requires = ['']
     menuentry = 'Remote Data'
     gui_methods = {}

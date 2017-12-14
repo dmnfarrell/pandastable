@@ -543,10 +543,18 @@ class DataExplore(Frame):
         table.importCSV(dialog=True)
         return
 
-    def importExcel(self):
-        self.addSheet(select=True)
-        table = self.getCurrentTable()
-        table.loadExcel()
+    def importExcel(self, filename=None):
+        if filename is None:
+            filename = filedialog.askopenfilename(parent=self.master,
+                                                          defaultextension='.xls',
+                                                          initialdir=os.getcwd(),
+                                                          filetypes=[("xls","*.xls"),
+                                                                     ("xlsx","*.xlsx"),
+                                                            ("All files","*.*")])
+
+        data = pd.read_excel(filename,sheetname=None)
+        for n in data:
+            self.addSheet(n, df=data[n], select=True)
         return
 
     def load_dataframe(self, df, name=None, select=False):
@@ -1008,7 +1016,9 @@ def main():
     parser.add_option("-p", "--project", dest="projfile",
                         help="Open a dataexplore project file", metavar="FILE")
     parser.add_option("-i", "--csv", dest="csv",
-                        help="Open a csv file by trying to import it", metavar="FILE")
+                        help="Import a csv file", metavar="FILE")
+    parser.add_option("-x", "--excel", dest="excel",
+                        help="Import an excel file", metavar="FILE")
     parser.add_option("-t", "--test", dest="test",  action="store_true",
                         default=False, help="Run a basic test app")
 
@@ -1023,7 +1033,10 @@ def main():
         elif opts.csv != None:
             app = DataExplore()
             t = app.getCurrentTable()
-            t.importCSV(opts.csv, dialog=True)#, header='infer', sep=None)
+            t.importCSV(opts.csv, dialog=True)
+        elif opts.excel != None:
+            app = DataExplore()
+            app.importExcel(opts.excel)
         else:
             app = DataExplore()
     app.mainloop()

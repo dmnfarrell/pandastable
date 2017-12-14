@@ -1055,7 +1055,7 @@ class QueryDialog(Frame):
         """Color filtered rows in main table"""
 
         table=self.table
-        if not hasattr(self.table,'dataframe') or not hasattr(self, filtdf):
+        if not hasattr(self.table,'dataframe') or not hasattr(self, 'filtdf'):
             return
         clr = self.table.getaColor('#dcf1fc')
         if clr is None: return

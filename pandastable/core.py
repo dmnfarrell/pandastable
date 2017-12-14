@@ -2168,14 +2168,15 @@ class Table(Canvas):
             return
         if len(df) == 0:
             return
+
         df = pd.read_clipboard(sep=',', index_col=0, error_bad_lines=False)
         model = TableModel(df)
         self.updateModel(model)
+        self.redraw()
         return
 
     def paste(self, event=None):
         """Paste selections - not implemented"""
-
         #df = pd.read_clipboard()
         return
 
@@ -3427,7 +3428,6 @@ class Table(Canvas):
                                                             ("All files","*.*")])
         if not filename:
             return
-
         df = pd.read_excel(filename,sheetname=0)
         model = TableModel(dataframe=df)
         self.updateModel(model)

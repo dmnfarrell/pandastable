@@ -327,7 +327,8 @@ class PlotViewer(Frame):
                             'sharex','sharey','stacked', 'rot', 'kind', 'logx', 'edgecolor'],
                     'histogram': ['alpha', 'linewidth','grid','stacked','subplots','colormap',
                              'sharex','sharey','rot','bins', 'logx', 'logy', 'legend', 'edgecolor'],
-                    'heatmap': ['colormap','rot','subplots'],
+                    'heatmap': ['colormap','colorbar','rot', 'linewidth','linestyle',
+                                'subplots','rot','cscale','bw','alpha'],
                     'area': ['alpha','colormap','grid','linewidth','legend','stacked',
                              'kind','rot','logx','sharex','sharey','subplots'],
                     'density': ['alpha', 'colormap', 'grid', 'legend', 'linestyle',
@@ -760,13 +761,29 @@ class PlotViewer(Frame):
         """Plot heatmap"""
 
         X = df._get_numeric_data()
-        hm = ax.pcolor(X, cmap=kwds['colormap'])
-        self.fig.colorbar(hm, ax=ax)
+        clr='black'
+        lw = kwds['linewidth']
+        if lw==0:
+            clr=None
+            lw=None
+        if kwds['cscale']=='log':
+            norm=mpl.colors.LogNorm()
+        else:
+            norm=None
+        hm = ax.pcolor(X, cmap=kwds['colormap'], edgecolor=clr,
+                       linewidth=lw,alpha=kwds['alpha'],norm=norm)
+        if kwds['colorbar'] == True:
+            self.fig.colorbar(hm, ax=ax)
         ax.set_xticks(np.arange(0.5, len(X.columns)))
         ax.set_yticks(np.arange(0.5, len(X.index)))
         ax.set_xticklabels(X.columns, minor=False)
         ax.set_yticklabels(X.index, minor=False)
         ax.set_ylim(0, len(X.index))
+        if kwds['rot'] != 0:
+            for tick in ax.get_xticklabels():
+                tick.set_rotation(kwds['rot'])
+        #from mpl_toolkits.axes_grid1 import make_axes_locatable
+        #divider = make_axes_locatable(ax)
         return
 
     def venn(self, data, ax, colormap=None, alpha=0.8):
@@ -1185,7 +1202,7 @@ class MPLBaseOptions(TkOptions):
                 'kind':{'type':'combobox','default':'line','items':self.kinds,'label':'plot type'},
                 'stacked':{'type':'checkbutton','default':0,'label':'stacked'},
                 'linewidth':{'type':'scale','default':1.5,'range':(0,8),'interval':0.1,'label':'line width'},
-                'alpha':{'type':'scale','default':0.8,'range':(0,1),'interval':0.1,'label':'alpha'},
+                'alpha':{'type':'scale','default':0.9,'range':(0,1),'interval':0.1,'label':'alpha'},
                 'subplots':{'type':'checkbutton','default':0,'label':'multiple subplots'},
                 'colormap':{'type':'combobox','default':'Spectral','items':colormaps},
                 'bins':{'type':'entry','default':20,'width':10},

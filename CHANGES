@@ -13,6 +13,8 @@ Can now set per column alignment
 Snap now works
 Fix to deleterows
 Added move/copy column to menu
+Can open excel files from cmd line
+More options for heatmap
 
 ------
 0.8.2
