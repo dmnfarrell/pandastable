@@ -2550,10 +2550,10 @@ class Table(Canvas):
                         "Show as Text" : self.showasText,
                         "Filter Rows" : self.queryBar,
                         "New": self.new,
-                        "Load": self.load,
+                        "Open": self.load,
                         "Save": self.save,
-                        "Save as": self.saveAs,
-                        "Import csv": lambda: self.importCSV(dialog=True),
+                        "Save As": self.saveAs,
+                        "Import Text/CSV": lambda: self.importCSV(dialog=True),
                         "Export": self.doExport,
                         "Plot Selected" : self.plotSelected,
                         "Hide plot" : self.hidePlot,
@@ -2561,14 +2561,17 @@ class Table(Canvas):
                         "Preferences" : self.showPrefs,
                         "Table to Text" : self.showasText,
                         "Clean Data" : self.cleanData,
-                        "Clear Formatting" : self.clearFormatting}
+                        "Clear Formatting" : self.clearFormatting,
+                        "Undo Last Change": self.undo,
+                        "Copy Table": self.copyTable}
 
         main = ["Copy", "Undo", "Fill Down", #"Fill Right",
                 "Clear Data", "Set Color"]
         general = ["Select All", "Filter Rows",
                    "Show as Text", "Table Info", "Preferences"]
 
-        filecommands = ['New','Load','Import csv','Save','Save as','Export']
+        filecommands = ['Open','Import Text/CSV','Save','Save As','Export']
+        editcommands = ['Undo Last Change','Copy Table']
         plotcommands = ['Plot Selected','Hide plot','Show plot']
         tablecommands = ['Table to Text','Clean Data','Clear Formatting']
 
@@ -2619,6 +2622,7 @@ class Table(Canvas):
 
         popupmenu.add_separator()
         createSubMenu(popupmenu, 'File', filecommands)
+        createSubMenu(popupmenu, 'Edit', editcommands)
         createSubMenu(popupmenu, 'Plot', plotcommands)
         createSubMenu(popupmenu, 'Table', tablecommands)
         popupmenu.bind("<FocusOut>", popupFocusOut)
@@ -3342,6 +3346,7 @@ class Table(Canvas):
             cols = mpDlg.results[1]
             model = TableModel(rows=rows,columns=cols)
             self.updateModel(model)
+            self.redraw()
         return
 
     def load(self, filename=None):
