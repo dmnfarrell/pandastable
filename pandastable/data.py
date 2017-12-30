@@ -59,18 +59,34 @@ class TableModel(object):
         return
 
     @classmethod
-    def getSampleData(self, rows=400, cols=5):
-        """Generate sample data"""
+    def getSampleData(self, rows=400, cols=5, n=2):
+        """Generate sample data
+        Args:
+            rows: no. of rows
+            cols: columns
+            n: length of column names
+        """
 
-        colnames = list(string.ascii_lowercase[:cols])
+        import random
+        s = string.ascii_lowercase
+        def genstr(n=2):
+            return ''.join(random.choice(s) for i in range(n))
+        if rows>2e6:
+            rows=int(2e6)
+        if cols>1e5:
+            cols=int(1e5)
+        n=2
+        if cols>100: n=3
+        colnames = [genstr(n) for i in range(cols)]
         coldata = [np.random.normal(x,1,rows) for x in np.random.normal(5,3,cols)]
         n = np.array(coldata).T
         df = pd.DataFrame(n, columns=colnames)
-        df['b'] = df.a*np.random.normal(.8, 0.1, len(df))
+        col1 = colnames[0]
+        col2 = colnames[1]
+        df[col2] = df[col1]*np.random.normal(.8, .2, len(df))
         df = np.round(df, 3)
-        #df = df.astype('object')
-        cats = ['high','medium','low','unknown']
-        df['label'] = [cats[i] for i in np.random.randint(0,4,rows)]
+        cats = ['low','medium','high','very high']
+        df['label'] = pd.cut(df[col1], bins=4, labels=cats)
         df['date'] = pd.date_range('1/1/2014', periods=rows, freq='H')
         return df
 

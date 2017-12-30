@@ -596,7 +596,7 @@ class DataExplore(Frame):
         filename = os.path.join(self.modulepath, 'datasets', name)
         df = pd.read_csv(filename, index_col=0)
         name = os.path.splitext(os.path.basename(filename))[0]
-        self.load_dataframe(df, name)
+        self.load_dataframe(df, name, select=True)
         return
 
     def addSheet(self, sheetname=None, df=None, meta=None, select=False):
@@ -756,13 +756,22 @@ class DataExplore(Frame):
     def sampleData(self):
         """Load sample table"""
 
-        df = TableModel.getSampleData()
+        d = MultipleValDialog(title='Sample Data',
+                                initialvalues=(100,5),
+                                labels=('Rows','Columns'),
+                                types=('int','int'),
+                                parent = self.master)
+        if d.result == None:
+            return
+        rows=d.results[0]
+        cols=d.results[1]
+        df = TableModel.getSampleData(rows=rows,cols=cols)
         name='sample'
         i=1
         while name in self.sheets:
             name='sample'+str(i)
             i+=1
-        self.addSheet(sheetname=name, df=df)
+        self.addSheet(sheetname=name, df=df, select=True)
         return
 
     def getStackedData(self):
