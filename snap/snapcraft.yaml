@@ -4,12 +4,12 @@ version-script: git describe --abbrev=1 --tags
 summary: data plotting and analysis package
 description: |
   DataExplore is an open source desktop application for data analysis and plotting
-  intended for use in both research and education. It is intended primarily for
-   non-programmers who need to do relatively advanced table manipulation methods.
+  intended for use in both research and education. The program allows quick
+  visualization of data, table manipulation tools and supports large data tables.
 
 grade: stable 
 confinement: strict
-icon: ../img/logo.png
+icon: snap/gui/icon.png
   
 apps:
   dataexplore:
@@ -23,11 +23,11 @@ parts:
     source: ../
     stage-packages: 
       [python3-tk,fontconfig-config,fonts-freefont-ttf,ttf-ubuntu-font-family,
-       ttf-mscorefonts-installer]
+      fonts-liberation,ttf-dejavu-core,ttf-mscorefonts-installer]
     after: [desktop-glib-only]
-      
+     
   files: #to deal with problem finding init.tcl
     plugin: dump
     source: /usr/share/tcltk/
     organize:
-        '*': ./usr/lib/
+         '*': ./usr/lib/ 

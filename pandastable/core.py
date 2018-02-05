@@ -2042,6 +2042,8 @@ class Table(Canvas):
         row = self.get_row_clicked(event)
         col = self.get_col_clicked(event)
         x,y = self.getCanvasPos(self.currentrow, 0)
+        vmin = self.visiblerows[0]
+        vmax = self.visiblerows[-1]-2
         if x == None:
             return
 
@@ -2051,30 +2053,36 @@ class Table(Canvas):
             else:
                 #self.yview('moveto', y)
                 #self.rowheader.yview('moveto', y)
-                self.currentrow  = self.currentrow -1
+                self.currentrow  = self.currentrow - 1
         elif event.keysym == 'Down':
             if self.currentrow >= self.rows-1:
                 return
             else:
-                #self.yview('moveto', y)
-                #self.rowheader.yview('moveto', y)
-                self.currentrow  = self.currentrow +1
+                self.currentrow  = self.currentrow + 1            
         elif event.keysym == 'Right' or event.keysym == 'Tab':
             if self.currentcol >= self.cols-1:
                 if self.currentrow < self.rows-1:
                     self.currentcol = 0
-                    self.currentrow  = self.currentrow +1
+                    self.currentrow  = self.currentrow + 1
                 else:
                     return
             else:
-                self.currentcol  = self.currentcol +1
+                self.currentcol  = self.currentcol + 1
         elif event.keysym == 'Left':
             self.currentcol  = self.currentcol -1
+        
+        if self.currentrow <= vmin:
+            #we need to shift y to page up enough
+            vh=len(self.visiblerows)/2
+            x,y = self.getCanvasPos(self.currentrow-vh, 0)
+           
+        if self.currentrow >= vmax or self.currentrow <= vmin:
+            self.yview('moveto', y)
+            self.rowheader.yview('moveto', y)
+            self.redraw()
+ 
         self.drawSelectedRect(self.currentrow, self.currentcol)
         coltype = self.model.getColumnType(self.currentcol)
-        #if coltype == 'text' or coltype == 'number':
-        #    self.delete('entry')
-        #    self.drawCellEntry(self.currentrow, self.currentcol)
         return
 
     def handle_double_click(self, event):
