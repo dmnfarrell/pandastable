@@ -2041,9 +2041,11 @@ class Table(Canvas):
 
         row = self.get_row_clicked(event)
         col = self.get_col_clicked(event)
-        x,y = self.getCanvasPos(self.currentrow, 0)
-        vmin = self.visiblerows[0]
-        vmax = self.visiblerows[-1]-2
+        x,y = self.getCanvasPos(self.currentrow, self.currentcol-1)
+        rmin = self.visiblerows[0]
+        rmax = self.visiblerows[-1]-2
+        cmax = self.visiblecols[-1]-1
+        cmin = self.visiblecols[0]
         if x == None:
             return
 
@@ -2058,7 +2060,7 @@ class Table(Canvas):
             if self.currentrow >= self.rows-1:
                 return
             else:
-                self.currentrow  = self.currentrow + 1            
+                self.currentrow  = self.currentrow + 1
         elif event.keysym == 'Right' or event.keysym == 'Tab':
             if self.currentcol >= self.cols-1:
                 if self.currentrow < self.rows-1:
@@ -2069,18 +2071,25 @@ class Table(Canvas):
             else:
                 self.currentcol  = self.currentcol + 1
         elif event.keysym == 'Left':
-            self.currentcol  = self.currentcol -1
-        
-        if self.currentrow <= vmin:
+            if self.currentcol>0:
+                self.currentcol = self.currentcol - 1
+
+        if self.currentcol > cmax or self.currentcol <= cmin:
+            print (self.currentcol, self.visiblecols)
+            self.xview('moveto', x)
+            self.tablecolheader.xview('moveto', x)
+            self.redraw()
+
+        if self.currentrow <= rmin:
             #we need to shift y to page up enough
             vh=len(self.visiblerows)/2
             x,y = self.getCanvasPos(self.currentrow-vh, 0)
-           
-        if self.currentrow >= vmax or self.currentrow <= vmin:
+
+        if self.currentrow >= rmax or self.currentrow <= rmin:
             self.yview('moveto', y)
             self.rowheader.yview('moveto', y)
             self.redraw()
- 
+
         self.drawSelectedRect(self.currentrow, self.currentcol)
         coltype = self.model.getColumnType(self.currentcol)
         return
