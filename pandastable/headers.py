@@ -501,6 +501,9 @@ class RowHeader(Canvas):
             else:
                 ind = index[v]
                 dtype = ind.dtype
+                #print (type(ind))
+                if type(ind) is pd.CategoricalIndex:
+                    ind = ind.astype('str')
                 r = ind.fillna('').astype('object').astype('str')
                 l = r.str.len().max()
                 widths = [l * scale + 6]

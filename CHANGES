@@ -7,6 +7,8 @@ CHANGES
 ------
 
 Row/col options for sample data
+Fixed scrolling up/down and right/left for arrow keys
+Re-did aggregate dialog to be more general
 
 ------
 0.8.3

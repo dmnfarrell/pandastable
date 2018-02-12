@@ -309,7 +309,7 @@ class ToolTip(object):
             return
         x, y, cx, cy = self.widget.bbox("insert")
         x = x + self.widget.winfo_rootx() + 25
-        y = y + cy + self.widget.winfo_rooty() +25
+        y = y + cy + self.widget.winfo_rooty() - 10
         self.tipwindow = tw = Toplevel(self.widget)
         tw.wm_overrideredirect(1)
         tw.wm_geometry("+%d+%d" % (x, y))
@@ -651,62 +651,80 @@ class AggregateDialog(Frame):
         self.main.resizable(width=False, height=False)
         self.df = df
         self.result = None
-        cols = list(self.df.columns)
 
         m = Frame(self.main)
         m.pack(side=TOP)
-        w,self.grpvar = addListBox(m, values=cols,width=14)
-        ToolTip.createToolTip(w, 'columns to group on')
-        Label(m, text='group by:').pack()
-        w.pack()
-        self.vars = OrderedDict()
-        for i in range(1,3):
-            f = LabelFrame(m, text='aggregate-%s' %i)
-            f.pack(side=LEFT,fill=BOTH,padx=2)
-            self.vars[i] = self.createWidgets(f)
-
+        self.createWidgets(m)
+        f = Frame(self.main)
+        f.pack(side=TOP)
+        self.mapcolfuncs = BooleanVar()
+        w = Checkbutton(f,text='map columns to functions',
+                         variable=self.mapcolfuncs)
+        w.pack(padx=2,pady=2)
+        ToolTip.createToolTip(w, 'do 1-1 mapping of cols to functions')
+        self.keepcols = BooleanVar()
+        self.keepcols.set(False)
+        w = Checkbutton(f,text='set grouping column as index',
+                         variable=self.keepcols)
+        w.pack(padx=2,pady=2)
+        #ToolTip.createToolTip(w, 'makes the column grouped on the new index')
         bf = Frame(self.main)
         bf.pack(side=TOP,fill=BOTH)
         b = Button(bf, text="Apply", command=self.apply)
-        b.pack(side=LEFT,fill=X,expand=1,pady=1)
-        b = Button(bf, text="Cancel", command=self.quit)
-        b.pack(side=LEFT,fill=X,expand=1,pady=1)
+        b.pack(side=LEFT,fill=X,expand=1,pady=2)
+        b = Button(bf, text="Close", command=self.quit)
+        b.pack(side=LEFT,fill=X,expand=1,pady=2)
         b = Button(bf, text="Help", command=self.help)
-        b.pack(side=LEFT,fill=X,expand=1,pady=1)
-        self.main.wait_window()
+        b.pack(side=LEFT,fill=X,expand=1,pady=2)
+        #self.main.wait_window()
         return
 
-    def createWidgets(self, f):
+    def createWidgets(self, m):
         """Create a set of grp-agg-func options together"""
 
+        cols = list(self.df.columns)
         funcs = ['mean','sum','size','count','std','first','last',
                  'min','max','var']
-        cols = list(self.df.columns)
-        colvar = StringVar()
-        w = Combobox(f, values=cols,
-                 textvariable=colvar,width=14)
-        w.configure(foreground='black',background='white')
-        Label(f, text='column:').pack()
+
+        f = LabelFrame(m, text='group by')
+        f.pack(side=LEFT,fill=BOTH,padx=2)
+        w,self.grpvar = addListBox(f, values=cols,width=14, label='columns')
         w.pack()
-        w,funcvar = addListBox(f, values=funcs,width=14)
-        Label(f, text='functions:').pack()
-        w.pack()
-        return colvar, funcvar
+        self.vars = OrderedDict()
+        f = LabelFrame(m, text='aggregate on')
+        f.pack(side=LEFT,fill=BOTH,padx=2)
+        w,self.aggvar = addListBox(f, values=cols,width=14,label='columns')
+        w.pack(side=LEFT,padx=2)
+        w,self.funcvar = addListBox(f, values=funcs,width=14,label='functions')
+        w.pack(side=LEFT,padx=2)
+        return
 
     def apply(self):
         """Apply operation"""
 
-        grp = self.grpvar.getSelectedItem()
-        aggdict = {}
-        for i in self.vars:
-            agg = self.vars[i][0].get()
-            funcs = self.vars[i][1].getSelectedItem()
-            if agg != '' and agg not in grp:
-                aggdict[agg] = funcs
+        funcs = self.funcvar.getSelectedItem()
+        grpcols = self.grpvar.getSelectedItem()
+        agg = self.aggvar.getSelectedItem()
+        mapfuncs = self.mapcolfuncs.get()
+        keepcols = self.keepcols.get()
+        #print (grpcols, agg, funcs)
+
+        if mapfuncs == True:
+            aggdict = (dict(zip(agg,funcs)))
+        else:
+            aggdict = {}
+            if len(funcs)==1: funcs=funcs[0]
+            for a in agg:
+                aggdict[a] = funcs
         #print (aggdict)
-        self.result = self.df.groupby(grp).agg(aggdict)
-        self.quit()
+        self.result = self.df.groupby(grpcols,as_index=keepcols).agg(aggdict)
+        self.parent.createChildTable(self.result, 'aggregated', index=True)
+        #self.quit()
         return
+
+    def copyResult(self, ):
+        if self.result is not None:
+            self.parent.createChildTable(self.result, 'aggregated', index=True)
 
     def help(self):
         link='http://pandas.pydata.org/pandas-docs/stable/groupby.html'
@@ -717,15 +735,16 @@ class AggregateDialog(Frame):
         self.main.destroy()
         return
 
-def addListBox(parent, values=[], width=10):
+def addListBox(parent, values=[], width=10, label=''):
     """Add an EasyListBox"""
 
     frame=Frame(parent)
+    Label(frame, text=label).grid(row=0)
     yScroll = Scrollbar(frame, orient = VERTICAL)
-    yScroll.grid(row = 0, column = 1, sticky = N+S)
+    yScroll.grid(row = 1, column = 1, sticky = N+S)
     listItemSelected = lambda index: index
     lbx = EasyListbox(frame, width, 6, yScroll.set, listItemSelected)
-    lbx.grid(row = 0, column = 0, sticky = N+S+E+W)
+    lbx.grid(row = 1, column = 0, sticky = N+S+E+W)
     frame.columnconfigure(0, weight = 1)
     frame.rowconfigure(0, weight = 1)
     yScroll["command"] = lbx.yview

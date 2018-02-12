@@ -2272,17 +2272,13 @@ class Table(Canvas):
         df = self.model.df
         from .dialogs import AggregateDialog
         dlg = AggregateDialog(self, df=self.model.df)
-        g = dlg.result
-        if g is None:
-            return
-        replace = False
-        #replace or make new table
-        if replace == True:
+
+        '''if replace == True:
             self.model.df = g
             self.showIndex()
             self.redraw()
         else:
-            self.createChildTable(g, 'aggregated', index=True)
+            self.createChildTable(g, 'aggregated', index=True)'''
         return
 
     def melt(self):
