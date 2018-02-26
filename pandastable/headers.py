@@ -79,6 +79,7 @@ class ColumnHeader(Canvas):
 
     def setDefaults(self):
         self.colselectedcolor = '#0099CC'
+        self.sort_ascending = 1
         return
 
     def redraw(self):
@@ -330,7 +331,11 @@ class ColumnHeader(Canvas):
         """Double click sorts by this column. """
 
         colclicked = self.table.get_col_clicked(event)
-        self.table.sortTable()
+        if self.sort_ascending == 1:
+            self.sort_ascending = 0
+        else:
+            self.sort_ascending = 1
+        self.table.sortTable(ascending=self.sort_ascending)
         return
 
     def popupMenu(self, event):
