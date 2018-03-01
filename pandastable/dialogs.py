@@ -466,12 +466,13 @@ class ImportDialog(Frame):
         try:
             f = pd.read_csv(self.filename, chunksize=400, error_bad_lines=False,
                         warn_bad_lines=False, **kwds)
-        except:
+        except Exception as e:
             print ('read csv error')
+            print (e)
             return
         try:
             df = f.get_chunk()
-        except pd.parser.CParserError:
+        except pandas.errors.ParserError:
             print ('parser error')
             df = pd.DataFrame()
 
@@ -488,6 +489,8 @@ class ImportDialog(Frame):
         pb = Progressbar(pw, orient='horizontal', mode='indeterminate')
         pb.pack(expand=True, fill=BOTH, side=TOP)
         pb.start(500)'''
+
+        self.update()
         self.df = pd.read_csv(self.filename, **self.kwds)
         self.quit()
         return

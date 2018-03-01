@@ -1078,11 +1078,11 @@ class Table(Canvas):
 
         df = self.model.df
         cols = df.columns
-        fillopts = ['','fill scalar','ffill','bfill','interpolate']
+        fillopts = ['fill scalar','','ffill','bfill','interpolate']
         d = MultipleValDialog(title='Clean Data',
                                 initialvalues=(fillopts,'-','10',0,0,['any','all'],0,0,0),
                                 labels=('Fill missing method:',
-                                        'Fill symbol:',
+                                        'Fill empty data with:',
                                         'Limit gaps:',
                                         'Drop columns with null data:',
                                         'Drop rows with null data:',
