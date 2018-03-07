@@ -662,7 +662,7 @@ class Table(Canvas):
         return
 
     def sortTable(self, columnIndex=None, ascending=1, index=False):
-        """Set up sort order dict based on currently selected field"""
+        """Sort rows based on currently selected columns"""
 
         df = self.model.df
         if columnIndex == None:
@@ -674,6 +674,9 @@ class Table(Canvas):
             df.sort_index(inplace=True)
         else:
             colnames = list(df.columns[columnIndex])
+            for col in colnames:
+                if df[col].dtype is 'category':
+                    print (df[col].cats)
             try:
                 df.sort_values(by=colnames, inplace=True, ascending=ascending)
             except Exception as e:
@@ -1071,6 +1074,15 @@ class Table(Canvas):
             self.redraw()
         except:
             print('failed')
+        return
+
+    def findDuplicates(self):
+        """Find duplicate rows"""
+
+        df = self.model.df
+        new = df[df.duplicated()]
+        if len(new)>0:
+            self.createChildTable(new)
         return
 
     def cleanData(self):

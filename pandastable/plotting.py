@@ -32,7 +32,7 @@ import numpy as np
 import pandas as pd
 from pandas.tools import plotting
 import matplotlib as mpl
-mpl.use("TkAgg")
+#mpl.use("TkAgg")
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.mlab import griddata

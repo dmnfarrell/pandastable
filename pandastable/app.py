@@ -185,17 +185,18 @@ class DataExplore(Frame):
                          '02Convert Column Names':{'cmd':lambda: self._call('convertColumnNames')},
                          '03Convert Numeric':{'cmd': lambda: self._call('convertNumeric')},
                          '04Clean Data': {'cmd': lambda: self._call('cleanData')},
-                         '05Correlation Matrix':{'cmd': lambda: self._call('corrMatrix')},
-                         '06Concatenate Tables':{'cmd':self.concat},
-                         '07Table to Text':{'cmd': lambda: self._call('showasText')},
-                         '08Table Info':{'cmd': lambda: self._call('showInfo')},
-                         '09sep':'',
-                         '10Transform Values':{'cmd': lambda: self._call('transform')},
-                         '11Group-Aggregate':{'cmd': lambda: self._call('aggregate')},
-                         '12Merge/Concat Tables': {'cmd': lambda: self._call('doCombine')},
-                         '13Pivot Table':{'cmd': lambda: self._call('pivot')},
-                         '14Melt Table':{'cmd': lambda: self._call('melt')},
-                         '15Time Series Resampling':{'cmd': lambda: self._call('resample')}
+                         '05Find Duplicates': {'cmd': lambda: self._call('findDuplicates')},
+                         '06Correlation Matrix':{'cmd': lambda: self._call('corrMatrix')},
+                         '07Concatenate Tables':{'cmd':self.concat},
+                         '08Table to Text':{'cmd': lambda: self._call('showasText')},
+                         '09Table Info':{'cmd': lambda: self._call('showInfo')},
+                         '10sep':'',
+                         '11Transform Values':{'cmd': lambda: self._call('transform')},
+                         '12Group-Aggregate':{'cmd': lambda: self._call('aggregate')},
+                         '13Merge/Concat Tables': {'cmd': lambda: self._call('doCombine')},
+                         '14Pivot Table':{'cmd': lambda: self._call('pivot')},
+                         '15Melt Table':{'cmd': lambda: self._call('melt')},
+                         '16Time Series Resampling':{'cmd': lambda: self._call('resample')}
                         }
         self.table_menu=self.createPulldown(self.menu,self.table_menu)
         self.menu.add_cascade(label='Table',menu=self.table_menu['var'])

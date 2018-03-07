@@ -87,6 +87,7 @@ class TableModel(object):
         df = np.round(df, 3)
         cats = ['low','medium','high','very high']
         df['label'] = pd.cut(df[col1], bins=4, labels=cats)
+        df['label'] = df.label.cat.as_ordered()
         df['date'] = pd.date_range('1/1/2014', periods=rows, freq='H')
         return df
 
