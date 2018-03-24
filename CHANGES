@@ -9,6 +9,8 @@ CHANGES
 Row/col options for sample data
 Fixed scrolling up/down and right/left for arrow keys
 Re-did aggregate dialog to be more general
+Resample/transform functions for columns
+Added find duplicates dialog
 
 ------
 0.8.3

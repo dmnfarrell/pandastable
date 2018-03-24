@@ -14,7 +14,7 @@ icon: snap/gui/icon.png
 apps:
   dataexplore:
     command: desktop-launch $SNAP/bin/dataexplore
-    plugs: [home,x11,unity7]
+    plugs: [desktop,desktop-legacy,unity7,home]
     
 parts:
   dataexplore:    

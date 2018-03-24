@@ -873,6 +873,16 @@ class Table(Canvas):
                 self.redraw()
         return
 
+    def duplicateRows(self):
+        """Make copy of rows"""
+
+        rows = self.multiplerowlist
+        df = self.model.df
+        d = df.iloc[rows]
+        self.model.df = pd.concat([df, d])
+        self.redraw()
+        return
+
     def deleteColumn(self):
         """Delete currently selected column(s)"""
 
@@ -1080,7 +1090,24 @@ class Table(Canvas):
         """Find duplicate rows"""
 
         df = self.model.df
-        new = df[df.duplicated()]
+        keep = ['first','last']
+        d = MultipleValDialog(title='Find duplicates',
+                                initialvalues=[False,False,keep],
+                                labels=['Remove duplicates:','Use selected columns:','Keep:'],
+                                types=['checkbutton','checkbutton','combobox'],
+                                parent = self.parentframe)
+        if d.result == None:
+            return
+        remove = d.results[0]
+        if d.results[1] is True:
+            cols = self.multiplecollist
+        else:
+            cols = df.columns
+        keep = d.results[2]
+        new = df[df.duplicated(subset=cols,keep=keep)]
+        if remove == True:
+            self.model.df = df.drop_duplicates(subset=cols,keep=keep)
+            self.redraw()
         if len(new)>0:
             self.createChildTable(new)
         return
@@ -1195,8 +1222,21 @@ class Table(Canvas):
             self.redraw()
         return
 
-    def applyColumnWise(self, evt=None):
-        """Apply col wise function"""
+    def _getFunction(self, funcname, obj=None):
+        if obj != None:
+            func = getattr(obj, funcname)
+            return func
+        if hasattr(pd, funcname):
+            func = getattr(pd, funcname)
+        elif hasattr(np, funcname):
+            func = getattr(np, funcname)
+        else:
+            return
+        return func
+
+    def applyColumnFunction(self, evt=None):
+        """Apply column wise functions, applies a calculation per row and
+        ceates a new column."""
 
         df = self.model.df
         cols = list(df.columns[self.multiplecollist])
@@ -1243,59 +1283,59 @@ class Table(Canvas):
             self.redraw()
         return
 
-    def applyFunction(self, evt=None):
-        """Apply row-wise functions on a column/Series"""
+    def applyTransformFunction(self, evt=None):
+        """Apply resampling and transform functions on a single column."""
 
         df = self.model.df
         cols = list(df.columns[self.multiplecollist])
+        col = cols[0]
 
-        funcs = ['value_counts','rolling_mean','rolling_count',
-                 'resample','shift']
-
+        funcs = ['rolling window','expanding','shift']
+        winfuncs = ['mean','sum','median','min','max','std']
+        wintypes = ['boxcar','triang','blackman','hamming','bartlett',
+                    'parzen','bohman','blackmanharris','nuttall','barthann']
         d = MultipleValDialog(title='Apply Function',
-                                initialvalues=(funcs,'',False,False,'_x'),
-                                labels=('Function:','or Function name:',
-                                        'Add as new column(s):',
-                                        'Replace table:',
-                                        'New column suffix:'),
-                                types=('combobox','string','checkbutton',
-                                       'checkbutton','string'),
-                                tooltips=(None,'Manually enter a pandas function name',
-                                          'Add the result to the table',
-                                          'Replace current table or open in subtable',
-                                          'suffix for new columns'),
+                                initialvalues=(funcs,winfuncs,wintypes,2,'_1'),
+                                labels=('Operation:','Window function:','Window type:',
+                                'Window size:', 'New column suffix:'),
+                                types=('combobox','combobox','combobox','integer','string'),
+                                tooltips=(None,'Summary function for windowing','Window type',
+                                        'Window size', 'suffix for new column'),
                                 parent = self.parentframe)
         if d.result == None:
             return
 
-        funcname = d.results[1]
-        addcols = d.results[2]
-        replace = d.results[3]
+        op = d.results[0]
+        winfunc = d.results[1]
+        wintype = d.results[2]
+        window = int(d.results[3])
         suffix = d.results[4]
-        if funcname == '':
-            funcname = d.results[0]
 
-        new = self._callFunction(df[cols], funcname)
+        func = self._getFunction(winfunc)
+
+        if op == 'rolling window':
+            w = df[col].rolling(window=window, win_type=wintype, center=True)
+            func = self._getFunction(winfunc, obj=w)
+            new = func()
+        elif op == 'expanding':
+            new = df[col].expanding(2, center=True).apply(func)
+        elif op == 'shift':
+            new = df[col].shift(periods=1)
+
         if new is None:
             return
-        #if isinstance(new, pd.Series):
-        #    new = pd.DataFrame(new)
-        if addcols == True:
-            new = df.merge(new, left_index=1,right_index=1,suffixes=['',suffix])
-        if replace == True:
-            self.model.df = new
-            self.showIndex()
-            self.redraw()
-        else:
-            self.createChildTable(new, index=True)
+        name = col+suffix
+        df[name] = new
+        self.placeColumn(name, cols[-1])
+        self.redraw()
         return
 
     def resample(self):
-        """table resampling dialog"""
+        """Table time series resampling dialog. Should set a datetime index first."""
 
         df = self.model.df
         if not isinstance(df.index, pd.DatetimeIndex):
-            messagebox.showwarning("No datetime index", 'Index should be a datetime',
+            messagebox.showwarning("No datetime index", 'Your date/time column should be the index.',
                                    parent=self.parentframe)
             return
 
@@ -1322,69 +1362,6 @@ class Table(Canvas):
         self.createChildTable(new, index=True)
         #df.groupby(pd.TimeGrouper(freq='M'))
         return
-
-    def _callFunction(self, df, funcname):
-        """Get function from a string as a module level or dataframe method and
-        apply it to the dataframe. Pops up a dialog allowing entry of arguments as some
-        functions will not run without non kw args. This is meant to be a general
-        solution to applying functions without the need to custom dialogs.
-        Returns the new DataFrame"""
-
-        col = df.columns[0]
-        import inspect
-        if hasattr(pd, funcname):
-            func = getattr(pd, funcname)
-            obj = pd
-        elif hasattr(df, funcname):
-            func = getattr(df, funcname)
-            obj = df
-        elif hasattr(df[col].str, funcname):
-            #string methods object
-            func = getattr(df[col].str, funcname)
-            obj = df[col].str
-        else:
-            return
-
-        a = inspect.getfullargspec(func)
-        args = a.args
-        if a.defaults is None:
-            p={}
-        else:
-            defaults = list(a.defaults)
-            print (args[0])
-            if args[0] not in ['values','self','data']:
-                defaults.insert(0,a.varargs)
-            print(defaults)
-            labels = a.args[-len(defaults):]
-            types=[]
-            for d in defaults:
-                if isinstance(d, bool):
-                    t='checkbutton'
-                elif isinstance(d, int):
-                    t='int'
-                else:
-                    t='string'
-                types.append(t)
-
-            #print(labels)
-            print(types)
-            #auto populate a dialog with function parameters
-            d = MultipleValDialog(title='Parameters',
-                                  initialvalues=defaults,
-                                  labels=labels,
-                                  types=types,
-                                  parent = self.parentframe)
-            p = d.getResults(null='')
-            print(p)
-
-        #print (obj)
-        if obj is pd:
-            new = df.apply(func, **p)
-        elif obj is df:
-            new = func(**p)
-        else:
-            new = func(**p)
-        return new
 
     def applyStringMethod(self):
         """Apply string operation to column(s)"""
@@ -1731,7 +1708,7 @@ class Table(Canvas):
         e.bind('<Return>', self.evalFunction)
         e.pack(fill=BOTH,side=LEFT,expand=1,padx=2,pady=2)
         addButton(bf, 'apply', self.evalFunction, images.accept(), 'apply', side=LEFT)
-        addButton(bf, 'preset', self.applyColumnWise, images.function(), 'preset function', side=LEFT)
+        addButton(bf, 'preset', self.applyColumnFunction, images.function(), 'preset function', side=LEFT)
         addButton(bf, 'clear', clear, images.delete(), 'clear stored functions', side=LEFT)
         addButton(bf, 'close', reset, images.cross(), 'close', side=LEFT)
 
@@ -2356,6 +2333,8 @@ class Table(Canvas):
         """Do combine/merge operation"""
 
         if self.child == None:
+            messagebox.showwarning("No data", 'You need a sub-table to merge with.',
+                                    parent=self.parentframe)
             return
         self.storeCurrent()
         from .dialogs import CombineDialog

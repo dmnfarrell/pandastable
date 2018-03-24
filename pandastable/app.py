@@ -445,6 +445,10 @@ class DataExplore(Frame):
                                                     parent=self.main)
         if not filename:
             return
+        ext = os.path.splitext(filename)[1]        
+        if ext != '.dexpl':
+            print ('does not appear to be a project file')
+            return
         if os.path.isfile(filename):
             #pb = self.progressDialog()
             #t = threading.Thread()

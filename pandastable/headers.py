@@ -378,8 +378,8 @@ class ColumnHeader(Canvas):
         createSubMenu(popupmenu, 'Format', formatcommands)
         popupmenu.add_command(label="Fill With Data", command=self.table.fillColumn)
         popupmenu.add_command(label="Create Categorical", command=self.table.createCategorical)
-        popupmenu.add_command(label="Apply Function", command=self.table.applyFunction)
-        popupmenu.add_command(label="Apply Function Col-wise", command=self.table.applyColumnWise)
+        popupmenu.add_command(label="Apply Function", command=self.table.applyColumnFunction)
+        popupmenu.add_command(label="Resample/Transform", command=self.table.applyTransformFunction)
         popupmenu.add_command(label="String Operation", command=self.table.applyStringMethod)
         popupmenu.add_command(label="Date/Time Conversion", command=self.table.convertDates)
 
@@ -666,10 +666,11 @@ class RowHeader(Canvas):
                          "Select All" : self.table.selectAll,
                          "Add Row(s)" : lambda: self.table.addRows(),
                          "Delete Row(s)" : lambda: self.table.deleteRow(),
+                         "Duplicate Row(s)":  lambda: self.table.duplicateRows(),
                          "Set Row Color" : lambda: self.table.setRowColors(cols='all')}
         main = ["Sort by index","Reset index","Toggle index",
                 "Rename index","Sort columns by row","Copy index to column",
-                "Add Row(s)","Delete Row(s)", "Set Row Color"]
+                "Add Row(s)","Delete Row(s)", "Duplicate Row(s)", "Set Row Color"]
 
         popupmenu = Menu(self, tearoff = 0)
         def popupFocusOut(event):

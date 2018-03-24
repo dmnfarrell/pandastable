@@ -302,14 +302,17 @@ class ToolTip(object):
         self.id = None
         self.x = self.y = 0
 
-    def showtip(self, text):
+    def showtip(self, text, event=None):
         "Display text in tooltip window"
+
         self.text = text
         if self.tipwindow or not self.text:
             return
+
         x, y, cx, cy = self.widget.bbox("insert")
+        x = x + event.x
         x = x + self.widget.winfo_rootx() + 25
-        y = y + cy + self.widget.winfo_rooty() - 10
+        y = y + cy + self.widget.winfo_rooty() + 10
         self.tipwindow = tw = Toplevel(self.widget)
         tw.wm_overrideredirect(1)
         tw.wm_geometry("+%d+%d" % (x, y))
@@ -325,8 +328,9 @@ class ToolTip(object):
                       font=("tahoma", "8", "normal"))
         label.pack(ipadx=1)
 
-    def hidetip(self):
+    def hidetip(self, event=None):
         """Hide tooltip"""
+
         tw = self.tipwindow
         self.tipwindow = None
         if tw:
@@ -335,11 +339,12 @@ class ToolTip(object):
     @classmethod
     def createToolTip(self, widget, text):
         """Create a tooltip for a widget"""
+
         toolTip = ToolTip(widget)
         def enter(event):
-            toolTip.showtip(text)
+            toolTip.showtip(text, event)
         def leave(event):
-            toolTip.hidetip()
+            toolTip.hidetip(event)
         widget.bind('<Enter>', enter)
         widget.bind('<Leave>', leave)
         return
@@ -500,7 +505,7 @@ class ImportDialog(Frame):
         return
 
 class CombineDialog(Frame):
-    """Provides a frame for setting up combine operations"""
+    """Provides a frame for setting up merge/combine operations"""
 
     def __init__(self, parent=None, df1=None, df2=None):
 
