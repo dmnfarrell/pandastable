@@ -45,6 +45,12 @@ from .dialogs import ImportDialog
 from . import images, util
 from .dialogs import *
 
+themes = {'dark':{'cellbackgr':'gray25','grid_color':'gray50', 'textcolor':'#f2eeeb',
+                 'rowselectedcolor':'#ed9252'},
+          'light':{'cellbackgr':'white','grid_color':'gray50', 'textcolor':'black',
+                 'rowselectedcolor':'yellow'}
+         }
+
 class Table(Canvas):
     """A tkinter class for providing table functionality.
 
@@ -139,9 +145,8 @@ class Table(Canvas):
         self.x_start=0
         self.y_start=1
         self.linewidth=1.0
-        #self.rowheaderwidth=50
-        self.showkeynamesinheader=False
         self.thefont = ('Arial',12)
+        self.textcolor = 'black'
         self.cellbackgr = '#F4F4F3'
         self.entrybackgr = 'white'
         self.grid_color = '#ABB1AD'
@@ -165,6 +170,14 @@ class Table(Canvas):
 
         if hasattr(self, 'thefont') and type(self.thefont) is tuple:
             self.fontsize = self.thefont[1]
+        return
+
+    def setTheme(self, name='light'):
+        style = themes[name]
+        for s in style:
+            if s in self.__dict__:
+                self.__dict__[s] = style[s]
+        self.redraw()
         return
 
     def mouse_wheel(self, event):
@@ -608,6 +621,28 @@ class Table(Canvas):
             fontsize = self.fontsize
         scale = 8.5 * float(fontsize)/9
         return scale
+
+    def zoomIn(self):
+        """Zoom in, increases font and row heights."""
+
+        self.fontsize = self.fontsize+1
+        self.rowheight += 2
+        self.tablecolheader.height +=1
+        self.thefont = (self.thefont[0],self.fontsize)
+        self.adjustColumnWidths()
+        self.redraw()
+        return
+
+    def zoomOut(self):
+        """Zoom out, decreases font and row heights."""
+
+        self.fontsize = self.fontsize-1
+        self.rowheight -= 2
+        self.tablecolheader.height -=1
+        self.thefont = (self.thefont[0],self.fontsize)
+        self.adjustColumnWidths()
+        self.redraw()
+        return
 
     def adjustColumnWidths(self):
         """Optimally adjust col widths to accomodate the longest entry
@@ -1292,32 +1327,35 @@ class Table(Canvas):
 
         funcs = ['rolling window','expanding','shift']
         winfuncs = ['mean','sum','median','min','max','std']
-        wintypes = ['boxcar','triang','blackman','hamming','bartlett',
+        wintypes = ['','boxcar','triang','blackman','hamming','bartlett',
                     'parzen','bohman','blackmanharris','nuttall','barthann']
         d = MultipleValDialog(title='Apply Function',
-                                initialvalues=(funcs,winfuncs,wintypes,2,'_1'),
+                                initialvalues=(funcs,winfuncs,wintypes,2,'_1',False),
                                 labels=('Operation:','Window function:','Window type:',
-                                'Window size:', 'New column suffix:'),
-                                types=('combobox','combobox','combobox','integer','string'),
+                                'Window size:', 'New column suffix:','In place:'),
+                                types=('combobox','combobox','combobox','integer','string','checkbutton'),
                                 tooltips=(None,'Summary function for windowing','Window type',
-                                        'Window size', 'suffix for new column'),
+                                        'Window size', 'Suffix for new column','Replace column'),
                                 parent = self.parentframe)
         if d.result == None:
             return
 
+        self.storeCurrent()
         op = d.results[0]
         winfunc = d.results[1]
         wintype = d.results[2]
         window = int(d.results[3])
         suffix = d.results[4]
+        inplace = d.results[5]
 
-        func = self._getFunction(winfunc)
-
+        if wintype == '':
+            wintype=None
         if op == 'rolling window':
             w = df[col].rolling(window=window, win_type=wintype, center=True)
             func = self._getFunction(winfunc, obj=w)
             new = func()
         elif op == 'expanding':
+            func = self._getFunction(winfunc)
             new = df[col].expanding(2, center=True).apply(func)
         elif op == 'shift':
             new = df[col].shift(periods=1)
@@ -1325,8 +1363,11 @@ class Table(Canvas):
         if new is None:
             return
         name = col+suffix
-        df[name] = new
-        self.placeColumn(name, cols[-1])
+        if inplace == True:
+            df[col] = new
+        else:
+            df[name] = new
+            self.placeColumn(name, cols[-1])
         self.redraw()
         return
 
@@ -1355,7 +1396,6 @@ class Table(Canvas):
         freq = d.results[0]
         period = d.results[1]
         func = d.results[2]
-        #conv = d.results[3]
 
         rule = str(period)+freq
         new = df.resample(rule).apply(func)
@@ -2927,7 +2967,7 @@ class Table(Canvas):
             celltxt = '.'
             return
 
-        fgcolor = 'black'
+        fgcolor = self.textcolor
         if align == None:
             align = 'center'
         elif align == 'w':
@@ -3565,6 +3605,12 @@ class statusBar(Frame):
         self.filenamevar = StringVar()
         l=Label(self,textvariable=self.filenamevar,font=sfont)
         l.pack(fill=X, side=RIGHT)
+        fr = Frame(self)
+        fr.pack(fill=Y,side=RIGHT)
+        img = images.zoom_out()
+        addButton(fr, 'Zoom Out', self.parentapp.zoomOut, img, 'zoom out', side=LEFT, padding=1)
+        img = images.zoom_in()
+        addButton(fr, 'Zoom In', self.parentapp.zoomIn, img, 'zoom in', side=LEFT, padding=1)
         return
 
     def update(self):

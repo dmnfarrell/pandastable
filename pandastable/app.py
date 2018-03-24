@@ -34,6 +34,7 @@ else:
     import tkSimpleDialog as simpledialog
     import tkMessageBox as messagebox
 
+from collections import OrderedDict
 import matplotlib
 matplotlib.use('TkAgg', warn=False)
 import pandas as pd
@@ -165,6 +166,13 @@ class DataExplore(Frame):
         self.file_menu=self.createPulldown(self.menu,self.file_menu)
         self.menu.add_cascade(label='File',menu=self.file_menu['var'])
 
+        self.edit_menu={'01Undo Last Change':{'cmd': self.undo},
+                        '02Copy Table':{'cmd': self.copyTable},
+                        '03Table Preferences':{'cmd': self.currentTablePrefs},
+                        }
+        self.edit_menu = self.createPulldown(self.menu,self.edit_menu)
+        self.menu.add_cascade(label='Edit',menu=self.edit_menu['var'])
+
         self.sheet_menu={'01Add Sheet':{'cmd': lambda: self.addSheet(select=True)},
                          '02Remove Sheet':{'cmd': lambda: self.deleteSheet(ask=True)},
                          '03Copy Sheet':{'cmd':self.copySheet},
@@ -174,12 +182,14 @@ class DataExplore(Frame):
         self.sheet_menu=self.createPulldown(self.menu,self.sheet_menu)
         self.menu.add_cascade(label='Sheet',menu=self.sheet_menu['var'])
 
-        self.edit_menu={'01Undo Last Change':{'cmd': self.undo},
-                        '02Copy Table':{'cmd': self.copyTable},
-                        '03Table Preferences':{'cmd': self.currentTablePrefs},
+        self.view_menu={'01Zoom In':{'cmd': lambda: self._call('zoomIn')},
+                        '02Zoom Out':{'cmd': lambda: self._call('zoomOut')},
+                        '03sep':'',
+                        '04Dark Theme':{'cmd': lambda: self._call('setTheme', name='dark')},
+                        '05Light Theme':{'cmd': lambda: self._call('setTheme', name='light')},
                         }
-        self.edit_menu = self.createPulldown(self.menu,self.edit_menu)
-        self.menu.add_cascade(label='Edit',menu=self.edit_menu['var'])
+        self.view_menu = self.createPulldown(self.menu,self.view_menu)
+        self.menu.add_cascade(label='View',menu=self.view_menu['var'])
 
         self.table_menu={'01Describe Table':{'cmd':self.describe},
                          '02Convert Column Names':{'cmd':lambda: self._call('convertColumnNames')},
@@ -199,7 +209,7 @@ class DataExplore(Frame):
                          '16Time Series Resampling':{'cmd': lambda: self._call('resample')}
                         }
         self.table_menu=self.createPulldown(self.menu,self.table_menu)
-        self.menu.add_cascade(label='Table',menu=self.table_menu['var'])
+        self.menu.add_cascade(label='Tools',menu=self.table_menu['var'])
 
         self.dataset_menu={'01Sample Data':{'cmd':self.sampleData},
                          '03Iris Data':{'cmd': lambda: self.getData('iris.csv')},
@@ -402,7 +412,7 @@ class DataExplore(Frame):
         w = self.closeProject()
         if w == None:
             return
-        self.sheets = {}
+        self.sheets = OrderedDict()
         self.sheetframes = {} #store references to enclosing widgets
         self.openplugins = {} #refs to running plugins
         self.updatePlotsMenu()
@@ -445,7 +455,7 @@ class DataExplore(Frame):
                                                     parent=self.main)
         if not filename:
             return
-        ext = os.path.splitext(filename)[1]        
+        ext = os.path.splitext(filename)[1]
         if ext != '.dexpl':
             print ('does not appear to be a project file')
             return
@@ -947,11 +957,11 @@ class DataExplore(Frame):
         menu.entryconfigure(0, state=state)
         return
 
-    def _call(self, func):
+    def _call(self, func, **args):
         """Call a table function from it's string name"""
 
         table = self.getCurrentTable()
-        getattr(table, func)()
+        getattr(table, func)(**args)
         return
 
     def about(self):

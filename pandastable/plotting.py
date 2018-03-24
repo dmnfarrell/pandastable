@@ -1527,9 +1527,9 @@ class StyleOptions(object):
                          textvariable=v,width=14)
         w.pack(side=TOP,pady=2)
         addButton(frame, 'Apply', self.apply, None,
-                  'apply', side=TOP, compound="left", width=20, pady=2)
+                  'apply', side=TOP, compound="left", width=20, padding=2)
         addButton(frame, 'Reset', self.reset, None,
-                  'reset', side=TOP, compound="left", width=20, pady=2)
+                  'reset', side=TOP, compound="left", width=20, padding=2)
         frame.pack(side=LEFT,fill='y')
         return main
 

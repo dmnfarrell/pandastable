@@ -979,3 +979,21 @@ def color_swatch():
             +'MC40NQAsAAAAABAAEAAABEAwyUmrvRboJHoaYKUBnAcO4tYJX4i90yEnQZ0Y'
             +'eCUftI0bulktcMvBYIRkAsFMFJ6VJGHZfBaiSibCCT16v+AIADs=')
      return img
+
+def zoom_in():
+     img = tk.PhotoImage(format='gif',data=
+             'R0lGODlhEAAQAPQYADdrGTlsG0x7MVOMKFePLVmEQF2HRGaOT2iPUW6UWIGr'
+            +'YYe5YIe6YIu6Yo26ZIy8ZY+8Z4+7arHTkLHWkrLSlbTUlbbUnNDmuv///wAA'
+            +'AAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABkAIf8LSW1hZ2VNYWdpY2sKZ2Ft'
+            +'bWE9MC40NQAsAAAAABAAEAAABTVgJo5kaZ5oqq4smhzFiijVFRFAakgT9kA5'
+            +'lMCCKVKCp0CDgVkAU4CBg+IYIE+AbLbF7XpZIQA7')
+     return img
+
+def zoom_out():
+     img = tk.PhotoImage(format='gif',data=
+             'R0lGODlhEAAQAPQbALlEA7lFA7xCBL1NBMBNDsNXGt1kAeFoA+52AOp5Bfh2'
+            +'AO9/GP93Ef9/GMlkJctrLdFzOOZ3If+GIeuKQP+STfSdY/Wocva1jfe1jf7N'
+            +'rv7WuP///wAAAAAAAAAAAAAAACH5BAEAABwAIf8LSW1hZ2VNYWdpY2sKZ2Ft'
+            +'bWE9MC40NQAsAAAAABAAEAAABTMgJ45kaZ5oqq4sSggBC2Ga9ajARTHSBKSC'
+            +'zGa4EKQClYYCcYihCo5IwjBgBWCtrHbbCgEAOw==')
+     return img
