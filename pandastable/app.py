@@ -159,8 +159,9 @@ class DataExplore(Frame):
                         '06sep':'',
                         '07Import CSV':{'cmd':self.importCSV},
                         '08Import Excel':{'cmd':self.importExcel},
-                        '09sep':'',
-                        '10Quit':{'cmd':self.quit}}
+                        '09Export CSV':{'cmd':self.exportCSV},
+                        '10sep':'',
+                        '11Quit':{'cmd':self.quit}}
         if self.parent:
             self.file_menu['08Return to Database']={'cmd':self.return_data}
         self.file_menu=self.createPulldown(self.menu,self.file_menu)
@@ -186,7 +187,8 @@ class DataExplore(Frame):
                         '02Zoom Out':{'cmd': lambda: self._call('zoomOut')},
                         '03sep':'',
                         '04Dark Theme':{'cmd': lambda: self._call('setTheme', name='dark')},
-                        '05Light Theme':{'cmd': lambda: self._call('setTheme', name='light')},
+                        '05Bold Theme':{'cmd': lambda: self._call('setTheme', name='bold')},
+                        '06Default Theme':{'cmd': lambda: self._call('setTheme', name='default')},
                         }
         self.view_menu = self.createPulldown(self.menu,self.view_menu)
         self.menu.add_cascade(label='View',menu=self.view_menu['var'])
@@ -556,6 +558,13 @@ class DataExplore(Frame):
         self.addSheet(select=True)
         table = self.getCurrentTable()
         table.importCSV(dialog=True)
+        return
+
+    def exportCSV(self):
+        """Import csv to a new sheet"""
+
+        table = self.getCurrentTable()
+        table.doExport()
         return
 
     def importExcel(self, filename=None):

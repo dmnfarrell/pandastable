@@ -1325,6 +1325,9 @@ class PlotLayoutOptions(TkOptions):
         b = Button(frame, text='set title', command=self.parent.setSubplotTitle)
         b.pack(fill=X,pady=2)
         frame.pack(side=LEFT,fill=Y)
+
+        #c = PlotLayoutGrid(self.main)
+        #c.pack()
         return
 
     def updateAxesList(self):
@@ -1332,6 +1335,70 @@ class PlotLayoutOptions(TkOptions):
 
         axes = list(self.parent.gridaxes.keys())
         self.axeslist['values'] = axes
+        return
+
+class PlotLayoutGrid(Canvas):
+    def __init__(self, parent=None, width=280, height=200, **kwargs):
+
+        Canvas.__init__(self, parent, bg='white',
+                         width=width, height=height )
+        self.parentframe = parent
+        self.rows = 4
+        self.cols = 2
+        self.height = height
+        self.width = width
+        self.do_bindings()
+        self.redraw()
+        return
+
+    def do_bindings(self):
+        self.bind("<Button-1>",self.handle_left_click)
+        return
+
+    def redraw(self):
+        self.drawGrid()
+        return
+
+    def drawGrid(self):
+        rows = self.rows
+        h = self.height
+        w = self.width
+        for row in range(rows+1):
+            y = row*h/rows
+            self.create_line(1,y,w,y, tag='gridline',
+                                fill='gray', width=2)
+        for col in range(self.cols+1):
+            x = col*w/self.cols
+            self.create_line(x,1,x,rows*h, tag='gridline',
+                                fill='gray', width=2)
+        return
+
+    def handle_left_click(self, event):
+        """Respond to a single press"""
+
+        #self.clearSelected()
+        #which row and column is the click inside?
+        rowclicked = self.get_row_clicked(event)
+        colclicked = self.get_col_clicked(event)
+        self.focus_set()
+
+    def get_row_clicked(self, event):
+        """Get row where event on canvas occurs"""
+
+        h = self.height/self.rows
+        #get coord on canvas, not window, need this if scrolling
+        y = int(self.canvasy(event.y))
+        row = int(int(y)/h)
+        print (row)
+        return row
+
+    def get_col_clicked(self,event):
+        """Get column where event on the canvas occurs"""
+
+        w = self.width/self.cols
+        x = int(self.canvasx(event.x))
+        col =int(int(x)/w)
+        print (col)
         return
 
 class AnnotationOptions(TkOptions):

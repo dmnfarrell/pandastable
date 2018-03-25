@@ -46,9 +46,11 @@ from . import images, util
 from .dialogs import *
 
 themes = {'dark':{'cellbackgr':'gray25','grid_color':'gray50', 'textcolor':'#f2eeeb',
-                 'rowselectedcolor':'#ed9252'},
-          'light':{'cellbackgr':'white','grid_color':'gray50', 'textcolor':'black',
-                 'rowselectedcolor':'yellow'}
+                 'rowselectedcolor':'#ed9252', 'colselectedcolor':'#3d65d4'},
+          'bold':{'cellbackgr':'white','grid_color':'gray50', 'textcolor':'black',
+                 'rowselectedcolor':'yellow', 'colselectedcolor':'#e4e3e4'},
+          'default':{'cellbackgr':'#F4F4F3','grid_color':'#ABB1AD', 'textcolor':'black',
+                 'rowselectedcolor':'#E4DED4', 'colselectedcolor':'#e4e3e4'}
          }
 
 class Table(Canvas):
