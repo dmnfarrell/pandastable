@@ -160,14 +160,14 @@ class PlotViewer(Frame):
         #reload tkvars again from stored kwds variable
         self.mplopts.updateFromOptions()
         styleopts = StyleOptions(parent=self)
-        w2 = styleopts.showDialog(self.nb)
-        self.nb.add(w2, text='Styles', sticky='news')
 
         w3 = self.labelopts.showDialog(self.nb,layout=self.layout)
         self.nb.add(w3, text='Annotation', sticky='news')
         self.labelopts.updateFromOptions()
         w4 = self.layoutopts.showDialog(self.nb,layout=self.layout)
         self.nb.add(w4, text='Grid Layout', sticky='news')
+        w2 = styleopts.showDialog(self.nb)
+        self.nb.add(w2, text='Other Options', sticky='news')
         w5 = self.mplopts3d.showDialog(self.nb,layout=self.layout)
         self.nb.add(w5, text='3D Plot', sticky='news')
         self.mplopts3d.updateFromOptions()
@@ -247,8 +247,9 @@ class PlotViewer(Frame):
         from matplotlib.gridspec import GridSpec
         layout = self.playoutvar.get()
         #plot layout should be tracked by plotlayoutoptions
-        self.layoutopts.applyOptions()
-        kwds = self.layoutopts.kwds
+        #self.layoutopts.applyOptions()
+        gl = self.layoutopts
+        #kwds = self.layoutopts.kwds
 
         if layout == 0:
             #default layout is just a single axis
@@ -256,14 +257,19 @@ class PlotViewer(Frame):
             self.gridaxes={}
             self.ax = self.fig.add_subplot(111)
         else:
-            rows = kwds['rows']
-            cols = kwds['cols']
-            r = kwds['row']-1
-            c = kwds['col']-1
-            colspan = kwds['colspan']
-            rowspan = kwds['rowspan']
-            top = float(kwds['top'])
-            bottom = float(kwds['bottom'])
+            #get grid layout from layout opt
+            rows = gl.rows
+            cols = gl.cols
+            x = gl.selectedrows
+            y = gl.selectedcols
+            r=min(x); c=min(y)
+            rowspan = gl.rowspan
+            colspan = gl.colspan
+            top = .9
+            bottom = .1
+            print (rows,cols,r,c)
+            print (rowspan,colspan)
+
             gs = GridSpec(rows,cols,top=top,bottom=bottom,left=0.1,right=0.9)
             name = str(r+1)+','+str(c+1)
             if name in self.gridaxes:
@@ -1146,8 +1152,10 @@ class TkOptions(object):
             kwds = self.kwds
         else:
             return
+        if self.tkvars == None:
+            return
         for i in kwds:
-            if i in self.tkvars and self.tkvars[i] != None:
+            if i in self.tkvars and self.tkvars[i]:
                 self.tkvars[i].set(kwds[i])
         return
 
@@ -1279,38 +1287,41 @@ class PlotLayoutOptions(TkOptions):
         """Setup variables"""
 
         self.parent = parent
-        self.groups = grps = {'grid':['rows','cols','top','bottom'],
-                             'current axis':['row','col','rowspan','colspan'],
-                             #'other':['clear'],
-                             }
-        self.groups = OrderedDict(sorted(grps.items()))
-        opts = self.opts = {
-                'rows':{'type':'entry','default':2,'width':10,'label':'size (rows)'},
-                'cols':{'type':'entry','default':2,'width':10,'label':'size (cols)'},
-                #'clear':{'type':'checkbutton','default':1,'label':'clear on grid update',
-                #         'tooltip':'clear figure when the grid is altered'},
-                'row':{'type':'entry','default':1,'width':10},
-                'col':{'type':'entry','default':1,'width':10},
-                'rowspan':{'type':'entry','default':1,'width':10},
-                'colspan':{'type':'entry','default':1,'width':10},
-                'top':{'type':'entry','default':.9,'width':10},
-                'bottom':{'type':'entry','default':.1,'width':10},
-                }
-        self.kwds = {}
+        self.rows = 2
+        self.cols = 2
+        self.top = .1
+        self.bottom =.9
         return
 
     def showDialog(self, parent, layout='horizontal'):
         """Override because we need to add custom bits"""
 
-        dialog, self.tkvars, self.widgets = dialogFromOptions(parent,
-                                                              self.opts, self.groups,
-                                                              layout=layout)
-        self.main = dialog
-        self.subplotsWidget()
-        return dialog
+        self.tkvars = {}
+        self.main = Frame(parent)
+        self.plotgrid = c = PlotLayoutGrid(self.main)
+        self.plotgrid.update_callback = self.updateFromGrid
+        c.pack(side=LEFT,fill=Y,pady=2,padx=2)
 
-    def subplotsWidget(self):
-        """Custom dialog to allow selection/removal of individual subplots"""
+        frame = Frame(self.main)
+        frame.pack(side=LEFT,fill=Y)
+        v = self.rowsvar = IntVar()
+        v.set(self.rows)
+        w = Scale(frame,label='rows',
+                 from_=1,to=5,
+                 orient='vertical',
+                 resolution=1,
+                 variable=v,
+                 command=self.updateGrid)
+        w.pack(fill=X,pady=2)
+        v = self.colsvar = IntVar()
+        v.set(self.cols)
+        w = Scale(frame,label='cols',
+                 from_=1,to=5,
+                 orient='horizontal',
+                 resolution=1,
+                 variable=v,
+                 command=self.updateGrid)
+        w.pack(side=TOP,fill=X,pady=2)
 
         frame = LabelFrame(self.main, text='subplots')
         v = self.axeslistvar = StringVar()
@@ -1325,9 +1336,27 @@ class PlotLayoutOptions(TkOptions):
         b = Button(frame, text='set title', command=self.parent.setSubplotTitle)
         b.pack(fill=X,pady=2)
         frame.pack(side=LEFT,fill=Y)
+        self.updateFromGrid()
+        return self.main
 
-        #c = PlotLayoutGrid(self.main)
-        #c.pack()
+    def updateGrid(self, event=None):
+        """update grid and redraw"""
+
+        pg = self.plotgrid
+        self.rows = pg.rows = self.rowsvar.get()
+        self.cols = pg.cols = self.colsvar.get()
+        pg.selectedrows = [0]
+        pg.selectedcols = [0]
+        pg.redraw()
+        return
+
+    def updateFromGrid(self):
+        pg = self.plotgrid
+        r = self.selectedrows = pg.selectedrows
+        c = self.selectedcols = pg.selectedcols
+        self.rowspan = len(r)
+        self.colspan = len(c)
+        print (self.selectedrows, self.selectedcols, self.rowspan, self.colspan)
         return
 
     def updateAxesList(self):
@@ -1337,68 +1366,10 @@ class PlotLayoutOptions(TkOptions):
         self.axeslist['values'] = axes
         return
 
-class PlotLayoutGrid(Canvas):
-    def __init__(self, parent=None, width=280, height=200, **kwargs):
-
-        Canvas.__init__(self, parent, bg='white',
+class PlotLayoutGrid(BaseTable):
+    def __init__(self, parent=None, width=280, height=190, rows=2, cols=2, **kwargs):
+        BaseTable.__init__(self, parent, bg='white',
                          width=width, height=height )
-        self.parentframe = parent
-        self.rows = 4
-        self.cols = 2
-        self.height = height
-        self.width = width
-        self.do_bindings()
-        self.redraw()
-        return
-
-    def do_bindings(self):
-        self.bind("<Button-1>",self.handle_left_click)
-        return
-
-    def redraw(self):
-        self.drawGrid()
-        return
-
-    def drawGrid(self):
-        rows = self.rows
-        h = self.height
-        w = self.width
-        for row in range(rows+1):
-            y = row*h/rows
-            self.create_line(1,y,w,y, tag='gridline',
-                                fill='gray', width=2)
-        for col in range(self.cols+1):
-            x = col*w/self.cols
-            self.create_line(x,1,x,rows*h, tag='gridline',
-                                fill='gray', width=2)
-        return
-
-    def handle_left_click(self, event):
-        """Respond to a single press"""
-
-        #self.clearSelected()
-        #which row and column is the click inside?
-        rowclicked = self.get_row_clicked(event)
-        colclicked = self.get_col_clicked(event)
-        self.focus_set()
-
-    def get_row_clicked(self, event):
-        """Get row where event on canvas occurs"""
-
-        h = self.height/self.rows
-        #get coord on canvas, not window, need this if scrolling
-        y = int(self.canvasy(event.y))
-        row = int(int(y)/h)
-        print (row)
-        return row
-
-    def get_col_clicked(self,event):
-        """Get column where event on the canvas occurs"""
-
-        w = self.width/self.cols
-        x = int(self.canvasx(event.x))
-        col =int(int(x)/w)
-        print (col)
         return
 
 class AnnotationOptions(TkOptions):

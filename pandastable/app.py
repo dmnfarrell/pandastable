@@ -366,8 +366,8 @@ class DataExplore(Frame):
         #load plot options
         opts = {'mplopts': table.pf.mplopts,
                 'mplopts3d': table.pf.mplopts3d,
-                'labelopts': table.pf.labelopts,
-                'layoutopts': table.pf.layoutopts}
+                'labelopts': table.pf.labelopts}
+                #'layoutopts': table.pf.layoutopts}
         for m in opts:
             if m in meta:
                 util.setAttributes(opts[m], meta[m])

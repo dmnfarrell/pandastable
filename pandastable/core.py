@@ -3002,7 +3002,7 @@ class Table(Canvas):
                                   outline=self.rowselectedcolor,
                                   tag='rowrect')
         self.lower('rowrect')
-        self.lower('fillrect')
+        #self.lower('fillrect')
         self.lower('colorrect')
         self.rowheader.drawSelectedRows(self.currentrow)
         return
@@ -3032,7 +3032,7 @@ class Table(Canvas):
         """Draw more than one row selection"""
 
         self.delete('multiplesel')
-        self.delete('rowrect')
+        #self.delete('rowrect')
         cols = self.visiblecols
         for col in cols:
             colname = self.model.df.columns[col]

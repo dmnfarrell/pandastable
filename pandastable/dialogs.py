@@ -1167,3 +1167,158 @@ class FilterBar(Frame):
     def update(self, cols):
         self.filtercolmenu['values'] = cols
         return
+
+class BaseTable(Canvas):
+    """Basic table class based on tk canvas. inherit from this to add your own functionality"""
+    def __init__(self, parent=None, width=280, height=190, rows=2, cols=2, **kwargs):
+
+        Canvas.__init__(self, parent, bg='white',
+                         width=width, height=height )
+        self.parent = parent
+        self.rows = rows
+        self.cols = cols
+        self.selectedrows = [0]
+        self.selectedcols = [0]
+        self.top = .1
+        self.bottom =.9
+        self.height = height
+        self.width = width
+        self.doBindings()
+        self.redraw()
+        self.update_callback = None
+        return
+
+    def update(self):
+        if self.update_callback != None:
+            self.update_callback()
+
+    def doBindings(self):
+        self.bind("<Button-1>",self.handle_left_click)
+        self.bind('<B1-Motion>', self.handle_mouse_drag)
+        return
+
+    def redraw(self):
+        self.drawGrid()
+        self.drawMultipleCells(self.selectedrows, self.selectedcols)
+        return
+
+    def drawGrid(self):
+        self.delete('gridline')
+        self.delete('currentrect')
+        self.delete('multiplesel')
+        rows = self.rows
+        h = self.height
+        w = self.width
+        for row in range(rows+1):
+            y = row*h/rows
+            self.create_line(1,y,w,y, tag='gridline',
+                                fill='gray', width=2)
+        for col in range(self.cols+1):
+            x = col*w/self.cols
+            self.create_line(x,1,x,rows*h, tag='gridline',
+                                fill='gray', width=2)
+        return
+
+    def handle_left_click(self, event):
+        """Respond to a single press"""
+
+        #self.clearSelected()
+        #which row and column is the click inside?
+        row = self.get_row_clicked(event)
+        col = self.get_col_clicked(event)
+        self.focus_set()
+        #print (row, col)
+        self.delete('multiplesel')
+        self.delete('currentrect')
+        self.drawSelectedRect(row, col, tags='currentrect')
+        self.startrow = row
+        self.startcol = col
+        self.selectedrows = [row]
+        self.selectedcols = [col]
+        self.update()
+        return
+
+    def handle_mouse_drag(self, event):
+        """Handle mouse moved with button held down, multiple selections"""
+
+        rowover = self.get_row_clicked(event)
+        colover = self.get_col_clicked(event)
+        self.endrow = rowover
+        self.endcol = colover
+        rows = [rowover]
+        cols = [colover]
+        if colover == None or rowover == None:
+            return
+        #draw the selected rows
+        if self.endrow != self.startrow:
+            if self.endrow < self.startrow:
+                rows = list(range(self.endrow, self.startrow+1))
+            else:
+                rows = list(range(self.startrow, self.endrow+1))
+        if self.endcol != self.startcol:
+            if self.endcol < self.startcol:
+                cols = list(range(self.endcol, self.startcol+1))
+            else:
+                cols = list(range(self.startcol, self.endcol+1))
+        self.drawMultipleCells(rows,cols)
+        self.selectedrows = rows
+        self.selectedcols = cols
+        self.update()
+        return
+
+    def get_row_clicked(self, event):
+        """Get row where event on canvas occurs"""
+
+        h = self.height/self.rows
+        #get coord on canvas, not window, need this if scrolling
+        y = int(self.canvasy(event.y))
+        row = int(int(y)/h)
+        return row
+
+    def get_col_clicked(self, event):
+        """Get column where event on the canvas occurs"""
+
+        w = self.width/self.cols
+        x = int(self.canvasx(event.x))
+        col =int(int(x)/w)
+        return col
+
+    def getCellCoords(self, row, col):
+        """Get x-y coordinates to drawing a cell in a given row/col"""
+
+        h = int(self.height/self.rows)
+        x_start=0
+        y_start=0
+        #get nearest rect co-ords for that row/col
+        w = self.width/self.cols
+        x1 = w*col
+        y1=y_start+h*row
+        x2=x1+w
+        y2=y1+h
+        return x1,y1,x2,y2
+
+    def drawSelectedRect(self, row, col, color='#c2c2d6',pad=4, tags=''):
+        """User has clicked to select area"""
+
+        if col >= self.cols:
+            return
+        #self.delete('currentrect')
+        w=1
+        pad=pad
+        x1,y1,x2,y2 = self.getCellCoords(row,col)
+        rect = self.create_rectangle(x1+pad+w,y1+pad+w,x2-pad-w,y2-pad-w,
+                                  outline='gray50', fill=color,
+                                  width=w,
+                                  tag=tags)
+        return
+
+    def drawMultipleCells(self, rows, cols):
+        """Draw more than one row selection"""
+
+        self.delete('multiplesel')
+        self.delete('currentrect')
+        for col in cols:
+            for row in rows:
+                #print (row, col)
+                self.drawSelectedRect(row, col, tags='multiplesel')
+        return
