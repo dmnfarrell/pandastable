@@ -12,6 +12,8 @@ Re-did aggregate dialog to be more general
 Resample/transform functions for columns
 Added find duplicates dialog
 Zoom in/out functions to view menu
+Improved grid layout dialog
+Ability to auto create multi plot views in grid
 
 ------
 0.8.3

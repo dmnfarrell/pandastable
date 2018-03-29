@@ -59,6 +59,7 @@ class PlotViewer(Frame):
         self.table = table
         self.table.pf = self #opaque ref
         self.mode = 'Base Options'
+        self.multiviews = False
         if self.parent != None:
             Frame.__init__(self, parent)
             self.main = self.master
@@ -169,13 +170,13 @@ class PlotViewer(Frame):
         w2 = styleopts.showDialog(self.nb)
         self.nb.add(w2, text='Other Options', sticky='news')
         w5 = self.mplopts3d.showDialog(self.nb,layout=self.layout)
-        self.nb.add(w5, text='3D', sticky='news')
+        self.nb.add(w5, text='3D Plot', sticky='news')
         self.mplopts3d.updateFromOptions()
 
         #w6 = Animator(parent=self)
         #self.nb.add(w6, text='Animator', sticky='news')
 
-        if self.mode == '3D':
+        if self.mode == '3D Plot':
             self.nb.select(w5)
 
         def onpick(event):
@@ -214,7 +215,7 @@ class PlotViewer(Frame):
     def applyPlotoptions(self):
         """Apply the current plotter/options"""
 
-        if self.mode == '3D':
+        if self.mode == '3D Plot':
             self.mplopts3d.applyOptions()
         else:
             self.mplopts.applyOptions()
@@ -227,10 +228,14 @@ class PlotViewer(Frame):
     def plotCurrent(self):
         """Plot current data"""
 
+        layout = self.playoutvar.get()
+        gridmode = self.layoutopts.modevar.get()
         self._initFigure()
-        if self.mode == 'multiviews':
+        if layout == 1 and gridmode == 'multiviews':
             self.plotMultiViews()
-        elif self.mode == '3D':
+        elif layout == 1 and gridmode == 'splitdata':
+            self.plotSplitData()
+        elif self.mode == '3D Plot':
             self.plot3D()
         else:
             self.plot2D()
@@ -328,22 +333,45 @@ class PlotViewer(Frame):
         c=0; i=0
         for r in range(0,rows):
             for c in range(0,cols):
-                self.ax = self.fig.add_subplot(gs[r:r+1,c:c+1])
-                print (self.ax)
-                kwds['kind'] = plot_types[i]
-                kwds['legend'] = False
-                self.plot2D()
-                i+=1
                 if i>=len(plot_types):
                     break
+                self.ax = self.fig.add_subplot(gs[r:r+1,c:c+1])
+                #print (self.ax)
+                kwds['kind'] = plot_types[i]
+                kwds['legend'] = False
+                self.plot2D(redraw=False)
+                i+=1
 
         #legend - put this as a normal option..
         handles, labels = self.ax.get_legend_handles_labels()
         self.fig.legend(handles, labels)
+        #plt.tight_layout()
         self.canvas.draw()
         return
 
-    def plot2D(self):
+    def plotSplitData(self):
+        """Splits selected data up into multiple plots in a grid"""
+
+        self.fig.clear()
+        gs = self.gridspec
+        gl = self.layoutopts
+        kwds = self.mplopts.kwds
+        rows = gl.rows
+        cols = gl.cols
+        c=0; i=0
+        data = self.data
+        n = rows * cols
+        chunks = np.array_split(data, n)
+        for r in range(0,rows):
+            for c in range(0,cols):
+                self.data = chunks[i]
+                self.ax = self.fig.add_subplot(gs[r:r+1,c:c+1])
+                self.plot2D(redraw=False)
+                i+=1
+        self.canvas.draw()
+        return
+
+    def plot2D(self, redraw=True):
         """Plot method for current data. Relies on pandas plot functionality
            if possible. There is some temporary code here to make sure only the valid
            plot options are passed for each plot kind."""
@@ -524,7 +552,8 @@ class PlotViewer(Frame):
             self.fig.set_facecolor('black')
         else:
             self.fig.set_facecolor('white')
-        self.canvas.draw()
+        if redraw == True:
+            self.canvas.draw()
         return
 
     def setFigureOptions(self, axs, kwds):
@@ -1356,6 +1385,27 @@ class PlotLayoutOptions(TkOptions):
                  command=self.resetGrid)
         w.pack(side=TOP,fill=X,pady=2)
 
+        self.modevar = StringVar()
+        self.modevar.set('normal')
+        frame = LabelFrame(self.main, text='modes')
+        Radiobutton(frame, text='normal', variable=self.modevar, value='normal').pack(fill=X)
+        Radiobutton(frame, text='split data', variable=self.modevar, value='splitdata').pack(fill=X)
+        Radiobutton(frame, text='multi views', variable=self.modevar, value='multiviews').pack(fill=X)
+        frame.pack(side=LEFT,fill=Y)
+
+        frame = LabelFrame(self.main, text='multi views')
+        #v = self.multiviewsvar = BooleanVar()
+        plot_types = ['histogram','line','scatter','boxplot','area','density','bar','barh',
+                      'heatmap','contour','hexbin','imshow']
+        Label(frame,text='plot types:').pack(fill=X)
+        w,v = addListBox(frame, values=plot_types,width=12,height=8)
+        w.pack(fill=X)
+        self.plottypeslistbox = v
+        frame.pack(side=LEFT,fill=Y)
+
+        frame = LabelFrame(self.main, text='split data')
+        frame.pack(side=LEFT,fill=Y)
+
         frame = LabelFrame(self.main, text='subplots')
         v = self.axeslistvar = StringVar()
         v.set('')
@@ -1369,29 +1419,16 @@ class PlotLayoutOptions(TkOptions):
         b = Button(frame, text='set title', command=self.parent.setSubplotTitle)
         b.pack(fill=X,pady=2)
         frame.pack(side=LEFT,fill=Y)
-
-        frame = LabelFrame(self.main, text='multiviews')
-        v = self.multiviewsvar = BooleanVar()
-        b = Checkbutton(frame,text='enable', variable=v, command=self.setmultiviews)
-        b.pack(fill=X)
-        plot_types = ['bar','barh','line','scatter','boxplot','area','density',
-                      'heatmap','contour','hexbin','imshow']
-        Label(frame,text='plot types:').pack()
-        w,v = addListBox(frame, values=plot_types,width=12)
-        w.pack(fill=X)
-        self.plottypeslistbox = v
-        frame.pack(side=LEFT,fill=Y)
-
         self.updateFromGrid()
         return self.main
 
     def setmultiviews(self, event=None):
         val=self.multiviewsvar.get()
         if val == 1:
-            self.parent.mode = 'multiviews'
+            self.parent.multiviews = True
             self.parent.playoutvar.set(1)
         if val == 0:
-            self.parent.mode = '2D'
+            self.parent.multiviews = False
         return
 
     def resetGrid(self, event=None):
