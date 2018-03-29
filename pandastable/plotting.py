@@ -159,7 +159,7 @@ class PlotViewer(Frame):
         self.nb.add(w1, text='Base Options', sticky='news')
         #reload tkvars again from stored kwds variable
         self.mplopts.updateFromOptions()
-        styleopts = StyleOptions(parent=self)
+        styleopts = ExtraOptions(parent=self)
 
         w3 = self.labelopts.showDialog(self.nb,layout=self.layout)
         self.nb.add(w3, text='Annotation', sticky='news')
@@ -169,13 +169,13 @@ class PlotViewer(Frame):
         w2 = styleopts.showDialog(self.nb)
         self.nb.add(w2, text='Other Options', sticky='news')
         w5 = self.mplopts3d.showDialog(self.nb,layout=self.layout)
-        self.nb.add(w5, text='3D Plot', sticky='news')
+        self.nb.add(w5, text='3D', sticky='news')
         self.mplopts3d.updateFromOptions()
 
         #w6 = Animator(parent=self)
         #self.nb.add(w6, text='Animator', sticky='news')
 
-        if self.mode == '3D Plot':
+        if self.mode == '3D':
             self.nb.select(w5)
 
         def onpick(event):
@@ -214,7 +214,7 @@ class PlotViewer(Frame):
     def applyPlotoptions(self):
         """Apply the current plotter/options"""
 
-        if self.mode == '3D Plot':
+        if self.mode == '3D':
             self.mplopts3d.applyOptions()
         else:
             self.mplopts.applyOptions()
@@ -227,7 +227,10 @@ class PlotViewer(Frame):
     def plotCurrent(self):
         """Plot current data"""
 
-        if self.mode == '3D Plot':
+        self._initFigure()
+        if self.mode == 'multiviews':
+            self.plotMultiViews()
+        elif self.mode == '3D':
             self.plot3D()
         else:
             self.plot2D()
@@ -267,10 +270,10 @@ class PlotViewer(Frame):
             colspan = gl.colspan
             top = .9
             bottom = .1
-            print (rows,cols,r,c)
-            print (rowspan,colspan)
+            #print (rows,cols,r,c)
+            #print (rowspan,colspan)
 
-            gs = GridSpec(rows,cols,top=top,bottom=bottom,left=0.1,right=0.9)
+            gs = self.gridspec = GridSpec(rows,cols,top=top,bottom=bottom,left=0.1,right=0.9)
             name = str(r+1)+','+str(c+1)
             if name in self.gridaxes:
                 ax = self.gridaxes[name]
@@ -308,6 +311,36 @@ class PlotViewer(Frame):
         if label:
             ax.set_title(label)
             self.canvas.show()
+        return
+
+    def plotMultiViews(self, plot_types=['bar','scatter']):
+        """Plot multiple views of the same data in a grid"""
+
+        #plot_types=['bar','scatter','histogram','boxplot']
+        #self._initFigure()
+        self.fig.clear()
+        gs = self.gridspec
+        gl = self.layoutopts
+        plot_types = getListBoxSelection(gl.plottypeslistbox)
+        kwds = self.mplopts.kwds
+        rows = gl.rows
+        cols = gl.cols
+        c=0; i=0
+        for r in range(0,rows):
+            for c in range(0,cols):
+                self.ax = self.fig.add_subplot(gs[r:r+1,c:c+1])
+                print (self.ax)
+                kwds['kind'] = plot_types[i]
+                kwds['legend'] = False
+                self.plot2D()
+                i+=1
+                if i>=len(plot_types):
+                    break
+
+        #legend - put this as a normal option..
+        handles, labels = self.ax.get_legend_handles_labels()
+        self.fig.legend(handles, labels)
+        self.canvas.draw()
         return
 
     def plot2D(self):
@@ -366,7 +399,7 @@ class PlotViewer(Frame):
         #valid kwd args for this plot type
         kwargs = dict((k, kwds[k]) for k in valid[kind] if k in kwds)
         #initialise the figure
-        self._initFigure()
+        #self._initFigure()
         ax = self.ax
         #print (kwargs)
 
@@ -853,7 +886,7 @@ class PlotViewer(Frame):
         return azm,ele,dst
 
     def plot3D(self):
-        """3D plots"""
+        """3Ds"""
 
         if not hasattr(self, 'data'):
             return
@@ -1311,7 +1344,7 @@ class PlotLayoutOptions(TkOptions):
                  orient='vertical',
                  resolution=1,
                  variable=v,
-                 command=self.updateGrid)
+                 command=self.resetGrid)
         w.pack(fill=X,pady=2)
         v = self.colsvar = IntVar()
         v.set(self.cols)
@@ -1320,7 +1353,7 @@ class PlotLayoutOptions(TkOptions):
                  orient='horizontal',
                  resolution=1,
                  variable=v,
-                 command=self.updateGrid)
+                 command=self.resetGrid)
         w.pack(side=TOP,fill=X,pady=2)
 
         frame = LabelFrame(self.main, text='subplots')
@@ -1336,10 +1369,32 @@ class PlotLayoutOptions(TkOptions):
         b = Button(frame, text='set title', command=self.parent.setSubplotTitle)
         b.pack(fill=X,pady=2)
         frame.pack(side=LEFT,fill=Y)
+
+        frame = LabelFrame(self.main, text='multiviews')
+        v = self.multiviewsvar = BooleanVar()
+        b = Checkbutton(frame,text='enable', variable=v, command=self.setmultiviews)
+        b.pack(fill=X)
+        plot_types = ['bar','barh','line','scatter','boxplot','area','density',
+                      'heatmap','contour','hexbin','imshow']
+        Label(frame,text='plot types:').pack()
+        w,v = addListBox(frame, values=plot_types,width=12)
+        w.pack(fill=X)
+        self.plottypeslistbox = v
+        frame.pack(side=LEFT,fill=Y)
+
         self.updateFromGrid()
         return self.main
 
-    def updateGrid(self, event=None):
+    def setmultiviews(self, event=None):
+        val=self.multiviewsvar.get()
+        if val == 1:
+            self.parent.mode = 'multiviews'
+            self.parent.playoutvar.set(1)
+        if val == 0:
+            self.parent.mode = '2D'
+        return
+
+    def resetGrid(self, event=None):
         """update grid and redraw"""
 
         pg = self.plotgrid
@@ -1348,6 +1403,7 @@ class PlotLayoutOptions(TkOptions):
         pg.selectedrows = [0]
         pg.selectedcols = [0]
         pg.redraw()
+        self.updateFromGrid()
         return
 
     def updateFromGrid(self):
@@ -1356,7 +1412,6 @@ class PlotLayoutOptions(TkOptions):
         c = self.selectedcols = pg.selectedcols
         self.rowspan = len(r)
         self.colspan = len(c)
-        print (self.selectedrows, self.selectedcols, self.rowspan, self.colspan)
         return
 
     def updateAxesList(self):
@@ -1371,6 +1426,9 @@ class PlotLayoutGrid(BaseTable):
         BaseTable.__init__(self, parent, bg='white',
                          width=width, height=height )
         return
+
+    def handle_left_click(self, event):
+        BaseTable.handle_left_click(self, event)
 
 class AnnotationOptions(TkOptions):
     """This class also provides custom tools for adding items to the plot"""
@@ -1545,8 +1603,8 @@ class AnnotationOptions(TkOptions):
             self.addTextBox(self.textboxes[key], key)
         return
 
-class StyleOptions(object):
-    """Class to allow choosing matplotlib styles"""
+class ExtraOptions(object):
+    """Class for additional formatting options like styles"""
     def __init__(self, parent=None):
         """Setup variables"""
 

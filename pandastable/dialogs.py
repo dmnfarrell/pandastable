@@ -763,6 +763,10 @@ def addListBox(parent, values=[], width=10, label=''):
         lbx.insert(END, i)
     return frame, lbx
 
+def getListBoxSelection(w):
+    items = w.curselection()
+    return [w.get(j) for j in items]
+
 class AutoScrollbar(Scrollbar):
     """a scrollbar that hides itself if it's not needed.  only
        works if you use the grid geometry manager."""
@@ -1286,7 +1290,7 @@ class BaseTable(Canvas):
     def getCellCoords(self, row, col):
         """Get x-y coordinates to drawing a cell in a given row/col"""
 
-        h = int(self.height/self.rows)
+        h = self.height/self.rows
         x_start=0
         y_start=0
         #get nearest rect co-ords for that row/col
@@ -1302,10 +1306,10 @@ class BaseTable(Canvas):
 
         if col >= self.cols:
             return
-        #self.delete('currentrect')
         w=1
         pad=pad
         x1,y1,x2,y2 = self.getCellCoords(row,col)
+        #print (x1,y1,x2,y2)
         rect = self.create_rectangle(x1+pad+w,y1+pad+w,x2-pad-w,y2-pad-w,
                                   outline='gray50', fill=color,
                                   width=w,
