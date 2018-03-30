@@ -14,6 +14,7 @@ Added find duplicates dialog
 Zoom in/out functions to view menu
 Improved grid layout dialog
 Ability to auto create multi plot views in grid
+Removed TkAgg toolbar (deprecated)
 
 ------
 0.8.3

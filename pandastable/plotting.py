@@ -83,6 +83,7 @@ class PlotViewer(Frame):
         self.style = None
         self.setupGUI()
         self.updateStyle()
+        self.currentdir = os.path.expanduser('~')
         return
 
     def refreshLayout(self):
@@ -122,6 +123,7 @@ class PlotViewer(Frame):
         else:
             side = LEFT
 
+        #add button toolbar
         addButton(bf, 'Plot', self.replot, images.plot(),
                   'plot current data', side=side, compound="left", width=20)
         addButton(bf, 'Apply Options', self.applyPlotoptions, images.refresh(),
@@ -133,12 +135,14 @@ class PlotViewer(Frame):
         addButton(bf, 'Vertical', self.refreshLayout, images.tilehorizontal(),
                   'change plot tools orientation', side=side)
 
-        #add button toolbar
+        addButton(bf, 'Save', self.savePlot, images.save_proj(),
+                  'save plot', side=side)
         self.dpivar = IntVar()
         self.dpivar.set(80)
         Label(bf, text='save dpi:').pack(side=LEFT,fill=X,padx=2)
         e = Entry(bf, textvariable=self.dpivar, width=5)
         e.pack(side=LEFT,padx=2)
+
         #plot layout
         self.playoutvar = IntVar()
         self.playoutvar.set(0)
@@ -273,12 +277,15 @@ class PlotViewer(Frame):
             r=min(x); c=min(y)
             rowspan = gl.rowspan
             colspan = gl.colspan
-            top = .9
+            top = .92
             bottom = .1
             #print (rows,cols,r,c)
             #print (rowspan,colspan)
 
-            gs = self.gridspec = GridSpec(rows,cols,top=top,bottom=bottom,left=0.1,right=0.9)
+            ws = cols/10-.05
+            hs = rows/10-.05
+            gs = self.gridspec = GridSpec(rows,cols,top=top,bottom=bottom,
+                                          left=0.1,right=0.9,wspace=ws,hspace=hs)
             name = str(r+1)+','+str(c+1)
             if name in self.gridaxes:
                 ax = self.gridaxes[name]
@@ -345,7 +352,6 @@ class PlotViewer(Frame):
         #legend - put this as a normal option..
         handles, labels = self.ax.get_legend_handles_labels()
         self.fig.legend(handles, labels)
-        #plt.tight_layout()
         self.canvas.draw()
         return
 
@@ -356,6 +362,7 @@ class PlotViewer(Frame):
         gs = self.gridspec
         gl = self.layoutopts
         kwds = self.mplopts.kwds
+        kwds['legend'] = False
         rows = gl.rows
         cols = gl.cols
         c=0; i=0
@@ -368,6 +375,8 @@ class PlotViewer(Frame):
                 self.ax = self.fig.add_subplot(gs[r:r+1,c:c+1])
                 self.plot2D(redraw=False)
                 i+=1
+        handles, labels = self.ax.get_legend_handles_labels()
+        self.fig.legend(handles, labels)
         self.canvas.draw()
         return
 
@@ -1024,20 +1033,15 @@ class PlotViewer(Frame):
     def savePlot(self):
         """Save the current plot"""
 
-        ftypes = ['png','jpg','tif','pdf','eps','ps','svg']
-        d = MultipleValDialog(title='Save plot',
-                                initialvalues=('',[80,120,150,300,600],ftypes),
-                                labels=('File name:','dpi:','type:'),
-                                types=('filename','combobox','combobox'),
-                                parent = self)
-        if d.result == None:
-            return
-        fname = d.results[0]
-        dpi = int(d.results[1])
-        ftype = d.results[2]
-        filename = fname + '.'+ ftype
-        self.fig.savefig(filename, dpi=dpi)
-        self.currfilename = filename
+        ftypes = [('png','*.png'),('jpg','*.jpg'),('tif','*.tif'),('pdf','*.pdf'),
+                    ('eps','*.eps'),('svg','*.svg')]
+        filename = filedialog.asksaveasfilename(parent=self.master,
+                                                 initialdir = self.currentdir,
+                                                 filetypes=ftypes)    
+        if filename:
+            self.currentdir = os.path.dirname(os.path.abspath(filename))
+            dpi = self.dpivar.get()
+            self.fig.savefig(filename, dpi=dpi)
         return
 
     def showWarning(self, s='plot error', ax=None):
@@ -1369,7 +1373,7 @@ class PlotLayoutOptions(TkOptions):
         v = self.rowsvar = IntVar()
         v.set(self.rows)
         w = Scale(frame,label='rows',
-                 from_=1,to=5,
+                 from_=1,to=6,
                  orient='vertical',
                  resolution=1,
                  variable=v,
@@ -1378,7 +1382,7 @@ class PlotLayoutOptions(TkOptions):
         v = self.colsvar = IntVar()
         v.set(self.cols)
         w = Scale(frame,label='cols',
-                 from_=1,to=5,
+                 from_=1,to=6,
                  orient='horizontal',
                  resolution=1,
                  variable=v,
@@ -1681,7 +1685,7 @@ class ExtraOptions(object):
 def addFigure(parent, figure=None, resize_callback=None):
     """Create a tk figure and canvas in the parent frame"""
 
-    from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
+    from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg#, NavigationToolbar2TkAgg
     from matplotlib.figure import Figure
 
     if figure == None:
@@ -1692,7 +1696,7 @@ def addFigure(parent, figure=None, resize_callback=None):
     canvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=1)
     canvas.get_tk_widget().configure(highlightcolor='gray75',
                                    highlightbackground='gray75')
-    toolbar = NavigationToolbar2TkAgg(canvas, parent)
-    toolbar.update()
+    #toolbar = NavigationToolbar2TkAgg(canvas, parent)
+    #toolbar.update()
     canvas._tkcanvas.pack(side=TOP, fill=BOTH, expand=1)
     return figure, canvas
