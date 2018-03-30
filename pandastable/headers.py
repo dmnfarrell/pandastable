@@ -380,6 +380,7 @@ class ColumnHeader(Canvas):
         popupmenu.add_command(label="Create Categorical", command=self.table.createCategorical)
         popupmenu.add_command(label="Apply Function", command=self.table.applyColumnFunction)
         popupmenu.add_command(label="Resample/Transform", command=self.table.applyTransformFunction)
+        popupmenu.add_command(label="Value Counts", command=self.table.valueCounts)
         popupmenu.add_command(label="String Operation", command=self.table.applyStringMethod)
         popupmenu.add_command(label="Date/Time Conversion", command=self.table.convertDates)
 

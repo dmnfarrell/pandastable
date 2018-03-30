@@ -1405,6 +1405,21 @@ class Table(Canvas):
         #df.groupby(pd.TimeGrouper(freq='M'))
         return
 
+    def valueCounts(self):
+        """Value counts for column(s)"""
+
+        df = self.model.df
+        cols = list(df.columns[self.multiplecollist])
+        if len(cols) <2:
+            col = cols[0]
+            new = df[col].value_counts()
+            df = pd.DataFrame(new)
+        else:
+            #if more than one col we use the first as an index and pivot
+            df = df.pivot_table(index=cols[0], columns=cols[1:], aggfunc='size', fill_value=0).T
+        self.createChildTable(df, index=True)
+        return
+
     def applyStringMethod(self):
         """Apply string operation to column(s)"""
 
