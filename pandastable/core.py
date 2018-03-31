@@ -3049,6 +3049,9 @@ class Table(Canvas):
         self.delete('multiplesel')
         #self.delete('rowrect')
         cols = self.visiblecols
+        rows = list(set(rowlist) & set(self.visiblerows))
+        if len(rows)==0:
+            return
         for col in cols:
             colname = self.model.df.columns[col]
             #if col is colored we darken it
@@ -3057,16 +3060,12 @@ class Table(Canvas):
                 clr = util.colorScale(clr, -30)
             else:
                 clr = self.rowselectedcolor
-            for r in rowlist:
-                if r not in self.visiblerows or r > self.rows-1:
-                    continue
+            for r in rows:
                 x1,y1,x2,y2 = self.getCellCoords(r,col)
-                #x2 = self.tablewidth
                 rect = self.create_rectangle(x1,y1,x2,y2,
                                           fill=clr,
                                           outline=self.rowselectedcolor,
                                           tag=('multiplesel','rowrect'))
-
         self.lower('multiplesel')
         self.lower('fillrect')
         self.lower('colorrect')
@@ -3357,7 +3356,7 @@ class Table(Canvas):
         self.redraw()
         return
 
-    def show_progressbar(self,message=None):
+    def show_progress_window(self, message=None):
         """Show progress bar window for loading of data"""
 
         progress_win=Toplevel() # Open a new window
@@ -3373,25 +3372,27 @@ class Table(Canvas):
         lbl.grid(row=0,column=0,columnspan=2,sticky='news',padx=6,pady=4)
         progrlbl = Label(progress_win,text='Progress:')
         progrlbl.grid(row=1,column=0,sticky='news',padx=2,pady=4)
-        import ProgressBar
-        self.bar = ProgressBar.ProgressBar(progress_win)
-        self.bar.frame.grid(row=1,column=1,columnspan=2,padx=2,pady=4)
+
+        prog_bar = Progress(self.master)
 
         return progress_win
 
-    def updateModel(self, model):
+    def updateModel(self, model=None):
         """Should call this method when a new table model is loaded.
-           Recreates widghets and redraws the table."""
+           Recreates widgets and redraws the table."""
 
-        self.model = model
+        if model is not None:
+            self.model = model
         self.rows = self.model.getRowCount()
         self.cols = self.model.getColumnCount()
         self.tablewidth = (self.cellwidth)*self.cols
-        if hasattr(self, 'tablecolheader'):
-            self.tablecolheader.destroy()
-            self.rowheader.destroy()
-            self.selectNone()
-        self.show()
+        self.tablecolheader.model = model
+        self.rowheader.model = model
+        #if hasattr(self, 'tablecolheader'):
+            #self.tablecolheader.destroy()
+            #self.rowheader.destroy()
+            #self.selectNone()
+        #self.show()
         return
 
     def new(self):
@@ -3423,6 +3424,7 @@ class Table(Canvas):
             print('file does not exist')
             return
         if filename:
+            #prog_bar = Progress(self.master, row=0, column=0, columnspan=2)
             filetype = os.path.splitext(filename)[1]
             model = TableModel()
             model.load(filename, filetype)
@@ -3430,6 +3432,7 @@ class Table(Canvas):
             self.filename = filename
             self.adjustColumnWidths()
             self.redraw()
+            #prog_bar.pb_stop()
         return
 
     def saveAs(self, filename=None):

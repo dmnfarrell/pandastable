@@ -13,8 +13,10 @@ Resample/transform functions for columns
 Added find duplicates dialog
 Zoom in/out functions to view menu
 Improved grid layout dialog
-Ability to auto create multi plot views in grid
+Ability to auto create multiviews/split data in grid
 Removed TkAgg toolbar (deprecated)
+Fixed bug for slow row selection in large tables
+Fixed slow loading of large tables
 
 ------
 0.8.3

@@ -32,12 +32,12 @@ except:
 import pandas as pd
 import pylab as plt
 from collections import OrderedDict
-#import seaborn as sns
+from pandastable.dialogs import *
 
 class DataReaderPlugin(Plugin):
     """Plugin for using pandas datareader for remote data access"""
 
-    #capabilities = ['gui']
+    capabilities = ['gui']
     requires = ['']
     menuentry = 'Remote Data'
     gui_methods = {}
@@ -51,20 +51,19 @@ class DataReaderPlugin(Plugin):
         if parent==None:
             return
         self.parent = parent
-        self._doFrame(width=450,height=140)
+        self._doFrame(width=480,height=140)
         self.mainwin.title('Remote Data')
         self.mainwin.resizable(width=False,height=False)
-        sources = ['Yahoo Finance','Google Finance','OECD',
-                   'FRED','World Bank','Eurostat','TSP','FAMA/French']
+        sources = ['Google Finance', 'FRED','World Bank','Eurostat','TSP','FAMA/French']
         dformats = ['%m/%d/%Y','%d/%m/%Y']
         grps = {'sources':['source','dataset','url'], 'time':['start','end','dateformat']}
         self.groups = grps = OrderedDict(grps)
 
         datacols = []
         self.opts = {
-                     'source': {'type':'combobox','default':'OECD','items':sources,'width':20},
+                     'source': {'type':'combobox','default':'FRED','items':sources,'width':20},
                      'dataset': {'type':'combobox','default':'F','items':['F']},
-                     'url': {'type':'entry','default':'','label':'raw url'},
+                     'url': {'type':'entry','default':'','label':'download url','width':25},
                      'start': {'type':'entry','default':'01/01/16','label':'start date','width':15},
                      'end': {'type':'entry','default':'31/12/16','label':'end date'},
                      'dateformat': {'type':'combobox','default':'%m/%d/%Y','items':dformats}
@@ -79,8 +78,11 @@ class DataReaderPlugin(Plugin):
         b.pack(side=TOP,fill=X,pady=2)
         b = Button(bf, text="About", command=self._aboutWindow)
         b.pack(side=TOP,fill=X,pady=2)
-
+        #self.progframe = Frame(self.mainwin)
+        #self.progframe.pack(side=TOP,fill=X)
         self.update()
+        #self.prog_bar = Progress(bf)
+        #self.prog_bar.pb_stop()
         return
 
     def fetch(self):
@@ -89,6 +91,7 @@ class DataReaderPlugin(Plugin):
         import pandas_datareader.data as web
         from pandas_datareader import wb
 
+        #self.prog_bar.pb_start()
         self.applyOptions()
         source = self.kwds['source']
         dataset = self.kwds['dataset']
@@ -121,17 +124,19 @@ class DataReaderPlugin(Plugin):
             df = web.DataReader("tran_sf_railac", 'eurostat')
         elif source == 'TSP':
             import pandas_datareader.tsp as tsp
-            tspreader = tsp.TSPReader(start='2015-10-1', end='2015-12-31')
+            tspreader = tsp.TSPReader(start=start, end=end)
             df = tspreader.read()
         elif source == 'FAMA/French':
             ds = web.DataReader(dataset, "famafrench")
             df = ds[0]
         label = source+'_'+dataset
+        df=df.reset_index()
         self.parent.load_dataframe(df, label, True)
+        #self.prog_bar.pb_stop()
         return
 
     def fetch_url(self, url):
-        """fetch url"""
+        """Fetch data from an url"""
 
         ext = os.path.splitext(url)[1]
         if ext == '.zip':

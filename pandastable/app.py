@@ -231,7 +231,7 @@ class DataExplore(Frame):
 
         self.plots_menu={'01Store plot':{'cmd':self.addPlot},
                          '02Clear plots':{'cmd':self.updatePlotsMenu},
-                         '03Plots to pdf':{'cmd':self.pdfReport},
+                         '03PDF report':{'cmd':self.pdfReport},
                          '04sep':''}
         self.plots_menu=self.createPulldown(self.menu,self.plots_menu)
         self.menu.add_cascade(label='Plots',menu=self.plots_menu['var'])
@@ -939,18 +939,23 @@ class DataExplore(Frame):
         return
 
     def pdfReport(self):
-        """"""
+        """Create pdf report from stored plots"""
+
         from matplotlib.backends.backend_pdf import PdfPages
-        pdf_pages = PdfPages('my-document.pdf')
+        filename = filedialog.asksaveasfilename(parent=self.main,
+                                                defaultextension='.pdf',
+                                                initialdir=self.defaultsavedir,
+                                                filetypes=[("pdf","*.pdf")])
+        if not filename:
+            return
+        pdf_pages = PdfPages(filename)
         from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
         for p in self.plots:
             fig = self.plots[p]
             canvas = FigureCanvasTkAgg(fig, master=self)
-            #fig.canvas = canvas
             pdf_pages.savefig(fig)
         pdf_pages.close()
-
         return
 
     def undo(self):
@@ -996,7 +1001,7 @@ class DataExplore(Frame):
         mplver = matplotlib.__version__
 
         text='DataExplore Application\n'\
-                +'pandastable version '+__version__+'\n'\
+                +'version '+__version__+'\n'\
                 +'Copyright (C) Damien Farrell 2014-\n'\
                 +'This program is free software; you can redistribute it and/or\n'\
                 +'modify it under the terms of the GNU General Public License\n'\

@@ -135,7 +135,7 @@ class PlotViewer(Frame):
         addButton(bf, 'Vertical', self.refreshLayout, images.tilehorizontal(),
                   'change plot tools orientation', side=side)
 
-        addButton(bf, 'Save', self.savePlot, images.save_proj(),
+        addButton(bf, 'Save', self.savePlot, images.save(),
                   'save plot', side=side)
         self.dpivar = IntVar()
         self.dpivar.set(80)
@@ -691,6 +691,9 @@ class PlotViewer(Frame):
             #bins = int(kwargs['bins'])
             axs = data.plot(kind='hist',layout=layout, ax=ax, **kwargs)
         elif kind == 'heatmap':
+            if len(data) > 1000:
+                self.showWarning('too many rows to plot')
+                return
             axs = self.heatmap(data, ax, kwargs)
         elif kind == 'bootstrap':
             axs = plotting.bootstrap_plot(data)
@@ -1037,7 +1040,7 @@ class PlotViewer(Frame):
                     ('eps','*.eps'),('svg','*.svg')]
         filename = filedialog.asksaveasfilename(parent=self.master,
                                                  initialdir = self.currentdir,
-                                                 filetypes=ftypes)    
+                                                 filetypes=ftypes)
         if filename:
             self.currentdir = os.path.dirname(os.path.abspath(filename))
             dpi = self.dpivar.get()

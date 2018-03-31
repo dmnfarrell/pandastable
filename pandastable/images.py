@@ -997,3 +997,32 @@ def zoom_out():
             +'bWE9MC40NQAsAAAAABAAEAAABTMgJ45kaZ5oqq4sSggBC2Ga9ajARTHSBKSC'
             +'zGa4EKQClYYCcYihCo5IwjBgBWCtrHbbCgEAOw==')
      return img
+
+def save():
+     img = tk.PhotoImage(format='gif',data=
+             'R0lGODlhEAAQAPcAAIjAYjFgpjFgpzFgqDFhqDJhqDJhqTJhqjJiqjJiqzJj'
+            +'rDNjrTNkrjNkrzNlsDRlsTRmsjRmszRntDVotTVotjVotzVptzVpuDVpuTVq'
+            +'ujZqujdrujZquzZruzZrvDhruzhsuzptuzlsvDtuvT5wu16JyWSMyGWMyGWN'
+            +'yWaNyWeOyWWNymmQymySy22Sy2iQzWqTz3mYx3yayHybyW2W03CZ1nGZ2HKb'
+            +'2XOb2XOb2nKc23Sc2nSd3HSe3Xaf3XWe3naf3nef3neg3neg33ih4Hii4Hmi'
+            +'4Xqi4Hqi4Xqj4Xuj4Xqi4nqj4nuj4nqj43uk4nqk43uk432m5n2n536o536o'
+            +'6MLcv4GezISjzoqn0o6r1ZWw2pq13YCq6Z+64aS+5KnC563F6q3G67PK7bbM'
+            +'7rjO77rQ7rvQ773Q7L7S8MPV78LV8sXY8sfZ9Mnc9Mzd9dDf9tHf9tHg9tHg'
+            +'99jl9tnl99vm99vn99vn+N3o+N/p+N/p+eHs+eLs+ePt+eXt+ujw+unw+unx'
+            +'+urw+urx++vx++3y++7z++70++70/O/0/PD1/PH2/PL2/PP3/fP4/fb5/fb6'
+            +'/ff6/fb6/vf6/vf7/vj6/vj7/gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+            +'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+            +'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+            +'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+            +'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+            +'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+            +'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+            +'AAAAAAAAAAAAAAAAAAAAACH5BAEAAJgAIf8LSW1hZ2VNYWdpY2sKZ2FtbWE9'
+            +'MC40NQAsAAAAABAAEAAACP4AMXkY6KFDBw4cRIwI8YEEJoFy5lyqBGnRIEOQ'
+            +'JBXSg6aEwDhdJkUycYhQo0uM+uAxg4aEBzhVGDEyIQiRJEiA8thJosaChzdU'
+            +'AAFKEeiRJUV77tQpAoZCBzdT+PDxk0iSoz9K6Qj5IqFDGykmUKho4YLFCRNo'
+            +'d3iJwIFNFCdQnjRRYmQIkB46eHB5wGGNEydNmjwxQkTIDx45cGxpwCENEyZJ'
+            +'5hIJ4oPHDRs1tCzQcGbJpc+gQ9PIkuBDGSOUAKherRoSDCwHQJBBQsmK7du2'
+            +'Ib24UmDDmCOpWa+GtGKGgAxiwoRefklGDAEaMFyoMEECBAcMFCAwMEBAAAIB'
+            +'AQA7')
+     return img

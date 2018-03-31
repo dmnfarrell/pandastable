@@ -55,7 +55,7 @@ class TableModel(object):
             colnames = list(string.ascii_lowercase[:columns])
             self.df = pd.DataFrame(index=range(rows),columns=colnames)
             #self.df = self.getSampleData()
-        self.reclist = self.df.index # not needed now?
+        #self.reclist = self.df.index # not needed now?
         return
 
     @classmethod
@@ -71,8 +71,9 @@ class TableModel(object):
         s = string.ascii_lowercase
         def genstr(n=2):
             return ''.join(random.choice(s) for i in range(n))
-        if rows>2e6:
-            rows=int(2e6)
+        maxrows = 5e6
+        if rows>maxrows:
+            rows=maxrows
         if cols>1e5:
             cols=int(1e5)
         n=2
@@ -88,7 +89,9 @@ class TableModel(object):
         cats = ['low','medium','high','very high']
         df['label'] = pd.cut(df[col1], bins=4, labels=cats)
         df['label'] = df.label.cat.as_ordered()
-        df['date'] = pd.date_range('1/1/2014', periods=rows, freq='H')
+        #don't add date if rows too large
+        if rows<2e6:
+            df['date'] = pd.date_range('1/1/2016', periods=rows, freq='H')
         return df
 
     @classmethod
@@ -137,23 +140,24 @@ class TableModel(object):
     def load(self, filename, filetype=None):
         """Load file, if no filetype given assume it's msgpack format"""
 
-        print (filetype)
         if filetype == '.pickle':
             self.df = pd.read_pickle(filename)
         else:
             self.df = pd.read_msgpack(filename)
+            #print (len(self.df))
         return
 
-    def getlongestEntry(self, colindex):
-        """Get the longest string in the column for determining width"""
+    def getlongestEntry(self, colindex, n=500):
+        """Get the longest string in the column for determining width. Just uses the first
+         n rows for speed"""
 
         df = self.df
         col = df.columns[colindex]
         try:
             if df.dtypes[col] == 'float64':
-                c = df[col].round(3)
+                c = df[col][:n].round(3)
             else:
-                c = df[col]
+                c = df[col][:n]
         except:
             return 1
         longest = c.astype('object').astype('str').str.len().max()
@@ -336,7 +340,7 @@ class TableModel(object):
 
     def getRowCount(self):
          """Returns the number of rows in the table model."""
-         return len(self.reclist)
+         return len(self.df)
 
     def getValueAt(self, rowindex, colindex):
          """Returns the cell value at location specified

@@ -211,6 +211,53 @@ def setWidgetStyles(widgets):
             pass
     return
 
+class Progress():
+    """ threaded progress bar for tkinter gui """
+    def __init__(self, parent, side=LEFT):
+        import threading
+        self.maximum = 100
+        self.interval = 10
+        self.progressbar = Progressbar(parent, orient=HORIZONTAL,
+                                           mode="indeterminate",
+                                           maximum=self.maximum)
+        #self.progressbar.grid(row=row, column=column,
+        #                      columnspan=columnspan, sticky="we")
+        self.progressbar.pack(fill=X,side=side)
+        self.thread = threading.Thread()
+        self.thread.__init__(target=self.progressbar.start(self.interval),
+                             args=())
+        self.thread.start()
+
+    def pb_stop(self):
+        """ stops the progress bar """
+        if not self.thread.isAlive():
+            VALUE = self.progressbar["value"]
+            self.progressbar.stop()
+            self.progressbar["value"] = VALUE
+
+    def pb_start(self):
+        """ starts the progress bar """
+        if not self.thread.isAlive():
+            VALUE = self.progressbar["value"]
+            self.progressbar.configure(mode="indeterminate",
+                                       maximum=self.maximum,
+                                       value=VALUE)
+            self.progressbar.start(self.interval)
+
+    def pb_clear(self):
+        """ stops the progress bar """
+        if not self.thread.isAlive():
+            self.progressbar.stop()
+            self.progressbar.configure(mode="determinate", value=0)
+
+    def pb_complete(self):
+        """ stops the progress bar and fills it """
+        if not self.thread.isAlive():
+            self.progressbar.stop()
+            self.progressbar.configure(mode="determinate",
+                                       maximum=self.maximum,
+                                       value=self.maximum)
+
 class MultipleValDialog(Dialog):
     """Simple dialog to get multiple values"""
 
