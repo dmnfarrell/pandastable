@@ -20,6 +20,7 @@ setup(
                                   'plugins/*.py','plugins/*.R']},
     install_requires=['matplotlib>=2.0',
                       'pandas>=0.18',
+                      #'pandas-datareader>=0.5',
                       'numexpr>=2.4',
                       'xlrd>=0.9',
                       'future'],

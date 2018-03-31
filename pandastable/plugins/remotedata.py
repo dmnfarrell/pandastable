@@ -32,12 +32,12 @@ except:
 import pandas as pd
 import pylab as plt
 from collections import OrderedDict
-from pandastable.dialogs import *
+#from pandastable.dialogs import *
 
 class DataReaderPlugin(Plugin):
     """Plugin for using pandas datareader for remote data access"""
 
-    capabilities = ['gui']
+    #capabilities = ['gui']
     requires = ['']
     menuentry = 'Remote Data'
     gui_methods = {}

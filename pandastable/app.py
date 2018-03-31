@@ -158,6 +158,7 @@ class DataExplore(Frame):
                         '05Save As':{'cmd':self.saveasProject},
                         '06sep':'',
                         '07Import CSV':{'cmd':self.importCSV},
+                        '08Import from URL':{'cmd':self.importURL},
                         '08Import Excel':{'cmd':self.importExcel},
                         '09Export CSV':{'cmd':self.exportCSV},
                         '10sep':'',
@@ -558,6 +559,17 @@ class DataExplore(Frame):
         self.addSheet(select=True)
         table = self.getCurrentTable()
         table.importCSV(dialog=True)
+        return
+
+    def importURL(self):
+        """Import CSV from URL"""
+
+        url = simpledialog.askstring("Import url", "Input CSV URL",
+                                     parent=self.master)
+        if url is not None:
+            name = os.path.basename(url)
+            df = pd.read_csv(url)
+            self.addSheet(sheetname=name, df=df, select=True)
         return
 
     def exportCSV(self):
@@ -978,6 +990,12 @@ class DataExplore(Frame):
         getattr(table, func)(**args)
         return
 
+    def _check_snap(self):
+        if os.environ.has_key('SNAP_USER_COMMON'):
+            print ('running inside snap')
+            return True
+        return False
+
     def about(self):
         """About dialog"""
 
@@ -999,9 +1017,13 @@ class DataExplore(Frame):
         pandasver = pd.__version__
         pythonver = platform.python_version()
         mplver = matplotlib.__version__
+        if self._check_snap == True:
+            snap='(snap)'
+        else:
+            snap=''
 
         text='DataExplore Application\n'\
-                +'version '+__version__+'\n'\
+                +'version '+__version__+snap+'\n'\
                 +'Copyright (C) Damien Farrell 2014-\n'\
                 +'This program is free software; you can redistribute it and/or\n'\
                 +'modify it under the terms of the GNU General Public License\n'\
