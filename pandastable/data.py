@@ -87,8 +87,8 @@ class TableModel(object):
         df[col2] = df[col1]*np.random.normal(.8, .2, len(df))
         df = np.round(df, 3)
         cats = ['low','medium','high','very high']
-        df['label'] = pd.cut(df[col1], bins=4, labels=cats)
-        df['label'] = df.label.cat.as_ordered()
+        df['label'] = pd.cut(df[col1], bins=4, labels=cats).astype(str)
+        #df['label'] = df.label.cat.as_ordered()
         #don't add date if rows too large
         if rows<2e6:
             df['date'] = pd.date_range('1/1/2016', periods=rows, freq='H')
