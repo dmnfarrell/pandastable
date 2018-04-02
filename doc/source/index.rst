@@ -8,8 +8,8 @@ Contents:
    :maxdepth: 2
 
    description
-   examples
    dataexplore
+   examples   
    modules
    
 Indices and tables

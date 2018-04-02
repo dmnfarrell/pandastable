@@ -1,6 +1,8 @@
 Code Examples
 =============
 
+This section is for python programmers you want to use the table widget in their own programs.
+
 Basics
 ------
 
