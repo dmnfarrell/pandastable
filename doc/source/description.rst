@@ -16,9 +16,6 @@ for the following uses:
 -  it may also be useful for data analysts and programmers who want to
    get an initial interactive look at their tabular data without coding
 
-The primary source for this documentation is on the github wiki pages. This site
-is mostly intended for documentating the module API. For dataexplore see below.
-
 Current Features
 ================
 
@@ -39,11 +36,7 @@ Current Features
 The DataExplore application
 ===========================
 
-Installing the package creates a command *dataexplore* in your path.
-Just run this to open the program. This is a standalone application for
-data manipulation and plotting meant for education and basic data
-analysis. See the home page for this application at
-http://dmnfarrell.github.io/pandastable/
+Installing the package creates a command *dataexplore* in your path. Just run this to open the program. This is a standalone application for data manipulation and plotting meant for education and basic data analysis. More details are in the 'Using dataexplore' section. Also see the home page for this application at http://dmnfarrell.github.io/pandastable/
 
 Links
 =====
@@ -64,7 +57,17 @@ Farrell, D 2016 DataExplore: An Application for General Data Analysis in Researc
 Installation
 ============
 
-**Note for windows users:** there is an [MSI installer](http://dmnfarrell.github.io/pandastable/) for the DataExplore application if all you need is this software. This is recommended for anyone using windows not using the library directly as a widget.
+For Dataexplore
+---------------
+
+For **Windows users** there is an MSI installer for the DataExplore application. This is recommended for anyone using windows not using the library directly as a widget.
+
+**On linux** snaps are highly recommended::
+
+    snap install dataexplore
+
+pandastable library
+-------------------
 
 On all operating systems installations of Python should include the pip tool. If not use your distributions package manager to install pip first. Then a simple call as follows should install all dependencies::
 
@@ -87,11 +90,11 @@ This might not work well in some cases because matplotlib has library dependenci
 Linux
 -----
 
-Using easy_install or pip should work well but for matplotlib will require more packages such as python headers for compiling the extension. You need the tk8.6-dev package to provide the tkagg backend.
+For the python linbrary using easy_install or pip should work well but for matplotlib might require more packages such as python headers for compiling the extension. You need the tk8.6-dev package to provide the tkagg backend.
 
 Otherwise, to use the package manager in Ubuntu/Debian based distributions you can issue the command::
 
-    sudo apt-get install python-matplotlib python-numpy
+    sudo apt install python-matplotlib
 
 You should install pandas with pip as it will provide the most recent version. This will likely be done automatically anyway:
 
@@ -115,9 +118,7 @@ Note that the Python pydata stack can also be installed at once using miniconda,
 Mac OSX
 -------
 
-There are multiple packaged installers for scientific Python, the best of which is probably anaconda. Miniconda is a smaller version if you don't want all the packages. To use it download and run the Mac OS X installer from http://conda.pydata.org/miniconda.html. The installer will automatically configure your system to use the Anaconda Python. You can then use pip to install the package or you can use the conda package using::
-
-	conda install -c https://conda.anaconda.org/dmnfarrell pandastable
+There are multiple packaged installers for scientific Python, the best of which is probably anaconda. Miniconda is a smaller version if you don't want all the packages. To use it download and run the Mac OS X installer from http://conda.pydata.org/miniconda.html. The installer will automatically configure your system to use the Anaconda Python. You can then use pip to install the package.
 
 If using macports::
 
@@ -130,8 +131,6 @@ You can download the latest tar.gz file [here](https://github.com/dmnfarrell/pan
 
 	tar -xzvf pandastable.version.tar.gz
 	cd pandastable
-	sudo python3 setup.py install 
+	sudo python3 setup.py install
 
 Note that you still need to have installed the dependencies as above.
-
-
