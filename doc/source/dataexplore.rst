@@ -2,12 +2,12 @@ Using DataExplore
 =================
 
 This page details some of the tasks available in dataexplore. For a general introduction also see the screencast at https://youtu.be/Ss0QIFywt74.
-Most of this functionality is available when you just use the table widget as well as inside the application. Installing in windows or with a snap in linux should provide a menu item to launch the app.
+Most of this functionality is available when you just use the table widget as well as the dataexplore application. Installing in windows or with a snap in linux should provide a menu item to launch the app. Otherwise use the command line, detailed below.
 
 Purpose of the program
 -----------------------
 
-This program is for analyzing tabular data but is not meant to be a spreadsheet. Data is treated in a row/column centric fashion and a lot of the analysis is done in bulk on entire columns at once. So although you can edit cells it is not really meant for data entry. You can use a spreadsheet for that. Cell formulas are not possible for instance. You can however delete rows, columns and blocks of clear blocks of cells. New columns can be created through the use of functions. The primary goal is to let users explore their tables interactively without any prior programming knowledge and make interesting plots as they do this. One advantage is the ability to load and work with relatively large tables as compared to spreadsheets. So several million rows should not be a problem and is limited only by your computer memory.
+This program is for analyzing tabular data but is not meant to be a spreadsheet. Data is treated in a row/column centric fashion and a lot of the analysis is done in bulk on entire columns at once. So although you can edit cells it is not really meant for data entry. You can use a spreadsheet for that. Cell formulas are not possible for instance. You can however delete rows, columns and clear blocks of cells. New columns can be created through the use of functions. The primary goal is to let users explore their tables interactively without any prior programming knowledge and make interesting plots as they do this. One advantage is the ability to load and work with relatively large tables as compared to spreadsheets. So several million rows should not be a problem and is limited only by your computer memory.
 
 Table layout
 ------------
@@ -42,17 +42,25 @@ Launching dataexplore from the command line allows you to provide several option
 
 ``dataexplore -t``
 
-Import Text Files
+Import text files
 -----------------
 
-Import of csv and general plain text formats is done from the file menu, toolbar or by right-clicking anywhere in the table and using the context menu. The dialog has most basic options such as delimiter, header selection, comment symbol, rows to skip etc. When you change the import option you can update the preview to see if the new table will look correct. You then press import. Note that it is generally a good idea to remove lines and bad data if you can before importing.
+Import of csv and general plain text formats is done from the file menu, toolbar or by right-clicking anywhere in the table and using the context menu. The dialog has most basic options such as delimiter, header selection, comment symbol, rows to skip etc. When you change the import option you can update the preview to see if the new table will look correct. You then press import. Note that it is generally a good idea to remove empty lines and bad data if you can before importing.
 
 Saving data
 -----------
 
 Dataexplore projects (multiple groups of sheets with the plot view for each) are saved in **messagepack** format and have the .dexpl file extension. Tables can also be saved on their own as messagepack or pickle files and then opened directly in Python. Using the messagepack format is more efficient than csv as it takes up less space and loads faster. Though quite reliable and efficient, it is not recommended that you use these formats for long term backup, *always keep a copy your raw data* if it is important. Exporting to csv is also possible and saving individual tables to excel.
 
-Cleaning Data
+Getting table info
+------------------
+
+The status bar at the bottom left shows the size of the table in rows and columns at all times. For a more detailed summary use Tools->Table info. This brings up a window showing the type of each column and memory usage. 'object' columns are those with text/mixed data and float and int must be numbers only.
+
+.. image:: table_info.png
+     :scale: 80%
+
+Cleaning data
 -------------
 
 Pandas supports a variety of options for data 'cleaning' or dealing with missing data. The most basic are available from DataExplore from the main menu.
@@ -66,7 +74,7 @@ Pandas supports a variety of options for data 'cleaning' or dealing with missing
 String operations
 -----------------
 
-Accessed by right clicking on the column header menu. String operations can be carried out on any column as long as they are object data types and not float or integers. You can change the column type in the context menu if needed.
+Accessed by right clicking on the column header menu. String operations can be carried out on any column as long as they are object data types and not pure numbers.
 
 The following string methods are supported:
 
@@ -125,6 +133,11 @@ Examples::
     x = sqrt(a+b)/log(c)
 
 Supported functions in expressions:  sin, cos, tan, arcsin, arccos, arctan, sinh, cosh, tanh, log, log10, exp
+
+Converting column names
+-----------------------
+
+It may sometimes be necessary to re-format column names, for example to remove unwanted characters. If you have dozens or more columns this would be time consuming, so there is a function in dataexplore to do this in one step. Accessed from Tools->Convert column names, this dialog allows you to replace characters e.g. replace spaces with '_' symbol. You can also convert cases.
 
 Resampling columns
 ------------------
