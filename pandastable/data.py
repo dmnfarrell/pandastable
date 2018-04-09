@@ -254,14 +254,10 @@ class TableModel(object):
         self.df.iloc[rows,cols] = np.nan
         return
 
-    def resetIndex(self):
+    def resetIndex(self, drop=False):
         """Reset index behaviour"""
 
         df = self.df
-        if df.index.name != None or df.index.names[0] != None:
-            drop = False
-        else:
-            drop = True
         df.reset_index(drop=drop,inplace=True)
         return
 

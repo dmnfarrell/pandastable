@@ -735,7 +735,6 @@ class PlotViewer(Frame):
             if useindex == False:
                 x=data.columns[0]
                 data.set_index(x,inplace=True)
-                #data=data.sort()
             if len(data.columns) == 0:
                 msg = "Not enough data.\nIf 'use index' is off select at least 2 columns"
                 self.showWarning(msg)
@@ -747,8 +746,12 @@ class PlotViewer(Frame):
             if kind == 'barh':
                 kwargs['xerr']=yerr
                 yerr=None
+
             axs = data.plot(ax=ax, layout=layout, yerr=yerr, style=styles, cmap=cmap,
                              **kwargs)
+            #import matplotlib.ticker as mticker
+            #axs.xaxis.set_major_locator(mticker.MaxNLocator(nbins=5, prune='upper'))
+            #print (axs.xaxis.get_ticklocs())
         return axs
 
     def scatter(self, df, ax, alpha=0.8, marker='o', color=None, **kwds):

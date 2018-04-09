@@ -763,12 +763,19 @@ class Table(Canvas):
     def resetIndex(self):
         """Reset index and redraw row header"""
 
-        self.model.resetIndex()
+        self.storeCurrent()
+        df=self.model.df
+        drop = False
+        if df.index.name is None or df.index.names[0] is None:
+            drop = messagebox.askyesno("Reset Index", "Drop the index?",
+                                      parent=self.parentframe)
+        self.model.df.reset_index(drop=drop, inplace=True)
         self.update_rowcolors()
         self.redraw()
         self.drawSelectedCol()
         if hasattr(self, 'pf'):
             self.pf.updateData()
+        self.tableChanged()
         return
 
     def flattenIndex(self):
