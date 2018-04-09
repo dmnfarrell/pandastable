@@ -1,6 +1,13 @@
 =======
 CHANGES
 =======
+------
+0.9.1
+------
+
+Fix to dropping index when no name
+Added dotplot
+Added axis tick and tick label format options
 
 ------
 0.9.0

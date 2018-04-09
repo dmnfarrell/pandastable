@@ -110,6 +110,14 @@ Pivoting tables
 
 Pivot tables is an operation some people might be familiar with from excel. A pivot might best be described as way of summarizing data by 'unstacking' the grouped data into new columns. It is a more specialized version of the aggregation method above. A comprehensive explanation is given here: https://www.dataquest.io/blog/pandas-pivot-table/
 
+Transpose tables
+----------------
+
+A transpose is rotating the table on its axes so the rows become columns and vice versa. This can be useful for plotting purposes when you want to treat the row data as series. This is illustrated in the animation below where the same table is plotted first with the years as series and then with 'col1' and 'col2' as series and years as data points. Your row index will become the new columns when you transpose, so you should make sure the **correct index is set** beforehand. If you make a mistake you can undo or transpose again to reverse. Note: transposing extremely large tables might be slow.
+
+.. image:: transpose_example.gif
+     :scale: 40%
+
 Filtering tables
 ----------------
 

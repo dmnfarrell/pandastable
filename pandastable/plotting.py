@@ -164,14 +164,14 @@ class PlotViewer(Frame):
         self.nb.add(w1, text='Base Options', sticky='news')
         #reload tkvars again from stored kwds variable
         self.mplopts.updateFromOptions()
-        styleopts = ExtraOptions(parent=self)
+        self.styleopts = ExtraOptions(parent=self)
 
         w3 = self.labelopts.showDialog(self.nb,layout=self.layout)
         self.nb.add(w3, text='Annotation', sticky='news')
         self.labelopts.updateFromOptions()
         w4 = self.layoutopts.showDialog(self.nb,layout=self.layout)
         self.nb.add(w4, text='Grid Layout', sticky='news')
-        w2 = styleopts.showDialog(self.nb)
+        w2 = self.styleopts.showDialog(self.nb)
         self.nb.add(w2, text='Other Options', sticky='news')
         w5 = self.mplopts3d.showDialog(self.nb,layout=self.layout)
         self.nb.add(w5, text='3D Plot', sticky='news')
@@ -224,6 +224,7 @@ class PlotViewer(Frame):
         else:
             self.mplopts.applyOptions()
             self.labelopts.applyOptions()
+            self.styleopts.applyOptions()
 
         mpl.rcParams['savefig.dpi'] = self.dpivar.get()
         self.plotCurrent()
@@ -411,6 +412,7 @@ class PlotViewer(Frame):
                                  'linewidth', 'marker', 'subplots', 'rot', 'kind'],
                     'boxplot': ['rot','grid','logy','colormap','alpha','linewidth','legend',
                                 'subplots','edgecolor','sharex','sharey'],
+                    'dotplot': ['marker','edgecolor','colormap','alpha','legend','ms','bw'],
                     'scatter_matrix':['alpha', 'linewidth', 'marker', 'grid', 's'],
                     'contour': ['linewidth','colormap','alpha'],
                     'imshow': ['colormap','alpha'],
@@ -684,9 +686,11 @@ class PlotViewer(Frame):
             clr = cmap(0.5)
             for patch in axs['boxes']:
                 patch.set_facecolor(clr)
-            #boxplot won't accept required kwargs?
             if kwargs['logy'] == 1:
                 ax.set_yscale('log')
+        elif kind == 'dotplot':
+            axs = self.dotplot(data, ax, kwargs)
+
         elif kind == 'histogram':
             #bins = int(kwargs['bins'])
             axs = data.plot(kind='hist',layout=layout, ax=ax, **kwargs)
@@ -749,10 +753,39 @@ class PlotViewer(Frame):
 
             axs = data.plot(ax=ax, layout=layout, yerr=yerr, style=styles, cmap=cmap,
                              **kwargs)
-            #import matplotlib.ticker as mticker
-            #axs.xaxis.set_major_locator(mticker.MaxNLocator(nbins=5, prune='upper'))
-            #print (axs.xaxis.get_ticklocs())
+            #self._setAxisTickFormat()
         return axs
+
+    def _setAxisTickFormat(self):
+        """Set axis tick format"""
+
+        import matplotlib.ticker as mticker
+        kwds = self.styleopts.kwds
+        print (kwds)
+        ax = self.ax
+        data = self.data
+        xt = kwds['major x-ticks']
+        yt = kwds['major y-ticks']
+        xmt = kwds['minor x-ticks']
+        ymt = kwds['minor y-ticks']
+        #ax.set_xticks(range(min(data.index), max(data.index)))
+        #ax.set_xticklabels(data.index)
+        if xt != 0:
+            ax.xaxis.set_major_locator(mticker.MaxNLocator(nbins=xt))
+        if yt != 0:
+            ax.yaxis.set_major_locator(mticker.MaxNLocator(nbins=yt))
+        if xmt != 0:
+            ax.xaxis.set_minor_locator(mticker.AutoMinorLocator(n=xmt))
+            ax.grid(b=True, which='minor', linestyle='--', linewidth=.5)
+        if ymt != 0:
+            ax.yaxis.set_minor_locator(mticker.AutoMinorLocator(n=ymt))
+            ax.grid(b=True, which='minor', linestyle='--', linewidth=.5)
+        labelformat = kwds['string format']
+        if labelformat == 'percent':
+            ax.xaxis.set_major_formatter(mticker.PercentFormatter())
+        elif labelformat == 'eng':
+            ax.xaxis.set_major_formatter(mticker.EngFormatter(unit=''))
+        return
 
     def scatter(self, df, ax, alpha=0.8, marker='o', color=None, **kwds):
         """A custom scatter plot rather than the pandas one. By default this
@@ -839,6 +872,25 @@ class PlotViewer(Frame):
             ax.legend(cols[1:])
 
         return ax, handles
+
+    def dotplot(self, df, ax, kwds):
+        """Dot plot"""
+
+        axs = df.boxplot(ax=ax, grid=False, return_type='dict')
+        #plt.setp(axs['boxes'], color=None, lw=0)
+        marker = kwds['marker']
+        if marker == '':
+            marker = 'o'
+        cmap = plt.cm.get_cmap(kwds['colormap'])
+        ms = kwds['ms']
+        alpha = kwds['alpha']
+        cols = len(df.columns)
+        for i,d in enumerate(df):
+            clr = cmap(float(i)/cols)
+            y = df[d]
+            x = np.random.normal(i+1, 0.04, len(y))
+            ax.plot(x, y, c=clr, mec='k', ms=ms, marker=marker, alpha=alpha, lw=1, linestyle="None")
+        return ax
 
     def heatmap(self, df, ax, kwds):
         """Plot heatmap"""
@@ -1237,7 +1289,7 @@ class MPLBaseOptions(TkOptions):
 
     markers = ['','o','.','^','v','>','<','s','+','x','p','d','h','*']
     linestyles = ['-','--','-.',':','steps']
-    kinds = ['line', 'scatter', 'bar', 'barh', 'pie', 'histogram', 'boxplot',
+    kinds = ['line', 'scatter', 'bar', 'barh', 'pie', 'histogram', 'boxplot', 'dotplot',
              'heatmap', 'area', 'hexbin', 'contour', 'imshow', 'scatter_matrix', 'density', 'venn']
     defaultfont = 'monospace'
 
@@ -1405,7 +1457,7 @@ class PlotLayoutOptions(TkOptions):
 
         frame = LabelFrame(self.main, text='multi views')
         #v = self.multiviewsvar = BooleanVar()
-        plot_types = ['histogram','line','scatter','boxplot','area','density','bar','barh',
+        plot_types = ['histogram','line','scatter','boxplot','dotplot','area','density','bar','barh',
                       'heatmap','contour','hexbin','imshow']
         Label(frame,text='plot types:').pack(fill=X)
         w,v = addListBox(frame, values=plot_types,width=12,height=8)
@@ -1650,19 +1702,44 @@ class AnnotationOptions(TkOptions):
             self.addTextBox(self.textboxes[key], key)
         return
 
-class ExtraOptions(object):
+class ExtraOptions(TkOptions):
     """Class for additional formatting options like styles"""
     def __init__(self, parent=None):
         """Setup variables"""
 
         self.parent = parent
         self.styles = sorted(plt.style.available)
+        formats = ['auto','percent','eng']
+        self.groups = grps = {'axis tick positions':['major x-ticks','major y-ticks',
+                                                   'minor x-ticks','minor y-ticks'],
+                              'tick label format':['string format','symbol']
+                             }
+        self.groups = OrderedDict(sorted(grps.items()))
+        opts = self.opts = {'major x-ticks':{'type':'entry','default':10},
+                            'major y-ticks':{'type':'entry','default':10},
+                            'minor x-ticks':{'type':'entry','default':10},
+                            'minor y-ticks':{'type':'entry','default':10},
+                            'string format':{'type':'combobox','items':formats,'default':'auto'},
+                            'symbol':{'type':'entry','default':''},
+                            }
+        self.kwds = {}
         return
 
-    def showDialog(self, parent):
+    def showDialog(self, parent, layout='horizontal'):
         """Create dialog widgets"""
 
-        main = Frame(parent)
+        dialog, self.tkvars, self.widgets = dialogFromOptions(parent,
+                                                              self.opts, self.groups,
+                                                              layout=layout)
+        self.main = dialog
+        self.addWidgets()
+        self.setWidgetStyles()
+        return dialog
+
+    def addWidgets(self):
+        """Custom dialogs for manually adding annotation items like text"""
+
+        main = self.main
         frame = LabelFrame(main, text='styles')
         v = self.stylevar = StringVar()
         v.set('ggplot')
