@@ -43,6 +43,37 @@ from .dialogs import *
 from . import util, images
 
 colormaps = sorted(m for m in plt.cm.datad if not m.endswith("_r"))
+#valid kwds for each plot method
+valid_kwds = {'line': ['alpha', 'colormap', 'grid', 'legend', 'linestyle','ms',
+                  'linewidth', 'marker', 'subplots', 'rot', 'logx', 'logy',
+                  'sharex','sharey', 'kind'],
+            'scatter': ['alpha', 'grid', 'linewidth', 'marker', 'subplots', 'ms',
+                    'legend', 'colormap','sharex','sharey', 'logx', 'logy', 'use_index',
+                    'clrcol', 'cscale','colorbar','bw'],
+            'pie': ['colormap','legend'],
+            'hexbin': ['alpha', 'colormap', 'grid', 'linewidth','subplots'],
+            'bootstrap': ['grid'],
+            'bar': ['alpha', 'colormap', 'grid', 'legend', 'linewidth', 'subplots',
+                    'sharex','sharey', 'logy', 'stacked', 'rot', 'kind', 'edgecolor'],
+            'barh': ['alpha', 'colormap', 'grid', 'legend', 'linewidth', 'subplots',
+                    'sharex','sharey','stacked', 'rot', 'kind', 'logx', 'edgecolor'],
+            'histogram': ['alpha', 'linewidth','grid','stacked','subplots','colormap',
+                     'sharex','sharey','rot','bins', 'logx', 'logy', 'legend', 'edgecolor'],
+            'heatmap': ['colormap','colorbar','rot', 'linewidth','linestyle',
+                        'subplots','rot','cscale','bw','alpha'],
+            'area': ['alpha','colormap','grid','linewidth','legend','stacked',
+                     'kind','rot','logx','sharex','sharey','subplots'],
+            'density': ['alpha', 'colormap', 'grid', 'legend', 'linestyle',
+                         'linewidth', 'marker', 'subplots', 'rot', 'kind'],
+            'boxplot': ['rot','grid','logy','colormap','alpha','linewidth','legend',
+                        'subplots','edgecolor','sharex','sharey'],
+            'dotplot': ['marker','edgecolor','linewidth','colormap','alpha','legend',
+                        'ms','bw','logy'],
+            'scatter_matrix':['alpha', 'linewidth', 'marker', 'grid', 's'],
+            'contour': ['linewidth','colormap','alpha'],
+            'imshow': ['colormap','alpha'],
+            'venn': ['colormap','alpha']
+            }
 
 class PlotViewer(Frame):
     """Provides a frame for figure canvas and MPL settings.
@@ -388,36 +419,6 @@ class PlotViewer(Frame):
 
         if not hasattr(self, 'data'):
             return
-        #this is a hack to pass in the right args, needs to be improved
-        valid = {'line': ['alpha', 'colormap', 'grid', 'legend', 'linestyle','ms',
-                          'linewidth', 'marker', 'subplots', 'rot', 'logx', 'logy',
-                          'sharex','sharey', 'kind'],
-                    'scatter': ['alpha', 'grid', 'linewidth', 'marker', 'subplots', 'ms',
-                            'legend', 'colormap','sharex','sharey', 'logx', 'logy', 'use_index',
-                            'clrcol', 'cscale','colorbar','bw'],
-                    'pie': ['colormap','legend'],
-                    'hexbin': ['alpha', 'colormap', 'grid', 'linewidth','subplots'],
-                    'bootstrap': ['grid'],
-                    'bar': ['alpha', 'colormap', 'grid', 'legend', 'linewidth', 'subplots',
-                            'sharex','sharey', 'logy', 'stacked', 'rot', 'kind', 'edgecolor'],
-                    'barh': ['alpha', 'colormap', 'grid', 'legend', 'linewidth', 'subplots',
-                            'sharex','sharey','stacked', 'rot', 'kind', 'logx', 'edgecolor'],
-                    'histogram': ['alpha', 'linewidth','grid','stacked','subplots','colormap',
-                             'sharex','sharey','rot','bins', 'logx', 'logy', 'legend', 'edgecolor'],
-                    'heatmap': ['colormap','colorbar','rot', 'linewidth','linestyle',
-                                'subplots','rot','cscale','bw','alpha'],
-                    'area': ['alpha','colormap','grid','linewidth','legend','stacked',
-                             'kind','rot','logx','sharex','sharey','subplots'],
-                    'density': ['alpha', 'colormap', 'grid', 'legend', 'linestyle',
-                                 'linewidth', 'marker', 'subplots', 'rot', 'kind'],
-                    'boxplot': ['rot','grid','logy','colormap','alpha','linewidth','legend',
-                                'subplots','edgecolor','sharex','sharey'],
-                    'dotplot': ['marker','edgecolor','colormap','alpha','legend','ms','bw'],
-                    'scatter_matrix':['alpha', 'linewidth', 'marker', 'grid', 's'],
-                    'contour': ['linewidth','colormap','alpha'],
-                    'imshow': ['colormap','alpha'],
-                    'venn': ['colormap','alpha']
-                    }
 
         data = self.data
         #get all options from the mpl options object
@@ -436,7 +437,7 @@ class PlotViewer(Frame):
 
         kwds['edgecolor'] = 'black'
         #valid kwd args for this plot type
-        kwargs = dict((k, kwds[k]) for k in valid[kind] if k in kwds)
+        kwargs = dict((k, kwds[k]) for k in valid_kwds[kind] if k in kwds)
         #initialise the figure
         #self._initFigure()
         ax = self.ax
@@ -753,7 +754,7 @@ class PlotViewer(Frame):
 
             axs = data.plot(ax=ax, layout=layout, yerr=yerr, style=styles, cmap=cmap,
                              **kwargs)
-            #self._setAxisTickFormat()
+        self._setAxisTickFormat()
         return axs
 
     def _setAxisTickFormat(self):
@@ -761,15 +762,17 @@ class PlotViewer(Frame):
 
         import matplotlib.ticker as mticker
         kwds = self.styleopts.kwds
-        print (kwds)
         ax = self.ax
         data = self.data
+        cols = list(data.columns)
+        x = data[cols[0]]
         xt = kwds['major x-ticks']
         yt = kwds['major y-ticks']
         xmt = kwds['minor x-ticks']
         ymt = kwds['minor y-ticks']
-        #ax.set_xticks(range(min(data.index), max(data.index)))
-        #ax.set_xticklabels(data.index)
+        symbol = kwds['symbol']
+        places = kwds['precision']
+        dateformat = kwds['date format']
         if xt != 0:
             ax.xaxis.set_major_locator(mticker.MaxNLocator(nbins=xt))
         if yt != 0:
@@ -780,11 +783,17 @@ class PlotViewer(Frame):
         if ymt != 0:
             ax.yaxis.set_minor_locator(mticker.AutoMinorLocator(n=ymt))
             ax.grid(b=True, which='minor', linestyle='--', linewidth=.5)
-        labelformat = kwds['string format']
-        if labelformat == 'percent':
+        formatter = kwds['formatter']
+        if formatter == 'percent':
             ax.xaxis.set_major_formatter(mticker.PercentFormatter())
-        elif labelformat == 'eng':
-            ax.xaxis.set_major_formatter(mticker.EngFormatter(unit=''))
+        elif formatter == 'eng':
+            ax.xaxis.set_major_formatter(mticker.EngFormatter(unit=symbol,places=places))
+        elif formatter == 'sci notation':
+            ax.xaxis.set_major_formatter(mticker.LogFormatterSciNotation())
+        if dateformat != '':
+            print (x.dtype)
+            import matplotlib.dates as mdates
+            ax.xaxis.set_major_formatter(mdates.DateFormatter(dateformat))
         return
 
     def scatter(self, df, ax, alpha=0.8, marker='o', color=None, **kwds):
@@ -876,20 +885,27 @@ class PlotViewer(Frame):
     def dotplot(self, df, ax, kwds):
         """Dot plot"""
 
-        axs = df.boxplot(ax=ax, grid=False, return_type='dict')
-        #plt.setp(axs['boxes'], color=None, lw=0)
         marker = kwds['marker']
         if marker == '':
             marker = 'o'
         cmap = plt.cm.get_cmap(kwds['colormap'])
         ms = kwds['ms']
+        lw = kwds['linewidth']
         alpha = kwds['alpha']
         cols = len(df.columns)
+        axs = df.boxplot(ax=ax, grid=False, return_type='dict')
+        plt.setp(axs['boxes'], color='white')
+        plt.setp(axs['whiskers'], color='white')
+        plt.setp(axs['caps'], color='black', lw=lw)
+        plt.setp(axs['medians'], color='black', lw=lw)
+        np.random.seed(42)
         for i,d in enumerate(df):
             clr = cmap(float(i)/cols)
             y = df[d]
             x = np.random.normal(i+1, 0.04, len(y))
-            ax.plot(x, y, c=clr, mec='k', ms=ms, marker=marker, alpha=alpha, lw=1, linestyle="None")
+            ax.plot(x, y, c=clr, mec='k', ms=ms, marker=marker, alpha=alpha, mew=lw, linestyle="None")
+        if kwds['logy'] == 1:
+            ax.set_yscale('log')
         return ax
 
     def heatmap(self, df, ax, kwds):
@@ -1709,18 +1725,21 @@ class ExtraOptions(TkOptions):
 
         self.parent = parent
         self.styles = sorted(plt.style.available)
-        formats = ['auto','percent','eng']
+        formats = ['auto','percent','eng','sci notation']
+        datefmts = ['','%d','%b %d,''%Y-%m-%d','%d-%m-%Y',"%d-%m-%Y %H:%M"]
         self.groups = grps = {'axis tick positions':['major x-ticks','major y-ticks',
                                                    'minor x-ticks','minor y-ticks'],
-                              'tick label format':['string format','symbol']
+                              'tick label format':['formatter','symbol','precision','date format']
                              }
         self.groups = OrderedDict(sorted(grps.items()))
-        opts = self.opts = {'major x-ticks':{'type':'entry','default':10},
-                            'major y-ticks':{'type':'entry','default':10},
-                            'minor x-ticks':{'type':'entry','default':10},
-                            'minor y-ticks':{'type':'entry','default':10},
-                            'string format':{'type':'combobox','items':formats,'default':'auto'},
+        opts = self.opts = {'major x-ticks':{'type':'entry','default':0},
+                            'major y-ticks':{'type':'entry','default':0},
+                            'minor x-ticks':{'type':'entry','default':0},
+                            'minor y-ticks':{'type':'entry','default':0},
+                            'formatter':{'type':'combobox','items':formats,'default':'auto'},
                             'symbol':{'type':'entry','default':''},
+                            'precision':{'type':'entry','default':0},
+                            'date format':{'type':'combobox','items':datefmts,'default':''},
                             }
         self.kwds = {}
         return
