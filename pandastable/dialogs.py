@@ -644,11 +644,17 @@ class CombineDialog(Frame):
             m = pd.merge(self.df1,self.df2,on=None,suffixes=s, **kwds)
         elif method == 'concat':
             m = pd.concat([self.df1,self.df2], **kwds)
-        #print (m)
+        print (m)
         #if successful ask user to replace table and close
         if len(m) > 0:
             self.getResult(m)
-
+        else:
+            f = self.tbf = Frame(self.main)
+            f.pack(side=LEFT,fill=BOTH)
+            st = ScrolledText(f, bg='white', fg='black')
+            st.pack(in_=f, fill=BOTH, expand=1)
+            msg = 'result is empty, check your columns. column types might differ'
+            st.insert(END, msg)
         return
 
     def getResult(self, df):

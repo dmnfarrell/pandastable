@@ -144,9 +144,10 @@ class PlotViewer(Frame):
         self.ax = self.fig.add_subplot(111)
 
         self.m.add(self.plotfr, weight=2)
-        #frame for others
+        #frame for controls
         self.ctrlfr = Frame(self.main)
         self.m.add(self.ctrlfr)
+        #button frame
         bf = Frame(self.ctrlfr, padding=2)
         bf.pack(side=TOP,fill=BOTH)
         if self.layout == 'vertical':
@@ -165,7 +166,6 @@ class PlotViewer(Frame):
                   'hide plot frame', side=side)
         addButton(bf, 'Vertical', self.refreshLayout, images.tilehorizontal(),
                   'change plot tools orientation', side=side)
-
         addButton(bf, 'Save', self.savePlot, images.save(),
                   'save plot', side=side)
         self.dpivar = IntVar()
@@ -185,7 +185,7 @@ class PlotViewer(Frame):
             sf.pack(side=TOP,fill=BOTH)
             self.nb = Notebook(sf.interior,width=100,height=1050)
         else:
-            self.nb = Notebook(self.ctrlfr,height=195)
+            self.nb = Notebook(self.ctrlfr,height=205)
 
         self.nb.bind('<<NotebookTabChanged>>', self.setMode)
         self.nb.pack(side=TOP,fill=BOTH,expand=0)
@@ -664,6 +664,8 @@ class PlotViewer(Frame):
             yerr = data[data.columns[1::2]]
             data = data[data.columns[0::2]]
             yerr.columns = data.columns
+            plt.rcParams['errorbar.capsize']=4
+            kwargs['elinewidth'] = 1
 
         if kind == 'bar' or kind == 'barh':
             if len(data) > 50:
@@ -1262,7 +1264,7 @@ class TkOptions(object):
         bg = style.lookup('TLabel.label', 'background')
         for i in self.widgets:
             try:
-                self.widgets[i].configure(fg='black', bg=bg,)
+                self.widgets[i].configure(fg='black', bg=bg)
             except:
                 pass
         return
