@@ -27,7 +27,7 @@ try:
 except:
     from Tkinter import *
     from ttk import *
-import types
+import types, time
 import numpy as np
 import pandas as pd
 from pandas.tools import plotting
@@ -99,6 +99,9 @@ class PlotViewer(Frame):
             self.master = self.main
             self.main.title('Plot Viewer')
             self.main.protocol("WM_DELETE_WINDOW", self.quit)
+            g = '800x500+900+300'
+            print(g)
+            self.main.geometry(g)
         self.layout = layout
         if layout == 'horizontal':
             self.orient = VERTICAL
@@ -196,6 +199,7 @@ class PlotViewer(Frame):
         #reload tkvars again from stored kwds variable
         self.mplopts.updateFromOptions()
         self.styleopts = ExtraOptions(parent=self)
+        self.animateopts = AnimateOptions(parent=self)
 
         w3 = self.labelopts.showDialog(self.nb,layout=self.layout)
         self.nb.add(w3, text='Annotation', sticky='news')
@@ -207,6 +211,8 @@ class PlotViewer(Frame):
         w5 = self.mplopts3d.showDialog(self.nb,layout=self.layout)
         self.nb.add(w5, text='3D Plot', sticky='news')
         self.mplopts3d.updateFromOptions()
+        w6 = self.animateopts.showDialog(self.nb,layout=self.layout)
+        self.nb.add(w6, text='Animate', sticky='news')
 
         #w6 = Animator(parent=self)
         #self.nb.add(w6, text='Animator', sticky='news')
@@ -221,6 +227,14 @@ class PlotViewer(Frame):
         from . import handlers
         dr = handlers.DragHandler(self)
         dr.connect()
+        return
+
+    def setOption(self, option, value):
+        widgets = self.mplopts.widgets
+        try:
+            widgets[option].set(value)
+        except:
+            print('no such option %s' %option)
         return
 
     def setMode(self, evt=None):
@@ -1140,8 +1154,8 @@ class PlotViewer(Frame):
         return
 
     def quit(self):
-        #self.main.withdraw()
         self.table.pf = None
+        self.animateopts.stop()
         self.main.destroy()
         return
 
@@ -1539,7 +1553,7 @@ class PlotLayoutOptions(TkOptions):
         return
 
 class PlotLayoutGrid(BaseTable):
-    def __init__(self, parent=None, width=280, height=190, rows=2, cols=2, **kwargs):
+    def __init__(self, parent=None, width=280, height=200, rows=2, cols=2, **kwargs):
         BaseTable.__init__(self, parent, bg='white',
                          width=width, height=height )
         return
@@ -1784,6 +1798,154 @@ class ExtraOptions(TkOptions):
         mpl.rcParams.update(mpl.rcParamsDefault)
         self.parent.style = None
         self.parent.replot()
+        return
+
+class AnimateOptions(TkOptions):
+    """Class for live update/animation of plots."""
+    def __init__(self, parent=None):
+        """Setup variables"""
+
+        self.parent = parent
+        self.groups = grps = {'data window':['increment','window','startrow','delay'],
+                              'display':['expand','tableupdate','smoothing'],
+                              'stream data':['source'],
+                              'save video':['savevideo','codec','fps','filename']
+                             }
+        self.groups = OrderedDict(sorted(grps.items()))
+        codecs = ['default','h264','gif']
+        opts = self.opts = {'increment':{'type':'entry','default':2},
+                            'window':{'type':'entry','default':10},
+                            'startrow':{'type':'entry','default':0,'label':'start row'},
+                            'delay':{'type':'entry','default':.1},
+                            'tableupdate':{'type':'checkbutton','default':0,'label':'update table'},
+                            'expand':{'type':'checkbutton','default':0,'label':'expanding view'},
+                            'smoothing':{'type':'checkbutton','default':0,'label':'smoothing'},
+                            'source':{'type':'entry','default':'','width':20},
+                            'savevideo':{'type':'checkbutton','default':0,'label':'save as video'},
+                            'codec':{'type':'combobox','default':'default','items': codecs},
+                            'fps':{'type':'entry','default':15},
+                            'filename':{'type':'entry','default':'myplot.mp4','width':20},
+                            }
+        self.kwds = {}
+        return
+
+    def showDialog(self, parent, layout='horizontal'):
+        """Create dialog widgets"""
+
+        dialog, self.tkvars, self.widgets = dialogFromOptions(parent,
+                                                              self.opts, self.groups,
+                                                              layout=layout)
+        self.main = dialog
+        self.addWidgets()
+        return dialog
+
+    def addWidgets(self):
+        """Custom dialogs for manually adding annotation items like text"""
+
+        main = self.main
+        frame = LabelFrame(main, text='Run')
+        addButton(frame, 'START', self.start, None,
+                  'apply', side=TOP, compound="left", width=20, padding=2)
+        addButton(frame, 'STOP', self.stop, None,
+                  'reset', side=TOP, compound="left", width=20, padding=2)
+        frame.pack(side=LEFT,fill='y')
+        return main
+
+    def getWriter(self):
+        fps = self.kwds['fps']
+        import matplotlib.animation as manimation
+        FFMpegWriter = manimation.writers['ffmpeg']
+        metadata = dict(title='My Plot', artist='Matplotlib',
+                        comment='Made using DataExplore')
+        writer = FFMpegWriter(fps=fps, metadata=metadata)
+        return writer
+
+    def update(self):
+        """do live updating"""
+
+        self.applyOptions()
+        savevid = self.kwds['savevideo']
+        videofile  = self.kwds['filename']
+        if self.kwds['source'] != '':
+            self.stream()
+        else:
+            if savevid == 1:
+                writer = self.getWriter()
+                with writer.saving(self.parent.fig, videofile, 100):
+                    self.updateCurrent(writer)
+            else:
+                self.updateCurrent()
+        return
+
+    def updateCurrent(self, writer=None):
+        """Iterate over current table and update plot"""
+
+        kwds = self.kwds
+        table = self.parent.table
+
+        #data = table.getPlotData()
+        data = table.model.df
+        inc = kwds['increment']
+        w = kwds['window']
+        st = kwds['startrow']
+        delay = float(kwds['delay'])
+        refresh = kwds['tableupdate']
+        expand = kwds['expand']
+        smooth = kwds['smoothing']
+
+        for i in range(st,len(data),inc):
+            if expand == 1:
+                rows = range(0,i)
+            else:
+                rows = range(i,i+w)
+            table.multiplerowlist = rows
+            if refresh == 1:
+                table.redraw()
+            table.drawMultipleRows(rows)
+            #table.plotSelected()
+            #if smooth == 1:
+            #    new = df.rolling(w).mean()
+            self.parent.replot()
+            time.sleep(delay)
+            if self.stop == True:
+                return
+            if writer is not None:
+                writer.grab_frame()
+        return
+
+    def stream(self):
+        """Stream data into table and plot"""
+
+        import requests, io
+        kwds = self.kwds
+        table = self.parent.table
+        #endpoint = kwds['source']
+        base = "https://api.iextrading.com/1.0/"
+        endpoint = "tops/last"
+        raw = requests.get(base + endpoint)#, params=payload)
+        raw = io.BytesIO(raw.content)
+        print ('got data source')
+        print(raw)
+        df = pd.read_csv(raw, sep=",")
+        print (df)
+        df["time"] = pd.to_datetime(df["time"], unit="ms")
+        df["display_time"] = df["time"].dt.strftime("%m-%d-%Y %H:%M:%S.%f")
+
+        table.model.df = df
+        for i in range(0,100):
+            table.selectAll()
+            self.parent.replot()
+
+        return
+
+    def start(self):
+        from threading import Thread
+        self.stop = False
+        t = Thread(target=self.update)
+        t.start()
+
+    def stop(self):
+        self.stop = True
         return
 
 def addFigure(parent, figure=None, resize_callback=None):

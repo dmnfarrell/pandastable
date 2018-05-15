@@ -2793,6 +2793,7 @@ class Table(Canvas):
 
         data = self.getSelectedDataFrame()
         #data = data.convert_objects(convert_numeric='force')
+        #print (data)
         return data
 
     def plotSelected(self):

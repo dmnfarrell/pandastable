@@ -176,14 +176,13 @@ def addButton(frame, name, callback, img=None, tooltip=None,
     """Add a button with image, toolip to a tkinter frame"""
 
     #style = ttk.Style()
-    #style.configure('TButton', relief='flat', padding=1)
+    #style.configure('TButton', padding=1)
     if img==None:
         b = Button(frame, text=name, command=callback)
     else:
         b = Button(frame, text=name, command=callback, width=width,
                          image=img, compound=compound, padding=padding)
     b.image = img
-
     b.pack(side=side,fill=X,pady=padding)
     if tooltip != None:
         ToolTip.createToolTip(b, tooltip)
@@ -206,7 +205,7 @@ def setWidgetStyles(widgets):
     bg = style.lookup('TLabel.label', 'background')
     for w in widgets:
         try:
-            w.configure(fg='black', bg=bg,)
+            w.configure(fg='black', bg=bg)
         except:
             pass
     return
