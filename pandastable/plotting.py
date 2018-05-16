@@ -100,7 +100,6 @@ class PlotViewer(Frame):
             self.main.title('Plot Viewer')
             self.main.protocol("WM_DELETE_WINDOW", self.quit)
             g = '800x500+900+300'
-            print(g)
             self.main.geometry(g)
         self.layout = layout
         if layout == 'horizontal':
@@ -230,11 +229,14 @@ class PlotViewer(Frame):
         return
 
     def setOption(self, option, value):
-        widgets = self.mplopts.widgets
+        basewidgets = self.mplopts.tkvars
+        labelwidgets = self.labelopts.tkvars
         try:
-            widgets[option].set(value)
+            basewidgets[option].set(value)
         except:
-            print('no such option %s' %option)
+            labelwidgets[option].set(value)
+        finally:
+            pass
         return
 
     def setMode(self, evt=None):
@@ -1806,13 +1808,15 @@ class AnimateOptions(TkOptions):
         """Setup variables"""
 
         self.parent = parent
+        df = self.parent.table.model.df
+        datacols = list(df.columns)
         self.groups = grps = {'data window':['increment','window','startrow','delay'],
-                              'display':['expand','tableupdate','smoothing'],
+                              'display':['expand','tableupdate','smoothing','columntitle'],
                               'stream data':['source'],
-                              'save video':['savevideo','codec','fps','filename']
+                              'record video':['savevideo','codec','fps','filename']
                              }
         self.groups = OrderedDict(sorted(grps.items()))
-        codecs = ['default','h264','gif']
+        codecs = ['default','h264']
         opts = self.opts = {'increment':{'type':'entry','default':2},
                             'window':{'type':'entry','default':10},
                             'startrow':{'type':'entry','default':0,'label':'start row'},
@@ -1820,6 +1824,7 @@ class AnimateOptions(TkOptions):
                             'tableupdate':{'type':'checkbutton','default':0,'label':'update table'},
                             'expand':{'type':'checkbutton','default':0,'label':'expanding view'},
                             'smoothing':{'type':'checkbutton','default':0,'label':'smoothing'},
+                            'columntitle':{'type':'combobox','default':'','items':datacols,'label':'column data as title'},
                             'source':{'type':'entry','default':'','width':20},
                             'savevideo':{'type':'checkbutton','default':0,'label':'save as video'},
                             'codec':{'type':'combobox','default':'default','items': codecs},
@@ -1885,6 +1890,8 @@ class AnimateOptions(TkOptions):
 
         #data = table.getPlotData()
         data = table.model.df
+        cols = table.multiplecollist
+        titledata = None
         inc = kwds['increment']
         w = kwds['window']
         st = kwds['startrow']
@@ -1892,10 +1899,13 @@ class AnimateOptions(TkOptions):
         refresh = kwds['tableupdate']
         expand = kwds['expand']
         smooth = kwds['smoothing']
+        coltitle = kwds['columntitle']
+        if coltitle != '':
+            titledata = data[coltitle]
 
-        for i in range(st,len(data),inc):
+        for i in range(st,len(data)-w,inc):
             if expand == 1:
-                rows = range(0,i)
+                rows = range(st,i+w)
             else:
                 rows = range(i,i+w)
             table.multiplerowlist = rows
@@ -1903,9 +1913,14 @@ class AnimateOptions(TkOptions):
                 table.redraw()
             table.drawMultipleRows(rows)
             #table.plotSelected()
-            #if smooth == 1:
-            #    new = df.rolling(w).mean()
+            if smooth == 1:
+                df = data[cols]#[rows]
+                #new = df.rolling(w).mean()
+                #self.parent.data=new
             self.parent.replot()
+            if titledata is not None:
+                l = titledata.iloc[i]
+                self.parent.setOption('title',l)
             time.sleep(delay)
             if self.stop == True:
                 return
