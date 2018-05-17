@@ -8,6 +8,7 @@ CHANGES
 Fix to dropping index when no name
 Added dotplot
 Added axis tick and tick label format options
+Added plotting animation dialog
 
 ------
 0.9.0

@@ -746,7 +746,7 @@ class AggregateDialog(Frame):
         """Create a set of grp-agg-func options together"""
 
         cols = list(self.df.columns)
-        funcs = ['mean','sum','size','count','std','first','last',
+        funcs = ['mean','median','sum','size','count','std','first','last',
                  'min','max','var']
 
         f = LabelFrame(m, text='group by')
