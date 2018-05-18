@@ -1824,7 +1824,7 @@ class AnimateOptions(TkOptions):
         df = self.parent.table.model.df
         datacols = list(df.columns)
         self.groups = grps = {'data window':['increment','window','startrow','delay'],
-                              'display':['expand','usedatarange','tableupdate','smoothing','columntitle'],
+                              'display':['expand','usexrange','useyrange','tableupdate','smoothing','columntitle'],
                               #'stream data':['source'],
                               'record video':['savevideo','codec','fps','filename']
                              }
@@ -1836,7 +1836,8 @@ class AnimateOptions(TkOptions):
                             'delay':{'type':'entry','default':.05},
                             'tableupdate':{'type':'checkbutton','default':0,'label':'update table'},
                             'expand':{'type':'checkbutton','default':0,'label':'expanding view'},
-                            'usedatarange':{'type':'checkbutton','default':0,'label':'use full data range'},
+                            'usexrange':{'type':'checkbutton','default':0,'label':'use full x range'},
+                            'useyrange':{'type':'checkbutton','default':0,'label':'use full y range'},
                             'smoothing':{'type':'checkbutton','default':0,'label':'smoothing'},
                             'columntitle':{'type':'combobox','default':'','items':datacols,'label':'column data as title'},
                             #'source':{'type':'entry','default':'','width':30},
@@ -1910,7 +1911,8 @@ class AnimateOptions(TkOptions):
         delay = float(kwds['delay'])
         refresh = kwds['tableupdate']
         expand = kwds['expand']
-        fullrange = kwds['usedatarange']
+        fullxrange = kwds['usexrange']
+        fullyrange = kwds['useyrange']
         smooth = kwds['smoothing']
         coltitle = kwds['columntitle']
         if coltitle != '':
@@ -1936,8 +1938,12 @@ class AnimateOptions(TkOptions):
             if titledata is not None:
                 l = titledata.iloc[i]
                 self.parent.setOption('title',l)
-            if fullrange == 1:
+            if fullxrange == 1:
                 self.parent.ax.set_xlim(df.index.min(),df.index.max())
+            if fullyrange == 1:
+                ymin = df.min(numeric_only=True).min()
+                ymax = df.max(numeric_only=True).max()
+                self.parent.ax.set_ylim(ymin,ymax)
             #finally draw the plot
             self.parent.canvas.draw()
 
@@ -1949,6 +1955,7 @@ class AnimateOptions(TkOptions):
                 return
             if writer is not None:
                 writer.grab_frame()
+        self.running = False
         return
 
     def stream(self):
