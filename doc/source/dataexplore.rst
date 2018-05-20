@@ -170,6 +170,15 @@ The gif animation below shows how to use the grid layout tool to generate subplo
 
 Grid layout includes other modes 'split data and ‘multiview’. Split data lets you pick a grid size and splits up the rows into chunks, plotting each separately. The multiview mode allows you to auto-generate different kinds of plot in the grid for the same data every time you plot. This could be useful for quickly previewing regions of data repeatedly without having to set the plot type each time. This will overwrite whatever plot you currently have displayed. The feature is also illustrated in the gif above.
 
+Animated plots
+--------------
+
+Plots can be animated and save as video files using the plot animation options tab. This would mostly be useful for time series based line plots but any kinds of plots can be animated. Formatting can be changed or column selections altered as the plot is updating, leading to some odd plot displays.
+
+see http://dmnfarrell.github.io/dataexplore/2018/05/15/animation
+
+
+
 Table Coloring
 --------------
 

@@ -459,7 +459,7 @@ class PlotViewer(Frame):
         errorbars = kwds['errorbars']
         useindex = kwds['use_index']
         bw = kwds['bw']
-
+        #loc = kwds['loc']
         if self._checkNumeric(data) == False and kind != 'venn':
             self.showWarning('no numeric data to plot')
             return
@@ -510,7 +510,7 @@ class PlotViewer(Frame):
                     self.autoscale()
                 if kwargs['sharex'] == True:
                     self.autoscale('x')
-                self.fig.legend(handles, labels, loc = 'center right', #bbox_to_anchor=(0.9, 0),
+                self.fig.legend(handles, labels, loc='center right', #bbox_to_anchor=(0.9, 0),
                                  bbox_transform=self.fig.transFigure )
                 axs = self.fig.get_axes()
 
@@ -763,7 +763,7 @@ class PlotViewer(Frame):
             axs = data.plot(ax=ax,kind='pie', labels=lbls, layout=layout,
                             autopct='%1.1f%%', subplots=True, **kwargs)
             if lbls == None:
-                axs[0].legend(labels=data.index)
+                axs[0].legend(labels=data.index, loc='best')
         elif kind == 'venn':
             axs = self.venn(data, ax, **kwargs)
         else:
@@ -1338,6 +1338,8 @@ class MPLBaseOptions(TkOptions):
     linestyles = ['-','--','-.',':','steps']
     kinds = ['line', 'scatter', 'bar', 'barh', 'pie', 'histogram', 'boxplot', 'dotplot',
              'heatmap', 'area', 'hexbin', 'contour', 'imshow', 'scatter_matrix', 'density', 'venn']
+    legendlocs = ['best','upper right','upper left','lower left','lower right','right','center left',
+                'center right','lower center','upper center','center']
     defaultfont = 'monospace'
 
     def __init__(self, parent=None):
@@ -1378,6 +1380,7 @@ class MPLBaseOptions(TkOptions):
                 'sharey':{'type':'checkbutton','default':0,'label':'share y'},
                 'legend':{'type':'checkbutton','default':1,'label':'legend'},
                 'table':{'type':'checkbutton','default':0,'label':'show table'},
+                #'loc':{'type':'combobox','default':'best','items':self.legendlocs,'label':'legend loc'},
                 'kind':{'type':'combobox','default':'line','items':self.kinds,'label':'plot type'},
                 'stacked':{'type':'checkbutton','default':0,'label':'stacked'},
                 'linewidth':{'type':'scale','default':1.5,'range':(0,10),'interval':0.1,'label':'line width'},
