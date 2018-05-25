@@ -470,7 +470,6 @@ class PlotViewer(Frame):
         #initialise the figure
         #self._initFigure()
         ax = self.ax
-        #print (kwargs)
 
         if by != '':
             #groupby needs to be handled per group so we can create the axes
@@ -1174,92 +1173,6 @@ class PlotViewer(Frame):
         self.main.destroy()
         return
 
-class Animator(Frame):
-
-    def __init__(self, parent):
-        Frame.__init__(self, parent)
-        Frame.__init__(self)
-        self.parent = parent
-        self.main = self
-        self.parent = parent
-        self.setup()
-        return
-
-    def setup(self):
-
-        frame = LabelFrame(self.main, text='options')
-
-        addButton(frame, 'Test', self.updatePlot, None,
-                  'test', side=TOP, compound="left", width=20, pady=2)
-        addButton(frame, 'Animate', self.animate, None,
-                  'animate', side=TOP, compound="left", width=20, pady=2)
-        addButton(frame, 'Save', self.save, None,
-                  'save', side=TOP, compound="left", width=20, pady=2)
-        frame.pack(side=LEFT,fill='y')
-        return
-
-    def updatePlot(self):
-        """update the current plot using data window settings"""
-
-        canvas = self.parent.canvas
-        table = self.parent.table
-        df = table.model.df
-        w = 20
-        inc = 10
-        for i in range(0,len(df),inc):
-            print (i)
-            data = df.iloc[i:i+w]
-            #print (data)
-            self.parent.data = data
-            self.parent.plotCurrent()
-            #canvas.draw()
-        return
-
-    def animate(self):
-        """Animate a function"""
-
-        import matplotlib.animation as animation
-        df = self.parent.table.model.df
-        canvas = self.parent.canvas
-
-        def update_line(num, data, line):
-            print (num)
-            line.set_data(data[..., :num])
-            return line,
-
-        fig = self.parent.fig
-        data = np.random.rand(2, 55)
-        ax = self.parent.ax
-        if ax==None:
-            ax=fig.add_subplot(111)
-        ax.clear()
-        ax.set_xlim(0, 1)
-        ax.set_ylim(0, 1)
-        x = np.arange(0, 2*np.pi, 0.01)
-        l, = ax.plot([], [], 'b-', )
-        ani = animation.FuncAnimation(fig, update_line, 55,
-                                      fargs=(data, l), repeat=False,
-                                      interval=50, blit=True)
-        canvas.draw()
-        self.ani = ani
-        return
-
-    def run(data, ax):
-        """update the data"""
-        t,y = data
-        xdata.append(t)
-        ydata.append(y)
-        xmin, xmax = ax.get_xlim()
-        if t >= xmax:
-            ax.set_xlim(xmin, 2*xmax)
-            ax.figure.canvas.draw()
-        line.set_data(xdata, ydata)
-        return line,
-
-    def save(self):
-        self.ani.save('test.mp4')
-        return
-
 class TkOptions(object):
     """Class to generate tkinter widget dialog for dict of options"""
     def __init__(self, parent=None):
@@ -1954,7 +1867,7 @@ class AnimateOptions(TkOptions):
             if refresh == 1:
                 table.drawMultipleRows(rows)
             time.sleep(delay)
-            if self.stop == True:
+            if self.stopthread == True:
                 return
             if writer is not None:
                 writer.grab_frame()
@@ -1981,22 +1894,28 @@ class AnimateOptions(TkOptions):
         for i in range(0,100):
             table.selectAll()
             self.parent.replot()
-
         return
 
     def start(self):
+        """start animation using a thread"""
+
         if self.running == True:
             return
         from threading import Thread
-        self.stop = False
+        self.stopthread = False
         self.running = True
         t = Thread(target=self.update)
         t.start()
+        self.thread = t
         return
 
     def stop(self):
-        self.stop = True
+        """Stop animation loop"""
+
+        self.stopthread = True
         self.running = False
+        time.sleep(.2)
+        self.parent.update_idletasks()
         return
 
 def addFigure(parent, figure=None, resize_callback=None):

@@ -122,6 +122,7 @@ class Table(Canvas):
         self.cols = self.model.getColumnCount()
         self.tablewidth = (self.cellwidth)*self.cols
         self.doBindings()
+        self.parentframe.bind("<Destroy>", self.close)
 
         #column specific actions, define for every column type in the model
         #when you add a column type you should edit this dict
@@ -131,6 +132,11 @@ class Table(Canvas):
         self.plotted = False
         self.importpath = None
         self.prevdf = None
+        return
+
+    def close(self, evt=None):
+        if hasattr(self, 'pf'):
+            self.pf.quit()
         return
 
     def set_defaults(self):
@@ -2806,10 +2812,10 @@ class Table(Canvas):
                 self.pf.main.deiconify()
         #plot could be hidden
         self.showPlot()
-        #data = self.getPlotData()
-        #self.pf.data = data
+        #update reference to table
         self.pf.table = self
-        self.pf.replot() #calls getPlotData on the table
+        #call plot, updates plot data with current selection
+        self.pf.replot()
         if hasattr(self, 'parenttable'):
             self.parenttable.plotted = 'child'
         else:
