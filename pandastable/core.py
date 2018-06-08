@@ -135,7 +135,9 @@ class Table(Canvas):
         return
 
     def close(self, evt=None):
-        if hasattr(self, 'pf'):
+        if hasattr(self, 'parenttable'):
+            return
+        if hasattr(self, 'pf') and self.pf is not None:
             self.pf.quit()
         return
 

@@ -421,7 +421,7 @@ class ImportDialog(Frame):
         self.main.grab_set()
         self.main.transient(parent)
 
-        delimiters = [',','\t',' ',';','/','&','|','^','+','-']
+        delimiters = [',',r'\t',' ',';','/','&','|','^','+','-']
         encodings = ['utf-8','ascii','iso8859_15','cp037','cp1252','big5','euc_jp']
         grps = {'formats':['delimiter','decimal','comment'],
                 'data':['header','skiprows','index_col','skipinitialspace',

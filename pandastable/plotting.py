@@ -49,7 +49,7 @@ valid_kwds = {'line': ['alpha', 'colormap', 'grid', 'legend', 'linestyle','ms',
                   'sharex','sharey', 'kind'],
             'scatter': ['alpha', 'grid', 'linewidth', 'marker', 'subplots', 'ms',
                     'legend', 'colormap','sharex','sharey', 'logx', 'logy', 'use_index',
-                    'clrcol', 'cscale','colorbar','bw'],
+                    'clrcol', 'cscale','colorbar','bw','labelcol'],
             'pie': ['colormap','legend'],
             'hexbin': ['alpha', 'colormap', 'grid', 'linewidth','subplots'],
             'bootstrap': ['grid'],
@@ -187,7 +187,7 @@ class PlotViewer(Frame):
             sf.pack(side=TOP,fill=BOTH)
             self.nb = Notebook(sf.interior,width=100,height=1050)
         else:
-            self.nb = Notebook(self.ctrlfr,height=205)
+            self.nb = Notebook(self.ctrlfr,height=210)
 
         self.nb.bind('<<NotebookTabChanged>>', self.setMode)
         self.nb.pack(side=TOP,fill=BOTH,expand=0)
@@ -453,13 +453,12 @@ class PlotViewer(Frame):
         #get all options from the mpl options object
         kwds = self.mplopts.kwds
         kind = kwds['kind']
-        table = kwds['table']
         by = kwds['by']
         by2 = kwds['by2']
         errorbars = kwds['errorbars']
         useindex = kwds['use_index']
         bw = kwds['bw']
-        #loc = kwds['loc']
+        #print (kwds)
         if self._checkNumeric(data) == False and kind != 'venn':
             self.showWarning('no numeric data to plot')
             return
@@ -564,17 +563,21 @@ class PlotViewer(Frame):
             except Exception as e:
                 self.showWarning(e)
                 return
-        if table == True:
-            from pandas.tools.plotting import table
-            if self.table.child != None:
-                tabledata = self.table.child.model.df
-                table(axs, np.round(tabledata, 2),
-                      loc='upper right', colWidths=[0.1 for i in tabledata.columns])
 
         #set options general for all plot types
         #annotation optons are separate
         lkwds = self.labelopts.kwds.copy()
         lkwds.update(kwds)
+
+        table = lkwds['table']
+        if table == True:
+            #from pandas.tools.plotting import table
+            from pandas.plotting import table
+            if self.table.child != None:
+                tabledata = self.table.child.model.df
+                table(axs, np.round(tabledata, 2),
+                      loc='upper left', colWidths=[0.1 for i in tabledata.columns])
+
         self.setFigureOptions(axs, lkwds)
         scf = 12/kwds['fontsize']
         try:
@@ -830,10 +833,10 @@ class PlotViewer(Frame):
         """A custom scatter plot rather than the pandas one. By default this
         plots the first column selected versus the others"""
 
-        #print (kwds)
         if len(df.columns)<2:
             return
-        df = df._get_numeric_data()
+        data = df
+        df = df.copy()._get_numeric_data()
         cols = list(df.columns)
         x = df[cols[0]]
         s=1
@@ -870,6 +873,8 @@ class PlotViewer(Frame):
             colormap = None
             c=None
 
+        #print (kwds)
+        labelcol = kwds['labelcol']
         handles = []
         for i in range(s,plots):
             y = df[cols[i]]
@@ -907,6 +912,16 @@ class PlotViewer(Frame):
                 ax.set_title(cols[i])
             if colormap is not None and kwds['colorbar'] == True:
                 self.fig.colorbar(scplt, ax=ax)
+
+            if labelcol != '':
+                if not labelcol in data.columns or len(data)>3000:
+                    self.showWarning('label column %s not in selected data' %labelcol)
+                else:
+                    for i, r in data.iterrows():
+                        txt = r[labelcol]
+                        ax.annotate(txt, (x[i],y[i]), xycoords='data',
+                                    xytext=(5, 5), textcoords='offset points',)
+
         if kwds['legend'] == 1 and kwds['subplots'] == 0:
             ax.legend(cols[1:])
 
@@ -1264,10 +1279,10 @@ class MPLBaseOptions(TkOptions):
         datacols.insert(0,'')
         fonts = util.getFonts()
         scales = ['linear','log']
-        grps = {'data':['bins','by','by2','use_index','errorbars'],
+        grps = {'data':['bins','by','by2','labelcol'],
                 'formats':['font','marker','linestyle','alpha'],
                 'sizes':['fontsize','ms','linewidth'],
-                'general':['kind','stacked','subplots','grid','legend','table'],
+                'general':['kind','stacked','subplots','grid','legend','use_index','errorbars'],
                 'axes':['showxlabels','showylabels','sharex','sharey','logx','logy','rot'],
                 'colors':['colormap','bw','clrcol','cscale','colorbar']}
         order = ['general','data','axes','sizes','formats','colors']
@@ -1292,7 +1307,6 @@ class MPLBaseOptions(TkOptions):
                 'sharex':{'type':'checkbutton','default':0,'label':'share x'},
                 'sharey':{'type':'checkbutton','default':0,'label':'share y'},
                 'legend':{'type':'checkbutton','default':1,'label':'legend'},
-                'table':{'type':'checkbutton','default':0,'label':'show table'},
                 #'loc':{'type':'combobox','default':'best','items':self.legendlocs,'label':'legend loc'},
                 'kind':{'type':'combobox','default':'line','items':self.kinds,'label':'plot type'},
                 'stacked':{'type':'checkbutton','default':0,'label':'stacked'},
@@ -1302,7 +1316,8 @@ class MPLBaseOptions(TkOptions):
                 'colormap':{'type':'combobox','default':'Spectral','items':colormaps},
                 'bins':{'type':'entry','default':20,'width':10},
                 'by':{'type':'combobox','items':datacols,'label':'group by','default':''},
-                'by2':{'type':'combobox','items':datacols,'label':'group by 2','default':''}
+                'by2':{'type':'combobox','items':datacols,'label':'group by 2','default':''},
+                'labelcol':{'type':'combobox','items':datacols,'label':'label column','default':''},
                 }
         self.kwds = {}
         return
@@ -1323,9 +1338,11 @@ class MPLBaseOptions(TkOptions):
             cols = list(df.columns.get_level_values(0))
         else:
             cols = list(df.columns)
-        cols += ''
+        #add empty value
+        cols = ['']+cols
         self.widgets['by']['values'] = cols
         self.widgets['by2']['values'] = cols
+        self.widgets['labelcol']['values'] = cols
         self.widgets['clrcol']['values'] = cols
         return
 
@@ -1484,7 +1501,7 @@ class PlotLayoutOptions(TkOptions):
         return
 
 class PlotLayoutGrid(BaseTable):
-    def __init__(self, parent=None, width=280, height=200, rows=2, cols=2, **kwargs):
+    def __init__(self, parent=None, width=280, height=205, rows=2, cols=2, **kwargs):
         BaseTable.__init__(self, parent, bg='white',
                          width=width, height=height )
         return
@@ -1509,7 +1526,7 @@ class AnnotationOptions(TkOptions):
         alignments = ['left','center','right']
 
         self.parent = parent
-        self.groups = grps = {'global labels':['title','xlabel','ylabel','zlabel'],
+        self.groups = grps = {'global labels':['title','xlabel','ylabel','table'],
                               'textbox': ['boxstyle','facecolor','linecolor','rotate'],
                               'textbox format': ['fontsize','font','fontweight','align'],
                               'text to add': ['text']
@@ -1519,7 +1536,7 @@ class AnnotationOptions(TkOptions):
                 'title':{'type':'entry','default':'','width':20},
                 'xlabel':{'type':'entry','default':'','width':20},
                 'ylabel':{'type':'entry','default':'','width':20},
-                'zlabel':{'type':'entry','default':'','width':20},
+                'table':{'type':'checkbutton','default':0,'label':'show table'},
                 'facecolor':{'type':'combobox','default':'white','items': colors},
                 'linecolor':{'type':'combobox','default':'black','items': colors},
                 'fill':{'type':'combobox','default':'-','items': fillpatterns},
