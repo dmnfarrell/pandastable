@@ -2470,9 +2470,15 @@ class Table(Canvas):
     def convertNumeric(self):
         """Convert cols to numeric if possible"""
 
+        cols = self.multiplecollist
         df = self.model.df
-        self.model.df = df.convert_objects(convert_numeric='force')
+        colnames = df.columns[cols]
+        for c in colnames:
+            self.model.df[c] = pd.to_numeric(df[c], errors='coerce').astype('float')
+
+        #self.model.df = df.convert_objects(), convert_numeric='force')
         self.redraw()
+        self.tableChanged()
         return
 
     def corrMatrix(self):

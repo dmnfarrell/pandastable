@@ -398,13 +398,13 @@ class ColumnHeader(Canvas):
         name = df.columns[col]
         new = simpledialog.askstring("New column name?", "Enter new name:",
                                      initialvalue=name)
-        if new !=None:
+        if new != None:
             if new == '':
                 messagebox.showwarning("Error", "Name should not be blank.")
                 return
             else:
-
                 df.rename(columns={df.columns[col]: new}, inplace=True)
+                self.table.tableChanged()
                 self.redraw()
         return
 

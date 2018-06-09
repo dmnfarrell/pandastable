@@ -68,12 +68,20 @@ valid_kwds = {'line': ['alpha', 'colormap', 'grid', 'legend', 'linestyle','ms',
             'boxplot': ['rot','grid','logy','colormap','alpha','linewidth','legend',
                         'subplots','edgecolor','sharex','sharey'],
             'dotplot': ['marker','edgecolor','linewidth','colormap','alpha','legend',
-                        'ms','bw','logy'],
+                        'subplots','ms','bw','logy','sharex','sharey'],
             'scatter_matrix':['alpha', 'linewidth', 'marker', 'grid', 's'],
             'contour': ['linewidth','colormap','alpha'],
             'imshow': ['colormap','alpha'],
             'venn': ['colormap','alpha']
             }
+
+def get_defaults(name):
+    if name == 'mplopts':
+        return MPLBaseOptions().opts
+    elif name == 'mplopts3d':
+        return MPL3DOptions().opts
+    elif name == 'labelopts':
+        return AnnotationOptions().opts
 
 class PlotViewer(Frame):
     """Provides a frame for figure canvas and MPL settings.
@@ -914,11 +922,13 @@ class PlotViewer(Frame):
                 self.fig.colorbar(scplt, ax=ax)
 
             if labelcol != '':
-                if not labelcol in data.columns or len(data)>3000:
+                if not labelcol in data.columns:
                     self.showWarning('label column %s not in selected data' %labelcol)
-                else:
+                elif len(data)<1500:
                     for i, r in data.iterrows():
                         txt = r[labelcol]
+                        if pd.isnull(txt) is True:
+                            continue
                         ax.annotate(txt, (x[i],y[i]), xycoords='data',
                                     xytext=(5, 5), textcoords='offset points',)
 
@@ -1274,9 +1284,12 @@ class MPLBaseOptions(TkOptions):
         """Setup variables"""
 
         self.parent = parent
-        df = self.parent.table.model.df
-        datacols = list(df.columns)
-        datacols.insert(0,'')
+        if self.parent is not None:
+            df = self.parent.table.model.df
+            datacols = list(df.columns)
+            datacols.insert(0,'')
+        else:
+            datacols=[]
         fonts = util.getFonts()
         scales = ['linear','log']
         grps = {'data':['bins','by','by2','labelcol'],
@@ -1356,9 +1369,12 @@ class MPL3DOptions(MPLBaseOptions):
         """Setup variables"""
 
         self.parent = parent
-        df = self.parent.table.model.df
-        datacols = list(df.columns)
-        datacols.insert(0,'')
+        if self.parent is not None:
+            df = self.parent.table.model.df
+            datacols = list(df.columns)
+            datacols.insert(0,'')
+        else:
+            datacols=[]
         fonts = util.getFonts()
         modes = ['parametric','(x,y)->z']
         self.groups = grps = {'formats':['kind','mode','rstride','cstride','points'],

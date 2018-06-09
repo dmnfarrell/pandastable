@@ -12,6 +12,7 @@ Added plotting animation dialog
 Added abaility to label of points in scatter plots
 Fix to plot frame closing bug
 Added empty column selection for groupby option
+Fixes to copy/paste and saving projects in snap
 
 ------
 0.9.0

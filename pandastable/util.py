@@ -79,7 +79,7 @@ def setAttributes(obj, data):
     """Set attributes from a dict. Used for restoring settings in tables"""
 
     for key in data:
-        #if key.startswith('_'): continue
+        #print (key)
         obj.__dict__[key] = data[key]
     return
 

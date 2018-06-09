@@ -42,7 +42,7 @@ import re, os, platform, time
 from .core import Table
 from .data import TableModel
 from .prefs import Preferences
-from . import images, util, dialogs
+from . import images, util, dialogs, plotting
 from .dialogs import MultipleValDialog
 from . import plugin
 from .preferences import Prefs
@@ -80,8 +80,8 @@ class DataExplore(Frame):
         # Get platform into a variable
         self.currplatform = platform.system()
         self.setConfigDir()
-        if not hasattr(self,'defaultsavedir'):
-            self.defaultsavedir = os.getcwd()
+        #if not hasattr(self,'defaultsavedir'):
+        self.defaultsavedir = os.path.join(os.path.expanduser('~'))
 
         self.main.title('DataExplore')
         self.createMenuBar()
@@ -372,6 +372,12 @@ class DataExplore(Frame):
         for m in opts:
             if m in meta:
                 util.setAttributes(opts[m], meta[m])
+                #check options loaded for missing values
+                #avoids breaking file saves when options changed
+                defaults = plotting.get_defaults(m)
+                for key in defaults:
+                    if key not in opts[m].opts:
+                        opts[m].opts[key] = defaults[key]
                 opts[m].updateFromOptions()
 
         #load table settings
@@ -450,9 +456,10 @@ class DataExplore(Frame):
             w = self.closeProject()
         if w == None:
             return
+
         if filename == None:
             filename = filedialog.askopenfilename(defaultextension='.dexpl"',
-                                                    initialdir=os.getcwd(),
+                                                    initialdir=self.defaultsavedir,
                                                     filetypes=[("project","*.dexpl"),
                                                                ("All files","*.*")],
                                                     parent=self.main)
@@ -479,6 +486,7 @@ class DataExplore(Frame):
         self.filename = filename
         self.main.title('%s - DataExplore' %filename)
         self.projopen = True
+        self.defaultsavedir = os.path.dirname(os.path.abspath(filename))
         return
 
     def saveProject(self, filename=None):
@@ -502,6 +510,7 @@ class DataExplore(Frame):
         if not filename:
             return
         self.filename=filename
+        self.defaultsavedir = os.path.dirname(os.path.abspath(filename))
         self.doSaveProject(self.filename)
         return
 
