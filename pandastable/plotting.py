@@ -795,8 +795,26 @@ class PlotViewer(Frame):
 
             axs = data.plot(ax=ax, layout=layout, yerr=yerr, style=styles, cmap=cmap,
                              **kwargs)
+        self._setAxisRanges()
         self._setAxisTickFormat()
         return axs
+
+    def _setAxisRanges(self):
+        kwds = self.styleopts.kwds
+        ax = self.ax
+        try:
+            xmin=float(kwds['xmin'])
+            xmax=float(kwds['xmax'])
+            ax.set_xlim((xmin,xmax))
+        except:
+            pass
+        try:
+            ymin=float(kwds['ymin'])
+            ymax=float(kwds['ymax'])
+            ax.set_ylim((ymin,ymax))
+        except:
+            pass
+        return
 
     def _setAxisTickFormat(self):
         """Set axis tick format"""
@@ -1707,12 +1725,17 @@ class ExtraOptions(TkOptions):
         self.styles = sorted(plt.style.available)
         formats = ['auto','percent','eng','sci notation']
         datefmts = ['','%d','%b %d,''%Y-%m-%d','%d-%m-%Y',"%d-%m-%Y %H:%M"]
-        self.groups = grps = {'axis tick positions':['major x-ticks','major y-ticks',
+        self.groups = grps = {'axis ranges':['xmin','xmax','ymin','ymax'],
+                              'axis tick positions':['major x-ticks','major y-ticks',
                                                    'minor x-ticks','minor y-ticks'],
                               'tick label format':['formatter','symbol','precision','date format']
                              }
         self.groups = OrderedDict(sorted(grps.items()))
-        opts = self.opts = {'major x-ticks':{'type':'entry','default':0},
+        opts = self.opts = {'xmin':{'type':'entry','default':'','label':'x min'},
+                            'xmax':{'type':'entry','default':'','label':'x max'},
+                            'ymin':{'type':'entry','default':'','label':'y min'},
+                            'ymax':{'type':'entry','default':'','label':'y max'},
+                            'major x-ticks':{'type':'entry','default':0},
                             'major y-ticks':{'type':'entry','default':0},
                             'minor x-ticks':{'type':'entry','default':0},
                             'minor y-ticks':{'type':'entry','default':0},

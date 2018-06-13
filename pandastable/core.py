@@ -1049,7 +1049,6 @@ class Table(Canvas):
         model = TableModel(pd.DataFrame())
         self.updateModel(model)
         self.redraw()
-        self.tableChanged()
         return
 
     def fillColumn(self):
@@ -3410,6 +3409,7 @@ class Table(Canvas):
         self.tablewidth = (self.cellwidth)*self.cols
         self.tablecolheader.model = model
         self.rowheader.model = model
+        self.tableChanged()
         #if hasattr(self, 'tablecolheader'):
             #self.tablecolheader.destroy()
             #self.rowheader.destroy()

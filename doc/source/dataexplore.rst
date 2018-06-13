@@ -158,32 +158,33 @@ Resampling is a way to average data over specific windows or periods. It is a po
 Plot options
 ------------
 
-The plot frame has an options dialog underneath with multiple tabs grouped by functionality. Most default formatting options such as the type of plot, whether to show a legend etc. are in the first tab. The dialogs may look a bit cluttered for some users but the idea is to have all available options quickly accessible rather than hidden in menus. If you use the program regularly you will be familiar with where things are. Some of the less obvious options are explained below.
+The plot frame has an options dialog underneath with multiple tabs grouped by functionality. Most default formatting options such as the type of plot, whether to show a legend etc. are in the first tab. The dialogs may look a bit cluttered for some users but the idea is to have all available options quickly accessible rather than hidden in menus. If you use the program regularly you will be familiar with where things are. Some of the less obvious options are explained in the image below.
 
 .. image:: plot_options.png
-      :scale: 60 %
 
 The following plot types are currently supported:
 
-line
-scatter
-bar
-barh
-pie
-histogram
-box plot
-dot plot
-heatmap
-area
-hexbin
-contour
-scatter matrix
-venn
+* line
+* scatter
+* bar
+* barh
+* pie
+* histogram
+* box plot
+* dot plot
+* heatmap
+* area
+* hexbin
+* contour
+* scatter matrix
+* venn
+
+Other tabs contain options for grid layouts, text annotation such as titles and text boxes, and access to the plot animation settings.
 
 Plotting grouped data
 ---------------------
 
-Rather than grouping the table directly it is also possible to plot data grouped. This requires you select the appropriate columsn including the one to be grouped by and select the grouping column in the 'groupby' menu in the plot options. Plots can be grouped by 2 columns at once.
+Rather than grouping the table directly it is also possible to plot data grouped. This requires you select the appropriate columns including the one to be grouped by and select the grouping column in the 'groupby' menu in the plot options. Plots can be grouped by 2 columns at once.
 
 Plotting in a grid
 ------------------
