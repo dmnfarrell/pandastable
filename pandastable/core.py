@@ -1596,6 +1596,24 @@ class Table(Canvas):
             idx = df.ix[mask].index
         return self.getRowsFromIndex(idx)
 
+    def findText(self):
+        """Simple text search in whole table"""
+
+        search = simpledialog.askstring("Text Search",
+                                      "Text:",initialvalue='',
+                                       parent=self.parentframe)
+        if search is None:
+            return
+        df = self.model.df
+        mask = df.apply(lambda row: row.astype(str).str.contains(search).any(), axis=1)
+        found = df[mask]
+        #print (len(found))
+        idx = found.index
+        rows = self.multiplerowlist = self.getRowsFromIndex(idx)
+        #print (len(rows))
+        self.redraw()
+        return
+
     def query(self, evt=None):
         """Do query"""
 

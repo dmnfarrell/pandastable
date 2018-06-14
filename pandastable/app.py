@@ -170,7 +170,8 @@ class DataExplore(Frame):
 
         self.edit_menu={'01Undo Last Change':{'cmd': self.undo},
                         '02Copy Table':{'cmd': self.copyTable},
-                        '03Table Preferences':{'cmd': self.currentTablePrefs},
+                        '03Find in Table':{'cmd':self.findText},
+                        '04Table Preferences':{'cmd': self.currentTablePrefs},
                         }
         self.edit_menu = self.createPulldown(self.menu,self.edit_menu)
         self.menu.add_cascade(label='Edit',menu=self.edit_menu['var'])
@@ -772,6 +773,12 @@ class DataExplore(Frame):
         df = table.model.df
         d = df.describe()
         table.createChildTable(d,index=True)
+        return
+
+    def findText(self):
+
+        table = self.getCurrentTable()
+        table.findText()
         return
 
     def concat(self):
