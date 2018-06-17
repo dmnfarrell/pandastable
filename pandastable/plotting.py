@@ -449,6 +449,16 @@ class PlotViewer(Frame):
         self.canvas.draw()
         return
 
+    def checkColumnNames(self, cols):
+        """Check length of column names"""
+
+        from textwrap import fill
+        try:
+            cols = [fill(l, 25) for l in cols]
+        except:
+            pass
+        return cols
+
     def plot2D(self, redraw=True):
         """Plot method for current data. Relies on pandas plot functionality
            if possible. There is some temporary code here to make sure only the valid
@@ -458,6 +468,8 @@ class PlotViewer(Frame):
             return
 
         data = self.data
+        data.columns = self.checkColumnNames(data.columns)
+
         #get all options from the mpl options object
         kwds = self.mplopts.kwds
         kind = kwds['kind']

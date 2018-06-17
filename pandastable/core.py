@@ -423,7 +423,6 @@ class Table(Canvas):
         rows = self.visiblerows
         for col in self.visiblecols:
             coldata = df.iloc[rows,col]
-            #print (col, coldata.dtype)
             colname = df.columns[col]
             cfa = self.columnformats['alignment']
             if colname in cfa:
@@ -654,15 +653,20 @@ class Table(Canvas):
         self.redraw()
         return
 
-    def adjustColumnWidths(self):
+    def adjustColumnWidths(self, limit=30):
         """Optimally adjust col widths to accomodate the longest entry
-            in each column - usually only called on first redraw"""
+            in each column - usually only called on first redraw.
+        Args:
+            limit: don't resize for large number of columns
+            """
 
         try:
             fontsize = self.thefont[1]
         except:
             fontsize = self.fontsize
         scale = self.getScale()
+        if self.cols > 30:
+            return
         for col in range(self.cols):
             colname = self.model.getColumnName(col)
             if colname in self.model.columnwidths:
@@ -1599,19 +1603,17 @@ class Table(Canvas):
     def findText(self):
         """Simple text search in whole table"""
 
-        search = simpledialog.askstring("Text Search",
-                                      "Text:",initialvalue='',
-                                       parent=self.parentframe)
-        if search is None:
+        if hasattr(self, 'qframe') and self.qframe != None:
             return
-        df = self.model.df
+        self.searchframe = FindReplaceDialog(self)
+        self.searchframe.grid(row=self.queryrow,column=0,columnspan=3,sticky='news')
+
+        '''
         mask = df.apply(lambda row: row.astype(str).str.contains(search).any(), axis=1)
         found = df[mask]
         #print (len(found))
         idx = found.index
-        rows = self.multiplerowlist = self.getRowsFromIndex(idx)
-        #print (len(rows))
-        self.redraw()
+        rows = self.multiplerowlist = self.getRowsFromIndex(idx)'''
         return
 
     def query(self, evt=None):

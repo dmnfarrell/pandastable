@@ -996,6 +996,53 @@ class SimpleEditor(Frame):
                 self.text.see(INSERT)
                 self.text.focus()
 
+class FindReplaceDialog(Frame):
+    """Find/replace dialog."""
+
+    def __init__(self, table):
+        parent = table.parentframe
+        Frame.__init__(self, parent)
+        self.parent = parent
+        self.table = table
+        self.setup()
+        return
+
+    def setup(self):
+
+        sf = self
+        sfont = "Helvetica 10 bold"
+        Label(sf, text='Enter Search String:', font=sfont).pack(side=TOP,fill=X)
+        self.searchvar = StringVar()
+        e = Entry(sf, textvariable=self.searchvar)
+        e.bind('<Return>', self.find)
+        e.pack(fill=BOTH,side=TOP,expand=1,padx=2,pady=2)
+        Label(sf, text='Replace With:', font=sfont).pack(side=TOP,fill=X)
+        self.replacevar = StringVar()
+        e = Entry(sf, textvariable=self.replacevar)
+        e.pack(fill=BOTH,side=TOP,expand=1,padx=2,pady=2)
+        f = Frame(sf)
+        f.pack(side=TOP, fill=BOTH, padx=2, pady=2)
+        addButton(f, 'find', self.find, None, 'search', side=LEFT)
+        addButton(f, 'replace', self.replace, None, 'find', side=LEFT)
+        addButton(f, 'close', self.close, None, 'close', side=LEFT)
+
+    def find(self):
+
+        return
+
+    def replace(self):
+        table=self.table
+        df = table.model.df
+        s=self.searchvar.get()
+        r=self.replacevar.get()
+        table.model.df = df.replace(s,r)
+        table.redraw()
+        return
+
+    def close(self):
+        
+        return
+
 class QueryDialog(Frame):
     """Use string query to filter. Will not work with spaces in column
         names, so these would need to be converted first."""

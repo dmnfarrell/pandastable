@@ -170,7 +170,7 @@ class DataExplore(Frame):
 
         self.edit_menu={'01Undo Last Change':{'cmd': self.undo},
                         '02Copy Table':{'cmd': self.copyTable},
-                        '03Find in Table':{'cmd':self.findText},
+                        '03Find/Replace':{'cmd':self.findText},
                         '04Table Preferences':{'cmd': self.currentTablePrefs},
                         }
         self.edit_menu = self.createPulldown(self.menu,self.edit_menu)
