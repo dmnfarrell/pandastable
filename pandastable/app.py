@@ -187,10 +187,11 @@ class DataExplore(Frame):
 
         self.view_menu={'01Zoom In':{'cmd': lambda: self._call('zoomIn')},
                         '02Zoom Out':{'cmd': lambda: self._call('zoomOut')},
-                        '03sep':'',
-                        '04Dark Theme':{'cmd': lambda: self._call('setTheme', name='dark')},
-                        '05Bold Theme':{'cmd': lambda: self._call('setTheme', name='bold')},
-                        '06Default Theme':{'cmd': lambda: self._call('setTheme', name='default')},
+                        '03Wrap Columns':{'cmd': lambda: self._call('setWrap')},
+                        '04sep':'',
+                        '05Dark Theme':{'cmd': lambda: self._call('setTheme', name='dark')},
+                        '06Bold Theme':{'cmd': lambda: self._call('setTheme', name='bold')},
+                        '07Default Theme':{'cmd': lambda: self._call('setTheme', name='default')},
                         }
         self.view_menu = self.createPulldown(self.menu,self.view_menu)
         self.menu.add_cascade(label='View',menu=self.view_menu['var'])

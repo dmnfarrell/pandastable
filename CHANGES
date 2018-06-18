@@ -2,17 +2,20 @@
 CHANGES
 =======
 ------
-0.9.1
+0.10.0
 ------
 
 Fix to dropping index when no name
 Added dotplot
 Added axis tick and tick label format options
 Added plotting animation dialog
-Added abaility to label of points in scatter plots
+Added ability to label points in scatter plots using a column
 Fix to plot frame closing bug
 Added empty column selection for groupby option
 Fixes to copy/paste and saving projects in snap
+Long column names now wrapped in plots
+Can now wrap column header text
+Fix to column resizing
 
 ------
 0.9.0

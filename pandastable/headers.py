@@ -33,6 +33,7 @@ import numpy as np
 import pandas as pd
 from . import util
 from .dialogs import *
+import textwrap
 
 def createSubMenu(parent, label, commands):
     menu = Menu(parent, tearoff = 0)
@@ -55,7 +56,7 @@ class ColumnHeader(Canvas):
             if util.check_multiindex(self.model.df.columns) == 1:
                 self.height = 40
             else:
-                self.height = 20
+                self.height = 25
             self.config(width=self.table.width, height=self.height)
             self.columnlabels = self.model.df.columns
             self.draggedcol = None
@@ -74,6 +75,7 @@ class ColumnHeader(Canvas):
             else:
                 self.bind("<Button-3>", self.handle_right_click)
             self.thefont = self.table.thefont
+            self.wrap = False
             self.setDefaults()
         return
 
@@ -85,21 +87,44 @@ class ColumnHeader(Canvas):
     def redraw(self):
         """Redraw column header"""
 
+        wrap = self.wrap
         df = self.model.df
         cols = self.model.getColumnCount()
+        colwidths = self.model.columnwidths
+        scale = self.table.getScale() *2
+
+        if wrap is True:
+            #set height from longest column wrapped
+            c = list(df.columns.map(str).str.len())
+            idx = c.index(max(c))
+            longest = df.columns[idx]
+            if longest in colwidths:
+                cw = colwidths[longest]
+            else:
+                cw = self.table.cellwidth
+            tw,l = util.getTextLength(longest, cw)
+            r = len(textwrap.wrap(str(longest), l-1))
+            self.height = r*scale
+            #print (r, self.height)
+        else:
+            self.height = 25
+        if self.height>250:
+            self.height=250
+
         self.tablewidth=self.table.tablewidth
         self.thefont = self.table.thefont
         self.configure(scrollregion=(0,0,
                                      self.table.tablewidth+self.table.x_start,
                                      self.height))
+        self.config(height=self.height)
         self.delete('gridline','text')
         self.delete('rect')
         self.delete('dragrect')
         self.atdivider = None
         font = self.thefont
-        align = 'w'
+        anchor = 'w'
         pad = 5
-        wrapw = 0
+
         h = self.height
         y = h/2
         x_start = self.table.x_start
@@ -109,18 +134,19 @@ class ColumnHeader(Canvas):
         for col in self.table.visiblecols:
             colname = df.columns[col]
             colstr = str(colname)
-            if colstr in self.model.columnwidths:
-                w = self.model.columnwidths[colstr]
+
+            if colstr in colwidths:
+                w = colwidths[colstr]
             else:
                 w = self.table.cellwidth
             if w<=8:
                 colname=''
             x = self.table.col_positions[col]
-            if align == 'w':
+            if anchor in ['w','nw']:
                 xt = x+pad
-            elif align == 'e':
+            elif anchor == 'e':
                 xt = x+w-pad
-            elif align == 'center':
+            elif anchor == 'center':
                 xt = x-w/2
 
             if util.check_multiindex(self.model.df.columns) == 1:
@@ -128,15 +154,18 @@ class ColumnHeader(Canvas):
                     lens = [util.getTextLength(c, w-pad, font=font)[1] for c in colname]
                     colname = [str(c)[:l] for c,l in zip(colname,lens)]
                 colname = '\n'.join(colname)
-                #wrapw = w-pad
                 xt = x+pad
-                align = 'nw'
+                anchor = 'nw'
                 y=3
             else:
                 colname = str(colname)
-                #wrapw = 0
                 tw,length = util.getTextLength(colname, w-pad, font=font)
-                colname = colname[0:int(length)]
+                if wrap is True:
+                    colname = textwrap.fill(str(colname), length)
+                    y=3
+                    anchor = 'nw'
+                else:
+                    colname = colname[0:int(length)]
 
             line = self.create_line(x, 0, x, h, tag=('gridline', 'vertline'),
                                  fill='white', width=1)
@@ -144,7 +173,7 @@ class ColumnHeader(Canvas):
                                 text=colname,
                                 fill='white',
                                 font=self.thefont,
-                                tag='text', anchor=align)
+                                tag='text', anchor=anchor)
         x = self.table.col_positions[col+1]
         self.create_line(x,0, x,h, tag='gridline',
                         fill='white', width=2)
@@ -189,7 +218,7 @@ class ColumnHeader(Canvas):
         #column resized
         if self.atdivider == 1:
             x = int(self.canvasx(event.x))
-            col = self.table.currentcol
+            col = self.nearestcol            
             x1,y1,x2,y2 = self.table.getCellCoords(0,col)
             newwidth = x - x1
             if newwidth < 5:
@@ -253,8 +282,8 @@ class ColumnHeader(Canvas):
 
         for v in l:
             if abs(val-v) <= d:
-                return 1
-        return 0
+                return v
+        return None
 
     def leave(self, event):
         """Mouse left canvas event"""
@@ -267,16 +296,21 @@ class ColumnHeader(Canvas):
         if len(self.model.df.columns) == 0:
             return
         self.delete('resizesymbol')
-        w=self.table.cellwidth
-        h=self.height
-        x_start=self.table.x_start
+        w = self.table.cellwidth
+        h = self.height
+        x_start = self.table.x_start
         #x = event.x
-        x=int(self.canvasx(event.x))
+        x = int(self.canvasx(event.x))
         if x > self.tablewidth+w:
             return
         #if event x is within x pixels of divider, draw resize symbol
-        if x!=x_start and self.within(x, self.table.col_positions, 4):
-            col = self.table.get_col_clicked(event)
+        nearest = self.within(x, self.table.col_positions, 4)
+
+        if x != x_start and nearest != None:
+            #col = self.table.get_col_clicked(event)
+            col = self.table.col_positions.index(nearest)-1
+            self.nearestcol = col
+            print (nearest,col,self.model.df.columns[col])
             if col == None:
                 return
             self.draw_resize_symbol(col)
@@ -349,7 +383,7 @@ class ColumnHeader(Canvas):
         currcol = self.table.currentcol
         multicols = self.table.multiplecollist
         colnames = list(df.columns[multicols])[:4]
-        colnames = [str(i) for i in colnames]
+        colnames = [str(i)[:30] for i in colnames]
         colnames = ','.join(colnames)
         popupmenu = Menu(self, tearoff = 0)
         def popupFocusOut(event):
@@ -413,9 +447,7 @@ class ColumnHeader(Canvas):
 
         self.delete('resizesymbol')
         w=self.table.cellwidth
-        h=self.height
-        #if x_pos > self.tablewidth:
-        #    return
+        h=25
         wdth=1
         hfac1=0.2
         hfac2=0.4

@@ -631,6 +631,15 @@ class Table(Canvas):
         scale = 8.5 * float(fontsize)/9
         return scale
 
+    def setWrap(self):
+        ch=self.tablecolheader
+        if ch.wrap is False:
+            ch.wrap = True
+        else:
+            ch.wrap = False
+        self.redraw()
+        return
+
     def zoomIn(self):
         """Zoom in, increases font and row heights."""
 
@@ -1015,6 +1024,7 @@ class Table(Canvas):
         self.model.df = self.prevdf
         self.redraw()
         self.prevdf = None
+        self.updateModel(self.model)
         return
 
     def deleteCells(self, rows, cols, answer=None):
@@ -1649,9 +1659,9 @@ class Table(Canvas):
         return a
 
     def evalFunction(self, evt=None):
-        """Apply a string based function to create new columns"""
+        """Apply a function to create new columns"""
 
-        self.convertNumeric()
+        #self.convertNumeric(ask=False)
         s = self.evalvar.get()
 
         if s=='':
@@ -1729,7 +1739,7 @@ class Table(Canvas):
             self.showAll()
 
         def apply():
-            self.convertNumeric()
+            #self.convertNumeric()
             f = self.funcvar.get()
             print (f)
             df = self.model.df
@@ -1824,6 +1834,9 @@ class Table(Canvas):
         """Resize a column by dragging"""
 
         colname = self.model.getColumnName(col)
+        if self.tablecolheader.wrap == True:
+            if width<40:
+                width=40
         self.model.columnwidths[colname] = width
         self.setColPositions()
         self.delete('colrect')
@@ -2295,6 +2308,7 @@ class Table(Canvas):
     def transpose(self):
         """Transpose table"""
 
+        self.storeCurrent()
         self.model.transpose()
         self.updateModel(self.model)
         self.setSelectedRow(0)
@@ -2391,7 +2405,7 @@ class Table(Canvas):
     def pivot(self):
         """Pivot table"""
 
-        self.convertNumeric()
+        #self.convertNumeric()
         df = self.model.df
         cols = list(df.columns)
         valcols = list(df.select_dtypes(include=[np.float64,np.int32]))
@@ -2414,7 +2428,8 @@ class Table(Canvas):
         elif len(values) == 1: values = values[0]
 
         p = pd.pivot_table(df, index=index, columns=column, values=values, aggfunc=func)
-        print (p)
+        #print (p)
+        self.tableChanged()
         if type(p) is pd.Series:
             p = pd.DataFrame(p)
         self.createChildTable(p, 'pivot-%s-%s' %(index,column), index=True)
@@ -2468,6 +2483,7 @@ class Table(Canvas):
                                 parent = self.parentframe)
         if d.result == None:
             return
+        self.storeCurrent()
         pattern = d.results[0]
         repl = d.results[1]
         start = d.results[2]
@@ -2489,13 +2505,30 @@ class Table(Canvas):
     def convertNumeric(self):
         """Convert cols to numeric if possible"""
 
+        types = ['float','int']
+        d = MultipleValDialog(title='Convert col names',
+                                initialvalues=[types,1],
+                                labels=['convert to',
+                                        'selected columns only:'],
+                                types=('combobox','checkbutton'),
+                                parent = self.parentframe)
+        if d.result == None:
+            return
+
+        self.storeCurrent()
+        convtype = d.results[0]
+        useselected = d.results[1]
+
         cols = self.multiplecollist
         df = self.model.df
-        colnames = df.columns[cols]
-        for c in colnames:
-            self.model.df[c] = pd.to_numeric(df[c], errors='coerce').astype('float')
+        if useselected == 1:
+            colnames = df.columns[cols]
+        else:
+            colnames = df.columns
 
-        #self.model.df = df.convert_objects(), convert_numeric='force')
+        for c in colnames:
+            self.model.df[c] = pd.to_numeric(df[c].fillna(0), errors='coerce').astype(convtype)
+
         self.redraw()
         self.tableChanged()
         return
