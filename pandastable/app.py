@@ -150,7 +150,7 @@ class DataExplore(Frame):
     def createMenuBar(self):
         """Create the menu bar for the application. """
 
-        self.menu=Menu(self.main)
+        self.menu = Menu(self.main)
         self.file_menu={'01New Project':{'cmd': self.newProject},
                         '02Open Project':{'cmd': lambda: self.loadProject(asksave=True)},
                         '03Close':{'cmd':self.closeProject},
@@ -163,9 +163,8 @@ class DataExplore(Frame):
                         '09Export CSV':{'cmd':self.exportCSV},
                         '10sep':'',
                         '11Quit':{'cmd':self.quit}}
-        if self.parent:
-            self.file_menu['08Return to Database']={'cmd':self.return_data}
-        self.file_menu=self.createPulldown(self.menu,self.file_menu)
+
+        self.file_menu = self.createPulldown(self.menu,self.file_menu)
         self.menu.add_cascade(label='File',menu=self.file_menu['var'])
 
         self.edit_menu={'01Undo Last Change':{'cmd': self.undo},
@@ -182,7 +181,7 @@ class DataExplore(Frame):
                          '04Rename Sheet':{'cmd':self.renameSheet},
                          '05Sheet Description':{'cmd':self.editSheetDescription}
                          }
-        self.sheet_menu=self.createPulldown(self.menu,self.sheet_menu)
+        self.sheet_menu = self.createPulldown(self.menu,self.sheet_menu)
         self.menu.add_cascade(label='Sheet',menu=self.sheet_menu['var'])
 
         self.view_menu={'01Zoom In':{'cmd': lambda: self._call('zoomIn')},
@@ -213,7 +212,7 @@ class DataExplore(Frame):
                          '15Melt Table':{'cmd': lambda: self._call('melt')},
                          '16Time Series Resampling':{'cmd': lambda: self._call('resample')}
                         }
-        self.table_menu=self.createPulldown(self.menu,self.table_menu)
+        self.table_menu = self.createPulldown(self.menu,self.table_menu)
         self.menu.add_cascade(label='Tools',menu=self.table_menu['var'])
 
         self.dataset_menu={'01Sample Data':{'cmd':self.sampleData},
@@ -229,14 +228,14 @@ class DataExplore(Frame):
                          '08CO2 time series':
                              {'cmd': lambda: self.getData('co2-ppm-mauna-loa.csv')}
                          }
-        self.dataset_menu=self.createPulldown(self.menu,self.dataset_menu)
+        self.dataset_menu = self.createPulldown(self.menu,self.dataset_menu)
         self.menu.add_cascade(label='Datasets',menu=self.dataset_menu['var'])
 
         self.plots_menu={'01Store plot':{'cmd':self.addPlot},
                          '02Clear plots':{'cmd':self.updatePlotsMenu},
                          '03PDF report':{'cmd':self.pdfReport},
                          '04sep':''}
-        self.plots_menu=self.createPulldown(self.menu,self.plots_menu)
+        self.plots_menu = self.createPulldown(self.menu,self.plots_menu)
         self.menu.add_cascade(label='Plots',menu=self.plots_menu['var'])
 
         self.plugin_menu={'01Update Plugins':{'cmd':self.discoverPlugins},
@@ -284,8 +283,12 @@ class DataExplore(Frame):
         self.main.geometry(self.winsize)
         return
 
-    def createPulldown(self,menu,dict):
-        """Create pulldown menu, returns a dict"""
+    def createPulldown(self, menu, dict):
+        """Create pulldown menu, returns a dict.
+        Args:
+            dict: dictionary of the form -
+            {'01item name':{'cmd':function name, 'sc': shortcut key}}
+        """
 
         var = Menu(menu,tearoff=0)
         dialogs.applyStyle(var)
@@ -295,14 +298,20 @@ class DataExplore(Frame):
             if item[-3:] == 'sep':
                 var.add_separator()
             else:
-                command = None
-                if 'cmd' in dict[item]:
-                    command = dict[item]['cmd']
-                if 'sc' in dict[item]:
-                    var.add_command(label='%-25s %9s' %(item[2:],dict[item]['sc']),
-                                    command=command)
+                command = dict[item]['cmd']
+                label = '%-25s' %(item[2:])
+                if 'img' in dict[item]:
+                    img = dict[item]['img']
                 else:
-                    var.add_command(label='%-25s' %(item[2:]), command=command)
+                    img = None
+                if 'sc' in dict[item]:
+                    sc = dict[item]['sc']
+                    #bind command
+                    #self.main.bind(sc, command)
+                else:
+                    sc = None
+                var.add('command', label=label, command=command, image=img,
+                        compound="left")#, accelerator=sc)
         dict['var'] = var
         return dict
 

@@ -710,7 +710,7 @@ class Table(Canvas):
         x_pos = self.x_start
         self.col_positions.append(x_pos)
         for col in range(self.cols):
-            colname = str(df.columns[col])
+            colname = df.columns[col].encode('utf-8','ignore').decode('utf-8')
             if colname in self.model.columnwidths:
                 x_pos = x_pos+self.model.columnwidths[colname]
             else:
@@ -2507,10 +2507,11 @@ class Table(Canvas):
 
         types = ['float','int']
         d = MultipleValDialog(title='Convert col names',
-                                initialvalues=[types,1],
+                                initialvalues=[types,1,0],
                                 labels=['convert to',
-                                        'selected columns only:'],
-                                types=('combobox','checkbutton'),
+                                        'selected columns only:',
+                                        'fill empty:'],
+                                types=('combobox','checkbutton','checkbutton'),
                                 parent = self.parentframe)
         if d.result == None:
             return
@@ -2518,6 +2519,7 @@ class Table(Canvas):
         self.storeCurrent()
         convtype = d.results[0]
         useselected = d.results[1]
+        fillempty = d.results[2]
 
         cols = self.multiplecollist
         df = self.model.df
@@ -2527,7 +2529,10 @@ class Table(Canvas):
             colnames = df.columns
 
         for c in colnames:
-            self.model.df[c] = pd.to_numeric(df[c].fillna(0), errors='coerce').astype(convtype)
+            x=df[c]
+            if fillempty == 1:
+                x = x.fillna(0)
+            self.model.df[c] = pd.to_numeric(x, errors='coerce').astype(convtype)
 
         self.redraw()
         self.tableChanged()

@@ -97,14 +97,15 @@ class ColumnHeader(Canvas):
             #set height from longest column wrapped
             c = list(df.columns.map(str).str.len())
             idx = c.index(max(c))
-            longest = df.columns[idx]
+            longest = str(df.columns[idx].encode('utf-8').decode('utf-8'))
             if longest in colwidths:
                 cw = colwidths[longest]
             else:
                 cw = self.table.cellwidth
+
             tw,l = util.getTextLength(longest, cw)
-            r = len(textwrap.wrap(str(longest), l-1))
-            self.height = r*scale
+            tr = len(textwrap.wrap(longest, l-1))
+            self.height = tr*scale
             #print (r, self.height)
         else:
             self.height = 25
@@ -133,8 +134,8 @@ class ColumnHeader(Canvas):
 
         for col in self.table.visiblecols:
             colname = df.columns[col]
-            colstr = str(colname)
-
+            #colstr = str(colname)
+            colstr = colname.encode('utf-8','ignore').decode('utf-8')
             if colstr in colwidths:
                 w = colwidths[colstr]
             else:
@@ -158,10 +159,10 @@ class ColumnHeader(Canvas):
                 anchor = 'nw'
                 y=3
             else:
-                colname = str(colname)
-                tw,length = util.getTextLength(colname, w-pad, font=font)
+                colname = colstr
+                tw,length = util.getTextLength(colstr, w-pad, font=font)
                 if wrap is True:
-                    colname = textwrap.fill(str(colname), length)
+                    colname = textwrap.fill(colstr, length)
                     y=3
                     anchor = 'nw'
                 else:
@@ -218,7 +219,7 @@ class ColumnHeader(Canvas):
         #column resized
         if self.atdivider == 1:
             x = int(self.canvasx(event.x))
-            col = self.nearestcol            
+            col = self.nearestcol
             x1,y1,x2,y2 = self.table.getCellCoords(0,col)
             newwidth = x - x1
             if newwidth < 5:
@@ -310,7 +311,7 @@ class ColumnHeader(Canvas):
             #col = self.table.get_col_clicked(event)
             col = self.table.col_positions.index(nearest)-1
             self.nearestcol = col
-            print (nearest,col,self.model.df.columns[col])
+            #print (nearest,col,self.model.df.columns[col])
             if col == None:
                 return
             self.draw_resize_symbol(col)
@@ -391,7 +392,7 @@ class ColumnHeader(Canvas):
 
         columncommands = {"Rename": self.renameColumn,
                           "Add": self.table.addColumn,
-                          "Delete": self.table.deleteColumn,
+                          #"Delete": self.table.deleteColumn,
                           "Copy": self.table.copyColumn,
                           "Move to Start": self.table.moveColumns,
                           "Move to End": lambda: self.table.moveColumns(pos='end'),
@@ -399,17 +400,17 @@ class ColumnHeader(Canvas):
                          }
         formatcommands = {'Set Color': self.table.setColumnColors,
                           'Color by Value': self.table.setColorbyValue,
-                          'Alignment': self.table.setAlignment
+                          'Alignment': self.table.setAlignment,
+                          'Wrap Header' : self.table.setWrap
                          }
         popupmenu.add_command(label="Sort by " + colnames + ' \u2193',
                     command=lambda : self.table.sortTable(ascending=[1 for i in multicols]))
         popupmenu.add_command(label="Sort by " + colnames + ' \u2191',
             command=lambda : self.table.sortTable(ascending=[0 for i in multicols]))
         popupmenu.add_command(label="Set %s as Index" %colnames, command=self.table.setindex)
+        popupmenu.add_command(label="Delete Column(s)", command=self.table.deleteColumn)
         if ismulti == True:
             popupmenu.add_command(label="Flatten Index", command=self.table.flattenIndex)
-        createSubMenu(popupmenu, 'Column', columncommands)
-        createSubMenu(popupmenu, 'Format', formatcommands)
         popupmenu.add_command(label="Fill With Data", command=self.table.fillColumn)
         popupmenu.add_command(label="Create Categorical", command=self.table.createCategorical)
         popupmenu.add_command(label="Apply Function", command=self.table.applyColumnFunction)
@@ -417,7 +418,8 @@ class ColumnHeader(Canvas):
         popupmenu.add_command(label="Value Counts", command=self.table.valueCounts)
         popupmenu.add_command(label="String Operation", command=self.table.applyStringMethod)
         popupmenu.add_command(label="Date/Time Conversion", command=self.table.convertDates)
-
+        createSubMenu(popupmenu, 'Column', columncommands)
+        createSubMenu(popupmenu, 'Format', formatcommands)
         popupmenu.bind("<FocusOut>", popupFocusOut)
         popupmenu.focus_set()
         popupmenu.post(event.x_root, event.y_root)

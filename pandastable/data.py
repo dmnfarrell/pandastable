@@ -299,8 +299,11 @@ class TableModel(object):
          return len(self.df.columns)
 
     def getColumnName(self, columnIndex):
-         """Returns the name of the given column by columnIndex"""
-         return str(self.df.columns[columnIndex])
+        """Returns the name of the given column by columnIndex"""
+        try:
+            return str(self.df.columns[columnIndex])
+        except:
+            return self.df.columns[columnIndex].encode('ascii', 'ignore')
 
     def getColumnData(self, columnIndex=None, columnName=None,
                         filters=None):
@@ -378,7 +381,8 @@ class TableModel(object):
                 df.columns = df.columns.astype(str)
             except:
                 pass
-        self.df = df.convert_objects()
+        #self.df = df.convert_objects()
+        self.df = df.infer_objects()
         self.columnwidths = {}
         return
 

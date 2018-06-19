@@ -42,7 +42,8 @@ def getTextLength(text, w, font=None):
     if SCRATCH is None:
         SCRATCH = Canvas()
     scratch = SCRATCH
-    length = len(str(text))
+    length = len(text)
+
     t = scratch.create_text((0,0), text=text, font=font)
     b = scratch.bbox(t)
     scratch.delete(t)
