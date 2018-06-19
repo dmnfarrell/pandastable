@@ -446,6 +446,8 @@ class Table(Canvas):
         self.rowindexheader.redraw()
         self.drawSelectedRow()
         self.drawSelectedRect(self.currentrow, self.currentcol)
+        self.drawSelectedCol()
+
         if len(self.multiplerowlist)>1:
             self.rowheader.drawSelectedRows(self.multiplerowlist)
             self.drawMultipleRows(self.multiplerowlist)
@@ -662,6 +664,26 @@ class Table(Canvas):
         self.redraw()
         return
 
+    def expandColumns(self):
+        """Reduce column widths"""
+
+        self.cellwidth +=10
+        widths = self.model.columnwidths
+        for c in widths:
+            widths[c] += 10
+        self.redraw()
+        return
+
+    def contractColumns(self):
+        """Reduce column widths"""
+
+        self.cellwidth -=10
+        widths = self.model.columnwidths
+        for c in widths:
+            widths[c] -= 10
+        self.redraw()
+        return
+
     def adjustColumnWidths(self, limit=30):
         """Optimally adjust col widths to accomodate the longest entry
             in each column - usually only called on first redraw.
@@ -776,7 +798,7 @@ class Table(Canvas):
         self.setSelectedCol(0)
         self.update_rowcolors()
         self.redraw()
-        self.drawSelectedCol()
+        #self.drawSelectedCol()
         if hasattr(self, 'pf'):
             self.pf.updateData()
         return
@@ -793,7 +815,7 @@ class Table(Canvas):
         self.model.df.reset_index(drop=drop, inplace=True)
         self.update_rowcolors()
         self.redraw()
-        self.drawSelectedCol()
+        #self.drawSelectedCol()
         if hasattr(self, 'pf'):
             self.pf.updateData()
         self.tableChanged()
@@ -961,7 +983,7 @@ class Table(Canvas):
         self.model.deleteColumns(cols)
         self.setSelectedCol(0)
         self.redraw()
-        self.drawSelectedCol()
+        #self.drawSelectedCol()
         self.tableChanged()
         return
 
@@ -3707,6 +3729,11 @@ class statusBar(Frame):
         l.pack(fill=X, side=RIGHT)
         fr = Frame(self)
         fr.pack(fill=Y,side=RIGHT)
+
+        img = images.contract_col()
+        addButton(fr, 'Contract Cols', self.parentapp.contractColumns, img, 'contract columns', side=LEFT, padding=1)
+        img = images.expand_col()
+        addButton(fr, 'Expand Cols', self.parentapp.expandColumns, img, 'expand columns', side=LEFT, padding=1)
         img = images.zoom_out()
         addButton(fr, 'Zoom Out', self.parentapp.zoomOut, img, 'zoom out', side=LEFT, padding=1)
         img = images.zoom_in()

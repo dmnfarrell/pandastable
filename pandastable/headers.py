@@ -95,7 +95,10 @@ class ColumnHeader(Canvas):
 
         if wrap is True:
             #set height from longest column wrapped
-            c = list(df.columns.map(str).str.len())
+            try:
+                c = list(df.columns.map(str).str.len())
+            except:
+                c = [len(str(i)) for i in df.columns]
             idx = c.index(max(c))
             longest = str(df.columns[idx].encode('utf-8').decode('utf-8'))
             if longest in colwidths:

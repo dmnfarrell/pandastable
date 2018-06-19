@@ -381,8 +381,10 @@ class TableModel(object):
                 df.columns = df.columns.astype(str)
             except:
                 pass
-        #self.df = df.convert_objects()
-        self.df = df.infer_objects()
+        try:
+            self.df = df.infer_objects()
+        except:
+            self.df = df.convert_objects()
         self.columnwidths = {}
         return
 

@@ -955,6 +955,43 @@ def tilehorizontal():
             +'AvyG/v8ABwUCADs=')
      return img
 
+def expand_col():
+    img = tk.PhotoImage(format='gif',data=
+             'R0lGODlhEAAQAPZvADp+NESHPUWGPkKIO1SOUF6VWVyiVF6rVF+hWGGiWmSv'
+            +'W2q7X2yeaWmlZG+wZ2+xaHS2a3SzbHa0b3+8d3DCZHTHaIbDflFxqVFyqVNz'
+            +'qVNzqlR1q1R1rFZ2rVd5rlh6sFh7sVp8slx+tFx+tV6Bt1+DuWCFumGFu2OH'
+            +'vWSIvmaLwGiOw2+QwWySyGyUyW6Uym+Wy2+XzHqaxHCZznKaz3Oc0XOd0nWe'
+            +'1Hag1Xmi2Hmj2Xqk2nqk23qm3Hun3IvGhZLLi5bMjprPkqPPnqfToqrXpbDd'
+            +'qrHfq7TjrrjnsrnosoWs3Y2x3ZK56NHxzNLzzdP0z9bm1NT10Nb20db30df4'
+            +'0tf40+D93OH+3eL+3uL/3uP/3uP/397n8uTq8+fu8ufr9ejs9urw9+vy9+zy'
+            +'+O/z+vL1+/f7+fT4+/b6+/b7+/f8/Pn8/Pr9/fr+/v///wAAAAAAAAAAAAAA'
+            +'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAAHAA'
+            +'If8LSW1hZ2VNYWdpY2sKZ2FtbWE9MC40NQAsAAAAABAAEAAAB7+AcIKDhIWC'
+            +'TD49Ozk4NzY0MzAuMoJLTZeYmZgscD6en6CgKnA8W1xZVUoVb6ytbyhwOqao'
+            +'ShRvP19gXl1vJnA5plhWSQtvCg9jYmFvJHA4WlxYVEgWBxAODWVkbyNwN8FT'
+            +'RxNCQUAJAmZvIXA1pldSRhIGEQgFaWhvH3Ax7lBFCFECEGizRs0bDnBeQLvy'
+            +'hMiANwzOuHHD5o0GOC20aLniZAgAV60wwLmwQkWKEyVEhADhocOGDBcuGJpJ'
+            +'s+agQAA7')
+    return img
+
+def contract_col():
+    img = tk.PhotoImage(format='gif',data=
+             'R0lGODlhEAAQAPZmACBeHSVlIixtJzp+NDx/N1SVTV2aV16XWVWhTVugU16p'
+            +'VF6rVF+hWGOkW2WhX2SmXWKsWGapX2unZHG0aXS2a3G5aXW7bH68doPGe1Fx'
+            +'qVFyqVNzqVNzqlR1q1R1rFZ2rVd5rlh6sFh7sVp8slx+tFx+tV6Bt1+DuWCF'
+            +'umGFu2OHvWSIvmaLwGiOw2+QwWySyGyUyW6Uym+Wy2+XzHqaxHCZznKaz3Oc'
+            +'0XOd0nWe1Hag1Xmi2Hmj2Xqk2nqk23qm3Hun3KS8o6a/pY7Ih5LLi5bMjqvF'
+            +'qazEqq7JrLXPsrXSsrnWtbzauL/quoWs3Y2x3ZK56Nf80tj909r/1dv/1dv/'
+            +'1tz/193/2N7/2d//2uTr4+Ts5OXs5ebu5efv5+nx6Ony6Orz6fr7+vr8+vv8'
+            +'+/v9+////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+            +'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAAGcA'
+            +'If8LSW1hZ2VNYWdpY2sKZ2FtbWE9MC40NQAsAAAAABAAEAAAB7KAZ4KDhIWC'
+            +'T0A/PTs6OTg2NTIwNIJOUJeYmZguZ0Cen6CgLGc+U1RVVlgLTGFlZq9mKmc8'
+            +'plIYWAhLYK6wKGc7U1MVCk0NSl9ksGYmZzpTFhQXCRJJXmPKJWc5EBNFREMO'
+            +'SF3JsCNnN1MRDwwDBkZb5K8hZzPBBQRZAkdcYsoeZzGCRTmQJYAQLfHMcDjz'
+            +'IliVK1kABEGoTMOZDC1YrEhxgsQIESA+dNiQIYOhkyhTDgoEADs=')
+    return img
+
 def font():
      img = tk.PhotoImage(format='gif',data=
              'R0lGODlhEAAQAPYAACtNwytQxDFVxjNhzDdjzDdmzDdnzTVpzzhozjlozjpq'
