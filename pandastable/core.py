@@ -145,16 +145,16 @@ class Table(Canvas):
         """Set default settings"""
 
         self.cellwidth = 60
-        self.maxcellwidth=300
+        self.maxcellwidth = 300
         self.mincellwidth = 30
-        self.rowheight=20
-        self.horizlines=1
-        self.vertlines=1
+        self.rowheight = 20
+        self.horizlines = 1
+        self.vertlines = 1
         self.autoresizecols = 1
-        self.inset=2
-        self.x_start=0
-        self.y_start=1
-        self.linewidth=1.0
+        self.inset = 2
+        self.x_start = 0
+        self.y_start = 1
+        self.linewidth = 1.0
         self.thefont = ('Arial',12)
         self.textcolor = 'black'
         self.cellbackgr = '#F4F4F3'
@@ -446,7 +446,9 @@ class Table(Canvas):
         self.rowindexheader.redraw()
         self.drawSelectedRow()
         self.drawSelectedRect(self.currentrow, self.currentcol)
-        self.drawSelectedCol()
+        #self.drawSelectedCol()
+        #for c in self.multiplecollist:
+        #    self.drawSelectedCol(c, delete=0)
 
         if len(self.multiplerowlist)>1:
             self.rowheader.drawSelectedRows(self.multiplerowlist)
@@ -732,7 +734,10 @@ class Table(Canvas):
         x_pos = self.x_start
         self.col_positions.append(x_pos)
         for col in range(self.cols):
-            colname = df.columns[col].encode('utf-8','ignore').decode('utf-8')
+            try:
+                colname = df.columns[col].encode('utf-8','ignore').decode('utf-8')
+            except:
+                colname = str(df.columns[col])
             if colname in self.model.columnwidths:
                 x_pos = x_pos+self.model.columnwidths[colname]
             else:

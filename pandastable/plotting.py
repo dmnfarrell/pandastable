@@ -49,7 +49,7 @@ valid_kwds = {'line': ['alpha', 'colormap', 'grid', 'legend', 'linestyle','ms',
                   'sharex','sharey', 'kind'],
             'scatter': ['alpha', 'grid', 'linewidth', 'marker', 'subplots', 'ms',
                     'legend', 'colormap','sharex','sharey', 'logx', 'logy', 'use_index',
-                    'clrcol', 'cscale','colorbar','bw','labelcol'],
+                    'clrcol', 'cscale','colorbar','bw','labelcol','pointsizes'],
             'pie': ['colormap','legend'],
             'hexbin': ['alpha', 'colormap', 'grid', 'linewidth','subplots'],
             'bootstrap': ['grid'],
@@ -60,7 +60,7 @@ valid_kwds = {'line': ['alpha', 'colormap', 'grid', 'legend', 'linestyle','ms',
             'histogram': ['alpha', 'linewidth','grid','stacked','subplots','colormap',
                      'sharex','sharey','rot','bins', 'logx', 'logy', 'legend', 'edgecolor'],
             'heatmap': ['colormap','colorbar','rot', 'linewidth','linestyle',
-                        'subplots','rot','cscale','bw','alpha'],
+                        'subplots','rot','cscale','bw','alpha','sharex','sharey'],
             'area': ['alpha','colormap','grid','linewidth','legend','stacked',
                      'kind','rot','logx','sharex','sharey','subplots'],
             'density': ['alpha', 'colormap', 'grid', 'legend', 'linestyle',
@@ -70,7 +70,7 @@ valid_kwds = {'line': ['alpha', 'colormap', 'grid', 'legend', 'linestyle','ms',
             'dotplot': ['marker','edgecolor','linewidth','colormap','alpha','legend',
                         'subplots','ms','bw','logy','sharex','sharey'],
             'scatter_matrix':['alpha', 'linewidth', 'marker', 'grid', 's'],
-            'contour': ['linewidth','colormap','alpha'],
+            'contour': ['linewidth','colormap','alpha','subplots'],
             'imshow': ['colormap','alpha'],
             'venn': ['colormap','alpha']
             }
@@ -472,6 +472,7 @@ class PlotViewer(Frame):
 
         #get all options from the mpl options object
         kwds = self.mplopts.kwds
+        lkwds = self.labelopts.kwds.copy()
         kind = kwds['kind']
         by = kwds['by']
         by2 = kwds['by2']
@@ -524,9 +525,9 @@ class PlotViewer(Frame):
                     handles, labels = ax.get_legend_handles_labels()
                     i+=1
 
-                if kwargs['sharey'] == True:
+                if 'sharey' in kwargs and kwargs['sharey'] == True:
                     self.autoscale()
-                if kwargs['sharex'] == True:
+                if  'sharex' in kwargs and kwargs['sharex'] == True:
                     self.autoscale('x')
                 self.fig.legend(handles, labels, loc='center right', #bbox_to_anchor=(0.9, 0),
                                  bbox_transform=self.fig.transFigure )
@@ -586,17 +587,16 @@ class PlotViewer(Frame):
 
         #set options general for all plot types
         #annotation optons are separate
-        lkwds = self.labelopts.kwds.copy()
         lkwds.update(kwds)
 
-        table = lkwds['table']
-        if table == True:
+        #table = lkwds['table']
+        '''if table == True:
             #from pandas.tools.plotting import table
             from pandas.plotting import table
             if self.table.child != None:
                 tabledata = self.table.child.model.df
                 table(axs, np.round(tabledata, 2),
-                      loc='upper left', colWidths=[0.1 for i in tabledata.columns])
+                      loc='upper left', colWidths=[0.1 for i in tabledata.columns])'''
 
         self.setFigureOptions(axs, lkwds)
         scf = 12/kwds['fontsize']
@@ -644,6 +644,7 @@ class PlotViewer(Frame):
             ax.set_ylabel(kwds['ylabel'])
         ax.xaxis.set_visible(kwds['showxlabels'])
         ax.yaxis.set_visible(kwds['showylabels'])
+        ax.tick_params(labelrotation=kwds['rot'])
         return
 
     def autoscale(self, axis='y'):
@@ -731,7 +732,7 @@ class PlotViewer(Frame):
                 for a in self.fig.axes:
                     a.set_ylim(lims)
         elif kind == 'boxplot':
-            axs = data.boxplot(ax=ax, rot=kwargs['rot'], grid=kwargs['grid'],
+            axs = data.boxplot(ax=ax, grid=kwargs['grid'],
                                patch_artist=True, return_type='dict')
             lw = kwargs['linewidth']
             plt.setp(axs['boxes'], color='black', lw=lw)
@@ -891,10 +892,13 @@ class PlotViewer(Frame):
             norm = None
         if color != None:
             c = color
-        elif clrcol != '' and clrcol in cols:
-            if len(cols)>2:
-                cols.remove(clrcol)
-            c = df[clrcol]
+        elif clrcol != '':
+            if clrcol in df.columns:
+                if len(cols)>2:
+                    cols.remove(clrcol)
+            c = data[clrcol]
+            if c.dtype.kind not in 'bifc':
+                c = pd.factorize(c)[0]
         else:
             c = None
         plots = len(cols)
@@ -913,6 +917,7 @@ class PlotViewer(Frame):
 
         #print (kwds)
         labelcol = kwds['labelcol']
+        pointsizes = kwds['pointsizes']
         handles = []
         for i in range(s,plots):
             y = df[cols[i]]
@@ -929,13 +934,20 @@ class PlotViewer(Frame):
 
             if kwds['subplots'] == 1:
                 ax = self.fig.add_subplot(nrows,ncols,i)
-            ms = kwds['ms'] * 12
+            if pointsizes != '' and pointsizes in df.columns:
+                ms = df[pointsizes]
+                s=kwds['ms']
+                getsizes = lambda x : (((x-x.min())/float(x.max()-x.min())+1)*s)**2.3
+                ms = getsizes(ms)
+                #print (ms)
+            else:
+                ms = kwds['ms'] * 12
             sc = ax.scatter(x, y, marker=marker, alpha=alpha, linewidth=lw, c=c,
                        s=ms, edgecolors=ec, facecolor=clr, cmap=colormap,
                        norm=norm, label=cols[i], picker=True)
 
             #create proxy artist for markers so we can return these handles if needed
-            mkr = Line2D([0], [0], marker=marker, alpha=alpha, ms=ms/20+5, markerfacecolor=c,
+            mkr = Line2D([0], [0], marker=marker, alpha=alpha, ms=10, markerfacecolor=c,
                         markeredgewidth=lw, markeredgecolor=ec, linewidth=0)
             handles.append(mkr)
             ax.set_xlabel(cols[0])
@@ -1015,9 +1027,9 @@ class PlotViewer(Frame):
         ax.set_xticklabels(X.columns, minor=False)
         ax.set_yticklabels(X.index, minor=False)
         ax.set_ylim(0, len(X.index))
-        if kwds['rot'] != 0:
-            for tick in ax.get_xticklabels():
-                tick.set_rotation(kwds['rot'])
+        ##if kwds['rot'] != 0:
+        #    for tick in ax.get_xticklabels():
+        #        tick.set_rotation(kwds['rot'])
         #from mpl_toolkits.axes_grid1 import make_axes_locatable
         #divider = make_axes_locatable(ax)
         return
@@ -1322,11 +1334,11 @@ class MPLBaseOptions(TkOptions):
             datacols=[]
         fonts = util.getFonts()
         scales = ['linear','log']
-        grps = {'data':['bins','by','by2','labelcol'],
+        grps = {'data':['by','by2','labelcol','pointsizes'],
                 'formats':['font','marker','linestyle','alpha'],
                 'sizes':['fontsize','ms','linewidth'],
-                'general':['kind','stacked','subplots','grid','legend','use_index','errorbars'],
-                'axes':['showxlabels','showylabels','sharex','sharey','logx','logy','rot'],
+                'general':['kind','bins','stacked','subplots','use_index','errorbars'],
+                'axes':['grid','legend','showxlabels','showylabels','sharex','sharey','logx','logy'],
                 'colors':['colormap','bw','clrcol','cscale','colorbar']}
         order = ['general','data','axes','sizes','formats','colors']
         self.groups = OrderedDict((key, grps[key]) for key in order)
@@ -1338,7 +1350,7 @@ class MPLBaseOptions(TkOptions):
                 'grid':{'type':'checkbutton','default':0,'label':'show grid'},
                 'logx':{'type':'checkbutton','default':0,'label':'log x'},
                 'logy':{'type':'checkbutton','default':0,'label':'log y'},
-                'rot':{'type':'entry','default':0, 'label':'xlabel angle'},
+                #'rot':{'type':'entry','default':0, 'label':'xlabel angle'},
                 'use_index':{'type':'checkbutton','default':1,'label':'use index'},
                 'errorbars':{'type':'checkbutton','default':0,'label':'errorbar column'},
                 'clrcol':{'type':'combobox','items':datacols,'label':'color by value','default':''},
@@ -1360,7 +1372,8 @@ class MPLBaseOptions(TkOptions):
                 'bins':{'type':'entry','default':20,'width':10},
                 'by':{'type':'combobox','items':datacols,'label':'group by','default':''},
                 'by2':{'type':'combobox','items':datacols,'label':'group by 2','default':''},
-                'labelcol':{'type':'combobox','items':datacols,'label':'label column','default':''},
+                'labelcol':{'type':'combobox','items':datacols,'label':'point labels','default':''},
+                'pointsizes':{'type':'combobox','items':datacols,'label':'point sizes','default':''},
                 }
         self.kwds = {}
         return
@@ -1572,7 +1585,7 @@ class AnnotationOptions(TkOptions):
         alignments = ['left','center','right']
 
         self.parent = parent
-        self.groups = grps = {'global labels':['title','xlabel','ylabel','table'],
+        self.groups = grps = {'global labels':['title','xlabel','ylabel','rot'],
                               'textbox': ['boxstyle','facecolor','linecolor','rotate'],
                               'textbox format': ['fontsize','font','fontweight','align'],
                               'text to add': ['text']
@@ -1582,7 +1595,6 @@ class AnnotationOptions(TkOptions):
                 'title':{'type':'entry','default':'','width':20},
                 'xlabel':{'type':'entry','default':'','width':20},
                 'ylabel':{'type':'entry','default':'','width':20},
-                'table':{'type':'checkbutton','default':0,'label':'show table'},
                 'facecolor':{'type':'combobox','default':'white','items': colors},
                 'linecolor':{'type':'combobox','default':'black','items': colors},
                 'fill':{'type':'combobox','default':'-','items': fillpatterns},
@@ -1592,7 +1604,8 @@ class AnnotationOptions(TkOptions):
                 'align':{'type':'combobox','default':'center','items': alignments},
                 'font':{'type':'combobox','default':defaultfont,'items':fonts},
                 'fontsize':{'type':'scale','default':12,'range':(4,50),'interval':1,'label':'font size'},
-                'fontweight':{'type':'combobox','default':'normal','items': fontweights}
+                'fontweight':{'type':'combobox','default':'normal','items': fontweights},
+                'rot':{'type':'entry','default':0, 'label':'ticklabel angle'}
                 }
         self.kwds = {}
         #used to store annotations
@@ -1740,7 +1753,8 @@ class ExtraOptions(TkOptions):
         self.groups = grps = {'axis ranges':['xmin','xmax','ymin','ymax'],
                               'axis tick positions':['major x-ticks','major y-ticks',
                                                    'minor x-ticks','minor y-ticks'],
-                              'tick label format':['formatter','symbol','precision','date format']
+                              'tick label format':['formatter','symbol','precision','date format'],
+                              #'tables':['table']
                              }
         self.groups = OrderedDict(sorted(grps.items()))
         opts = self.opts = {'xmin':{'type':'entry','default':'','label':'x min'},
@@ -1755,6 +1769,7 @@ class ExtraOptions(TkOptions):
                             'symbol':{'type':'entry','default':''},
                             'precision':{'type':'entry','default':0},
                             'date format':{'type':'combobox','items':datefmts,'default':''},
+                            #'table':{'type':'checkbutton','default':0,'label':'show table'},
                             }
         self.kwds = {}
         return
@@ -1983,7 +1998,10 @@ class AnimateOptions(TkOptions):
         self.stopthread = True
         self.running = False
         time.sleep(.2)
-        self.parent.update_idletasks()
+        try:
+            self.parent.update_idletasks()
+        except:
+            pass
         return
 
 def addFigure(parent, figure=None, resize_callback=None):

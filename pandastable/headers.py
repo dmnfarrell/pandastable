@@ -48,15 +48,15 @@ class ColumnHeader(Canvas):
         and column names from the table model."""
 
     def __init__(self, parent=None, table=None):
-        Canvas.__init__(self, parent, bg='gray25', width=500, height=40)
-        self.thefont='Arial 14'
+        Canvas.__init__(self, parent, bg='gray25', width=500, height=25)
+        self.thefont = 'Arial 14'
         if table != None:
             self.table = table
             self.model = self.table.model
             if util.check_multiindex(self.model.df.columns) == 1:
                 self.height = 40
             else:
-                self.height = 25
+                self.height = self.table.rowheight
             self.config(width=self.table.width, height=self.height)
             self.columnlabels = self.model.df.columns
             self.draggedcol = None
@@ -91,7 +91,8 @@ class ColumnHeader(Canvas):
         df = self.model.df
         cols = self.model.getColumnCount()
         colwidths = self.model.columnwidths
-        scale = self.table.getScale() *2
+        scale = self.table.getScale() * 1.5
+        self.height = self.table.rowheight
 
         if wrap is True:
             #set height from longest column wrapped
@@ -107,11 +108,11 @@ class ColumnHeader(Canvas):
                 cw = self.table.cellwidth
 
             tw,l = util.getTextLength(longest, cw)
-            tr = len(textwrap.wrap(longest, l-1))
-            self.height = tr*scale
-            #print (r, self.height)
-        else:
-            self.height = 25
+            tr = len(textwrap.wrap(longest, l))
+            if tr > 1:
+                self.height = tr*self.height
+            #print (tr, longest, textwrap.wrap(longest, l))
+
         if self.height>250:
             self.height=250
 
@@ -137,8 +138,10 @@ class ColumnHeader(Canvas):
 
         for col in self.table.visiblecols:
             colname = df.columns[col]
-            #colstr = str(colname)
-            colstr = colname.encode('utf-8','ignore').decode('utf-8')
+            try:
+                colstr = colname.encode('utf-8','ignore').decode('utf-8')
+            except:
+                colstr = str(colname)
             if colstr in colwidths:
                 w = colwidths[colstr]
             else:
@@ -165,7 +168,7 @@ class ColumnHeader(Canvas):
                 colname = colstr
                 tw,length = util.getTextLength(colstr, w-pad, font=font)
                 if wrap is True:
-                    colname = textwrap.fill(colstr, length)
+                    colname = textwrap.fill(colstr, length-1)
                     y=3
                     anchor = 'nw'
                 else:
@@ -762,12 +765,13 @@ class RowHeader(Canvas):
 class IndexHeader(Canvas):
     """Class that displays the row index headings."""
 
-    def __init__(self, parent=None, table=None, width=40, height=20):
+    def __init__(self, parent=None, table=None, width=40, height=25):
         Canvas.__init__(self, parent, bg='gray50', width=width, height=height)
         if table != None:
             self.table = table
             self.width = width
-            self.height = height
+            self.height = self.table.rowheight
+            self.config(height=self.height)
             self.color = '#C8C8C8'
             self.startrow = self.endrow = None
             self.model = self.table.model
@@ -778,6 +782,7 @@ class IndexHeader(Canvas):
         """Redraw row index header"""
 
         rowheader = self.table.rowheader
+        self.width = rowheader.width
         self.delete('text','rect')
         if self.table.showindex == False:
             return
@@ -785,6 +790,7 @@ class IndexHeader(Canvas):
         pad = 5
         scale = self.table.getScale()
         h = self.table.rowheight
+        self.config(height=h)
         index = self.model.df.index
         names = index.names
         if names[0] == None:

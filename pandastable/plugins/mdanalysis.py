@@ -39,7 +39,7 @@ from collections import OrderedDict
 class MultivariatePlugin(Plugin):
     """Plugin for DataExplore"""
 
-    capabilities = [] #['gui','uses_sidepane']
+    capabilities = ['']#['gui','uses_sidepane']
     requires = ['']
     menuentry = 'Multivariate Analysis'
     gui_methods = {}
@@ -163,11 +163,12 @@ class MultivariatePlugin(Plugin):
         lopts = self.pf.labelopts.kwds
         #print (opts)
 
-        X = pre_process(data, transform=transform)
-        result = None
         if cats != '':
-            X = X.set_index(cats)
-            print (X)
+            X = data.set_index(cats)
+        X = pre_process(data, transform=transform)
+        print (X[:5])
+        result = None
+
         if method == 'PCA':
             pX, result = do_pca(X=X)
             plot_matrix(pX, ax=ax, plot3d=plot3d, **opts)
