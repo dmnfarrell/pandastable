@@ -10,6 +10,7 @@ Added dotplot
 Added axis tick and tick label format options
 Added plotting animation dialog
 Added ability to label points in scatter plots using a column
+Added ability to set point sizes with data column
 Fix to plot frame closing bug
 Added empty column selection for groupby option
 Fixes to copy/paste and saving projects in snap

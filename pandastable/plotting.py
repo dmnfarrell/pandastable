@@ -644,7 +644,10 @@ class PlotViewer(Frame):
             ax.set_ylabel(kwds['ylabel'])
         ax.xaxis.set_visible(kwds['showxlabels'])
         ax.yaxis.set_visible(kwds['showylabels'])
-        ax.tick_params(labelrotation=kwds['rot'])
+        try:
+            ax.tick_params(labelrotation=kwds['rot'])
+        except:
+            pass
         return
 
     def autoscale(self, axis='y'):
@@ -717,7 +720,7 @@ class PlotViewer(Frame):
             data = data[data.columns[0::2]]
             yerr.columns = data.columns
             plt.rcParams['errorbar.capsize']=4
-            kwargs['elinewidth'] = 1
+            #kwargs['elinewidth'] = 1
 
         if kind == 'bar' or kind == 'barh':
             if len(data) > 50:

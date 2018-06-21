@@ -2340,6 +2340,7 @@ class Table(Canvas):
         self.updateModel(self.model)
         self.setSelectedRow(0)
         self.redraw()
+        self.drawSelectedCol()
         return
 
     def transform(self):
@@ -3495,6 +3496,7 @@ class Table(Canvas):
         self.tablecolheader.model = model
         self.rowheader.model = model
         self.tableChanged()
+        self.adjustColumnWidths()
         #if hasattr(self, 'tablecolheader'):
             #self.tablecolheader.destroy()
             #self.rowheader.destroy()
