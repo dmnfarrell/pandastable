@@ -390,8 +390,11 @@ class ColumnHeader(Canvas):
         currcol = self.table.currentcol
         multicols = self.table.multiplecollist
         colnames = list(df.columns[multicols])[:4]
-        colnames = [str(i)[:30] for i in colnames]
-        colnames = ','.join(colnames)
+        colnames = [str(i)[:20] for i in colnames]
+        if len(colnames)>2:
+            colnames = ','.join(colnames[:2])+'+%s others' %str(len(colnames)-2)
+        else:
+            colnames = ','.join(colnames)
         popupmenu = Menu(self, tearoff = 0)
         def popupFocusOut(event):
             popupmenu.unpost()

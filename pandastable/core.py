@@ -454,7 +454,8 @@ class Table(Canvas):
             self.rowheader.drawSelectedRows(self.multiplerowlist)
             self.drawMultipleRows(self.multiplerowlist)
             self.drawMultipleCells()
-
+        #if callback is not None:
+        #    callback()
         return
 
     def redraw(self, event=None, callback=None):
@@ -1361,7 +1362,12 @@ class Table(Canvas):
 
         func = getattr(np, funcname)
         if newcol == '':
-            newcol = funcname + '(%s)' %(','.join(cols))
+            if len(cols)>3:
+                s = ' %s cols' %len(cols)
+            else:
+                s =  '(%s)' %(','.join(cols))[:20]
+            newcol = funcname + s
+
         if funcname in ['subtract','divide','mod','remainder','convolve']:
             newcol = cols[0]+' '+ funcname +' '+cols[1]
             df[newcol] = df[cols[0]].combine(df[cols[1]], func=func)
@@ -1484,14 +1490,14 @@ class Table(Canvas):
         funcs = ['','split','strip','lstrip','lower','upper','title','swapcase','len',
                  'slice','replace','concat']
         d = MultipleValDialog(title='Apply Function',
-                                initialvalues=(funcs,',',0,1,'','',0),
+                                initialvalues=(funcs,',',0,1,'','',1),
                                 labels=('Function:',
                                         'Split sep:',
                                         'Slice start:',
                                         'Slice end:',
                                         'Pattern:',
                                         'Replace with:',
-                                        'Add as new column(s):'),
+                                        'In place:'),
                                 types=('combobox','string','int',
                                        'int','string','string','checkbutton'),
                                 tooltips=(None,'separator for split or concat',
@@ -1499,7 +1505,7 @@ class Table(Canvas):
                                           'end index for slice',
                                           'characters or regular expression for replace',
                                           'characters to replace with',
-                                          'do not replace column'),
+                                          'replace column'),
                                 parent = self.parentframe)
         if d.result == None:
             return
@@ -1510,7 +1516,7 @@ class Table(Canvas):
         end = d.results[3]
         pat = d.results[4]
         repl = d.results[5]
-        newcol = d.results[6]
+        inplace = d.results[6]
         if func == 'split':
             new = df[col].str.split(sep).apply(pd.Series)
             new.columns = [col+'_'+str(i) for i in new.columns]
@@ -1537,9 +1543,13 @@ class Table(Canvas):
             x = df[col].replace(pat, repl, regex=True)
         elif func == 'concat':
             x = df[col].str.cat(df[cols[1]].astype(str), sep=sep)
-        if newcol == 1:
-            col = col+'_'+func
-        df[col] = x
+        if inplace == 0:
+            newcol = col+'_'+func
+        else:
+            newcol = col
+        df[newcol] = x
+        if inplace == 0:
+            self.placeColumn(newcol,col)
         self.redraw()
         return
 
@@ -2253,7 +2263,7 @@ class Table(Canvas):
         return
 
     def placeColumn(self, col1, col2):
-        """Move col2 next to col1, useful for placing a new column
+        """Move col1 next to col2, useful for placing a new column
         made from the first one next to it so user can see it easily"""
 
         ind1 = self.model.df.columns.get_loc(col1)

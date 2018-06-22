@@ -318,7 +318,7 @@ class PlotViewer(Frame):
         """Get only numeric data that can be plotted"""
 
         #x = df.convert_objects()._get_numeric_data()
-        x = df.apply( lambda x: pd.to_numeric(x,errors='ignore') )
+        x = df.apply( lambda x: pd.to_numeric(x,errors='ignore',downcast='float') )
         if x.empty==True:
             return False
 
@@ -779,13 +779,14 @@ class PlotViewer(Frame):
             self.fig.colorbar(im,ax=ax)
             axs = ax
         elif kind == 'pie':
-            #if np.sum(data[data<0].sum(1)) < 0:
-            #    self.showWarning('pie does not allow negative values')
-            #    return
+            if useindex == False:
+                x=data.columns[0]
+                data.set_index(x,inplace=True)
             if kwargs['legend'] == True:
                 lbls=None
             else:
                 lbls = list(data.index)
+
             axs = data.plot(ax=ax,kind='pie', labels=lbls, layout=layout,
                             autopct='%1.1f%%', subplots=True, **kwargs)
             if lbls == None:
