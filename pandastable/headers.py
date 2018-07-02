@@ -68,7 +68,7 @@ class ColumnHeader(Canvas):
             self.bind('<Control-Button-1>', self.handle_left_ctrl_click)
             self.bind("<Double-Button-1>",self.handle_double_click)
             self.bind('<Leave>', self.leave)
-            if self.table.ostyp=='mac':
+            if self.table.ostyp=='darwin':
                 #For mac we bind Shift, left-click to right click
                 self.bind("<Button-2>", self.handle_right_click)
                 self.bind('<Shift-Button-1>',self.handle_right_click)
@@ -512,7 +512,13 @@ class RowHeader(Canvas):
             self.bind('<Button-1>',self.handle_left_click)
             self.bind("<ButtonRelease-1>", self.handle_left_release)
             self.bind("<Control-Button-1>", self.handle_left_ctrl_click)
-            self.bind('<Button-3>',self.handle_right_click)
+
+            if self.table.ostyp == 'darwin':
+                # For mac we bind Shift, left-click to right click
+                self.bind("<Button-2>", self.handle_right_click)
+                self.bind('<Shift-Button-1>', self.handle_right_click)
+            else:
+                self.bind("<Button-3>", self.handle_right_click)
             self.bind('<B1-Motion>', self.handle_mouse_drag)
             self.bind('<Shift-Button-1>', self.handle_left_shift_click)
         return
