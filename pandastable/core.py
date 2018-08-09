@@ -347,7 +347,7 @@ class Table(Canvas):
         if end > self.rows:
             end = self.rows
         return start, end
-#bookmark
+
     def getVisibleCols(self, x1, x2):
         """Get the visible column range with a 1 column buffer on either side"""
         # Change from pandastables,added a buffer of + / - 1 columns
