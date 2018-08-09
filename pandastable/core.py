@@ -330,17 +330,14 @@ class Table(Canvas):
 
     def getColPosition(self, x):
         """Get column position at coord"""
+        
+        # finding column position using the coordinate's nearest neighbor's index in col_positions
+        # this uses real cell widths instead of default cell width settings.
+        col = self.col_positions.index(min(self.col_positions, key=lambda n:abs(n-x)))
+        if col > self.cols:
+            col = self.cols
 
-        x_start = self.x_start
-        w = self.cellwidth
-        i=0
-        col=0
-        for c in self.col_positions:
-            col = i
-            if c+w>=x:
-                break
-            i+=1
-        return int(col)
+        return col
 
     def getVisibleRows(self, y1, y2):
         """Get the visible row range"""
@@ -350,12 +347,13 @@ class Table(Canvas):
         if end > self.rows:
             end = self.rows
         return start, end
-
+#bookmark
     def getVisibleCols(self, x1, x2):
-        """Get the visible column range"""
-
-        start = self.getColPosition(x1)
-        end = self.getColPosition(x2)+1
+        """Get the visible column range with a 1 column buffer on either side"""
+        # Change from pandastables,added a buffer of + / - 1 columns
+        # stops partial cell coloring improving, the pan experience.
+        start = self.getColPosition(x1) - 1
+        end = self.getColPosition(x2) + 1
         if end > self.cols:
             end = self.cols
         return start, end
@@ -372,6 +370,11 @@ class Table(Canvas):
         model = self.model
         self.rows = len(self.model.df.index)
         self.cols = len(self.model.df.columns)
+        #  generate a dictionary with each column's width.
+        #  dict comprehension explination:
+            # keys are every column in df.
+            # values are looked up from model.columnwidths and if they key does not exist it uses default cell widths.
+        self.colWidths = {key:self.model.columnwidths.get(key,self.cellwidth) for key in self.model.df.columns}
         if self.cols == 0 or self.rows == 0:
             self.delete('entry')
             self.delete('rowrect','colrect')
@@ -386,9 +389,10 @@ class Table(Canvas):
                 self.visiblerows = []
                 self.rowheader.redraw()
             return
-        self.tablewidth = (self.cellwidth) * self.cols
+        #  calculate tablewidth using the actual cell widths as oppose to default width * qty of columns.
         self.configure(bg=self.cellbackgr)
         self.setColPositions()
+        self.tablewidth = max(self.col_positions)
 
         #are we drawing a filtered subset of the recs?
         if self.filtered == True:
@@ -730,21 +734,12 @@ class Table(Canvas):
         """Determine current column grid positions"""
 
         df = self.model.df
-        self.col_positions=[]
-        w = self.cellwidth
-        x_pos = self.x_start
-        self.col_positions.append(x_pos)
-        for col in range(self.cols):
-            try:
-                colname = df.columns[col].encode('utf-8','ignore').decode('utf-8')
-            except:
-                colname = str(df.columns[col])
-            if colname in self.model.columnwidths:
-                x_pos = x_pos+self.model.columnwidths[colname]
-            else:
-                x_pos = x_pos+w
-            self.col_positions.append(x_pos)
-        self.tablewidth = self.col_positions[len(self.col_positions)-1]
+        # converted column by column iteration to Fibonacci style list comprehension
+        p = [self.x_start]
+        [p.append(p[-1] + self.colWidths.get(c, self.cellwidth)) for c in df.columns]
+        self.col_positions = p
+        # just get the last value in col_positionts, it'll be the sum of all column widths.
+        self.tablewidth = self.col_positions[-1]
         return
 
     def sortTable(self, columnIndex=None, ascending=1, index=False):
@@ -2171,57 +2166,59 @@ class Table(Canvas):
 
         row = self.get_row_clicked(event)
         col = self.get_col_clicked(event)
-        x,y = self.getCanvasPos(self.currentrow, self.currentcol-1)
+        x,y = self.getCanvasPos(self.currentrow, self.currentcol)
         rmin = self.visiblerows[0]
-        rmax = self.visiblerows[-1]-2
-        cmax = self.visiblecols[-1]-1
-        cmin = self.visiblecols[0]
+        rmax = self.visiblerows[-1] - 2
+        cmin = self.visiblecols[0] + 1
+        cmax = self.visiblecols[-1] - 1
+
         if x == None:
             return
-
+            # removed premature returns as they were skipping the "if in view" logic below
         if event.keysym == 'Up':
-            if self.currentrow == 0:
-                return
-            else:
-                #self.yview('moveto', y)
-                #self.rowheader.yview('moveto', y)
-                self.currentrow  = self.currentrow - 1
+            if self.currentrow != 0:
+                self.currentrow  = self.currentrow -1
+ 
         elif event.keysym == 'Down':
-            if self.currentrow >= self.rows-1:
-                return
-            else:
-                self.currentrow  = self.currentrow + 1
+             if self.currentrow < self.rows -1:
+                self.currentrow  = self.currentrow +1
+                
         elif event.keysym == 'Right' or event.keysym == 'Tab':
             if self.currentcol >= self.cols-1:
                 if self.currentrow < self.rows-1:
                     self.currentcol = 0
                     self.currentrow  = self.currentrow + 1
-                else:
-                    return
+                    # redefine x, y after forcing the row & col change.
+                    x,y = self.getCanvasPos(self.currentrow, self.currentcol)
             else:
                 self.currentcol  = self.currentcol + 1
+                
         elif event.keysym == 'Left':
-            if self.currentcol>0:
-                self.currentcol = self.currentcol - 1
+            # if we've run out of columns to travel stop traveling
+            if self.currentcol <= 0:
+                self.currentcol = 0
+
+            else:
+                # "-1" addresses travel issues from addressing coords at the right of the cell.
+                x,y = self.getCanvasPos(self.currentrow, self.currentcol -1 )
+                self.currentcol  = self.currentcol -1
 
         if self.currentcol > cmax or self.currentcol <= cmin:
-            print (self.currentcol, self.visiblecols)
+            # print (self.currentcol, self.visiblecols)
             self.xview('moveto', x)
             self.tablecolheader.xview('moveto', x)
-            self.redraw()
 
         if self.currentrow <= rmin:
-            #we need to shift y to page up enough
+            # we need to shift y to page up enough
             vh=len(self.visiblerows)/2
-            x,y = self.getCanvasPos(self.currentrow-vh, 0)
+            x,y = self.getCanvasPos(self.currentrow-vh,  self.currentcol)
 
         if self.currentrow >= rmax or self.currentrow <= rmin:
             self.yview('moveto', y)
             self.rowheader.yview('moveto', y)
-            self.redraw()
 
         self.drawSelectedRect(self.currentrow, self.currentcol)
-        coltype = self.model.getColumnType(self.currentcol)
+        self.redraw()
         return
 
     def handle_double_click(self, event):
