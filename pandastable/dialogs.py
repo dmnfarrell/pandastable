@@ -41,6 +41,7 @@ except:
 
 from collections import OrderedDict
 import webbrowser
+import numpy as np
 import pandas as pd
 from .data import TableModel
 from . import util, images
@@ -1022,16 +1023,38 @@ class FindReplaceDialog(Frame):
         e.pack(fill=BOTH,side=TOP,expand=1,padx=2,pady=2)
         f = Frame(sf)
         f.pack(side=TOP, fill=BOTH, padx=2, pady=2)
-        addButton(f, 'find', self.find, None, 'search', side=LEFT)
-        addButton(f, 'replace', self.replace, None, 'find', side=LEFT)
-        addButton(f, 'close', self.close, None, 'close', side=LEFT)
+        addButton(f, 'Find Next', self.find, None, 'search', side=LEFT)
+        addButton(f, 'Replace All', self.replace, None, 'find', side=LEFT)
+        addButton(f, 'Close', self.close, None, 'close', side=LEFT)
+        return
 
     def find(self):
+        """find by highlighting?"""
 
+        df = self.table.model.df
+        df = df.astype('object').astype('str')
+        s=self.searchvar.get()
+        found = pd.DataFrame()
+        for col in df:
+            found[col] = df[col].str.contains(s, na=False)
+        print (found)
+        #highlight cells where text found using boolean dataframe?
+        i=0;j=0
+        for r,row in found.iterrows():
+            for col,val in row.iteritems():
+                if val is True:
+                    print (r,col,val)
+                    self.table.movetoSelectedRow(idx=[r])
+                    #self.table.drawSelectedRect(i, j)
+                j+=1
+            i+=1
         return
 
     def replace(self):
-        table=self.table
+        """Replace all instances of search text"""
+
+        table = self.table
+        table.storeCurrent()
         df = table.model.df
         s=self.searchvar.get()
         r=self.replacevar.get()
@@ -1040,7 +1063,8 @@ class FindReplaceDialog(Frame):
         return
 
     def close(self):
-        
+        self.table.searchframe=None
+        self.destroy()
         return
 
 class QueryDialog(Frame):

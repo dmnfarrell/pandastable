@@ -165,11 +165,10 @@ class TableModel(object):
             return 1
         return longest
 
-    def getRecordAtRow(self, rowIndex):
+    def getRecordAtRow(self, rowindex):
         """Get the entire record at the specifed row"""
 
-        name = self.getRecName(rowIndex)
-        record = self.df.ix[name]
+        record = self.df.iloc[rowindex]
         return record
 
     def moveColumn(self, oldindex, newindex):
