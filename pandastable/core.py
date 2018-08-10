@@ -213,7 +213,7 @@ class Table(Canvas):
         self.bind("<Shift-Button-1>", self.handle_left_shift_click)
 
         self.bind("<ButtonRelease-1>", self.handle_left_release)
-        if self.ostyp=='mac':
+        if self.ostyp=='darwin':
             #For mac we bind Shift, left-click to right click
             self.bind("<Button-2>", self.handle_right_click)
             self.bind('<Shift-Button-1>',self.handle_right_click)
