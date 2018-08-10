@@ -1569,12 +1569,12 @@ class Table(Canvas):
             title = 'Date->string extract'
         else:
             title = 'String->datetime convert'
-        timeformats = ['infer','%d%m%Y','%Y%m%d']
+        timeformats = ['infer','%d/%m/%Y','%Y/%m/%d','%Y/%d/%m']
         props = ['day','month','hour','minute','second','year',
                  'dayofyear','weekofyear','quarter']
         d = MultipleValDialog(title=title,
                                 initialvalues=['',timeformats,props,False],
-                                labels=['Column name:','Convert to date:',
+                                labels=['Column name:','Conversion format:',
                                         'Extract from datetime:','In place:'],
                                 types=['string','combobox','combobox','checkbutton'],
                                 parent = self.parentframe)
@@ -1650,17 +1650,10 @@ class Table(Canvas):
     def findText(self):
         """Simple text search in whole table"""
 
-        if hasattr(self, 'qframe') and self.qframe != None:
+        if hasattr(self, 'searchframe') and self.searchframe != None:
             return
         self.searchframe = FindReplaceDialog(self)
         self.searchframe.grid(row=self.queryrow,column=0,columnspan=3,sticky='news')
-
-        '''
-        mask = df.apply(lambda row: row.astype(str).str.contains(search).any(), axis=1)
-        found = df[mask]
-        #print (len(found))
-        idx = found.index
-        rows = self.multiplerowlist = self.getRowsFromIndex(idx)'''
         return
 
     def query(self, evt=None):
@@ -1903,7 +1896,7 @@ class Table(Canvas):
             except:
                 nextpos = self.tablewidth
             if x > colpos and x <= nextpos:
-                #print 'x=', x, 'colpos', colpos, self.col_positions.index(colpos)
+                #print 'x=', x, 'colpos', colpos, self.col_positio.drawSelectedRectns.index(colpos)
                 return self.col_positions.index(colpos)
         return
 
@@ -2283,10 +2276,12 @@ class Table(Canvas):
         self.drawSelectedRect(self.currentrow, self.currentcol)
         return
 
-    def movetoSelectedRow(self, row=None, recname=None):
+    def movetoSelectedRow(self, row=None, idx=None):
         """Move to selected row, updating table"""
 
-        row=self.model.getRecordIndex(recname)
+        if row is None:
+            rows = self.getRowsFromIndex(idx)
+        row=rows[0]
         self.setSelectedRow(row)
         self.drawSelectedRow()
         x,y = self.getCanvasPos(row, 0)
