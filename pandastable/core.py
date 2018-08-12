@@ -229,6 +229,7 @@ class Table(Canvas):
         self.bind("<Delete>", self.clearData)
         self.bind("<Control-v>", self.paste)
         self.bind("<Control-a>", self.selectAll)
+        self.bind("<Control-f>", self.findText)
 
         self.bind("<Right>", self.handle_arrow_keys)
         self.bind("<Left>", self.handle_arrow_keys)
@@ -438,7 +439,7 @@ class Table(Canvas):
             for row in self.visiblerows:
                 text = coldata.iloc[row-offset]
                 self.drawText(row, col, text, align)
-
+                
         self.colorColumns()
         self.colorRows()
         self.tablecolheader.redraw()
@@ -446,16 +447,16 @@ class Table(Canvas):
         self.rowindexheader.redraw()
         self.drawSelectedRow()
         self.drawSelectedRect(self.currentrow, self.currentcol)
-        #self.drawSelectedCol()
-        #for c in self.multiplecollist:
-        #    self.drawSelectedCol(c, delete=0)
 
         if len(self.multiplerowlist)>1:
             self.rowheader.drawSelectedRows(self.multiplerowlist)
             self.drawMultipleRows(self.multiplerowlist)
             self.drawMultipleCells()
-        #if callback is not None:
-        #    callback()
+        #color an arbitrary selection of cells
+        #if self.highlightcoords != None:
+        #    for c in self.coords:
+        #        i,j=c
+        #        self.drawRect(i, j, color='lightblue', tag='temp', delete=1)
         return
 
     def redraw(self, event=None, callback=None):
@@ -1647,7 +1648,7 @@ class Table(Canvas):
             idx = df.ix[mask].index
         return self.getRowsFromIndex(idx)
 
-    def findText(self):
+    def findText(self, evt=None):
         """Simple text search in whole table"""
 
         if hasattr(self, 'searchframe') and self.searchframe != None:
@@ -2285,6 +2286,7 @@ class Table(Canvas):
         x,y = self.getCanvasPos(row, 0)
         self.yview('moveto', y-0.01)
         self.rowheader.yview('moveto', y)
+        self.rowheader.redraw()
         return
 
     def copyTable(self, event=None):

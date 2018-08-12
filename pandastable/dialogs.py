@@ -1081,6 +1081,7 @@ class FindReplaceDialog(Frame):
         df = table.model.df
         self.find()
         #highlight cells where text found using stored coords
+        #needs to be done in redraw method..
         for c in self.coords:
             i,j=c
             table.drawRect(i, j, color='lightblue', tag='findrect', delete=1)
@@ -1113,6 +1114,9 @@ class FindReplaceDialog(Frame):
         df = table.model.df
         s=self.searchvar.get()
         r=self.replacevar.get()
+        case = self.casevar.get()
+        #import re
+        #r = re.compile(re.escape(r), re.IGNORECASE)
         table.model.df = df.replace(s,r,regex=True)
         table.redraw()
         return
