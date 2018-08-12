@@ -2271,22 +2271,20 @@ class Table(Canvas):
         if hasattr(self, 'cellentry'):
             self.cellentry.destroy()
         self.currentrow = self.currentrow+1
-        #if self.currentcol >= self.cols-1:
-        #    self.currentcol = self.currentcol+1
         self.drawSelectedRect(self.currentrow, self.currentcol)
         return
 
     def movetoSelectedRow(self, row=None, idx=None):
-        """Move to selected row, updating table"""
+        """Move to a specific row, updating table"""
 
         if row is None:
             rows = self.getRowsFromIndex(idx)
-        row=rows[0]
+            row=rows[0]
         self.setSelectedRow(row)
         self.drawSelectedRow()
         x,y = self.getCanvasPos(row, 0)
         self.yview('moveto', y-0.01)
-        self.tablecolheader.yview('moveto', y)
+        self.rowheader.yview('moveto', y)
         return
 
     def copyTable(self, event=None):
@@ -2735,7 +2733,8 @@ class Table(Canvas):
                         "Clean Data" : self.cleanData,
                         "Clear Formatting" : self.clearFormatting,
                         "Undo Last Change": self.undo,
-                        "Copy Table": self.copyTable}
+                        "Copy Table": self.copyTable,
+                        "Find/Replace": self.findText}
 
         main = ["Copy", "Undo", "Fill Down", #"Fill Right",
                 "Clear Data", "Set Color"]
@@ -2743,7 +2742,7 @@ class Table(Canvas):
                    "Show as Text", "Table Info", "Preferences"]
 
         filecommands = ['Open','Import Text/CSV','Save','Save As','Export']
-        editcommands = ['Undo Last Change','Copy Table']
+        editcommands = ['Undo Last Change','Copy Table','Find/Replace']
         plotcommands = ['Plot Selected','Hide plot','Show plot']
         tablecommands = ['Table to Text','Clean Data','Clear Formatting']
 
@@ -2978,19 +2977,19 @@ class Table(Canvas):
             rowpos+=1
         return
 
-    def drawSelectedRect(self, row, col, color=None):
+    def drawSelectedRect(self, row, col, color=None, fillcolor=None):
         """User has clicked to select a cell"""
 
         if col >= self.cols:
             return
         self.delete('currentrect')
-        #bg = self.selectedcolor
         if color == None:
             color = 'gray25'
         w=2
         x1,y1,x2,y2 = self.getCellCoords(row,col)
         rect = self.create_rectangle(x1+w/2+1,y1+w/2+1,x2-w/2,y2-w/2,
                                   outline=color,
+                                  fill=fillcolor,
                                   width=w,
                                   tag='currentrect')
         #raise text above all

@@ -1005,6 +1005,8 @@ class FindReplaceDialog(Frame):
         Frame.__init__(self, parent)
         self.parent = parent
         self.table = table
+        self.coords = []
+        self.current = 0 #coords of found cells
         self.setup()
         return
 
@@ -1015,6 +1017,7 @@ class FindReplaceDialog(Frame):
         Label(sf, text='Enter Search String:', font=sfont).pack(side=TOP,fill=X)
         self.searchvar = StringVar()
         e = Entry(sf, textvariable=self.searchvar)
+        self.searchvar.trace_add("write", self.updated)
         e.bind('<Return>', self.find)
         e.pack(fill=BOTH,side=TOP,expand=1,padx=2,pady=2)
         Label(sf, text='Replace With:', font=sfont).pack(side=TOP,fill=X)
@@ -1023,31 +1026,83 @@ class FindReplaceDialog(Frame):
         e.pack(fill=BOTH,side=TOP,expand=1,padx=2,pady=2)
         f = Frame(sf)
         f.pack(side=TOP, fill=BOTH, padx=2, pady=2)
-        addButton(f, 'Find Next', self.find, None, 'search', side=LEFT)
-        addButton(f, 'Replace All', self.replace, None, 'find', side=LEFT)
-        addButton(f, 'Close', self.close, None, 'close', side=LEFT)
+        addButton(f, 'Find Next', self.findNext, None, None, side=LEFT)
+        addButton(f, 'Find All', self.findAll, None, None, side=LEFT)
+        addButton(f, 'Replace All', self.replace, None, None, side=LEFT)
+        addButton(f, 'Clear', self.clear, None, None, side=LEFT)
+        addButton(f, 'Close', self.close, None, None, side=LEFT)
+        f = Frame(sf)
+        f.pack(side=TOP, fill=BOTH, padx=2, pady=2)
+        self.casevar = BooleanVar()
+        cb=Checkbutton(f, text= 'case sensitive', variable=self.casevar, command=self.updated)
+        cb.pack(side=LEFT)
+        return
+
+    def updated(self, name='', index='', mode=''):
+        """Widgets changed so run search again"""
+        self.search_changed=True
         return
 
     def find(self):
-        """find by highlighting?"""
+        """Do string search. Creates a masked dataframe for results and then stores each cell
+        coordinate in a list."""
 
-        df = self.table.model.df
+        table = self.table
+        df = table.model.df
         df = df.astype('object').astype('str')
-        s=self.searchvar.get()
+        s = self.searchvar.get()
+        case = self.casevar.get()
+        self.search_changed = False
+        #self.currentsearch = s
+        self.clear()
+        if s == '':
+            return
         found = pd.DataFrame()
         for col in df:
-            found[col] = df[col].str.contains(s, na=False)
-        print (found)
-        #highlight cells where text found using boolean dataframe?
-        i=0;j=0
+            found[col] = df[col].str.contains(s, na=False, case=case)
+        i=0
+        self.coords = []
         for r,row in found.iterrows():
+            j=0
             for col,val in row.iteritems():
                 if val is True:
-                    print (r,col,val)
-                    self.table.movetoSelectedRow(idx=[r])
-                    #self.table.drawSelectedRect(i, j)
+                    #print (r,col,val, i, j)
+                    self.coords.append((i,j))
                 j+=1
             i+=1
+        self.current = 0
+        return
+
+    def findAll(self):
+        """Highlight all found cells"""
+
+        table = self.table
+        table.delete('findrect')
+        df = table.model.df
+        self.find()
+        #highlight cells where text found using stored coords
+        for c in self.coords:
+            i,j=c
+            table.drawRect(i, j, color='lightblue', tag='findrect', delete=1)
+        return
+
+    def findNext(self):
+        """Show next cell of search result"""
+
+        table = self.table
+        s = self.searchvar.get()
+        if len(self.coords)==0  or self.search_changed == True:
+            self.find()
+        if len(self.coords)==0:
+            return
+        idx = self.current
+        i,j = self.coords[idx]
+        table.movetoSelectedRow(row=i)
+        table.redraw()
+        table.drawSelectedRect(i, j, color='red')
+        self.current+=1
+        if self.current>=len(self.coords):
+            self.current=0
         return
 
     def replace(self):
@@ -1058,12 +1113,19 @@ class FindReplaceDialog(Frame):
         df = table.model.df
         s=self.searchvar.get()
         r=self.replacevar.get()
-        table.model.df = df.replace(s,r)
+        table.model.df = df.replace(s,r,regex=True)
         table.redraw()
         return
 
+    def clear(self):
+        self.coords = []
+        self.table.delete('findrect')
+        return
+
     def close(self):
-        self.table.searchframe=None
+        table = self.table
+        table.delete('findrect')
+        table.searchframe=None
         self.destroy()
         return
 
