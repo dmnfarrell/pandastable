@@ -171,6 +171,7 @@ class Table(Canvas):
         self.columnformats = {}
         self.columnformats['alignment'] = {}
         self.rowcolors = pd.DataFrame()
+        self.highlighted = None
         self.bg = Style().lookup('TLabel.label', 'background')
         return
 
@@ -439,7 +440,7 @@ class Table(Canvas):
             for row in self.visiblerows:
                 text = coldata.iloc[row-offset]
                 self.drawText(row, col, text, align)
-                
+
         self.colorColumns()
         self.colorRows()
         self.tablecolheader.redraw()
@@ -452,11 +453,8 @@ class Table(Canvas):
             self.rowheader.drawSelectedRows(self.multiplerowlist)
             self.drawMultipleRows(self.multiplerowlist)
             self.drawMultipleCells()
-        #color an arbitrary selection of cells
-        #if self.highlightcoords != None:
-        #    for c in self.coords:
-        #        i,j=c
-        #        self.drawRect(i, j, color='lightblue', tag='temp', delete=1)
+
+        self.drawHighlighted()
         return
 
     def redraw(self, event=None, callback=None):
@@ -465,6 +463,23 @@ class Table(Canvas):
         self.redrawVisible(event, callback)
         if hasattr(self, 'statusbar'):
             self.statusbar.update()
+        return
+
+    def drawHighlighted(self):
+        """Color an arbitrary selection of cells. Set the 'highlighted'
+        attribute which is a masked dataframe of the table."""
+
+        rows = self.visiblerows
+        self.delete('temprect')
+        hl = self.highlighted
+        if hl is not None:
+            for col in self.visiblecols:
+                coldata = hl.iloc[rows,col]
+                offset = rows[0]
+                for row in rows:
+                    val = coldata.iloc[row-offset]
+                    if val == True:
+                        self.drawRect(row, col, color='lightblue', tag='temprect', delete=1)
         return
 
     def redrawCell(self, row=None, col=None, recname=None, colname=None):
@@ -2275,16 +2290,21 @@ class Table(Canvas):
         self.drawSelectedRect(self.currentrow, self.currentcol)
         return
 
-    def movetoSelectedRow(self, row=None, idx=None):
-        """Move to a specific row, updating table"""
+    def movetoSelection(self, row=None, col=0, idx=None, offset=0):
+        """Move to a specific row/col, updating table"""
 
         if row is None:
+            if idx is None:
+                return
             rows = self.getRowsFromIndex(idx)
             row=rows[0]
         self.setSelectedRow(row)
         self.drawSelectedRow()
-        x,y = self.getCanvasPos(row, 0)
-        self.yview('moveto', y-0.01)
+        x,y = self.getCanvasPos(abs(row-offset), col)
+        #print (row,col)
+        self.xview('moveto', x)
+        self.yview('moveto', y)
+        self.tablecolheader.xview('moveto', x)
         self.rowheader.yview('moveto', y)
         self.rowheader.redraw()
         return

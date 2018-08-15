@@ -1053,13 +1053,14 @@ class FindReplaceDialog(Frame):
         s = self.searchvar.get()
         case = self.casevar.get()
         self.search_changed = False
-        #self.currentsearch = s
         self.clear()
         if s == '':
             return
         found = pd.DataFrame()
         for col in df:
             found[col] = df[col].str.contains(s, na=False, case=case)
+        #set the masked dataframe so that highlighted cells are shown on redraw
+        table.highlighted = found
         i=0
         self.coords = []
         for r,row in found.iterrows():
@@ -1077,18 +1078,14 @@ class FindReplaceDialog(Frame):
         """Highlight all found cells"""
 
         table = self.table
-        table.delete('findrect')
+        table.delete('temprect')
         df = table.model.df
         self.find()
-        #highlight cells where text found using stored coords
-        #needs to be done in redraw method..
-        for c in self.coords:
-            i,j=c
-            table.drawRect(i, j, color='lightblue', tag='findrect', delete=1)
+        table.redraw()
         return
 
     def findNext(self):
-        """Show next cell of search result"""
+        """Show next cell of search results"""
 
         table = self.table
         s = self.searchvar.get()
@@ -1098,7 +1095,7 @@ class FindReplaceDialog(Frame):
             return
         idx = self.current
         i,j = self.coords[idx]
-        table.movetoSelectedRow(row=i)
+        table.movetoSelection(row=i,col=j,offset=3)
         table.redraw()
         table.drawSelectedRect(i, j, color='red')
         self.current+=1
@@ -1119,11 +1116,14 @@ class FindReplaceDialog(Frame):
         #r = re.compile(re.escape(r), re.IGNORECASE)
         table.model.df = df.replace(s,r,regex=True)
         table.redraw()
+        self.search_changed = True
         return
 
     def clear(self):
         self.coords = []
         self.table.delete('findrect')
+        self.table.highlighted = None
+        self.table.redraw()
         return
 
     def close(self):
