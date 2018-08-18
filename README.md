@@ -1,5 +1,9 @@
 # pandastable
 
+[![PyPI version shields.io](https://img.shields.io/pypi/v/pandastable.svg)](https://pypi.python.org/pypi/pandastable/)
+[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![Build: status](https://img.shields.io/travis/dmnfarrell/pandastable.svg)](https://travis-ci.org/dmnfarrell/pandastable)
+
 ## Introduction
 
 <img align="right" src=https://raw.githubusercontent.com/dmnfarrell/pandastable/master/img/logo.png width=150px>
