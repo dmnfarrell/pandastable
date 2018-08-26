@@ -189,6 +189,10 @@ class PlotViewer(Frame):
         self.playoutvar.set(0)
         cb = Checkbutton(bf,text='use grid layout', variable=self.playoutvar)
         cb.pack(side=LEFT)
+        self.plot3dvar = IntVar()
+        self.plot3dvar.set(0)
+        cb = Checkbutton(bf,text='3D plot', variable=self.plot3dvar)
+        cb.pack(side=LEFT)
 
         if self.layout == 'vertical':
             sf = VerticalScrolledFrame(self.ctrlfr,width=100,height=1050)
@@ -216,7 +220,7 @@ class PlotViewer(Frame):
         w2 = self.styleopts.showDialog(self.nb)
         self.nb.add(w2, text='Other Options', sticky='news')
         w5 = self.mplopts3d.showDialog(self.nb,layout=self.layout)
-        self.nb.add(w5, text='3D Plot', sticky='news')
+        self.nb.add(w5, text='3D Options', sticky='news')
         self.mplopts3d.updateFromOptions()
         w6 = self.animateopts.showDialog(self.nb,layout=self.layout)
         self.nb.add(w6, text='Animate', sticky='news')
@@ -272,12 +276,10 @@ class PlotViewer(Frame):
     def applyPlotoptions(self):
         """Apply the current plotter/options"""
 
-        if self.mode == '3D Plot':
-            self.mplopts3d.applyOptions()
-        else:
-            self.mplopts.applyOptions()
-            self.labelopts.applyOptions()
-            self.styleopts.applyOptions()
+        self.mplopts.applyOptions()
+        self.mplopts3d.applyOptions()
+        self.labelopts.applyOptions()
+        self.styleopts.applyOptions()
         mpl.rcParams['savefig.dpi'] = self.dpivar.get()
         return
 
@@ -298,7 +300,7 @@ class PlotViewer(Frame):
             self.plotMultiViews()
         elif layout == 1 and gridmode == 'splitdata':
             self.plotSplitData()
-        elif self.mode == '3D Plot':
+        elif self.plot3dvar.get() == 1:
             self.plot3D(redraw=redraw)
         else:
             self.plot2D(redraw=redraw)
@@ -1103,7 +1105,11 @@ class PlotViewer(Frame):
 
         if not hasattr(self, 'data'):
             return
-        kwds = self.mplopts3d.kwds
+        kwds = self.mplopts.kwds
+        #use base options by joining the dicts
+        kwds.update(self.mplopts3d.kwds)
+        kwds.update(self.labelopts.kwds)
+        #print (kwds)
         data = self.data
         x = data.values[:,0]
         y = data.values[:,1]
@@ -1147,14 +1153,14 @@ class PlotViewer(Frame):
             surf.set_clim(vmin=zi.min(), vmax=zi.max())
         if kwds['points'] == True:
             self.scatter3D(data, ax, kwds)
-        self.fig.suptitle(kwds['title'])
-        self.ax.set_xlabel(kwds['xlabel'])
-        self.ax.set_ylabel(kwds['ylabel'])
-        self.ax.set_zlabel(kwds['zlabel'])
+
+        self.setFigureOptions(ax, kwds)
         if azm!=None:
             self.ax.azim = azm
             self.ax.elev = ele
             self.ax.dist = dst
+        #handles, labels = self.ax.get_legend_handles_labels()
+        #self.fig.legend(handles, labels)
         self.canvas.draw()
         return
 
@@ -1173,22 +1179,62 @@ class PlotViewer(Frame):
     def scatter3D(self, data, ax, kwds):
         """3D scatter plot"""
 
+        def doscatter(data, ax, color=None, pointlabels=None):
+            data = data._get_numeric_data()
+            l = len(data.columns)
+            if l<3: return
+
+            X = data.values
+            cmap = plt.cm.get_cmap(kwds['colormap'])
+            x = X[:,0]
+            y = X[:,1]
+            handles=[]
+            labels=data.columns[2:]
+            for i in range(2,l):
+                z = X[:,i]
+                if color==None:
+                    c = cmap(float(i)/(l))
+                else:
+                    c = color
+                h=ax.scatter(x, y, z, edgecolor='black', c=c, linewidth=lw,
+                           alpha=alpha, s=s, marker=marker)
+                handles.append(h)
+            if pointlabels is not None:
+                for i in zip(x,y,z,pointlabels):
+                    txt=i[3]
+                    ax.text(i[0]+2,i[1]+2,i[2]+2, txt, None)
+
+            return handles,labels
+
         lw = kwds['linewidth']
         alpha = kwds['alpha']
-        s = kwds['s']
+        s = kwds['ms']*6
         marker = kwds['marker']
-        data = data._get_numeric_data()
-        l = len(data.columns)
-        if l<3: return
-        X = data.values
+        if marker=='':
+            marker='o'
+        by = kwds['by']
+        legend = kwds['legend']
         cmap = plt.cm.get_cmap(kwds['colormap'])
-        x = X[:,0]
-        for i in range(1,l-1):
-            y = X[:,i]
-            z = X[:,i+1]
-            c = cmap(float(i)/(l))
-            ax.scatter(x, y, z, edgecolor='black', c=c, linewidth=lw,
-                       alpha=alpha, s=s, marker=marker)
+        labelcol = kwds['labelcol']
+        handles=[]
+        if by != '':
+            g = data.groupby(by)
+            i=0
+            pl=None
+            for n,df in g:
+                c = cmap(float(i)/(len(g)))
+                if labelcol != '':
+                    pl = df[labelcol]
+                h,l = doscatter(df, ax, color=c, pointlabels=pl)
+                handles.extend(h)
+                i+=1
+            self.fig.legend(handles, g.groups)
+
+        else:
+            if labelcol != '':
+                pl = data[labelcol]
+            handles,lbls=doscatter(data, ax, pointlabels=pl)
+            self.fig.legend(handles, lbls)
         return
 
     def updateData(self):
@@ -1425,28 +1471,35 @@ class MPL3DOptions(MPLBaseOptions):
         fonts = util.getFonts()
         modes = ['parametric','(x,y)->z']
         self.groups = grps = {'formats':['kind','mode','rstride','cstride','points'],
-                             'styles':['colormap','marker','alpha','font'],
-                             'labels':['title','xlabel','ylabel','zlabel'],
-                             'sizes':['fontsize','linewidth','s']}
+                             #'styles':['colormap','marker','alpha','font'],
+                             #'labels':['title','xlabel','ylabel','zlabel'],
+                             #'sizes':['fontsize','linewidth','s']
+                             }
         self.groups = OrderedDict(sorted(grps.items()))
         opts = self.opts = {'font':{'type':'combobox','default':self.defaultfont,'items':fonts},
-                'fontsize':{'type':'scale','default':12,'range':(5,40),'interval':1,'label':'font size'},
+                #'fontsize':{'type':'scale','default':12,'range':(5,40),'interval':1,'label':'font size'},
                 'kind':{'type':'combobox','default':'scatter','items':self.kinds,'label':'kind'},
-                'alpha':{'type':'scale','default':0.8,'range':(0,1),'interval':0.1,'label':'alpha'},
-                'linewidth':{'type':'scale','default':.5,'range':(0,4),'interval':0.1,'label':'linewidth'},
-                's':{'type':'scale','default':30,'range':(1,500),'interval':10,'label':'marker size'},
-                'marker':{'type':'combobox','default':'o','items':self.markers},
-                'title':{'type':'entry','default':'','width':20},
-                'xlabel':{'type':'entry','default':'','width':20},
-                'ylabel':{'type':'entry','default':'','width':20},
-                'zlabel':{'type':'entry','default':'','width':20},
-                'colormap':{'type':'combobox','default':'jet','items': colormaps},
+                #'alpha':{'type':'scale','default':0.8,'range':(0,1),'interval':0.1,'label':'alpha'},
+                #'linewidth':{'type':'scale','default':.5,'range':(0,4),'interval':0.1,'label':'linewidth'},
+                #'s':{'type':'scale','default':30,'range':(1,500),'interval':10,'label':'marker size'},
+                #'marker':{'type':'combobox','default':'o','items':self.markers},
+                #'title':{'type':'entry','default':'','width':20},
+                #'xlabel':{'type':'entry','default':'','width':20},
+                #'ylabel':{'type':'entry','default':'','width':20},
+                #'zlabel':{'type':'entry','default':'','width':20},
+                #'colormap':{'type':'combobox','default':'jet','items': colormaps},
                 'rstride':{'type':'entry','default':2,'width':20},
                 'cstride':{'type':'entry','default':2,'width':20},
                 'points':{'type':'checkbutton','default':0,'label':'show points'},
                 'mode':{'type':'combobox','default':'(x,y)->z','items': modes},
                  }
         self.kwds = {}
+        return
+
+    def applyOptions(self):
+        """Set the plot kwd arguments from the tk variables"""
+
+        TkOptions.applyOptions(self)
         return
 
 class PlotLayoutOptions(TkOptions):

@@ -1,6 +1,16 @@
 =======
 CHANGES
 =======
+
+------
+0.10.1
+------
+
+Added find/replace dialog
+Moved generic options from 3D panel
+Can now plot 3D using check button
+Grouped scatter plots in 3D
+
 ------
 0.10.0
 ------
