@@ -80,8 +80,10 @@ def setAttributes(obj, data):
     """Set attributes from a dict. Used for restoring settings in tables"""
 
     for key in data:
-        #print (key)
-        obj.__dict__[key] = data[key]
+        try:
+            obj.__dict__[key] = data[key]
+        except Exception as e:
+            print (e)
     return
 
 def checkDict(d):

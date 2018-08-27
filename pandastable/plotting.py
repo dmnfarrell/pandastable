@@ -97,7 +97,7 @@ class PlotViewer(Frame):
         self.parent = parent
         self.table = table
         self.table.pf = self #opaque ref
-        self.mode = 'Base Options'
+        #self.mode = '2d'
         self.multiviews = False
         if self.parent != None:
             Frame.__init__(self, parent)
@@ -109,7 +109,7 @@ class PlotViewer(Frame):
             self.main.protocol("WM_DELETE_WINDOW", self.quit)
             g = '800x500+900+300'
             self.main.geometry(g)
-        self.layout = layout
+        self.toolslayout = layout
         if layout == 'horizontal':
             self.orient = VERTICAL
         else:
@@ -122,6 +122,8 @@ class PlotViewer(Frame):
         self.gridaxes = {}
         #reset style if it been set globally
         self.style = None
+        self.gridlayout = False
+        self.plot3d = False
         self.setupGUI()
         self.updateStyle()
         self.currentdir = os.path.expanduser('~')
@@ -131,11 +133,11 @@ class PlotViewer(Frame):
         """Redraw plot tools dialogs"""
 
         self.m.destroy()
-        if self.layout == 'horizontal':
-            self.layout = 'vertical'
+        if self.toolslayout== 'horizontal':
+            self.toolslayout= 'vertical'
             self.orient = HORIZONTAL
         else:
-            self.layout = 'horizontal'
+            self.toolslayout= 'horizontal'
             self.orient = VERTICAL
 
         self.setupGUI()
@@ -160,7 +162,7 @@ class PlotViewer(Frame):
         #button frame
         bf = Frame(self.ctrlfr, padding=2)
         bf.pack(side=TOP,fill=BOTH)
-        if self.layout == 'vertical':
+        if self.toolslayout== 'vertical':
             side = TOP
         else:
             side = LEFT
@@ -185,51 +187,45 @@ class PlotViewer(Frame):
         e.pack(side=LEFT,padx=2)
 
         #plot layout
-        self.playoutvar = IntVar()
-        self.playoutvar.set(0)
-        cb = Checkbutton(bf,text='use grid layout', variable=self.playoutvar)
-        cb.pack(side=LEFT)
+        self.gridlayoutvar = IntVar()
+        self.gridlayoutvar.set(self.gridlayout)
+        cb = Checkbutton(bf,text='grid layout', variable=self.gridlayoutvar, command=self.setLayout)
+        cb.pack(side=LEFT,padx=2)
         self.plot3dvar = IntVar()
-        self.plot3dvar.set(0)
-        cb = Checkbutton(bf,text='3D plot', variable=self.plot3dvar)
-        cb.pack(side=LEFT)
+        self.plot3dvar.set(self.plot3d)
+        cb = Checkbutton(bf,text='3D plot', variable=self.plot3dvar, command=self.setMode)
+        cb.pack(side=LEFT,padx=2)
 
-        if self.layout == 'vertical':
+        if self.toolslayout== 'vertical':
             sf = VerticalScrolledFrame(self.ctrlfr,width=100,height=1050)
             sf.pack(side=TOP,fill=BOTH)
             self.nb = Notebook(sf.interior,width=100,height=1050)
         else:
             self.nb = Notebook(self.ctrlfr,height=210)
 
-        self.nb.bind('<<NotebookTabChanged>>', self.setMode)
+        #self.nb.bind('<<NotebookTabChanged>>', self.setMode)
         self.nb.pack(side=TOP,fill=BOTH,expand=0)
 
         #add plotter tool dialogs
-        w1 = self.mplopts.showDialog(self.nb, layout=self.layout)
+        w1 = self.mplopts.showDialog(self.nb, layout=self.toolslayout)
         self.nb.add(w1, text='Base Options', sticky='news')
         #reload tkvars again from stored kwds variable
         self.mplopts.updateFromOptions()
         self.styleopts = ExtraOptions(parent=self)
         self.animateopts = AnimateOptions(parent=self)
 
-        w3 = self.labelopts.showDialog(self.nb,layout=self.layout)
+        w3 = self.labelopts.showDialog(self.nb,layout=self.toolslayout)
         self.nb.add(w3, text='Annotation', sticky='news')
         self.labelopts.updateFromOptions()
-        w4 = self.layoutopts.showDialog(self.nb,layout=self.layout)
+        w4 = self.layoutopts.showDialog(self.nb,layout=self.toolslayout)
         self.nb.add(w4, text='Grid Layout', sticky='news')
         w2 = self.styleopts.showDialog(self.nb)
         self.nb.add(w2, text='Other Options', sticky='news')
-        w5 = self.mplopts3d.showDialog(self.nb,layout=self.layout)
+        w5 = self.mplopts3d.showDialog(self.nb,layout=self.toolslayout)
         self.nb.add(w5, text='3D Options', sticky='news')
         self.mplopts3d.updateFromOptions()
-        w6 = self.animateopts.showDialog(self.nb,layout=self.layout)
+        w6 = self.animateopts.showDialog(self.nb,layout=self.toolslayout)
         self.nb.add(w6, text='Animate', sticky='news')
-
-        #w6 = Animator(parent=self)
-        #self.nb.add(w6, text='Animator', sticky='news')
-
-        if self.mode == '3D Plot':
-            self.nb.select(w5)
 
         def onpick(event):
             print(event)
@@ -238,6 +234,22 @@ class PlotViewer(Frame):
         from . import handlers
         dr = handlers.DragHandler(self)
         dr.connect()
+        return
+
+    def setLayout(self):
+        """Set plot grid layout global"""
+        if self.gridlayoutvar.get() == 1:
+            self.gridlayout = True
+        else:
+            self.gridlayout = False
+        return
+
+    def setMode(self):
+        """Set 2d/3d plot"""
+        if self.plot3dvar.get() == 1:
+            self.plot3d = True
+        else:
+            self.plot3d = False
         return
 
     def setOption(self, option, value):
@@ -249,12 +261,6 @@ class PlotViewer(Frame):
             labelwidgets[option].set(value)
         finally:
             pass
-        return
-
-    def setMode(self, evt=None):
-        """Set the plot mode based on selected tab"""
-        #self.mode = self.nb.index(self.nb.select())
-        self.mode = self.nb.tab(self.nb.select(), "text")
         return
 
     def replot(self, data=None):
@@ -293,14 +299,15 @@ class PlotViewer(Frame):
     def plotCurrent(self, redraw=True):
         """Plot the current data"""
 
-        layout = self.playoutvar.get()
+        layout = self.gridlayout#var.get()
         gridmode = self.layoutopts.modevar.get()
         self._initFigure()
         if layout == 1 and gridmode == 'multiviews':
             self.plotMultiViews()
         elif layout == 1 and gridmode == 'splitdata':
             self.plotSplitData()
-        elif self.plot3dvar.get() == 1:
+        elif self.plot3d == 1:
+            #self.mode == '3d'
             self.plot3D(redraw=redraw)
         else:
             self.plot2D(redraw=redraw)
@@ -328,7 +335,7 @@ class PlotViewer(Frame):
         """Clear figure or add a new axis to existing layout"""
 
         from matplotlib.gridspec import GridSpec
-        layout = self.playoutvar.get()
+        layout = self.gridlayoutvar.get()
         #plot layout should be tracked by plotlayoutoptions
         #self.layoutopts.applyOptions()
         gl = self.layoutopts
@@ -629,7 +636,7 @@ class PlotViewer(Frame):
         elif type(axs) is list:
             self.ax = axs[0]
         self.fig.suptitle(kwds['title'], fontsize=kwds['fontsize']*1.2)
-        layout = self.playoutvar.get()
+        layout = self.gridlayoutvar.get()
         if layout == 0:
             for ax in self.fig.axes:
                 self.setAxisLabels(ax, kwds)
@@ -1584,7 +1591,7 @@ class PlotLayoutOptions(TkOptions):
         val=self.multiviewsvar.get()
         if val == 1:
             self.parent.multiviews = True
-            self.parent.playoutvar.set(1)
+            self.parent.gridlayoutvar.set(1)
         if val == 0:
             self.parent.multiviews = False
         return
@@ -1881,7 +1888,7 @@ class AnimateOptions(TkOptions):
         datacols = list(df.columns)
         self.groups = grps = {'data window':['increment','window','startrow','delay'],
                               'display':['expand','usexrange','useyrange','tableupdate','smoothing','columntitle'],
-                              #'stream data':['source'],
+                              #'3d mode':['rotate axis','degrees'],
                               'record video':['savevideo','codec','fps','filename']
                              }
         self.groups = OrderedDict(sorted(grps.items()))
@@ -1897,6 +1904,8 @@ class AnimateOptions(TkOptions):
                             'smoothing':{'type':'checkbutton','default':0,'label':'smoothing'},
                             'columntitle':{'type':'combobox','default':'','items':datacols,'label':'column data as title'},
                             #'source':{'type':'entry','default':'','width':30},
+                            #'rotate axis':{'type':'combobox','default':'x','items':['x','y','z'],'label':'rotate axis'},
+                            #'degrees':{'type':'entry','default':5},
                             'savevideo':{'type':'checkbutton','default':0,'label':'save as video'},
                             'codec':{'type':'combobox','default':'default','items': codecs},
                             'fps':{'type':'entry','default':15},

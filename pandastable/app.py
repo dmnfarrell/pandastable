@@ -367,8 +367,6 @@ class DataExplore(Frame):
         table selections"""
 
         tablesettings = meta['table']
-        #rowheadersettings = meta['rowheader']
-        #print (meta['rowheader'])
 
         if 'childtable' in meta:
             childtable = meta['childtable']
@@ -393,7 +391,9 @@ class DataExplore(Frame):
 
         #load table settings
         util.setAttributes(table, tablesettings)
-        #util.setAttributes(table.rowheader, rowheadersettings)
+        #load plotviewer
+        if 'plotviewer' in meta:
+            util.setAttributes(table.pf, meta['plotviewer'])
         if childtable is not None:
             table.createChildTable(df=childtable)
             util.setAttributes(table.child, childsettings)
@@ -416,6 +416,7 @@ class DataExplore(Frame):
 
         #save table selections
         meta['table'] = util.getAttributes(table)
+        meta['plotviewer'] = util.getAttributes(table.pf)
         #meta['rowheader'] = util.getAttributes(table.rowheader)
         #save row colors since its a dataframe and isn't picked up by getattributes currently
         meta['table']['rowcolors'] = table.rowcolors
