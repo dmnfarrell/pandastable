@@ -335,17 +335,20 @@ class PlotViewer(Frame):
         """Clear figure or add a new axis to existing layout"""
 
         from matplotlib.gridspec import GridSpec
-        layout = self.gridlayoutvar.get()
+        layout = self.gridlayout
         #plot layout should be tracked by plotlayoutoptions
         #self.layoutopts.applyOptions()
         gl = self.layoutopts
         #kwds = self.layoutopts.kwds
-
+        if self.plot3d == True:
+            proj = '3d'
+        else:
+            proj = None
         if layout == 0:
             #default layout is just a single axis
             self.fig.clear()
             self.gridaxes={}
-            self.ax = self.fig.add_subplot(111)
+            self.ax = self.fig.add_subplot(111, projection=proj)
         else:
             #get grid layout from layout opt
             rows = gl.rows
@@ -369,7 +372,7 @@ class PlotViewer(Frame):
                 ax = self.gridaxes[name]
                 if ax in self.fig.axes:
                     self.fig.delaxes(ax)
-            self.ax = self.fig.add_subplot(gs[r:r+rowspan,c:c+colspan])
+            self.ax = self.fig.add_subplot(gs[r:r+rowspan,c:c+colspan], projection=proj)
             self.gridaxes[name] = self.ax
             #update the axes widget
             self.layoutopts.updateAxesList()
@@ -581,7 +584,7 @@ class PlotViewer(Frame):
                         else:
                             lc = 1
                         axs.legend([])
-                        self.fig.legend(handles, legnames, ncol=lc)
+                        axs.legend(handles, legnames, ncol=lc)
                 else:
                     self.showWarning('single grouped plots not supported for %s\n'
                                      'try using multiple subplots' %kind)
@@ -1108,7 +1111,7 @@ class PlotViewer(Frame):
         return azm,ele,dst
 
     def plot3D(self, redraw=True):
-        """3Ds"""
+        """3D plot"""
 
         if not hasattr(self, 'data'):
             return
@@ -1123,8 +1126,8 @@ class PlotViewer(Frame):
         z = data.values[:,2]
         azm,ele,dst = self.getView()
 
-        self.fig.clear()
-        ax = self.ax = Axes3D(self.fig)
+        #self.fig.clear()
+        ax = self.ax# = Axes3D(self.fig)
         kind = kwds['kind']
         mode = kwds['mode']
         rstride = kwds['rstride']
@@ -1204,7 +1207,7 @@ class PlotViewer(Frame):
                 else:
                     c = color
                 h=ax.scatter(x, y, z, edgecolor='black', c=c, linewidth=lw,
-                           alpha=alpha, s=s, marker=marker)
+                           alpha=alpha, marker=marker, s=ms)
                 handles.append(h)
             if pointlabels is not None:
                 for i in zip(x,y,z,pointlabels):
@@ -1215,7 +1218,7 @@ class PlotViewer(Frame):
 
         lw = kwds['linewidth']
         alpha = kwds['alpha']
-        s = kwds['ms']*6
+        ms = kwds['ms']*6
         marker = kwds['marker']
         if marker=='':
             marker='o'
@@ -1224,6 +1227,7 @@ class PlotViewer(Frame):
         cmap = plt.cm.get_cmap(kwds['colormap'])
         labelcol = kwds['labelcol']
         handles=[]
+        pl=None
         if by != '':
             g = data.groupby(by)
             i=0
