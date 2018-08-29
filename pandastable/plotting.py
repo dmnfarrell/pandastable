@@ -450,11 +450,17 @@ class PlotViewer(Frame):
         data = self.data
         n = rows * cols
         chunks = np.array_split(data, n)
+        proj=None
+        if self.plot3d == True:
+            proj='3d'
         for r in range(0,rows):
             for c in range(0,cols):
                 self.data = chunks[i]
-                self.ax = self.fig.add_subplot(gs[r:r+1,c:c+1])
-                self.plot2D(redraw=False)
+                self.ax = self.fig.add_subplot(gs[r:r+1,c:c+1], projection=proj)
+                if self.plot3d == True:
+                    self.plot3D()
+                else:
+                    self.plot2D(redraw=False)
                 i+=1
         handles, labels = self.ax.get_legend_handles_labels()
         self.fig.legend(handles, labels)
@@ -1115,7 +1121,7 @@ class PlotViewer(Frame):
 
         if not hasattr(self, 'data'):
             return
-        kwds = self.mplopts.kwds
+        kwds = self.mplopts.kwds.copy()
         #use base options by joining the dicts
         kwds.update(self.mplopts3d.kwds)
         kwds.update(self.labelopts.kwds)
@@ -1229,6 +1235,9 @@ class PlotViewer(Frame):
         handles=[]
         pl=None
         if by != '':
+            if by not in data.columns:
+                self.showWarning('grouping column not in selection')
+                return
             g = data.groupby(by)
             i=0
             pl=None
@@ -1276,13 +1285,13 @@ class PlotViewer(Frame):
             self.fig.savefig(filename, dpi=dpi)
         return
 
-    def showWarning(self, s='plot error', ax=None):
+    def showWarning(self, text='plot error', ax=None):
         """Show warning message in the plot window"""
 
         if ax==None:
-            ax=self.fig.gca()
+            ax = self.fig.add_subplot(111)
         ax.clear()
-        ax.text(.5, .5, s,transform=self.ax.transAxes,
+        ax.text(.5, .5, text, transform=self.ax.transAxes,
                        horizontalalignment='center', color='blue', fontsize=16)
         self.canvas.draw()
         return
@@ -1407,7 +1416,7 @@ class MPLBaseOptions(TkOptions):
                 'fontsize':{'type':'scale','default':12,'range':(5,40),'interval':1,'label':'font size'},
                 'marker':{'type':'combobox','default':'','items':self.markers},
                 'linestyle':{'type':'combobox','default':'-','items':self.linestyles},
-                'ms':{'type':'scale','default':5,'range':(1,50),'interval':1,'label':'marker size'},
+                'ms':{'type':'scale','default':5,'range':(1,80),'interval':1,'label':'marker size'},
                 'grid':{'type':'checkbutton','default':0,'label':'show grid'},
                 'logx':{'type':'checkbutton','default':0,'label':'log x'},
                 'logy':{'type':'checkbutton','default':0,'label':'log y'},

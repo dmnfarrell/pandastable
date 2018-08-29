@@ -376,18 +376,19 @@ class DataExplore(Frame):
         #load plot options
         opts = {'mplopts': table.pf.mplopts,
                 'mplopts3d': table.pf.mplopts3d,
-                'labelopts': table.pf.labelopts}
-                #'layoutopts': table.pf.layoutopts}
+                'labelopts': table.pf.labelopts
+                }
         for m in opts:
-            if m in meta:
-                util.setAttributes(opts[m], meta[m])
+            if m in meta and meta[m] is not None:
+                #util.setAttributes(opts[m], meta[m])
+                #opts[m] = meta[m]opts[m].updateFromOptions(meta[m])
+                opts[m].updateFromOptions(meta[m])
                 #check options loaded for missing values
                 #avoids breaking file saves when options changed
                 defaults = plotting.get_defaults(m)
                 for key in defaults:
                     if key not in opts[m].opts:
                         opts[m].opts[key] = defaults[key]
-                opts[m].updateFromOptions()
 
         #load table settings
         util.setAttributes(table, tablesettings)
@@ -409,15 +410,18 @@ class DataExplore(Frame):
 
         meta = {}
         #save plot options
-        meta['mplopts'] = util.getAttributes(table.pf.mplopts)
-        meta['mplopts3d'] = util.getAttributes(table.pf.mplopts3d)
-        meta['labelopts'] = util.getAttributes(table.pf.labelopts)
-        meta['layoutopts'] = util.getAttributes(table.pf.layoutopts)
+        #meta['mplopts'] = util.getAttributes(table.pf.mplopts)
+        #meta['mplopts3d'] = util.getAttributes(table.pf.mplopts3d)
+        #meta['labelopts'] = util.getAttributes(table.pf.labelopts)
+        meta['mplopts'] = table.pf.mplopts.kwds
+        meta['mplopts3d'] = table.pf.mplopts3d.kwds
+        meta['labelopts'] = table.pf.labelopts.kwds
+        #print (table.pf.mplopts.kwds)
 
         #save table selections
         meta['table'] = util.getAttributes(table)
         meta['plotviewer'] = util.getAttributes(table.pf)
-        #meta['rowheader'] = util.getAttributes(table.rowheader)
+
         #save row colors since its a dataframe and isn't picked up by getattributes currently
         meta['table']['rowcolors'] = table.rowcolors
         #save child table if present
