@@ -122,8 +122,6 @@ class PlotViewer(Frame):
         self.gridaxes = {}
         #reset style if it been set globally
         self.style = None
-        self.gridlayout = False
-        self.plot3d = False
         self.setupGUI()
         self.updateStyle()
         self.currentdir = os.path.expanduser('~')
@@ -180,21 +178,22 @@ class PlotViewer(Frame):
                   'change plot tools orientation', side=side)
         addButton(bf, 'Save', self.savePlot, images.save(),
                   'save plot', side=side)
-        self.dpivar = IntVar()
-        self.dpivar.set(80)
-        Label(bf, text='save dpi:').pack(side=LEFT,fill=X,padx=2)
-        e = Entry(bf, textvariable=self.dpivar, width=5)
-        e.pack(side=LEFT,padx=2)
 
-        #plot layout
-        self.gridlayoutvar = IntVar()
-        self.gridlayoutvar.set(self.gridlayout)
-        cb = Checkbutton(bf,text='grid layout', variable=self.gridlayoutvar, command=self.setLayout)
-        cb.pack(side=LEFT,padx=2)
-        self.plot3dvar = IntVar()
-        self.plot3dvar.set(self.plot3d)
-        cb = Checkbutton(bf,text='3D plot', variable=self.plot3dvar, command=self.setMode)
-        cb.pack(side=LEFT,padx=2)
+        #dicts to store global options, can be saved with projects
+        self.globalvars = {}
+        self.globalopts = { 'dpi': 80, 'grid layout': False,'3D plot':False }
+        for n in self.globalopts:
+            val = self.globalopts[n]
+            if type(val) is bool:
+                v = self.globalvars[n] = BooleanVar()
+                b = Checkbutton(bf,text=n, variable=v, command=self.setGlobalOptions)
+            else:
+                v = self.globalvars[n] = IntVar()
+                Label(bf, text=n).pack(side=LEFT,fill=X,padx=2)
+                b = Entry(bf,textvariable=v, width=5)
+                v.trace_add("write", self.setGlobalOptions)
+            v.set(val)
+            b.pack(side=LEFT,padx=2)
 
         if self.toolslayout== 'vertical':
             sf = VerticalScrolledFrame(self.ctrlfr,width=100,height=1050)
@@ -203,7 +202,6 @@ class PlotViewer(Frame):
         else:
             self.nb = Notebook(self.ctrlfr,height=210)
 
-        #self.nb.bind('<<NotebookTabChanged>>', self.setMode)
         self.nb.pack(side=TOP,fill=BOTH,expand=0)
 
         #add plotter tool dialogs
@@ -236,21 +234,20 @@ class PlotViewer(Frame):
         dr.connect()
         return
 
-    def setLayout(self):
-        """Set plot grid layout global"""
-        if self.gridlayoutvar.get() == 1:
-            self.gridlayout = True
-        else:
-            self.gridlayout = False
+    def setGlobalOptions(self, name='', index='', mode=''):
+        """Set global values from widgets"""
+
+        for n in self.globalopts:
+            try:
+                self.globalopts[n] = self.globalvars[n].get()
+            except:
+                pass
         return
 
-    def setMode(self):
-        """Set 2d/3d plot"""
-        if self.plot3dvar.get() == 1:
-            self.plot3d = True
-        else:
-            self.plot3d = False
-        return
+    def updateWidgets(self):
+        """Set global widgets from values"""
+        for n in self.globalopts:
+            self.globalvars[n].set(self.globalopts[n])
 
     def setOption(self, option, value):
         basewidgets = self.mplopts.tkvars
@@ -286,7 +283,7 @@ class PlotViewer(Frame):
         self.mplopts3d.applyOptions()
         self.labelopts.applyOptions()
         self.styleopts.applyOptions()
-        mpl.rcParams['savefig.dpi'] = self.dpivar.get()
+        mpl.rcParams['savefig.dpi'] = self.globalopts['dpi'] #self.dpivar.get()
         return
 
     def updatePlot(self):
@@ -299,15 +296,15 @@ class PlotViewer(Frame):
     def plotCurrent(self, redraw=True):
         """Plot the current data"""
 
-        layout = self.gridlayout#var.get()
+        layout = self.globalopts['grid layout']
         gridmode = self.layoutopts.modevar.get()
+        plot3d = self.globalopts['3D plot']
         self._initFigure()
         if layout == 1 and gridmode == 'multiviews':
             self.plotMultiViews()
         elif layout == 1 and gridmode == 'splitdata':
             self.plotSplitData()
-        elif self.plot3d == 1:
-            #self.mode == '3d'
+        elif plot3d == 1:
             self.plot3D(redraw=redraw)
         else:
             self.plot2D(redraw=redraw)
@@ -335,12 +332,13 @@ class PlotViewer(Frame):
         """Clear figure or add a new axis to existing layout"""
 
         from matplotlib.gridspec import GridSpec
-        layout = self.gridlayout
+        layout = self.globalopts['grid layout']
+        plot3d = self.globalopts['3D plot']
+
         #plot layout should be tracked by plotlayoutoptions
-        #self.layoutopts.applyOptions()
         gl = self.layoutopts
-        #kwds = self.layoutopts.kwds
-        if self.plot3d == True:
+
+        if plot3d == 1:
             proj = '3d'
         else:
             proj = None
@@ -451,13 +449,14 @@ class PlotViewer(Frame):
         n = rows * cols
         chunks = np.array_split(data, n)
         proj=None
-        if self.plot3d == True:
+        plot3d = self.globalopts['3D plot']
+        if plot3d == True:
             proj='3d'
         for r in range(0,rows):
             for c in range(0,cols):
                 self.data = chunks[i]
                 self.ax = self.fig.add_subplot(gs[r:r+1,c:c+1], projection=proj)
-                if self.plot3d == True:
+                if plot3d == True:
                     self.plot3D()
                 else:
                     self.plot2D(redraw=False)
@@ -645,7 +644,7 @@ class PlotViewer(Frame):
         elif type(axs) is list:
             self.ax = axs[0]
         self.fig.suptitle(kwds['title'], fontsize=kwds['fontsize']*1.2)
-        layout = self.gridlayoutvar.get()
+        layout = self.globalopts['grid layout']
         if layout == 0:
             for ax in self.fig.axes:
                 self.setAxisLabels(ax, kwds)
@@ -1281,7 +1280,7 @@ class PlotViewer(Frame):
                                                  filetypes=ftypes)
         if filename:
             self.currentdir = os.path.dirname(os.path.abspath(filename))
-            dpi = self.dpivar.get()
+            dpi = self.globalopts['dpi']
             self.fig.savefig(filename, dpi=dpi)
         return
 
@@ -1491,23 +1490,10 @@ class MPL3DOptions(MPLBaseOptions):
         fonts = util.getFonts()
         modes = ['parametric','(x,y)->z']
         self.groups = grps = {'formats':['kind','mode','rstride','cstride','points'],
-                             #'styles':['colormap','marker','alpha','font'],
-                             #'labels':['title','xlabel','ylabel','zlabel'],
-                             #'sizes':['fontsize','linewidth','s']
                              }
         self.groups = OrderedDict(sorted(grps.items()))
-        opts = self.opts = {'font':{'type':'combobox','default':self.defaultfont,'items':fonts},
-                #'fontsize':{'type':'scale','default':12,'range':(5,40),'interval':1,'label':'font size'},
+        opts = self.opts = {
                 'kind':{'type':'combobox','default':'scatter','items':self.kinds,'label':'kind'},
-                #'alpha':{'type':'scale','default':0.8,'range':(0,1),'interval':0.1,'label':'alpha'},
-                #'linewidth':{'type':'scale','default':.5,'range':(0,4),'interval':0.1,'label':'linewidth'},
-                #'s':{'type':'scale','default':30,'range':(1,500),'interval':10,'label':'marker size'},
-                #'marker':{'type':'combobox','default':'o','items':self.markers},
-                #'title':{'type':'entry','default':'','width':20},
-                #'xlabel':{'type':'entry','default':'','width':20},
-                #'ylabel':{'type':'entry','default':'','width':20},
-                #'zlabel':{'type':'entry','default':'','width':20},
-                #'colormap':{'type':'combobox','default':'jet','items': colormaps},
                 'rstride':{'type':'entry','default':2,'width':20},
                 'cstride':{'type':'entry','default':2,'width':20},
                 'points':{'type':'checkbutton','default':0,'label':'show points'},

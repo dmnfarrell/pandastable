@@ -7,9 +7,10 @@ CHANGES
 ------
 
 Added find/replace dialog
-Moved generic options from 3D panel
+Moved redundant options from 3D panel
 Can now plot 3D using check button
 Grouped scatter plots in 3D
+Removed redundant data in saving of plot options in projects
 
 ------
 0.10.0
