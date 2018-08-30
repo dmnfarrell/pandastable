@@ -20,7 +20,7 @@
 """
 
 from __future__ import absolute_import, print_function
-import sys, datetime
+import sys, datetime, pickle
 try:
     from tkinter import *
     from tkinter.ttk import *
@@ -82,6 +82,7 @@ class DataExplore(Frame):
         self.setConfigDir()
         #if not hasattr(self,'defaultsavedir'):
         self.defaultsavedir = os.path.join(os.path.expanduser('~'))
+        self.loadAppOptions()
 
         self.main.title('DataExplore')
         self.createMenuBar()
@@ -151,28 +152,31 @@ class DataExplore(Frame):
         """Create the menu bar for the application. """
 
         self.menu = Menu(self.main)
-        self.file_menu={'01New Project':{'cmd': self.newProject},
-                        '02Open Project':{'cmd': lambda: self.loadProject(asksave=True)},
-                        '03Close':{'cmd':self.closeProject},
-                        '04Save':{'cmd':self.saveProject},
-                        '05Save As':{'cmd':self.saveasProject},
-                        '06sep':'',
-                        '07Import CSV':{'cmd':self.importCSV},
-                        '08Import from URL':{'cmd':self.importURL},
-                        '08Import Excel':{'cmd':self.importExcel},
-                        '09Export CSV':{'cmd':self.exportCSV},
-                        '10sep':'',
-                        '11Quit':{'cmd':self.quit}}
+        file_menu = Menu(self.menu,tearoff=0)
+        #add recent first
+        self.createRecentMenu(file_menu)
+        filemenuitems = {'01New Project':{'cmd': self.newProject},
+                    '02Open Project':{'cmd': lambda: self.loadProject(asksave=True)},
+                    '03Close':{'cmd':self.closeProject},
+                    '04Save':{'cmd':self.saveProject},
+                    '05Save As':{'cmd':self.saveasProject},
+                    '06sep':'',
+                    '07Import CSV':{'cmd':self.importCSV},
+                    '08Import from URL':{'cmd':self.importURL},
+                    '08Import Excel':{'cmd':self.importExcel},
+                    '09Export CSV':{'cmd':self.exportCSV},
+                    '10sep':'',
+                    '11Quit':{'cmd':self.quit}}
 
-        self.file_menu = self.createPulldown(self.menu,self.file_menu)
+        self.file_menu = self.createPulldown(self.menu, filemenuitems, var=file_menu)
         self.menu.add_cascade(label='File',menu=self.file_menu['var'])
 
-        self.edit_menu={'01Undo Last Change':{'cmd': self.undo},
+        editmenuitems = {'01Undo Last Change':{'cmd': self.undo},
                         '02Copy Table':{'cmd': self.copyTable},
                         '03Find/Replace':{'cmd':self.findText},
                         '04Table Preferences':{'cmd': self.currentTablePrefs},
                         }
-        self.edit_menu = self.createPulldown(self.menu,self.edit_menu)
+        self.edit_menu = self.createPulldown(self.menu, editmenuitems)
         self.menu.add_cascade(label='Edit',menu=self.edit_menu['var'])
 
         self.sheet_menu={'01Add Sheet':{'cmd': lambda: self.addSheet(select=True)},
@@ -252,6 +256,17 @@ class DataExplore(Frame):
         self.main.config(menu=self.menu)
         return
 
+    def createRecentMenu(self, menu):
+        """Recent projects menu"""
+
+        from functools import partial
+        recent = self.appoptions['recent']
+        recentmenu = Menu(menu)
+        menu.add_cascade(label="Open Recent", menu=recentmenu)
+        for r in recent:
+            recentmenu.add_command(label=r, command=partial(self.loadProject, r))
+        return
+
     def bring_to_foreground(self, set_focus=False):
         self.main.deiconify()
         self.main.attributes('-topmost', True)
@@ -283,14 +298,17 @@ class DataExplore(Frame):
         self.main.geometry(self.winsize)
         return
 
-    def createPulldown(self, menu, dict):
+    def createPulldown(self, menu, dict, var=None):
         """Create pulldown menu, returns a dict.
         Args:
+            menu: parent menu bar
             dict: dictionary of the form -
             {'01item name':{'cmd':function name, 'sc': shortcut key}}
+            var: an already created menu
         """
 
-        var = Menu(menu,tearoff=0)
+        if var is None:
+            var = Menu(menu,tearoff=0)
         dialogs.applyStyle(var)
         items = list(dict.keys())
         items.sort()
@@ -393,7 +411,7 @@ class DataExplore(Frame):
         #load table settings
         util.setAttributes(table, tablesettings)
         #load plotviewer
-        if 'plotviewer' in meta:            
+        if 'plotviewer' in meta:
             util.setAttributes(table.pf, meta['plotviewer'])
             table.pf.updateWidgets()
         if childtable is not None:
@@ -411,9 +429,6 @@ class DataExplore(Frame):
 
         meta = {}
         #save plot options
-        #meta['mplopts'] = util.getAttributes(table.pf.mplopts)
-        #meta['mplopts3d'] = util.getAttributes(table.pf.mplopts3d)
-        #meta['labelopts'] = util.getAttributes(table.pf.labelopts)
         meta['mplopts'] = table.pf.mplopts.kwds
         meta['mplopts3d'] = table.pf.mplopts3d.kwds
         meta['labelopts'] = table.pf.labelopts.kwds
@@ -422,7 +437,7 @@ class DataExplore(Frame):
         #save table selections
         meta['table'] = util.getAttributes(table)
         meta['plotviewer'] = util.getAttributes(table.pf)
-        print (meta['plotviewer'])
+        #print (meta['plotviewer'])
         #save row colors since its a dataframe and isn't picked up by getattributes currently
         meta['table']['rowcolors'] = table.rowcolors
         #save child table if present
@@ -431,6 +446,26 @@ class DataExplore(Frame):
             meta['childselected'] = util.getAttributes(table.child)
 
         return meta
+
+    def saveAppOptions(self):
+        """Save global app options to config dir"""
+
+        appfile = os.path.join(self.configpath, 'app.p')
+        file = open(appfile,'wb')
+        pickle.dump(self.appoptions, file)
+        file.close()
+        return
+
+    def loadAppOptions(self):
+        """Load global app options if present"""
+
+        appfile = os.path.join(self.configpath, 'app.p')
+        if os.path.exists(appfile):
+            self.appoptions = pickle.load(open(appfile,'rb'))            
+        else:
+            self.appoptions = {}
+            self.appoptions['recent'] = []
+        return
 
     def newProject(self, data=None, df=None):
         """Create a new project from data or empty"""
@@ -504,6 +539,12 @@ class DataExplore(Frame):
         self.main.title('%s - DataExplore' %filename)
         self.projopen = True
         self.defaultsavedir = os.path.dirname(os.path.abspath(filename))
+        recent = self.appoptions['recent']
+        if not os.path.abspath(filename) in recent:
+            if len(recent)>=5:
+                recent.pop(0)
+            recent.append(os.path.abspath(filename))
+            self.saveAppOptions()
         return
 
     def saveProject(self, filename=None):
@@ -541,10 +582,8 @@ class DataExplore(Frame):
             data[i] = {}
             data[i]['table'] = table.model.df
             data[i]['meta'] = self.saveMeta(table)
-        #try:
+
         pd.to_msgpack(filename, data, encoding='utf-8')
-        #except:
-        #    print('SAVE FAILED!!!')
         return
 
     def _checkTables(self):
@@ -948,7 +987,7 @@ class DataExplore(Frame):
         pw.add(table.pf, weight=2)
         return
 
-    def addPlot(self, ):
+    def addPlot(self):
         """Store the current plot so it can be re-loaded"""
 
         import pickle
