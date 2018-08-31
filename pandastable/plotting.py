@@ -182,17 +182,19 @@ class PlotViewer(Frame):
         #dicts to store global options, can be saved with projects
         self.globalvars = {}
         self.globalopts = { 'dpi': 80, 'grid layout': False,'3D plot':False }
+        from functools import partial
         for n in self.globalopts:
             val = self.globalopts[n]
             if type(val) is bool:
                 v = self.globalvars[n] = BooleanVar()
-                b = Checkbutton(bf,text=n, variable=v, command=self.setGlobalOptions)
+                v.set(val)
+                b = Checkbutton(bf,text=n, variable=v, command=partial(self.setGlobalOption, n))
             else:
                 v = self.globalvars[n] = IntVar()
+                v.set(val)
                 Label(bf, text=n).pack(side=LEFT,fill=X,padx=2)
                 b = Entry(bf,textvariable=v, width=5)
-                v.trace_add("write", self.setGlobalOptions)
-            v.set(val)
+                v.trace("w", partial(self.setGlobalOption, n))
             b.pack(side=LEFT,padx=2)
 
         if self.toolslayout== 'vertical':
@@ -234,14 +236,14 @@ class PlotViewer(Frame):
         dr.connect()
         return
 
-    def setGlobalOptions(self, name='', index='', mode=''):
-        """Set global values from widgets"""
+    def setGlobalOption(self, name='', *args):
+        """Set global value from widgets"""
 
-        for n in self.globalopts:
-            try:
-                self.globalopts[n] = self.globalvars[n].get()
-            except:
-                pass
+        try:
+            self.globalopts[name] = self.globalvars[name].get()
+            #print (self.globalopts)
+        except:
+            pass
         return
 
     def updateWidgets(self):

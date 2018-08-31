@@ -399,7 +399,6 @@ class DataExplore(Frame):
         for m in opts:
             if m in meta and meta[m] is not None:
                 #util.setAttributes(opts[m], meta[m])
-                #opts[m] = meta[m]opts[m].updateFromOptions(meta[m])
                 opts[m].updateFromOptions(meta[m])
                 #check options loaded for missing values
                 #avoids breaking file saves when options changed
@@ -412,8 +411,10 @@ class DataExplore(Frame):
         util.setAttributes(table, tablesettings)
         #load plotviewer
         if 'plotviewer' in meta:
+            #print (meta['plotviewer'])
             util.setAttributes(table.pf, meta['plotviewer'])
             table.pf.updateWidgets()
+
         if childtable is not None:
             table.createChildTable(df=childtable)
             util.setAttributes(table.child, childsettings)
@@ -452,7 +453,7 @@ class DataExplore(Frame):
 
         appfile = os.path.join(self.configpath, 'app.p')
         file = open(appfile,'wb')
-        pickle.dump(self.appoptions, file)
+        pickle.dump(self.appoptions, file, protocol=2)
         file.close()
         return
 
@@ -461,7 +462,7 @@ class DataExplore(Frame):
 
         appfile = os.path.join(self.configpath, 'app.p')
         if os.path.exists(appfile):
-            self.appoptions = pickle.load(open(appfile,'rb'))            
+            self.appoptions = pickle.load(open(appfile,'rb'))
         else:
             self.appoptions = {}
             self.appoptions['recent'] = []
