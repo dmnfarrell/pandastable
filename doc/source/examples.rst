@@ -48,6 +48,21 @@ A class for launching a basic table in a frame::
 	#launch the app
 	app.mainloop()
 
+Inherit from the table class and add custom methods::
+
+	class MyTable(Table):
+	    """Custom table class inherits from Table. You can then override required methods"""
+	    def __init__(self, parent=None, **kwargs):
+	        Table.__init__(self, parent, **kwargs)
+	        return
+
+			def handle_left_click(self, event):
+	        """Example - override left click"""
+
+	        Table.handle_left_click(self, event)
+					#do custom code here
+	        return
+
 Table Coloring
 --------------
 
@@ -81,7 +96,7 @@ Plugins are for adding custom functionality that is not present in the main appl
 Implementing a plugin
 +++++++++++++++++++++
 
-Plugins should inherit from the Plugin class. Though this is not strictly necessary for the plugin to function. 
+Plugins should inherit from the Plugin class. Though this is not strictly necessary for the plugin to function.
 
 ``from pandastable.plugin import Plugin``
 
@@ -91,7 +106,7 @@ _doFrame method has the following lines which are always needed unless it is a n
 
 	self.table = self.parent.getCurrentTable() #get the current table
 	#add the plugin frame to the table parent
-	self.mainwin = Frame(self.table.parentframe) 
+	self.mainwin = Frame(self.table.parentframe)
 	#pluginrow is 6 to make the frame appear below other widgets
 	self.mainwin.grid(row=pluginrow,column=0,columnspan=2,sticky='news')
 
@@ -100,9 +115,6 @@ You can also override the quit() and about() methods.
 Non-table based plugins
 +++++++++++++++++++++++
 
-Plugins that don't rely on using the table directly do not need to use the above method and can have essentially anything in them as long as there is a main() method present. The Batch File Rename plugin is an example. This is a standalone utility launched in a separate toplevel window. 
+Plugins that don't rely on using the table directly do not need to use the above method and can have essentially anything in them as long as there is a main() method present. The Batch File Rename plugin is an example. This is a standalone utility launched in a separate toplevel window.
 
 see https://github.com/dmnfarrell/pandastable/blob/master/pandastable/plugins/rename.py
-
-
-

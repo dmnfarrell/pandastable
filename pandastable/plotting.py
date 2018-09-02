@@ -37,6 +37,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.mlab import griddata
 from matplotlib.lines import Line2D
+import matplotlib.transforms as mtrans
 from collections import OrderedDict
 import operator
 from .dialogs import *
@@ -1120,7 +1121,7 @@ class PlotViewer(Frame):
     def plot3D(self, redraw=True):
         """3D plot"""
 
-        if not hasattr(self, 'data'):
+        if not hasattr(self, 'data') or len(self.data.columns)<3:
             return
         kwds = self.mplopts.kwds.copy()
         #use base options by joining the dicts
@@ -1217,9 +1218,12 @@ class PlotViewer(Frame):
                            alpha=alpha, marker=marker, s=ms)
                 handles.append(h)
             if pointlabels is not None:
+                trans_offset = mtrans.offset_copy(ax.transData, fig=self.fig,
+                                  x=0.05, y=0.10, units='inches')
                 for i in zip(x,y,z,pointlabels):
                     txt=i[3]
-                    ax.text(i[0]+2,i[1]+2,i[2]+2, txt, None)
+                    ax.text(i[0],i[1],i[2], txt, None,
+                    transform=trans_offset)
 
             return handles,labels
 

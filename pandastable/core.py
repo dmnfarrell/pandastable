@@ -2107,7 +2107,28 @@ class Table(Canvas):
         return
 
     def handle_left_release(self,event):
+        """Handle left mouse button release event"""
+
         self.endrow = self.get_row_clicked(event)
+        df = self.model.df
+        colname = df.columns[self.currentcol]
+        dtype = df.dtypes[colname]
+
+        if dtype.name == 'category':
+            #drop down menu for category entry
+            row = self.get_row_clicked(event)
+            col = self.get_col_clicked(event)
+            x1,y1,x2,y2 = self.getCellCoords(row,col)
+            self.dropvar = StringVar()
+            val = self.model.getValueAt(row,col)
+            #get categories
+            optionlist = list(df[colname].cat.categories[:50])
+            dropmenu = OptionMenu(self, self.dropvar, val, *optionlist)
+            self.dropvar.trace('w', self.handleEntryMenu)
+            self.create_window(x1,y1,
+                                width=120,height=30,
+                                window=dropmenu, anchor='nw',
+                                tag='entry')
         return
 
     def handle_left_ctrl_click(self, event):
@@ -3049,6 +3070,20 @@ class Table(Canvas):
         self.drawText(row, col, value, align=self.align)
         self.delete('entry')
         self.gotonextCell()
+        return
+
+    def handleEntryMenu(self, *args):
+        """Callback for option menu in categorical columns entry"""
+
+        value = self.dropvar.get()
+        self.delete('entry')
+        row = self.currentrow
+        col = self.currentcol
+        try:
+            self.model.setValueAt(value,row,col)
+        except:
+            self.model.setValueAt(float(value),row,col)
+        self.drawText(row, col, value, align=self.align)
         return
 
     def drawCellEntry(self, row, col, text=None):
