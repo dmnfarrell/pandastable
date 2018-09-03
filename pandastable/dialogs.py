@@ -1017,7 +1017,7 @@ class FindReplaceDialog(Frame):
         Label(sf, text='Enter Search String:', font=sfont).pack(side=TOP,fill=X)
         self.searchvar = StringVar()
         e = Entry(sf, textvariable=self.searchvar)
-        self.searchvar.trace_add("write", self.updated)
+        self.searchvar.trace("w", self.updated)
         e.bind('<Return>', self.find)
         e.pack(fill=BOTH,side=TOP,expand=1,padx=2,pady=2)
         Label(sf, text='Replace With:', font=sfont).pack(side=TOP,fill=X)

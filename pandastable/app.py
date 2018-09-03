@@ -518,6 +518,10 @@ class DataExplore(Frame):
                                                     parent=self.main)
         if not filename:
             return
+        if not os.path.exists(filename):
+            print ('no such file')
+            self.removeRecent(filename)
+            return
         ext = os.path.splitext(filename)[1]
         if ext != '.dexpl':
             print ('does not appear to be a project file')
@@ -540,6 +544,21 @@ class DataExplore(Frame):
         self.main.title('%s - DataExplore' %filename)
         self.projopen = True
         self.defaultsavedir = os.path.dirname(os.path.abspath(filename))
+        self.addRecent(filename)
+        return
+
+    def removeRecent(self, filename):
+        """Remove file from recent list"""
+
+        recent = self.appoptions['recent']
+        if filename in recent:
+            recent.remove(filename)
+            self.saveAppOptions()
+        return
+
+    def addRecent(self, filename):
+        """Add file name to recent projects"""
+
         recent = self.appoptions['recent']
         if not os.path.abspath(filename) in recent:
             if len(recent)>=5:
@@ -568,9 +587,10 @@ class DataExplore(Frame):
                                                 filetypes=[("project","*.dexpl")])
         if not filename:
             return
-        self.filename=filename
+        self.filename = filename
         self.defaultsavedir = os.path.dirname(os.path.abspath(filename))
         self.doSaveProject(self.filename)
+        self.addRecent(filename)
         return
 
     def doSaveProject(self, filename):
@@ -1159,6 +1179,9 @@ def main():
         app = TestApp()
     else:
         if opts.projfile != None:
+            if not os.path.exists(opts.projfile):
+                print('no such file')
+                return
             app = DataExplore(projfile=opts.projfile)
         elif opts.msgpack != None:
             app = DataExplore(msgpack=opts.msgpack)

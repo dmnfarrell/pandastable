@@ -182,7 +182,7 @@ class PlotViewer(Frame):
 
         #dicts to store global options, can be saved with projects
         self.globalvars = {}
-        self.globalopts = { 'dpi': 80, 'grid layout': False,'3D plot':False }
+        self.globalopts = OrderedDict({ 'dpi': 80, 'grid layout': False,'3D plot':False })
         from functools import partial
         for n in self.globalopts:
             val = self.globalopts[n]
@@ -1118,6 +1118,12 @@ class PlotViewer(Frame):
             return None,None,None
         return azm,ele,dst
 
+    def getcmap(self, name):
+        try:
+            return plt.cm.get_cmap(name)
+        except:
+            return plt.cm.get_cmap('Spectral')
+
     def plot3D(self, redraw=True):
         """3D plot"""
 
@@ -1203,7 +1209,6 @@ class PlotViewer(Frame):
             if l<3: return
 
             X = data.values
-            cmap = plt.cm.get_cmap(kwds['colormap'])
             x = X[:,0]
             y = X[:,1]
             handles=[]
@@ -1235,7 +1240,7 @@ class PlotViewer(Frame):
             marker='o'
         by = kwds['by']
         legend = kwds['legend']
-        cmap = plt.cm.get_cmap(kwds['colormap'])
+        cmap = self.getcmap(kwds['colormap'])
         labelcol = kwds['labelcol']
         handles=[]
         pl=None
