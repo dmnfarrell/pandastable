@@ -1256,7 +1256,7 @@ class PlotViewer(Frame):
                 if labelcol != '':
                     pl = df[labelcol]
                 h,l = doscatter(df, ax, color=c, pointlabels=pl)
-                handles.extend(h)
+                handles.append(h[0])
                 i+=1
             self.fig.legend(handles, g.groups)
 
