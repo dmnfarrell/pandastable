@@ -54,7 +54,7 @@ class ColumnHeader(Canvas):
             self.table = table
             self.model = self.table.model
             if util.check_multiindex(self.model.df.columns) == 1:
-                self.height = 40
+                self.height = 40                
             else:
                 self.height = self.table.rowheight
             self.config(width=self.table.width, height=self.height)
