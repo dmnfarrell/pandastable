@@ -13,6 +13,7 @@ Grouped scatter plots in 3D
 Removed redundant data in saving of plot options in projects
 Recent project items in menu
 Dropdown entry menu for categorical columns
+Crosstab function
 
 ------
 0.10.0

@@ -2440,13 +2440,6 @@ class Table(Canvas):
         df = self.model.df
         from .dialogs import AggregateDialog
         dlg = AggregateDialog(self, df=self.model.df)
-
-        '''if replace == True:
-            self.model.df = g
-            self.showIndex()
-            self.redraw()
-        else:
-            self.createChildTable(g, 'aggregated', index=True)'''
         return
 
     def melt(self):
@@ -2454,7 +2447,7 @@ class Table(Canvas):
 
         df = self.model.df
         cols = list(df.columns)
-        valcols = list(df.select_dtypes(include=[np.float64,np.int32]))
+        valcols = list(df.select_dtypes(include=[np.float64,np.int32,np.int64]))
         d = MultipleValDialog(title='Melt',
                                 initialvalues=(cols,valcols,'var'),
                                 labels=('ID vars:', 'Value vars:', 'var name:'),
@@ -2463,6 +2456,8 @@ class Table(Canvas):
                                           'Column(s) to unpivot',
                                           'name of variable column'),
                                 parent = self.parentframe)
+        if d.result == None:
+            return
         idvars = d.results[0]
         valuevars = d.results[1]
         varname = d.results[2]
@@ -2476,13 +2471,42 @@ class Table(Canvas):
         self.createChildTable(t, '', index=True)
         return
 
+    def crosstab(self):
+        """Cross tabulation"""
+
+        df = self.model.df
+        cols = list(df.columns)
+        valcols = list(df.select_dtypes(include=[np.float64,np.int32,np.int64]))
+        funcs = ['','mean','sum','count','max','min','std','first','last']
+        d = MultipleValDialog(title='Crosstab',
+                                initialvalues=(cols,cols,valcols,funcs,0),
+                                labels=('Rows:', 'Columns:','Values:','Agg Function:','Show sub-totals:'),
+                                types=('combobox','combobox','listbox','combobox','checkbutton'),
+                                tooltips=('values to group by in the rows','values to group by in the columns',
+                                         'array of values to aggregate according to the factors',
+                                         'function to aggregate on','add sub-totals'),
+                                parent = self.parentframe)
+        if d.result == None:
+            return
+        rows = d.results[0]
+        cols = d.results[1]
+        values = d.results[2]
+        func = d.results[3]
+        margins = d.results[4]
+        if values == '': vals = None
+        else: vals = df[values]
+        if func == '': func = None
+        t = pd.crosstab(df[rows], df[cols], values=vals, aggfunc=func, margins=margins)
+        self.createChildTable(t, '', index=True)
+        return
+
     def pivot(self):
         """Pivot table"""
 
         #self.convertNumeric()
         df = self.model.df
         cols = list(df.columns)
-        valcols = list(df.select_dtypes(include=[np.float64,np.int32]))
+        valcols = list(df.select_dtypes(include=[np.float64,np.int32,np.int64]))
         funcs = ['mean','sum','count','max','min','std','first','last']
         d = MultipleValDialog(title='Pivot',
                                 initialvalues=(cols,cols,valcols,funcs),
