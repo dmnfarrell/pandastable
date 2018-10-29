@@ -54,14 +54,42 @@ Inherit from the table class and add custom methods::
 	    """Custom table class inherits from Table. You can then override required methods"""
 	    def __init__(self, parent=None, **kwargs):
 	        Table.__init__(self, parent, **kwargs)
-	        return
+         return
 
-			def handle_left_click(self, event):
+		  def handle_left_click(self, event):
 	        """Example - override left click"""
 
 	        Table.handle_left_click(self, event)
 					#do custom code here
 	        return
+
+Table methods
+-------------
+
+You can use the Table class methods to directly access data and perform many more functions. Check the API for all the methods. Some examples are given here::
+
+	table.autoAddColumns(10) #add 10 empty columns
+	table.autoResizeColumns() #resize the columns to fit the data better
+	table.clearFormatting() #clear the current formatting
+	table.contractColumns() #reduce column witdths proportionally
+	table.getSelectedColumn() #get selected column
+	table.sortTable(0) #sort by column index 0
+	table.zoomIn() #enlarge all table elements
+
+Accessing and modifying data directly
+-------------------------------------
+
+The tables use a pandas DataFrame object for storing the underlying data. If you are not familiar with pandas you should learn the basics if you need to access or manipulate the table data. See http://pandas.pydata.org/pandas-docs/stable/10min.html
+
+Each table has an object called model with has the dataframe inside it. The dataframe is referred to as df. So to access the data on a table you can use::
+
+	df = table.model.df
+
+Examples of simple dataframe operations. Remember when you update the dataframe you will need to call table.redraw() to see the changes reflected::
+
+	df.drop(0) #delete column with this index
+	df.T #transpose the DataFrame
+	df.drop(columns=['x'])
 
 Table Coloring
 --------------

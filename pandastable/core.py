@@ -138,7 +138,11 @@ class Table(Canvas):
         if hasattr(self, 'parenttable'):
             return
         if hasattr(self, 'pf') and self.pf is not None:
-            self.pf.quit()
+            #print (self.pf)
+            self.pf.close()
+        if util.SCRATCH is not None:
+            util.SCRATCH.destroy()
+            util.SCRATCH = None
         return
 
     def set_defaults(self):

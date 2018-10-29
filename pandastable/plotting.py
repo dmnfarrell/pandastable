@@ -107,7 +107,7 @@ class PlotViewer(Frame):
             self.main = Toplevel()
             self.master = self.main
             self.main.title('Plot Viewer')
-            self.main.protocol("WM_DELETE_WINDOW", self.quit)
+            self.main.protocol("WM_DELETE_WINDOW", self.close)
             g = '800x500+900+300'
             self.main.geometry(g)
         self.toolslayout = layout
@@ -1256,7 +1256,7 @@ class PlotViewer(Frame):
                 if labelcol != '':
                     pl = df[labelcol]
                 h,l = doscatter(df, ax, color=c, pointlabels=pl)
-                handles.extend(h)
+                handles.append(h[0])
                 i+=1
             self.fig.legend(handles, g.groups)
 
@@ -1314,7 +1314,7 @@ class PlotViewer(Frame):
         self.m.pack(fill=BOTH,expand=1)
         return
 
-    def quit(self):
+    def close(self):
         self.table.pf = None
         self.animateopts.stop()
         self.main.destroy()
