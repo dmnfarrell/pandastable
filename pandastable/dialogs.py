@@ -700,22 +700,125 @@ class CombineDialog(Frame):
         self.main.destroy()
         return
 
-class AggregateDialog(Frame):
-    """Provides a frame for split-apply-combine operations"""
+class BaseDialog(Frame):
+    """Generic dialog - inherit from this and customise the
+       createWidgets and apply methods."""
 
-    def __init__(self, parent=None, df=None):
+    def __init__(self, parent=None, df=None, title=''):
 
         self.parent = parent
         self.main = Toplevel()
         self.master = self.main
-        self.main.title('Aggregate')
+        self.main.title(title)
         self.main.protocol("WM_DELETE_WINDOW", self.quit)
         self.main.grab_set()
         self.main.transient(parent)
         self.main.resizable(width=False, height=False)
         self.df = df
         self.result = None
+        return
 
+    def createWidgets(self, m):
+        """Override this"""
+
+        cols = list(self.df.columns)
+        f = LabelFrame(m, text='frame')
+        f.pack(side=LEFT,fill=BOTH,padx=2)
+        self.buttonsFrame()
+        return
+
+    def buttonsFrame(self):
+        bf = Frame(self.main)
+        bf.pack(side=TOP,fill=BOTH)
+        b = Button(bf, text="Apply", command=self.apply)
+        b.pack(side=LEFT,fill=X,expand=1,pady=2)
+        b = Button(bf, text="Close", command=self.quit)
+        b.pack(side=LEFT,fill=X,expand=1,pady=2)
+        b = Button(bf, text="Help", command=self.help)
+        b.pack(side=LEFT,fill=X,expand=1,pady=2)
+        return
+
+    def apply(self):
+        """Code to run when Apply is pressed"""
+        return
+
+    def help(self):
+        """Help button code"""
+        return
+
+    def quit(self):
+        self.main.destroy()
+        return
+
+class CrosstabDialog(BaseDialog):
+    def __init__(self, parent=None, df=None, title=''):
+
+        BaseDialog.__init__(self, parent, df, title)
+        m = Frame(self.main)
+        m.pack(side=TOP)
+        self.createWidgets(m)
+        return
+
+    def createWidgets(self, m):
+        """Create a set of grp-agg-func options together"""
+
+        cols = list(self.df.columns)
+        funcs = ['mean','median','sum','size','count','std','first','last',
+                 'min','max','var']
+        f = LabelFrame(m, text='crosstab')
+        f.pack(side=LEFT,fill=BOTH,padx=2)
+        w,self.colsvar = addListBox(f, values=cols,width=14, label='columns')
+        w.pack(side=LEFT,padx=2)
+        self.vars = OrderedDict()
+        w,self.rowsvar = addListBox(f, values=cols,width=14,label='rows')
+        w.pack(side=LEFT,padx=2)
+        valcols = list(self.df.select_dtypes(include=[np.float64,np.int32,np.int64]))
+        w,self.valsvar = addListBox(f, values=valcols,width=14,label='values')
+        w.pack(side=LEFT,padx=2)
+        w,self.funcvar = addListBox(f, values=funcs,width=14,label='functions')
+        w.pack(side=LEFT,padx=2)
+        self.marginsvar = BooleanVar()
+        w = Checkbutton(self.main,text='add row/column subtotals',
+                         variable=self.marginsvar)
+        w.pack(padx=2,pady=2)
+        self.buttonsFrame()
+        return
+
+    def apply(self):
+        """Apply crosstab"""
+
+        cols = self.colsvar.getSelectedItem()
+        rows = self.rowsvar.getSelectedItem()
+        vals = self.valsvar.getSelectedItem()
+        funcs = self.funcvar.getSelectedItem()
+        margins = self.marginsvar.get()
+        df = self.df
+        rowdata = [df[r] for r in rows]
+        coldata = [df[c] for c in cols]
+        if vals == '':
+            vals=None
+        else:
+            vals=df[vals]
+        if funcs == '':
+            funcs=None
+        elif len(funcs) != len(cols):
+            funcs = [funcs[0] for i in cols]
+
+        self.result = pd.crosstab(rowdata, coldata, values=vals, aggfunc=funcs, margins=margins)
+        self.parent.createChildTable(self.result, '', index=True)
+        return
+
+    def help(self):
+        link='https://pandas.pydata.org/pandas-docs/stable/generated/pandas.crosstab.html'
+        webbrowser.open(link,autoraise=1)
+        return
+
+class AggregateDialog(BaseDialog):
+    """Provides a frame for split-apply-combine operations"""
+
+    def __init__(self, parent=None, df=None):
+
+        BaseDialog.__init__(self, parent, df)
         m = Frame(self.main)
         m.pack(side=TOP)
         self.createWidgets(m)
@@ -731,15 +834,7 @@ class AggregateDialog(Frame):
         w = Checkbutton(f,text='set grouping column as index',
                          variable=self.keepcols)
         w.pack(padx=2,pady=2)
-        #ToolTip.createToolTip(w, 'makes the column grouped on the new index')
-        bf = Frame(self.main)
-        bf.pack(side=TOP,fill=BOTH)
-        b = Button(bf, text="Apply", command=self.apply)
-        b.pack(side=LEFT,fill=X,expand=1,pady=2)
-        b = Button(bf, text="Close", command=self.quit)
-        b.pack(side=LEFT,fill=X,expand=1,pady=2)
-        b = Button(bf, text="Help", command=self.help)
-        b.pack(side=LEFT,fill=X,expand=1,pady=2)
+
         #self.main.wait_window()
         return
 
@@ -761,6 +856,7 @@ class AggregateDialog(Frame):
         w.pack(side=LEFT,padx=2)
         w,self.funcvar = addListBox(f, values=funcs,width=14,label='functions')
         w.pack(side=LEFT,padx=2)
+        self.buttonsFrame()
         return
 
     def apply(self):
