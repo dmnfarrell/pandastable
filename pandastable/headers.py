@@ -130,41 +130,46 @@ class ColumnHeader(Canvas):
         anchor = 'w'
         pad = 5
 
-        h = self.height
-        y = h/2
         x_start = self.table.x_start
         if cols == 0:
             return
 
-        for col in self.table.visiblecols:
-            colname = df.columns[col]
-            try:
-                colstr = colname.encode('utf-8','ignore').decode('utf-8')
-            except:
-                colstr = str(colname)
-            if colstr in colwidths:
-                w = colwidths[colstr]
-            else:
-                w = self.table.cellwidth
-            if w<=8:
-                colname=''
-            x = self.table.col_positions[col]
-            if anchor in ['w','nw']:
-                xt = x+pad
-            elif anchor == 'e':
-                xt = x+w-pad
-            elif anchor == 'center':
-                xt = x-w/2
+        if util.check_multiindex(df.columns) == 1:
+            anchor = 'nw'
+            y=2
+            print (df)
+            levels = df.columns.levels
+            h = self.height
+            self.height *= len(levels)
+            y=3
+        else:
+            levels = [df.columns.values]
+            h = self.height
+            y = h/2
+        i=0
+        #iterate over index levels
+        for level in levels:
+            values = df.columns.get_level_values(i)
+            for col in self.table.visiblecols:
+                colname = values[col]
+                try:
+                    colstr = colname.encode('utf-8','ignore').decode('utf-8')
+                except:
+                    colstr = str(colname)
+                if colstr in colwidths:
+                    w = colwidths[colstr]
+                else:
+                    w = self.table.cellwidth
+                if w<=8:
+                    colname=''
+                x = self.table.col_positions[col]
+                if anchor in ['w','nw']:
+                    xt = x+pad
+                elif anchor == 'e':
+                    xt = x+w-pad
+                elif anchor == 'center':
+                    xt = x-w/2
 
-            if util.check_multiindex(self.model.df.columns) == 1:
-                if isinstance(colname, tuple):
-                    lens = [util.getTextLength(c, w-pad, font=font)[1] for c in colname]
-                    colname = [str(c)[:l] for c,l in zip(colname,lens)]
-                colname = '\n'.join(colname)
-                xt = x+pad
-                anchor = 'nw'
-                y=3
-            else:
                 colname = colstr
                 tw,length = util.getTextLength(colstr, w-pad, font=font)
                 if wrap is True:
@@ -174,16 +179,22 @@ class ColumnHeader(Canvas):
                 else:
                     colname = colname[0:int(length)]
 
-            line = self.create_line(x, 0, x, h, tag=('gridline', 'vertline'),
-                                 fill='white', width=1)
-            self.create_text(xt,y,
-                                text=colname,
-                                fill='white',
-                                font=self.thefont,
-                                tag='text', anchor=anchor)
-        x = self.table.col_positions[col+1]
-        self.create_line(x,0, x,h, tag='gridline',
-                        fill='white', width=2)
+                line = self.create_line(x, 0, x, self.height, tag=('gridline', 'vertline'),
+                                     fill='white', width=1)
+                self.create_text(xt,y,
+                                    text=colname,
+                                    fill='white',
+                                    font=self.thefont,
+                                    tag='text', anchor=anchor)
+
+            x = self.table.col_positions[col+1]
+            self.create_line(x,0, x, self.height, tag='gridline',
+                            fill='white', width=2)
+            i+=1
+            y=y+h-2
+            line = self.create_line(0, y, self.tablewidth, y, tag=('gridline', 'vertline'),
+                                fill='white', width=1)
+        self.config(height=self.height)
         return
 
     def handle_left_click(self,event):

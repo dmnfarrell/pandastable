@@ -73,7 +73,8 @@ valid_kwds = {'line': ['alpha', 'colormap', 'grid', 'legend', 'linestyle','ms',
             'scatter_matrix':['alpha', 'linewidth', 'marker', 'grid', 's'],
             'contour': ['linewidth','colormap','alpha','subplots'],
             'imshow': ['colormap','alpha'],
-            'venn': ['colormap','alpha']
+            'venn': ['colormap','alpha'],
+            'radviz': ['linewidth','marker','edgecolor','s','colormap','alpha']
             }
 
 def get_defaults(name):
@@ -813,6 +814,9 @@ class PlotViewer(Frame):
                 axs[0].legend(labels=data.index, loc='best')
         elif kind == 'venn':
             axs = self.venn(data, ax, **kwargs)
+        elif kind == 'radviz':
+            col = data.columns[-1]
+            axs = pd.plotting.radviz(data, col, ax=ax, **kwargs)
         else:
             #line, bar and area plots
             if useindex == False:
@@ -1397,7 +1401,7 @@ class MPLBaseOptions(TkOptions):
     markers = ['','o','.','^','v','>','<','s','+','x','p','d','h','*']
     linestyles = ['-','--','-.',':','steps']
     kinds = ['line', 'scatter', 'bar', 'barh', 'pie', 'histogram', 'boxplot', 'dotplot',
-             'heatmap', 'area', 'hexbin', 'contour', 'imshow', 'scatter_matrix', 'density', 'venn']
+             'heatmap', 'area', 'hexbin', 'contour', 'imshow', 'scatter_matrix', 'density', 'radviz', 'venn']
     legendlocs = ['best','upper right','upper left','lower left','lower right','right','center left',
                 'center right','lower center','upper center','center']
     defaultfont = 'monospace'

@@ -231,7 +231,9 @@ class DataExplore(Frame):
                          '07miRNA expression':
                              {'cmd': lambda: self.getData('miRNA.csv')},
                          '08CO2 time series':
-                             {'cmd': lambda: self.getData('co2-ppm-mauna-loa.csv')}
+                             {'cmd': lambda: self.getData('co2-ppm-mauna-loa.csv')},
+                         '09Zoo Dataset':
+                             {'cmd': lambda: self.getData('zoo_dataset.csv')},
                          }
         self.dataset_menu = self.createPulldown(self.menu,self.dataset_menu)
         self.menu.add_cascade(label='Datasets',menu=self.dataset_menu['var'])
