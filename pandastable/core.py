@@ -848,14 +848,26 @@ class Table(Canvas):
         return
 
     def flattenIndex(self):
-        """FLatten multiindex"""
+        """Flatten multiindex"""
 
         df = self.model.df
-        df.columns = df.columns.get_level_values(0)
-        #self.model.df
+        levels = len(df.columns.levels)
+        d = MultipleValDialog(title='Flatten index',
+                                initialvalues=[list(range(levels))],
+                                labels=['Level:'],
+                                types=['combobox'],
+                                parent = self.parentframe)
+        if d.result == None:
+            return
+        else:
+            level = int(d.results[0])
+
+        self.storeCurrent()
+        df.columns = df.columns.get_level_values(level)
         self.redraw()
         if hasattr(self, 'pf'):
             self.pf.updateData()
+        self.tableChanged()
         return
 
     def copyIndex(self):

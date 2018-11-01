@@ -192,8 +192,8 @@ class ColumnHeader(Canvas):
                             fill='white', width=2)
             i+=1
             y=y+h-2
-            line = self.create_line(0, y, self.tablewidth, y, tag=('gridline', 'vertline'),
-                                fill='white', width=1)
+            #line = self.create_line(0, y, self.tablewidth, y, tag=('gridline', 'vertline'),
+            #                    fill='white', width=1)
         self.config(height=self.height)
         return
 
@@ -801,6 +801,7 @@ class IndexHeader(Canvas):
     def redraw(self, align='w'):
         """Redraw row index header"""
 
+        df = self.model.df
         rowheader = self.table.rowheader
         self.width = rowheader.width
         self.delete('text','rect')
@@ -811,26 +812,33 @@ class IndexHeader(Canvas):
         scale = self.table.getScale()
         h = self.table.rowheight
         self.config(height=h)
-        index = self.model.df.index
+        index = df.index
         names = index.names
         if names[0] == None:
             widths = [self.width]
         else:
             widths = rowheader.widths
 
-        i=0; x=1; y=2
+        if util.check_multiindex(df.columns) == 1:
+            levels = df.columns.levels
+            h = self.table.rowheight * len(levels)
+            y = self.table.rowheight/2 + 2
+        else:
+            y=2
+        i=0; x=1;
         for name in names:
             if name != None:
                 w=widths[i]
-                if self.table.showindex == True:
-                    self.create_rectangle(x,y-1,x+w,y+h, fill='gray50',tag='rect',
-                                            outline='white', width=1)
+                #if self.table.showindex == True:
+                    #self.create_rectangle(x,y-1,x+w,y+h, fill='gray50',tag='rect',
+                    #                        outline='white', width=1)
                 self.create_text(x+pad,y+h/2,text=name,
                                     fill='white', font=self.table.thefont,
                                     tag='text', anchor=align)
                 x=x+widths[i]
                 i+=1
-
+        #w=sum(widths)
+        #self.config(width=w)
         return
 
     def handle_left_click(self, event):
