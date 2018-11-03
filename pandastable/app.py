@@ -183,7 +183,7 @@ class DataExplore(Frame):
                          '02Remove Sheet':{'cmd': lambda: self.deleteSheet(ask=True)},
                          '03Copy Sheet':{'cmd':self.copySheet},
                          '04Rename Sheet':{'cmd':self.renameSheet},
-                         '05Sheet Description':{'cmd':self.editSheetDescription}
+                         #'05Sheet Description':{'cmd':self.editSheetDescription}
                          }
         self.sheet_menu = self.createPulldown(self.menu,self.sheet_menu)
         self.menu.add_cascade(label='Sheet',menu=self.sheet_menu['var'])

@@ -137,7 +137,7 @@ class ColumnHeader(Canvas):
         if util.check_multiindex(df.columns) == 1:
             anchor = 'nw'
             y=2
-            print (df)
+            #print (df)
             levels = df.columns.levels
             h = self.height
             self.height *= len(levels)

@@ -59,7 +59,7 @@ class DragHandler(object):
 
     def button_press_event(self, event):
 
-        print (event)
+        #print (event)
         fig = self.parent.fig
         fig.canvas._tkcanvas.focus_set()
         if self.selectedrect != None:
@@ -71,7 +71,7 @@ class DragHandler(object):
 
         df = self.parent.data
         self.dragged = event.artist
-        print(self.dragged)
+        #print(self.dragged)
         if isinstance(event.artist, PathCollection):
             ind = event.ind
             print('onpick scatter:', ind, df.ix[ind])

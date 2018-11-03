@@ -815,6 +815,8 @@ class PlotViewer(Frame):
         elif kind == 'venn':
             axs = self.venn(data, ax, **kwargs)
         elif kind == 'radviz':
+            if kwargs['marker'] == '':
+                kwargs['marker'] = 'o'
             col = data.columns[-1]
             axs = pd.plotting.radviz(data, col, ax=ax, **kwargs)
         else:

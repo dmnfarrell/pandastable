@@ -1217,15 +1217,14 @@ class FindReplaceDialog(Frame):
 
     def clear(self):
         self.coords = []
-        self.table.delete('findrect')
+        self.table.delete('temprect')
         self.table.highlighted = None
         self.table.redraw()
         return
 
     def close(self):
-        table = self.table
-        table.delete('findrect')
-        table.searchframe=None
+        self.clear()
+        self.table.searchframe=None
         self.destroy()
         return
 
