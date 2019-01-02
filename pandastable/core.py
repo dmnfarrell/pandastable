@@ -2950,7 +2950,10 @@ class Table(Canvas):
             data = df.iloc[list(rows),cols]
         except Exception as e:
             print ('error indexing data')
-            return pd.DataFrame()
+            if 'pandastable.debug' in sys.modules.keys():
+                raise e
+            else:
+                return pd.DataFrame()
         return data
 
     def getPlotData(self):
