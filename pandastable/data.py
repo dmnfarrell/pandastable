@@ -340,21 +340,28 @@ class TableModel(object):
          """Returns the number of rows in the table model."""
          return len(self.df)
 
-    def getValueAt(self, rowindex, colindex):
+    def getValueAt(self, row, col):
          """Returns the cell value at location specified
              by columnIndex and rowIndex."""
 
          df = self.df
-         value = self.df.iloc[rowindex,colindex]
+         value = self.df.iloc[row,col]
          if type(value) is float and np.isnan(value):
              return ''
          return value
 
-    def setValueAt(self, value, rowindex, colindex):
-        """Changed the dictionary when cell is updated by user"""
+    def setValueAt(self, value, row, col, df=None):
+        """Change dataframe according to row/col numbers. You can
+        also pass an arbitrary dataframe here."""
+
+        if df is None:
+            df = self.df
+        rowindex = df.iloc[row].name
+        colindex = df.columns[col]
+        #print (df.loc[rowindex,colindex])
         if value == '':
             value = np.nan
-        dtype = self.df.dtypes[colindex]
+        dtype = self.df.dtypes[col]
         #try to cast to column type
         try:
             if dtype == 'float64':
@@ -365,7 +372,11 @@ class TableModel(object):
                 value = pd.to_datetime(value)
         except Exception as e:
             print (e)
-        self.df.iloc[rowindex,colindex] = value
+        if df.index.is_unique is True:
+            df.loc[rowindex,colindex] = value
+        else:
+            #we cannot use index if not unique
+            df.iloc[row,col] = value
         return
 
     def transpose(self):

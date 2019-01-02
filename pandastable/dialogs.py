@@ -134,10 +134,21 @@ def dialogFromOptions(parent, opts, groups=None, callback=None,
                          textvariable=v,width=w,
                          validatecommand=callback,validate='key')
                 w.set(opt['default'])
-                #w.configure(background='white')
-                #w['state'] = 'readonly'
                 if 'tooltip' in opt:
                     ToolTip.createToolTip(w, opt['tooltip'])
+            elif opt['type'] == 'spinbox':
+                if 'label' in opt:
+                   label=opt['label']
+                else:
+                    label = i
+                Label(frame,text=label).pack()
+                tkvars[i] = v = StringVar()
+                w = Spinbox(frame, values=opt['items'],
+                         textvariable=v,width=w,
+                         validatecommand=callback,validate='key')
+                w.set(opt['default'])
+                #if 'tooltip' in opt:
+                #    ToolTip.createToolTip(w, opt['tooltip'])
             elif opt['type'] == 'listbox':
                 if 'label' in opt:
                    label=opt['label']

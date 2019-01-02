@@ -2945,7 +2945,7 @@ class Table(Canvas):
             rows = list(rows)
         if len(rows)<1 or self.allrows == True:
             rows = list(range(self.rows))
-        cols = self.multiplecollist
+        cols = self.multiplecollist        
         try:
             data = df.iloc[list(rows),cols]
         except Exception as e:
@@ -2995,6 +2995,7 @@ class Table(Canvas):
 
     def drawGrid(self, startrow, endrow):
         """Draw the table grid lines"""
+
         self.delete('gridline','text')
         rows=len(self.rowrange)
         cols=self.cols
@@ -3085,7 +3086,12 @@ class Table(Canvas):
         """Callback for cell entry"""
 
         value = self.cellentryvar.get()
-        self.model.setValueAt(value,row,col)
+        if self.filtered == 1:
+            df = self.dataframe
+        else:
+            df = None
+        self.model.setValueAt(value,row,col,df=df)
+
         self.drawText(row, col, value, align=self.align)
         self.delete('entry')
         self.gotonextCell()
