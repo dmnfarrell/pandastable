@@ -35,6 +35,7 @@ import math, time
 import os, types
 import string, copy
 import platform
+import logging
 import numpy as np
 import pandas as pd
 from .data import TableModel
@@ -52,6 +53,13 @@ themes = {'dark':{'cellbackgr':'gray25','grid_color':'gray50', 'textcolor':'#f2e
           'default':{'cellbackgr':'#F4F4F3','grid_color':'#ABB1AD', 'textcolor':'black',
                  'rowselectedcolor':'#E4DED4', 'colselectedcolor':'#e4e3e4'}
          }
+
+config_path = os.path.join(os.path.expanduser("~"), '.pandastable')
+logfile = os.path.join(config_path, 'error.log')
+if not os.path.exists(config_path):
+    os.mkdir(config_path)
+logging.basicConfig(filename=logfile,format='%(asctime)s %(message)s')
+
 
 class Table(Canvas):
     """A tkinter class for providing table functionality.
@@ -87,7 +95,7 @@ class Table(Canvas):
         self.showtoolbar = showtoolbar
         self.showstatusbar = showstatusbar
         self.set_defaults()
-
+        self.logfile = logfile
         self.currentpage = None
         self.navFrame = None
         self.currentrow = 0
@@ -787,7 +795,7 @@ class Table(Canvas):
                 df.sort_values(by=colnames, inplace=True, ascending=ascending)
             except Exception as e:
                 print('could not sort')
-                print(e)
+                logging.error("Exception occurred", exc_info=True)
         self.redraw()
         return
 
@@ -1156,6 +1164,7 @@ class Table(Canvas):
             try:
                 low=float(low); high=float(high)
             except:
+                logging.error("Exception occurred", exc_info=True)
                 return
         if random == True:
             if dist == 'normal':
@@ -1208,6 +1217,7 @@ class Table(Canvas):
             self.model.df[col] = df[col].astype(t)
             self.redraw()
         except:
+            logging.error("Exception occurred", exc_info=True)
             print('failed')
         return
 
@@ -1631,6 +1641,7 @@ class Table(Canvas):
             try:
                 df[colname] = pd.to_datetime(temp, format=fmt, errors='coerce')
             except Exception as e:
+                logging.error("Exception occurred", exc_info=True)
                 messagebox.showwarning("Convert error", e,
                                         parent=self.parentframe)
         if inplace == False or len(cols)>1:
@@ -1743,7 +1754,7 @@ class Table(Canvas):
             self.functionentry.configure(style="White.TCombobox")
         except Exception as e:
             print ('function parse error')
-            print (e)
+            logging.error("Exception occurred", exc_info=True)
             self.functionentry.configure(style="Red.TCombobox")
             return
         #keep track of which cols are functions?
@@ -1775,6 +1786,7 @@ class Table(Canvas):
             try:
                 df[n] = self._eval(df, ex)
             except:
+                logging.error("Exception occurred", exc_info=True)
                 print('could not calculate %s' %ex)
         self.redraw()
         return
@@ -2945,11 +2957,12 @@ class Table(Canvas):
             rows = list(rows)
         if len(rows)<1 or self.allrows == True:
             rows = list(range(self.rows))
-        cols = self.multiplecollist        
+        cols = self.multiplecollist
         try:
             data = df.iloc[list(rows),cols]
         except Exception as e:
             print ('error indexing data')
+            logging.error("Exception occurred", exc_info=True)
             if 'pandastable.debug' in sys.modules.keys():
                 raise e
             else:

@@ -42,6 +42,7 @@ from collections import OrderedDict
 import operator
 from .dialogs import *
 from . import util, images
+import logging
 
 colormaps = sorted(m for m in plt.cm.datad if not m.endswith("_r"))
 #valid kwds for each plot method
@@ -245,7 +246,7 @@ class PlotViewer(Frame):
             self.globalopts[name] = self.globalvars[name].get()
             #print (self.globalopts)
         except:
-            pass
+            logging.error("Exception occurred", exc_info=True)
         return
 
     def updateWidgets(self):
@@ -477,7 +478,7 @@ class PlotViewer(Frame):
         try:
             cols = [fill(l, 25) for l in cols]
         except:
-            pass
+            logging.error("Exception occurred", exc_info=True)
         return cols
 
     def plot2D(self, redraw=True):
@@ -604,6 +605,7 @@ class PlotViewer(Frame):
                                  useindex, bw=bw, yerr=None, kwargs=kwargs)
             except Exception as e:
                 self.showWarning(e)
+                logging.error("Exception occurred", exc_info=True)
                 return
 
         #set options general for all plot types
@@ -668,7 +670,7 @@ class PlotViewer(Frame):
         try:
             ax.tick_params(labelrotation=kwds['rot'])
         except:
-            pass
+            logging.error("Exception occurred", exc_info=True)
         return
 
     def autoscale(self, axis='y'):

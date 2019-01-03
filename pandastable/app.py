@@ -252,7 +252,8 @@ class DataExplore(Frame):
         self.menu.add_cascade(label='Plugins',menu=self.plugin_menu['var'])
 
         self.help_menu={'01Online Help':{'cmd':self.online_documentation},
-                        '02About':{'cmd':self.about}}
+                        '02View Error Log':{'cmd':self.showErrorLog},
+                        '03About':{'cmd':self.about}}
         self.help_menu=self.createPulldown(self.menu,self.help_menu)
         self.menu.add_cascade(label='Help',menu=self.help_menu['var'])
 
@@ -1134,10 +1135,25 @@ class DataExplore(Frame):
 
         return
 
+    def showErrorLog(self):
+        """Open log file"""
+
+        from .core import logfile
+        f=open(logfile,'r')
+        s=''.join(f.readlines())
+        from .dialogs import SimpleEditor
+        w = Toplevel(self)
+        w.grab_set()
+        w.transient(self)
+        ed = SimpleEditor(w)
+        ed.pack(in_=w, fill=BOTH, expand=Y)
+        ed.text.insert(END, s)
+        return
+
     def online_documentation(self,event=None):
         """Open the online documentation"""
         import webbrowser
-        link='https://github.com/dmnfarrell/pandastable/wiki'
+        link='https://pandastable.readthedocs.io/en/latest/'
         webbrowser.open(link,autoraise=1)
         return
 
