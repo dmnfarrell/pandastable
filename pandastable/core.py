@@ -530,12 +530,18 @@ class Table(Canvas):
                 self.drawSelectedCol(c, delete=0, color=clr, tag='colorrect')
         return
 
+    def resetColors(self):
+        df = self.model.df
+        #self.rowcolors = pd.DataFrame(index=range(len(df)))
+        self.rowcolors = pd.DataFrame(index=df.index)
+        return
+
     def setColorByMask(self, col, mask, clr):
         """Color individual cells in a column using a mask."""
 
         df = self.model.df
         if len(self.rowcolors) == 0:
-            self.rowcolors = pd.DataFrame(index=range(len(df)))
+            self.resetColors()
         rc = self.rowcolors
         if col not in rc.columns:
             rc[col] = pd.Series()
@@ -547,8 +553,7 @@ class Table(Canvas):
         """Color individual cells in column(s). Requires that the rowcolors
          dataframe has been set. This needs to be updated if the index is reset"""
 
-        #if len(self.rowcolors==0):
-        #    return
+        #print (self.rowcolors)
         df = self.model.df
         rc = self.rowcolors
         rows = self.visiblerows
@@ -557,7 +562,7 @@ class Table(Canvas):
         for col in self.visiblecols:
             colname = df.columns[col]
             if colname in list(rc.columns):
-                colors = rc[colname].ix[idx]
+                colors = rc[colname].loc[idx]
                 for row in rows:
                     clr = colors.iloc[row-offset]
                     if not pd.isnull(clr):
@@ -729,6 +734,7 @@ class Table(Canvas):
         scale = self.getScale()
         if self.cols > 30:
             return
+        self.cols = self.model.getColumnCount()
         for col in range(self.cols):
             colname = self.model.getColumnName(col)
             if colname in self.model.columnwidths:
