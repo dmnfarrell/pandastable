@@ -30,7 +30,7 @@ except:
 import types, time
 import numpy as np
 import pandas as pd
-from pandas.tools import plotting
+from pandas import plotting
 import matplotlib as mpl
 #mpl.use("TkAgg")
 import matplotlib.pyplot as plt
