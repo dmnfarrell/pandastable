@@ -178,6 +178,7 @@ class Table(Canvas):
         self.colselectedcolor = '#e4e3e4'
         self.floatprecision = 0
         self.showindex = False
+        self.columnwidths = {}
         self.columncolors = {}
         #store general per column formatting as sub dicts
         self.columnformats = {}
@@ -383,6 +384,8 @@ class Table(Canvas):
             callback: function to be called after redraw, default None
         """
 
+        if not hasattr(self, 'tablecolheader'):
+            return
         model = self.model
         self.rows = len(self.model.df.index)
         self.cols = len(self.model.df.columns)
@@ -704,7 +707,7 @@ class Table(Canvas):
         """Reduce column widths"""
 
         self.cellwidth +=10
-        widths = self.model.columnwidths
+        widths = self.columnwidths
         for c in widths:
             widths[c] += 10
         self.redraw()
@@ -714,7 +717,7 @@ class Table(Canvas):
         """Reduce column widths"""
 
         self.cellwidth -=10
-        widths = self.model.columnwidths
+        widths = self.columnwidths
         for c in widths:
             widths[c] -= 10
         self.redraw()
@@ -737,8 +740,8 @@ class Table(Canvas):
         self.cols = self.model.getColumnCount()
         for col in range(self.cols):
             colname = self.model.getColumnName(col)
-            if colname in self.model.columnwidths:
-                w = self.model.columnwidths[colname]
+            if colname in self.columnwidths:
+                w = self.columnwidths[colname]
             else:
                 w = self.cellwidth
             l = self.model.getlongestEntry(col)
@@ -750,7 +753,7 @@ class Table(Canvas):
                 tw = self.maxcellwidth
             elif tw < self.cellwidth:
                 tw = self.cellwidth
-            self.model.columnwidths[colname] = tw
+            self.columnwidths[colname] = tw
         return
 
     def autoResizeColumns(self):
@@ -773,8 +776,8 @@ class Table(Canvas):
                 colname = df.columns[col].encode('utf-8','ignore').decode('utf-8')
             except:
                 colname = str(df.columns[col])
-            if colname in self.model.columnwidths:
-                x_pos = x_pos+self.model.columnwidths[colname]
+            if colname in self.columnwidths:
+                x_pos = x_pos+self.columnwidths[colname]
             else:
                 x_pos = x_pos+w
             self.col_positions.append(x_pos)
@@ -1917,7 +1920,7 @@ class Table(Canvas):
         if self.tablecolheader.wrap == True:
             if width<40:
                 width=40
-        self.model.columnwidths[colname] = width
+        self.columnwidths[colname] = width
         self.setColPositions()
         self.delete('colrect')
         #self.drawSelectedCol(self.currentcol)
@@ -2016,8 +2019,8 @@ class Table(Canvas):
         """Get x-y coordinates to drawing a cell in a given row/col"""
 
         colname=self.model.getColumnName(col)
-        if colname in self.model.columnwidths:
-            w=self.model.columnwidths[colname]
+        if colname in self.columnwidths:
+            w=self.columnwidths[colname]
         else:
             w=self.cellwidth
         h=self.rowheight

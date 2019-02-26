@@ -389,7 +389,6 @@ class DataExplore(Frame):
         table selections"""
 
         tablesettings = meta['table']
-
         if 'childtable' in meta:
             childtable = meta['childtable']
             childsettings = meta['childselected']

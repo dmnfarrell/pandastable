@@ -90,7 +90,7 @@ class ColumnHeader(Canvas):
         wrap = self.wrap
         df = self.model.df
         cols = self.model.getColumnCount()
-        colwidths = self.model.columnwidths
+        colwidths = self.table.columnwidths
         scale = self.table.getScale() * 1.5
         self.height = self.table.rowheight
 

@@ -118,7 +118,7 @@ class TableModel(object):
     def initialiseFields(self):
         """Create meta data fields"""
         self.meta = {}
-        self.columnwidths = {} #used to store col widths
+        #self.columnwidths = {} #used to store col widths
         return
 
     def save(self, filename):
@@ -395,7 +395,7 @@ class TableModel(object):
             self.df = df.infer_objects()
         except:
             self.df = df.convert_objects()
-        self.columnwidths = {}
+        #self.columnwidths = {}
         return
 
     def query(self):
