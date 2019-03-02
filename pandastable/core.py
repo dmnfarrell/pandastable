@@ -742,6 +742,9 @@ class Table(Canvas):
             colname = self.model.getColumnName(col)
             if colname in self.columnwidths:
                 w = self.columnwidths[colname]
+                #don't adjust large columns as user has probably resized them
+                if w>200:
+                    continue
             else:
                 w = self.cellwidth
             l = self.model.getlongestEntry(col)
@@ -1263,7 +1266,7 @@ class Table(Canvas):
         cols = df.columns
         fillopts = ['fill scalar','','ffill','bfill','interpolate']
         d = MultipleValDialog(title='Clean Data',
-                                initialvalues=(fillopts,'-','10',0,0,['any','all'],0,0,0),
+                                initialvalues=(fillopts,'','10',0,0,['all','any'],0,0,0),
                                 labels=('Fill missing method:',
                                         'Fill empty data with:',
                                         'Limit gaps:',
@@ -1288,6 +1291,11 @@ class Table(Canvas):
         dropdups = d.results[6]
         dropdupcols = d.results[7]
         rounddecimals = int(d.results[8])
+
+        if dropcols == 1:
+            df = df.dropna(axis=1,how=how)
+        if droprows == 1:
+            df = df.dropna(axis=0,how=how)
         if method == '':
             pass
         elif method == 'fill scalar':
@@ -1296,10 +1304,6 @@ class Table(Canvas):
             df = df.interpolate()
         else:
             df = df.fillna(method=method, limit=limit)
-        if dropcols == 1:
-            df = df.dropna(axis=1,how=how)
-        if droprows == 1:
-            df = df.dropna(axis=0,how=how)
         if dropdups == 1:
             df = df.drop_duplicates()
         if dropdupcols == 1:
@@ -2620,20 +2624,25 @@ class Table(Canvas):
         """Convert cols to numeric if possible"""
 
         types = ['float','int']
-        d = MultipleValDialog(title='Convert col names',
-                                initialvalues=[types,1,0],
+        d = MultipleValDialog(title='Convert to numeric',
+                                initialvalues=[types,1,1,1,0],
                                 labels=['convert to',
+                                        'convert currency',
+                                        'try to remove text',
                                         'selected columns only:',
                                         'fill empty:'],
-                                types=('combobox','checkbutton','checkbutton'),
+                                types=('combobox','checkbutton','checkbutton',
+                                'checkbutton','checkbutton'),
                                 parent = self.parentframe)
         if d.result == None:
             return
 
         self.storeCurrent()
         convtype = d.results[0]
-        useselected = d.results[1]
-        fillempty = d.results[2]
+        currency = d.results[1]
+        removetext = d.results[2]
+        useselected = d.results[3]
+        fillempty = d.results[4]
 
         cols = self.multiplecollist
         df = self.model.df
@@ -2646,6 +2655,10 @@ class Table(Canvas):
             x=df[c]
             if fillempty == 1:
                 x = x.fillna(0)
+            if currency == 1:
+                x = x.replace( '[\$\£\€,)]','', regex=True ).replace( '[(]','-', regex=True )
+            if removetext == 1:
+                x = x.replace( '[^\d.]+', '', regex=True)
             self.model.df[c] = pd.to_numeric(x, errors='coerce').astype(convtype)
 
         self.redraw()

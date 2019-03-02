@@ -3,6 +3,13 @@ CHANGES
 =======
 
 ------
+0.12.0
+------
+
+Fixes to clean data
+Convert currencies to numeric
+
+------
 0.11.0
 ------
 
