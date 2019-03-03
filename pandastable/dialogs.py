@@ -1298,7 +1298,10 @@ class QueryDialog(Frame):
 
         #string query first
         if s!='':
-            mask = df.eval(s)
+            try:
+                mask = df.eval(s)
+            except:
+                mask = df.eval(s, engine='python')
         #add any filters from widgets
         if len(self.filters)>0:
             mask = self.applyFilter(df, mask)
@@ -1358,6 +1361,10 @@ class QueryDialog(Frame):
                 m = df[col]>val
             elif op == '<':
                 m = df[col]<val
+            elif op == 'is empty':
+                m = df[col].isnull()
+            elif op == 'not empty':
+                m = ~df[col].isnull()
             elif op == 'excludes':
                 m = -df[col].str.contains(val)
             elif op == 'starts with':
@@ -1404,8 +1411,8 @@ class QueryDialog(Frame):
 class FilterBar(Frame):
     """Class providing filter widgets"""
 
-    operators = ['contains','excludes','equals','not equals','>','<','starts with',
-                 'ends with','has length','is number','is lowercase','is uppercase']
+    operators = ['contains','excludes','equals','not equals','>','<','is empty','not empty',
+                 'starts with','ends with','has length','is number','is lowercase','is uppercase']
     booleanops = ['AND','OR','NOT']
 
     def __init__(self, parent, parentframe, cols):
