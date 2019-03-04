@@ -45,6 +45,8 @@ from . import util, images
 import logging
 
 colormaps = sorted(m for m in plt.cm.datad if not m.endswith("_r"))
+markers = ['','o','.','^','v','>','<','s','+','x','p','d','h','*']
+linestyles = ['-','--','-.',':','steps']
 #valid kwds for each plot method
 valid_kwds = {'line': ['alpha', 'colormap', 'grid', 'legend', 'linestyle','ms',
                   'linewidth', 'marker', 'subplots', 'rot', 'logx', 'logy',
@@ -1402,8 +1404,6 @@ class MPLBaseOptions(TkOptions):
     """Class to provide a dialog for matplotlib options and returning
         the selected prefs"""
 
-    markers = ['','o','.','^','v','>','<','s','+','x','p','d','h','*']
-    linestyles = ['-','--','-.',':','steps']
     kinds = ['line', 'scatter', 'bar', 'barh', 'pie', 'histogram', 'boxplot', 'dotplot',
              'heatmap', 'area', 'hexbin', 'contour', 'imshow', 'scatter_matrix', 'density', 'radviz', 'venn']
     legendlocs = ['best','upper right','upper left','lower left','lower right','right','center left',
@@ -1432,8 +1432,8 @@ class MPLBaseOptions(TkOptions):
         self.groups = OrderedDict((key, grps[key]) for key in order)
         opts = self.opts = {'font':{'type':'combobox','default':self.defaultfont,'items':fonts},
                 'fontsize':{'type':'scale','default':12,'range':(5,40),'interval':1,'label':'font size'},
-                'marker':{'type':'combobox','default':'','items':self.markers},
-                'linestyle':{'type':'combobox','default':'-','items':self.linestyles},
+                'marker':{'type':'combobox','default':'','items': markers},
+                'linestyle':{'type':'combobox','default':'-','items': linestyles},
                 'ms':{'type':'scale','default':5,'range':(1,80),'interval':1,'label':'marker size'},
                 'grid':{'type':'checkbutton','default':0,'label':'show grid'},
                 'logx':{'type':'checkbutton','default':0,'label':'log x'},

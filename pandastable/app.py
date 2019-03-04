@@ -42,10 +42,9 @@ import re, os, platform, time
 from .core import Table
 from .data import TableModel
 from .prefs import Preferences
-from . import images, util, dialogs, plotting
+from . import images, util, dialogs, plotting, config
 from .dialogs import MultipleValDialog
 from . import plugin
-from .preferences import Prefs
 
 class DataExplore(Frame):
     """DataExplore application using pandastable widget.
@@ -175,6 +174,7 @@ class DataExplore(Frame):
                         '02Copy Table':{'cmd': self.copyTable},
                         '03Find/Replace':{'cmd':self.findText},
                         '04Table Preferences':{'cmd': self.currentTablePrefs},
+                        #'05New Preferences':{'cmd': self.preferencesDialog}
                         }
         self.edit_menu = self.createPulldown(self.menu, editmenuitems)
         self.menu.add_cascade(label='Edit',menu=self.edit_menu['var'])
@@ -351,37 +351,6 @@ class DataExplore(Frame):
     def currentTablePrefs(self):
         table = self.getCurrentTable()
         table.showPrefs()
-        return
-
-    def preferencesDialog(self):
-        """Prefs dialog from config parser info - not yet implemented"""
-
-        def save():
-            d = dialogs.getDictfromTkVars(opts, tkvars, widgets)
-            p.writeConfig(d)
-        from . import plotting
-        defaultfont = 'monospace'
-        p = Prefs('.dataexplore')
-        opts = {'layout':{'type':'checkbutton','default':False,'label':'vertical plot tools'},
-            'fontsize':{'type':'scale','default':12,'range':(5,40),'interval':1,'label':'font size'},
-            'colormap':{'type':'combobox','default':'Spectral','items':plotting.colormaps},
-                }
-        sections = {'main':['layout'],'plot':['fontsize','colormap']}
-        p.createConfig(opts)
-        t=Toplevel(self)
-        dialog, tkvars, widgets = dialogs.dialogFromOptions(t, opts, sections)
-        dialog.pack(side=TOP,fill=BOTH)
-        bf=Frame(t)
-        bf.pack()
-        Button(bf, text='Save',  command=save).pack(side=LEFT)
-        Button(bf, text='Close',  command=t.destroy).pack(side=LEFT)
-        t.title('About')
-        t.transient(self)
-        t.grab_set()
-        t.resizable(width=False, height=False)
-
-        d = dialogs.getDictfromTkVars(opts, tkvars, widgets)
-        print (d)
         return
 
     def loadMeta(self, table, meta):
@@ -1174,6 +1143,10 @@ class TestApp(Frame):
         self.table = pt = Table(f, dataframe=df,
                                 showtoolbar=True, showstatusbar=True)
         pt.show()
+        from . import config
+        options = config.load_options()
+        print (options)
+        f = config.preferencesDialog(self.main, options)
         return
 
 def main():

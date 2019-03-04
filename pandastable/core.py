@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """
     Implements the core pandastable classes.
     Created Jan 2014
@@ -43,7 +44,7 @@ from .headers import ColumnHeader, RowHeader, IndexHeader
 from .plotting import MPLBaseOptions, PlotViewer
 from .prefs import Preferences
 from .dialogs import ImportDialog
-from . import images, util
+from . import images, util, config
 from .dialogs import *
 
 themes = {'dark':{'cellbackgr':'gray25','grid_color':'gray50', 'textcolor':'#f2eeeb',
@@ -1961,6 +1962,7 @@ class Table(Canvas):
         """Set currently selected row and reset multiple row list"""
 
         self.currentrow = row
+        self.startrow = row
         self.multiplerowlist = []
         self.multiplerowlist.append(row)
         return
@@ -3485,12 +3487,16 @@ class Table(Canvas):
         fonts = sorted(list(fonts))
         return fonts
 
+    def loadNewPrefs(self):
+        p = Prefs()
+        return
+
     def loadPrefs(self, prefs=None):
         """Load table specific prefs from the prefs instance used
            if they are not present, create them."""
 
         if prefs==None:
-            prefs=Preferences('Table',{'check_for_update':1})
+            prefs = Preferences('Table',{'check_for_update':1})
         self.prefs = prefs
         defaultprefs = {'horizlines':self.horizlines, 'vertlines':self.vertlines,
                         'rowheight':self.rowheight,
