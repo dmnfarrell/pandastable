@@ -34,14 +34,28 @@ try:
     import configparser
 except:
     import ConfigParser as configparser
-from . import util, plotting
+from . import util, plotting, dialogs
+
+homepath = os.path.join(os.path.expanduser('~'))
+configpath = os.path.join(homepath,'.config/pandastable')
+if not os.path.exists(configpath):
+    os.mkdir(configpath)
+default_conf = os.path.join(configpath, 'default.conf')
 
 baseoptions = OrderedDict()
-baseoptions['base'] = {'font': 'Arial','fontsize':12,
-                        'float format':'1.2f',
-                        'row height':18,'cell width':80, 'line width':1,
-                        'alignment':'w'
+baseoptions['base'] = {'font': 'Arial','fontsize':12, 'fontstyle':'',
+                        'floatprecision':2,
+                        'rowheight':22,'cellwidth':80, 'linewidth':1,
+                        'align':'w',
                         }
+baseoptions['colors'] =  {'cellbackgr':'#F4F4F3',
+                        'textcolor':'black',
+                        'grid_color':'#ABB1AD',
+                        'rowselectedcolor':'#E4DED4'}
+'''baseoptions['plotting'] = {'marker': '','linestyle':'-',
+                        'colormap':'Spectral',
+                        'ms':5, 'grid':1
+                        }'''
 
 def write_default_config():
     """Write a default config to users .config folder. Used to add global settings."""
@@ -60,12 +74,12 @@ def write_config(conffile='default.conf', defaults={}):
     """Write a default config file"""
 
     if not os.path.exists(conffile):
-        cp = create_config_parser_from_dict(defaults, baseoptions.keys())
+        cp = create_config_parser_from_dict(defaults)
         cp.write(open(conffile,'w'))
         print ('wrote config file %s' %conffile)
     return conffile
 
-def create_config_parser_from_dict(data=None, sections=['base',], **kwargs):
+def create_config_parser_from_dict(data=None, sections=baseoptions.keys(), **kwargs):
     """Helper method to create a ConfigParser from a dict of the form shown in
        baseoptions"""
 
@@ -89,6 +103,13 @@ def create_config_parser_from_dict(data=None, sections=['base',], **kwargs):
         for k in kwargs:
             if k in opts:
                 cp.set(s, k, kwargs[k])
+    return cp
+
+def update_config(options):
+    cp = create_config_parser_from_dict()
+    for section in cp.sections():
+        for o in cp[section]:
+            cp[section][o] = str(options[o])
     return cp
 
 def parse_config(conffile=None):
@@ -145,11 +166,9 @@ def check_options(opts):
     return opts
 
 def load_options():
-    homepath = os.path.join(os.path.expanduser('~'))
-    conffile = os.path.join(homepath,'.dataexplore/default.conf')
-    if not os.path.exists(conffile):
-        write_config(conffile, defaults=baseoptions)
-    cp = parse_config(conffile)
+    if not os.path.exists(default_conf):
+        write_config(default_conf, defaults=baseoptions)
+    cp = parse_config(default_conf)
     options = get_options(cp)
     options = check_options(options)
     return options
@@ -157,17 +176,19 @@ def load_options():
 class preferencesDialog(Frame):
     """Preferences dialog from config parser options"""
 
-    def __init__(self, parent, options):
+    def __init__(self, parent, options, table=None):
 
         self.parent = parent
         self.main = Toplevel()
         self.master = self.main
-        self.main.title('prefs')
+        self.main.title('Preferences')
         self.main.grab_set()
         self.main.transient(parent)
         self.main.resizable(width=False, height=False)
         self.createWidgets()
+        self.updateFromOptions(options)
         self.options = options
+        self.table = table
         return
 
     def createWidgets(self):
@@ -175,40 +196,73 @@ class preferencesDialog(Frame):
 
         fonts = util.getFonts()
 
-        opts = {'row height':{'type':'entry','default':18},
-                'cell width':{'type':'entry','default':80},
-                'line width':{'type':'entry','default':1},
-                'alignment':{'type':'combobox','default':'w','items':['w','e','center']},
+        self.opts = {'rowheight':{'type':'scale','default':18,'range':(5,50),'interval':1,'label':'row height'},
+                'cellwidth':{'type':'scale','default':80,'range':(10,300),'interval':5,'label':'cell width'},
+                'linewidth':{'type':'scale','default':1,'range':(0,10),'interval':1,'label':'grid line width'},
+                'align':{'type':'combobox','default':'w','items':['w','e','center'],'label':'text align'},
+                'vertlines':{'type':'checkbutton','default':1,'label':'show vertical lines'},
+                'horizlines':{'type':'checkbutton','default':1,'label':'show horizontal lines'},
                 'font':{'type':'combobox','default':'Arial','items':fonts},
+                'fontstyle':{'type':'combobox','default':'','items':['','bold','italic']},
                 'fontsize':{'type':'scale','default':12,'range':(5,40),'interval':1,'label':'font size'},
-                'float format':{'type':'entry','default':'.1f'},
+                'floatprecision':{'type':'entry','default':2},
+                'cellbackgr':{'type':'colorchooser','default':'#F4F4F3', 'label':'background color'},
+                'textcolor':{'type':'colorchooser','default':'black', 'label':'text color'},
+                'grid_color':{'type':'colorchooser','default':'#ABB1AD', 'label':'grid color'},
+                'rowselectedcolor':{'type':'colorchooser','default':'#E4DED4','label':'highlight color'},
                 'colormap':{'type':'combobox','default':'Spectral','items':plotting.colormaps},
                 'marker':{'type':'combobox','default':'','items':plotting.markers},
                 'linestyle':{'type':'combobox','default':'-','items':plotting.linestyles},
                 'ms':{'type':'scale','default':5,'range':(1,80),'interval':1,'label':'marker size'},
                 'grid':{'type':'checkbutton','default':0,'label':'show grid'},
                 }
-        sections = {'main':['row height','cell width','line width','font','fontsize','float format'],
-                    'plotting':['marker','linestyle','ms','grid','colormap']}
+        sections = {'table':['align','rowheight','cellwidth','linewidth','vertlines','horizlines'],
+                    'formats':['font','fontstyle','fontsize','floatprecision','cellbackgr','textcolor','grid_color','rowselectedcolor']}
+                    #'plotting':['marker','linestyle','ms','grid','colormap']}
 
-        from . import dialogs
-        dialog, tkvars, widgets = dialogs.dialogFromOptions(self.main, opts, sections)
+
+        dialog, self.tkvars, self.widgets = dialogs.dialogFromOptions(self.main, self.opts, sections)
         dialog.pack(side=TOP,fill=BOTH)
         #d = dialogs.getDictfromTkVars(opts, tkvars, widgets)
-        print (tkvars)
-        #print (d)
 
         bf=Frame(self.main)
-        bf.pack()
-        Button(bf, text='Save',  command=self.save).pack(side=LEFT)
-        Button(bf, text='Close',  command=self.destroy).pack(side=LEFT)
+        bf.pack(fill=BOTH,expand=1)
+        Button(bf, text='Apply', command=self.apply).pack(side=LEFT,padx=1,pady=1,fill=BOTH,expand=1)
+        Button(bf, text='Save',  command=self.save).pack(side=LEFT,padx=1,pady=1,fill=BOTH,expand=1)
+        Button(bf, text='Close',  command=self.destroy).pack(side=LEFT,padx=1,pady=1,fill=BOTH,expand=1)
+        return
 
+    def updateFromOptions(self, options):
+        """Update all widget tk vars using dict"""
+
+        if self.tkvars == None:
+            return
+        #print (options)
+        for i in options:
+            if i in self.tkvars and self.tkvars[i]:
+                self.tkvars[i].set(options[i])
+        return
+
+    def apply(self):
+        """Apply options to current table"""
+
+        table = self.table
+        options = dialogs.getDictfromTkVars(self.opts, self.tkvars, self.widgets)
+        for i in options:
+            table.__dict__[i] = options[i]
+        table.setFont()
+        table.redraw()
         return
 
     def save(self):
-        d = dialogs.getDictfromTkVars(opts, tkvars, widgets)
+
+        options = dialogs.getDictfromTkVars(self.opts, self.tkvars, self.widgets)
+        print (options)
+        #update configparser and write
+        cp = update_config(options)
+        cp.write(open(default_conf,'w'))
         return
 
     def quit(self):
-        self.destroy()
+        self.main.destroy()
         return

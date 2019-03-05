@@ -174,7 +174,7 @@ class DataExplore(Frame):
                         '02Copy Table':{'cmd': self.copyTable},
                         '03Find/Replace':{'cmd':self.findText},
                         '04Table Preferences':{'cmd': self.currentTablePrefs},
-                        #'05New Preferences':{'cmd': self.preferencesDialog}
+                        '05Preferences':{'cmd': self.showPreferences}
                         }
         self.edit_menu = self.createPulldown(self.menu, editmenuitems)
         self.menu.add_cascade(label='Edit',menu=self.edit_menu['var'])
@@ -347,6 +347,16 @@ class DataExplore(Frame):
         t.grab_set()
         t.resizable(width=False, height=False)
         return pb
+
+    def showPreferences(self):
+        """Preferences dialog"""
+
+        table = self.getCurrentTable()
+        from . import config
+        options = config.load_options()
+        print (options)
+        f = config.preferencesDialog(self.main, options, table=table)
+        return
 
     def currentTablePrefs(self):
         table = self.getCurrentTable()

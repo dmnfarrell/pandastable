@@ -137,7 +137,7 @@ class Table(Canvas):
         #when you add a column type you should edit this dict
         self.columnactions = {'text' : {"Edit":  'drawCellEntry' },
                               'number' : {"Edit": 'drawCellEntry' }}
-        self.setFontSize()
+        #self.setFontSize()
         self.plotted = False
         self.importpath = None
         self.prevdf = None
@@ -168,7 +168,10 @@ class Table(Canvas):
         self.x_start = 0
         self.y_start = 1
         self.linewidth = 1.0
-        self.thefont = ('Arial',12)
+        self.font = 'Arial'
+        self.fontsize = 12
+        self.fontstyle = ''
+        #self.thefont = ('Arial',12)
         self.textcolor = 'black'
         self.cellbackgr = '#F4F4F3'
         self.entrybackgr = 'white'
@@ -187,17 +190,19 @@ class Table(Canvas):
         self.rowcolors = pd.DataFrame()
         self.highlighted = None
         self.bg = Style().lookup('TLabel.label', 'background')
+        self.setFont()
         return
 
-    def setFontSize(self):
-        """Set font size to match font, we need to get rid of `size as
-            a separate variable?"""
+    def setFont(self):
+        """Set font tuple"""
 
-        if hasattr(self, 'thefont') and type(self.thefont) is tuple:
-            self.fontsize = self.thefont[1]
+        if hasattr(self, 'font'):
+            self.thefont = (self.font, str(int(self.fontsize)),self.fontstyle)
         return
 
     def setTheme(self, name='light'):
+        """Set theme"""
+
         style = themes[name]
         for s in style:
             if s in self.__dict__:
@@ -510,7 +515,7 @@ class Table(Canvas):
         """Set a column color and store it"""
 
         if clr is None:
-            clr = self.getaColor('#dcf1fc')
+            clr = pickColor(self,'#dcf1fc')
         if clr == None:
             return
         if cols == None:
@@ -582,7 +587,7 @@ class Table(Canvas):
         """
 
         if clr is None:
-            clr = self.getaColor('#dcf1fc')
+            clr = pickColor(self,'#dcf1fc')
         if clr == None:
             return
         if rows == None:
@@ -3329,13 +3334,13 @@ class Table(Canvas):
         return
 
     def setcellbackgr(self):
-        clr = self.getaColor(self.cellbackgr)
+        clr = pickColor(self,self.cellbackgr)
         if clr != None:
             self.cellbackgr = clr
         return
 
     def setgrid_color(self):
-        clr = self.getaColor(self.grid_color)
+        clr = pickColor(self,self.grid_color)
         if clr != None:
             self.grid_color = clr
         return
@@ -3343,20 +3348,10 @@ class Table(Canvas):
     def setrowselectedcolor(self):
         """Set selected row color"""
 
-        clr = self.getaColor(self.rowselectedcolor)
+        clr = pickColor(self,self.rowselectedcolor)
         if clr != None:
             self.rowselectedcolor = clr
         return
-
-    def getaColor(self, oldcolor):
-
-        import tkinter.colorchooser
-        ctuple, newcolor = tkinter.colorchooser.askcolor(title='pick a color',
-                                                         initialcolor=oldcolor,
-                                                         parent=self.parentframe)
-        if ctuple == None:
-            return None
-        return str(newcolor)
 
     #--- Preferences stuff ---
 

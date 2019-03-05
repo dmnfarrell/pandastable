@@ -203,8 +203,6 @@ Plots can be animated and save as video files using the plot animation options t
 
 see http://dmnfarrell.github.io/dataexplore/2018/05/15/animation
 
-
-
 Table Coloring
 --------------
 
@@ -217,11 +215,32 @@ You can set row and cell colors in several ways. Firstly, if right clicking on t
 
 For very large tables, adding colors for all cells will increases the file size of saved projects.
 
+Setting preferences
+-------------------
+
+Preferences for table formatting can be set from the edit->preferences menu item. This uses a text configuration file stored in ~/.dataexplore/default.conf. The preferences dialog is used to apply the settings to the current table and/or save them to this file. This file can be edited manually in a text editor if you wish. Any new tables will use these settings. The file looks like this::
+
+  [base]
+  align = w
+  cellwidth = 80
+  floatprecision = 2
+  font = Arial
+  fontsize = 12
+  linewidth = 1
+  rowheight = 22
+
+  [colors]
+  cellbackgr = #F4F4F3
+  grid_color = #ABB1AD
+  rowselectedcolor = #E4DED4
+  textcolor = black
+
+
 Other examples
 --------------
 
 Other guides are available as blog posts:
 
-* http://dmnfarrell.github.io/dataexplore/2015/09/15/titanic-example
-* http://dmnfarrell.github.io/dataexplore/2017/07/05/grouped-plots
-* http://dmnfarrell.github.io/dataexplore/2016/11/20/sea-ice-example
+* http://dmnfarrell.github.io/dataexplore/titanic-example
+* http://dmnfarrell.github.io/dataexplore/grouped-plots
+* http://dmnfarrell.github.io/dataexplore/sea-ice-example

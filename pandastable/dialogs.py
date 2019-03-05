@@ -61,8 +61,21 @@ def getDictfromTkVars(opts, tkvars, widgets):
             kwds[i] = [widgets[i].get(j) for j in items]
             #print (items, kwds[i])
         else:
-            kwds[i] = tkvars[i].get()
+            try:
+                kwds[i] = tkvars[i].get()
+            except Exception as e:
+                print (e)
     return kwds
+
+def pickColor(parent, oldcolor):
+
+    import tkinter.colorchooser
+    ctuple, newcolor = tkinter.colorchooser.askcolor(title='pick a color',
+                                                     initialcolor=oldcolor,
+                                                     parent=parent)
+    if ctuple == None:
+        return None
+    return str(newcolor)
 
 def dialogFromOptions(parent, opts, groups=None, callback=None,
                         sticky='news',  layout='horizontal'):
@@ -176,8 +189,19 @@ def dialogFromOptions(parent, opts, groups=None, callback=None,
                          orient='horizontal',
                          resolution=opt['interval'],
                          variable=v)
+            elif opt['type'] == 'colorchooser':
+                tkvars[i] = v = StringVar()
+                clr = opts[i]['default']
+                v.set(clr)
+                def func(var):
+                    clr=var.get()
+                    new=pickColor(parent,clr)
+                    if new != None:
+                        var.set(new)
+                w = Button(frame, text=opt['label'], command=lambda v=v : func(v))
+
             if w != None:
-                w.pack(fill=BOTH,expand=1)
+                w.pack(fill=BOTH,expand=1,pady=1)
                 widgets[i] = w
             row+=1
 
