@@ -516,7 +516,7 @@ class RowHeader(Canvas):
             self.inset = 1
             self.color = '#C8C8C8'
             self.showindex = False
-            self.maxwidth = 350
+            self.maxwidth = 500
             self.config(height = self.table.height)
             self.startrow = self.endrow = None
             self.model = self.table.model

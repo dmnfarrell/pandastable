@@ -56,15 +56,17 @@ def getParentGeometry(parent):
 def getDictfromTkVars(opts, tkvars, widgets):
     kwds = {}
     for i in opts:
+        if not i in tkvars:
+            continue
         if opts[i]['type'] == 'listbox':
             items = widgets[i].curselection()
             kwds[i] = [widgets[i].get(j) for j in items]
             #print (items, kwds[i])
         else:
             try:
-                kwds[i] = tkvars[i].get()
-            except Exception as e:
-                print (e)
+                kwds[i] = int(tkvars[i].get())
+            except:
+                kwds[i] = tkvars[i].get()            
     return kwds
 
 def pickColor(parent, oldcolor):

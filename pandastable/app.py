@@ -41,7 +41,7 @@ import pandas as pd
 import re, os, platform, time
 from .core import Table
 from .data import TableModel
-from .prefs import Preferences
+#from .prefs import Preferences
 from . import images, util, dialogs, plotting, config
 from .dialogs import MultipleValDialog
 from . import plugin
@@ -173,8 +173,7 @@ class DataExplore(Frame):
         editmenuitems = {'01Undo Last Change':{'cmd': self.undo},
                         '02Copy Table':{'cmd': self.copyTable},
                         '03Find/Replace':{'cmd':self.findText},
-                        '04Table Preferences':{'cmd': self.currentTablePrefs},
-                        '05Preferences':{'cmd': self.showPreferences}
+                        '04Preferences':{'cmd': self.currentTablePrefs}
                         }
         self.edit_menu = self.createPulldown(self.menu, editmenuitems)
         self.menu.add_cascade(label='Edit',menu=self.edit_menu['var'])
@@ -348,19 +347,11 @@ class DataExplore(Frame):
         t.resizable(width=False, height=False)
         return pb
 
-    def showPreferences(self):
+    def currentTablePrefs(self):
         """Preferences dialog"""
 
         table = self.getCurrentTable()
-        from . import config
-        options = config.load_options()
-        print (options)
-        f = config.preferencesDialog(self.main, options, table=table)
-        return
-
-    def currentTablePrefs(self):
-        table = self.getCurrentTable()
-        table.showPrefs()
+        table.showPreferences()
         return
 
     def loadMeta(self, table, meta):
@@ -1153,10 +1144,6 @@ class TestApp(Frame):
         self.table = pt = Table(f, dataframe=df,
                                 showtoolbar=True, showstatusbar=True)
         pt.show()
-        from . import config
-        options = config.load_options()
-        print (options)
-        f = config.preferencesDialog(self.main, options)
         return
 
 def main():

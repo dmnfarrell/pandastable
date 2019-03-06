@@ -173,6 +173,16 @@ def load_options():
     options = check_options(options)
     return options
 
+def apply_options(options, table):
+    """Apply options to a table"""
+
+    for i in options:
+        table.__dict__[i] = options[i]
+        #print (i, type(options[i]))
+    table.setFont()
+    table.redraw()
+    return
+
 class preferencesDialog(Frame):
     """Preferences dialog from config parser options"""
 
@@ -198,7 +208,7 @@ class preferencesDialog(Frame):
 
         self.opts = {'rowheight':{'type':'scale','default':18,'range':(5,50),'interval':1,'label':'row height'},
                 'cellwidth':{'type':'scale','default':80,'range':(10,300),'interval':5,'label':'cell width'},
-                'linewidth':{'type':'scale','default':1,'range':(0,10),'interval':1,'label':'grid line width'},
+                'linewidth':{'type':'scale','default':1,'range':(1,10),'interval':1,'label':'grid line width'},
                 'align':{'type':'combobox','default':'w','items':['w','e','center'],'label':'text align'},
                 'vertlines':{'type':'checkbutton','default':1,'label':'show vertical lines'},
                 'horizlines':{'type':'checkbutton','default':1,'label':'show horizontal lines'},
@@ -228,7 +238,7 @@ class preferencesDialog(Frame):
         bf=Frame(self.main)
         bf.pack(fill=BOTH,expand=1)
         Button(bf, text='Apply', command=self.apply).pack(side=LEFT,padx=1,pady=1,fill=BOTH,expand=1)
-        Button(bf, text='Save',  command=self.save).pack(side=LEFT,padx=1,pady=1,fill=BOTH,expand=1)
+        Button(bf, text='Save as Default',  command=self.save).pack(side=LEFT,padx=1,pady=1,fill=BOTH,expand=1)
         Button(bf, text='Close',  command=self.destroy).pack(side=LEFT,padx=1,pady=1,fill=BOTH,expand=1)
         return
 
@@ -240,7 +250,11 @@ class preferencesDialog(Frame):
         #print (options)
         for i in options:
             if i in self.tkvars and self.tkvars[i]:
-                self.tkvars[i].set(options[i])
+                try:
+                    val = int(options[i])
+                except:
+                    val = options[i]
+                self.tkvars[i].set(val)
         return
 
     def apply(self):
@@ -248,21 +262,19 @@ class preferencesDialog(Frame):
 
         table = self.table
         options = dialogs.getDictfromTkVars(self.opts, self.tkvars, self.widgets)
-        for i in options:
-            table.__dict__[i] = options[i]
-        table.setFont()
-        table.redraw()
+        apply_options(options, table)
         return
 
     def save(self):
-
+        """Save from current dialog settings"""
+        
         options = dialogs.getDictfromTkVars(self.opts, self.tkvars, self.widgets)
-        print (options)
+        #print (options)
         #update configparser and write
         cp = update_config(options)
         cp.write(open(default_conf,'w'))
         return
 
     def quit(self):
-        self.main.destroy()
+        self.destroy()
         return

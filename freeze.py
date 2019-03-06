@@ -25,7 +25,7 @@ build_exe_options = {"packages": ["os","numpy","matplotlib","pandas",
                      "include_files": includefiles}
 
 base = None
-if sys.platform == "win32":    
+if sys.platform == "win32":
     base = "Win32GUI"
 
 executables = [Executable("main.py", base=base,
@@ -36,7 +36,7 @@ executables = [Executable("main.py", base=base,
                           icon="img/dataexplore.ico")]
 
 setup(  name = "DataExplore",
-	version = "0.11.0",
+	version = "0.12.0",
 	description = "Data analysis and plotter",
     options = {"build_exe": build_exe_options},
     executables = executables)

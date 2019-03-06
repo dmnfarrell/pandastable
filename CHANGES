@@ -8,6 +8,9 @@ CHANGES
 
 Fixes to clean data
 Convert currencies to numeric
+Column widths now saved in dataexplore
+Fix to string query to allow python code
+New preferences system uses a text config file
 
 ------
 0.11.0

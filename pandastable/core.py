@@ -42,7 +42,7 @@ import pandas as pd
 from .data import TableModel
 from .headers import ColumnHeader, RowHeader, IndexHeader
 from .plotting import MPLBaseOptions, PlotViewer
-from .prefs import Preferences
+#from .prefs import Preferences
 from .dialogs import ImportDialog
 from . import images, util, config
 from .dialogs import *
@@ -114,8 +114,9 @@ class Table(Canvas):
         self.child = None
         self.queryrow = 4
         self.childrow = 5
-        self.loadPrefs()
         self.currentdir = os.path.expanduser('~')
+        self.loadPrefs()
+        self.setFont()
         #set any options passed in kwargs to overwrite defaults and prefs
         for key in kwargs:
             self.__dict__[key] = kwargs[key]
@@ -190,14 +191,16 @@ class Table(Canvas):
         self.rowcolors = pd.DataFrame()
         self.highlighted = None
         self.bg = Style().lookup('TLabel.label', 'background')
-        self.setFont()
         return
 
     def setFont(self):
         """Set font tuple"""
 
+        if type(self.fontsize) is str:
+            self.fontsize = int(float(self.fontsize))
         if hasattr(self, 'font'):
-            self.thefont = (self.font, str(int(self.fontsize)),self.fontstyle)
+            self.thefont = (self.font, self.fontsize, self.fontstyle)
+        #print (self.thefont)
         return
 
     def setTheme(self, name='light'):
@@ -465,7 +468,7 @@ class Table(Canvas):
         self.colorColumns()
         self.colorRows()
         self.tablecolheader.redraw()
-        self.rowheader.redraw(align=self.align)
+        self.rowheader.redraw()#align=self.align)
         self.rowindexheader.redraw()
         self.drawSelectedRow()
         self.drawSelectedRect(self.currentrow, self.currentcol)
@@ -693,7 +696,7 @@ class Table(Canvas):
         self.fontsize = self.fontsize+1
         self.rowheight += 2
         self.tablecolheader.height +=1
-        self.thefont = (self.thefont[0],self.fontsize)
+        self.setFont()
         self.adjustColumnWidths()
         self.redraw()
         return
@@ -704,7 +707,7 @@ class Table(Canvas):
         self.fontsize = self.fontsize-1
         self.rowheight -= 2
         self.tablecolheader.height -=1
-        self.thefont = (self.thefont[0],self.fontsize)
+        self.setFont()
         self.adjustColumnWidths()
         self.redraw()
         return
@@ -733,15 +736,12 @@ class Table(Canvas):
         """Optimally adjust col widths to accomodate the longest entry
             in each column - usually only called on first redraw.
         Args:
-            limit: don't resize for large number of columns
+            limit: max number of columns to resize
             """
 
-        try:
-            fontsize = self.thefont[1]
-        except:
-            fontsize = self.fontsize
+        fontsize = self.fontsize
         scale = self.getScale()
-        if self.cols > 30:
+        if self.cols > limit:
             return
         self.cols = self.model.getColumnCount()
         for col in range(self.cols):
@@ -845,12 +845,11 @@ class Table(Canvas):
 
         cols = self.multiplecollist
         self.model.setindex(cols)
-        if self.model.df.index.name is not None:
-            self.showIndex()
+        #if self.model.df.index.name is not None:
+        self.showIndex()
         self.setSelectedCol(0)
         self.update_rowcolors()
         self.redraw()
-        #self.drawSelectedCol()
         if hasattr(self, 'pf'):
             self.pf.updateData()
         return
@@ -2831,7 +2830,7 @@ class Table(Canvas):
                         "Plot Selected" : self.plotSelected,
                         "Hide plot" : self.hidePlot,
                         "Show plot" : self.showPlot,
-                        "Preferences" : self.showPrefs,
+                        "Preferences" : self.showPreferences,
                         "Table to Text" : self.showasText,
                         "Clean Data" : self.cleanData,
                         "Clear Formatting" : self.clearFormatting,
@@ -3353,240 +3352,25 @@ class Table(Canvas):
             self.rowselectedcolor = clr
         return
 
-    #--- Preferences stuff ---
+    def showPreferences(self):
+        """Preferences dialog"""
 
-    def showPrefs(self, prefs=None):
-        """Show table options dialog using an instance of prefs"""
+        options = config.load_options()
+        f = config.preferencesDialog(self.parentframe, options, table=self)
+        return
 
-        if self.prefs == None:
-            self.loadPrefs()
-        self.prefswindow=Toplevel()
-        x,y,w,h = self.getGeometry(self.master)
-        #self.prefswindow.geometry('+%s+%s' %(x+w/2,y+h/2))
-        self.prefswindow.title('Preferences')
-        self.prefswindow.resizable(width=FALSE, height=FALSE)
-        self.prefswindow.grab_set()
-        self.prefswindow.transient(self)
+    def loadPrefs(self, prefs=None):
+        """Load preferences from defaults"""
 
-        frame1=Frame(self.prefswindow)
-        frame1.pack(side=LEFT)
-        frame2=Frame(self.prefswindow)
-        frame2.pack()
-        def close_prefsdialog():
-            self.prefswindow.destroy()
-        row=0
-        Checkbutton(frame1, text="Show horizontal lines", variable=self.horizlinesvar,
-                    onvalue=1, offvalue=0).grid(row=row,column=0, columnspan=2, sticky='news')
-        row=row+1
-        Checkbutton(frame1, text="Show vertical lines", variable=self.vertlinesvar,
-                    onvalue=1, offvalue=0).grid(row=row,column=0, columnspan=2, sticky='news')
-        row=row+1
-        Checkbutton(frame1, text="Auto resize columns", variable=self.autoresizecolsvar,
-                    onvalue=1, offvalue=0).grid(row=row,column=0, columnspan=2, sticky='news')
-        row=row+1
-        lblrowheight = Label(frame1,text='Row Height:')
-        lblrowheight.grid(row=row,column=0,padx=3,pady=2)
-        rowheightentry = Scale(frame1,from_=12,to=50,resolution=1,orient='horizontal',
-                            variable=self.rowheightvar)
-        rowheightentry.configure(fg='black', bg=self.bg)
-        rowheightentry.grid(row=row,column=1)
-        row=row+1
-        lblcellwidth = Label(frame1,text='Cell Width:')
-        lblcellwidth.grid(row=row,column=0,padx=3,pady=2)
-        cellwidthentry = Scale(frame1,from_=20,to=500,resolution=10,orient='horizontal',
-                            variable=self.cellwidthvar)
-        cellwidthentry.configure(fg='black', bg=self.bg)
-        cellwidthentry.grid(row=row,column=1)
-        row=row+1
-
-        lbllinewidth = Label(frame1,text='Line Width:')
-        lbllinewidth.grid(row=row,column=0,padx=3,pady=2)
-        linewidthentry = Scale(frame1,from_=0,to=10,resolution=1,orient='horizontal',
-                            variable=self.linewidthvar)
-        linewidthentry.configure(fg='black', bg=self.bg)
-        linewidthentry.grid(row=row,column=1)
-        row=row+1
-
-        #fonts
-        fts = self.getFonts()
-        Label(frame2,text='font').grid(row=row,column=0)
-        fb = Combobox(frame2, values=fts,
-                       textvariable=self.fontvar)
-        #currfont = self.prefs.get('celltextfont')
-        fb.grid(row=row,column=1, columnspan=2, sticky='nes', padx=3,pady=2)
-        row=row+1
-
-        lblfontsize = Label(frame2,text='Text Size:')
-        lblfontsize.grid(row=row,column=0,padx=3,pady=2)
-        fontsizeentry = Scale(frame2,from_=6,to=50,resolution=1,orient='horizontal',
-                                variable=self.celltextsizevar)
-        fontsizeentry.configure(fg='black', bg=self.bg)
-        fontsizeentry.grid(row=row,column=1, sticky='wens',padx=3,pady=2)
-        row=row+1
-
-        #cell alignment
-        lbl=Label(frame2,text='Alignment:')
-        lbl.grid(row=row,column=0,padx=3,pady=2)
-
-        alignments=['center','w','e']
-        alignentry_button = Combobox(frame2, values=alignments,
-                              textvariable=self.cellalignvar)
-        alignentry_button.grid(row=row,column=1, sticky='nes', padx=3,pady=2)
-        row=row+1
-
-        #float precision
-        lbl=Label(frame2,text='Float precision:')
-        lbl.grid(row=row,column=0,padx=3,pady=2)
-        fpentry = Entry(frame2, textvariable=self.floatprecvar, width=10)
-        fpentry.grid(row=row,column=1, sticky='nes', padx=3,pady=2)
-        row=row+1
-
-        #colors
-        style = Style()
-        style.configure("cb.TButton", background=self.cellbackgr)
-        cellbackgrbutton = Button(frame2, text='table background',style="cb.TButton",
-                                  command=self.setcellbackgr)
-
-        cellbackgrbutton.grid(row=row,column=0,columnspan=2, sticky='news')
-        row=row+1
-        style = Style()
-        style.configure("gc.TButton", background=self.grid_color)
-        grid_colorbutton = Button(frame2, text='grid color', style="gc.TButton",
-                                command=self.setgrid_color)
-        grid_colorbutton.grid(row=row,column=0,columnspan=2, sticky='news')
-        row=row+1
-        style = Style()
-        style.configure("rhc.TButton", background=self.rowselectedcolor)
-        rowselectedcolorbutton = Button(frame2, text='row highlight color', style="rhc.TButton",
-                                command=self.setrowselectedcolor)
-        rowselectedcolorbutton.grid(row=row,column=0,columnspan=2, sticky='news')
-        row=row+1
-
-        frame=Frame(self.prefswindow)
-        frame.pack(fill=BOTH,expand=1)
-        # Apply Button
-        b = Button(frame, text="Apply Settings", command=self.applyPrefs)
-        b.pack(side=LEFT,expand=1)
-
-        # Close button
-        c=Button(frame,text='Close', command=close_prefsdialog)
-        c.pack(side=LEFT,expand=1)
-        self.prefswindow.focus_set()
-        self.prefswindow.grab_set()
-        self.prefswindow.wait_window()
-        return self.prefswindow
+        options = config.load_options()
+        config.apply_options(options, self)
+        return
 
     def getFonts(self):
 
         fonts = set(list(font.families()))
         fonts = sorted(list(fonts))
         return fonts
-
-    def loadNewPrefs(self):
-        p = Prefs()
-        return
-
-    def loadPrefs(self, prefs=None):
-        """Load table specific prefs from the prefs instance used
-           if they are not present, create them."""
-
-        if prefs==None:
-            prefs = Preferences('Table',{'check_for_update':1})
-        self.prefs = prefs
-        defaultprefs = {'horizlines':self.horizlines, 'vertlines':self.vertlines,
-                        'rowheight':self.rowheight,
-                        'cellwidth':80,
-                        'autoresizecols': self.autoresizecols,
-                        'align': 'w',
-                        'floatprecision': self.floatprecision,
-                        'celltextsize':10, 'celltextfont':'Arial',
-                        'cellbackgr': self.cellbackgr, 'grid_color': self.grid_color,
-                        'linewidth' : self.linewidth,
-                        'rowselectedcolor': self.rowselectedcolor}
-
-        for prop in list(defaultprefs.keys()):
-            try:
-                self.prefs.get(prop);
-            except:
-                self.prefs.set(prop, defaultprefs[prop])
-        self.defaultprefs = defaultprefs
-
-        #Create tkvars for dialog
-        self.fontvar = StringVar()
-        self.fontvar.set(self.prefs.get('celltextfont'))
-        self.rowheightvar = IntVar()
-        self.rowheightvar.set(self.prefs.get('rowheight'))
-        self.rowheight = self.rowheightvar.get()
-        self.cellwidthvar = IntVar()
-        self.cellwidthvar.set(self.prefs.get('cellwidth'))
-        self.cellwidth = self.cellwidthvar.get()
-        self.cellalignvar = StringVar()
-        self.cellalignvar.set(self.prefs.get('align'))
-        self.align = self.cellalignvar.get()
-        self.floatprecvar = IntVar()
-        self.floatprecvar.set(self.prefs.get('floatprecision'))
-        self.linewidthvar = StringVar()
-        self.linewidthvar.set(self.prefs.get('linewidth'))
-        self.horizlinesvar = IntVar()
-        self.horizlinesvar.set(self.prefs.get('horizlines'))
-        self.vertlinesvar = IntVar()
-        self.vertlinesvar.set(self.prefs.get('vertlines'))
-        self.autoresizecolsvar = IntVar()
-        self.autoresizecolsvar.set(self.prefs.get('autoresizecols'))
-        self.celltextsizevar = IntVar()
-        self.celltextsizevar.set(self.prefs.get('celltextsize'))
-        self.cellbackgr = self.prefs.get('cellbackgr')
-        self.grid_color = self.prefs.get('grid_color')
-        self.rowselectedcolor = self.prefs.get('rowselectedcolor')
-        self.fontsize = self.celltextsizevar.get()
-        self.thefont = (self.prefs.get('celltextfont'), self.prefs.get('celltextsize'))
-        #self.rowheaderwidthvar = IntVar()
-        #self.rowheaderwidthvar.set(self.prefs.get('rowheaderwidth'))
-        #self.rowheaderwidth = self.rowheaderwidthvar.get()
-        return
-
-    def savePrefs(self):
-        """Save and set the prefs"""
-        try:
-            self.prefs.set('horizlines', self.horizlinesvar.get())
-            self.horizlines = self.horizlinesvar.get()
-            self.prefs.set('vertlines', self.vertlinesvar.get())
-            self.vertlines = self.vertlinesvar.get()
-            self.prefs.set('autoresizecols', self.autoresizecolsvar.get())
-            self.autoresizecols = self.autoresizecolsvar.get()
-            self.prefs.set('rowheight', self.rowheightvar.get())
-            self.rowheight = self.rowheightvar.get()
-            self.prefs.set('cellwidth', self.cellwidthvar.get())
-            self.cellwidth = self.cellwidthvar.get()
-            self.prefs.set('align', self.cellalignvar.get())
-            self.align = self.cellalignvar.get()
-            self.floatprecision = self.floatprecvar.get()
-            self.prefs.set('floatprecision', self.floatprecvar.get())
-            self.prefs.set('linewidth', self.linewidthvar.get())
-            self.linewidth = self.linewidthvar.get()
-            self.prefs.set('celltextsize', self.celltextsizevar.get())
-            self.prefs.set('celltextfont', self.fontvar.get())
-            self.prefs.set('cellbackgr', self.cellbackgr)
-            self.prefs.set('grid_color', self.grid_color)
-            self.prefs.set('rowselectedcolor', self.rowselectedcolor)
-            #self.prefs.set('rowheaderwidth', self.rowheaderwidth)
-            #self.rowheaderwidth = self.rowheaderwidthvar.get()
-            self.thefont = (self.prefs.get('celltextfont'), self.prefs.get('celltextsize'))
-            self.fontsize = self.prefs.get('celltextsize')
-
-        except ValueError:
-            pass
-        self.prefs.save_prefs()
-        return
-
-    def applyPrefs(self):
-        """Apply prefs to the table by redrawing"""
-
-        self.savePrefs()
-        self.autoResizeColumns()
-        #self.show()
-        self.redraw()
-        return
 
     def show_progress_window(self, message=None):
         """Show progress bar window for loading of data"""
