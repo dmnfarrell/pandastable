@@ -848,7 +848,8 @@ class Table(Canvas):
         #if self.model.df.index.name is not None:
         self.showIndex()
         self.setSelectedCol(0)
-        self.update_rowcolors()
+        #self.update_rowcolors()
+        self.set_rowcolors_index()
         self.redraw()
         if hasattr(self, 'pf'):
             self.pf.updateData()
@@ -864,7 +865,8 @@ class Table(Canvas):
             drop = messagebox.askyesno("Reset Index", "Drop the index?",
                                       parent=self.parentframe)
         self.model.df.reset_index(drop=drop, inplace=True)
-        self.update_rowcolors()
+        #self.update_rowcolors()
+        self.set_rowcolors_index()
         self.redraw()
         #self.drawSelectedCol()
         if hasattr(self, 'pf'):
@@ -920,12 +922,20 @@ class Table(Canvas):
         self.showindex = True
         return
 
+    def set_rowcolors_index(self):
+        df = self.model.df
+        if len(self.rowcolors) == len(df):
+            self.rowcolors.set_index(df.index, inplace=True)
+
     def update_rowcolors(self):
         """Update row colors if present"""
 
         df = self.model.df
-        if len(self.rowcolors) == len(df):
-            self.rowcolors.set_index(df.index, inplace=True)
+        if len(df)>len(self.rowcolors):
+            idx = df.index.difference(self.rowcolors.index)
+            self.rowcolors = self.rowcolors.append(pd.DataFrame(index=idx))
+
+        #print (self.rowcolors)
         return
 
     def set_xviews(self,*args):
@@ -950,6 +960,7 @@ class Table(Canvas):
         row = self.getSelectedRow()
         key = self.model.addRow(row)
         self.redraw()
+        self.tableChanged()
         return
 
     def addRows(self, num=None):
@@ -964,6 +975,8 @@ class Table(Canvas):
         self.storeCurrent()
         keys = self.model.autoAddRows(num)
         self.redraw()
+        self.tableChanged()
+        self.update_rowcolors()
         return
 
     def addColumn(self, newname=None):
