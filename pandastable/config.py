@@ -39,7 +39,7 @@ from . import util, plotting, dialogs
 homepath = os.path.join(os.path.expanduser('~'))
 configpath = os.path.join(homepath,'.config/pandastable')
 if not os.path.exists(configpath):
-    os.mkdir(configpath)
+    os.makedirs(configpath, exist_ok=True)
 default_conf = os.path.join(configpath, 'default.conf')
 
 baseoptions = OrderedDict()
