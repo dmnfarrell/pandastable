@@ -855,15 +855,18 @@ class Table(Canvas):
             self.pf.updateData()
         return
 
-    def resetIndex(self):
+    def resetIndex(self, silence=True):
         """Reset index and redraw row header"""
 
         self.storeCurrent()
         df=self.model.df
         drop = False
-        if df.index.name is None or df.index.names[0] is None:
-            drop = messagebox.askyesno("Reset Index", "Drop the index?",
-                                      parent=self.parentframe)
+        if silence == True:
+            drop = True
+        else:
+            if df.index.name is None or df.index.names[0] is None:
+                drop = messagebox.askyesno("Reset Index", "Drop the index?",
+                                          parent=self.parentframe)
         self.model.df.reset_index(drop=drop, inplace=True)
         #self.update_rowcolors()
         self.set_rowcolors_index()
