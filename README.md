@@ -19,6 +19,8 @@ the included DataExplore application to manipulate/view their data
 
 The DataExplore application using these classes is included in the distribution and is a self-contained application for educational and research use. Currently this focuses on providing a spreadsheet like interface for table manipulation withconfigurable 2D/3D plotting. A windows standalone installer is available that does not require Python installation.
 
+**Documentation** is at http://pandastable.readthedocs.io/
+
 ## Installation
 
 Requires python>=3.3 or 2.7 and numpy, matplotlib and pandas. These requirements should be satisfied automatically when using: (You may need to use pip3 or easy_install3 to specify python version 3).
@@ -31,7 +33,7 @@ You can also install the dataexplore snap package on any linux distribution that
 
 ```sudo snap install dataexplore```
 
-see the [wiki page](https://github.com/dmnfarrell/pandastable/wiki/Installation) for more details on installing.
+see the [docs](https://pandastable.readthedocs.io/en/latest/description.html#installation) for more details on installing.
 
 ## Current features
 * add, remove rows and columns
@@ -76,15 +78,16 @@ rendering. This can handle dataframes. The goal of this project is to use DataFr
 for a table widget that can be used in a desktop appplication.
 
 ## The DataExplore application
+
 Installing the package creates a command *dataexplore* in your path. Just run this to open the program. 
 This is a standalone application for data manipulation and plotting meant for education and basic data analysis.
 See the home page for this application at http://dmnfarrell.github.io/pandastable/
 
 <img src=https://raw.githubusercontent.com/dmnfarrell/pandastable/master/img/viewerapp.png width=600px>
 
-## For programmers. 
+## For programmers
 
-See See http://pandastable.readthedocs.io/en/latest/ for API docs or the wiki.
+See https://pandastable.readthedocs.io/en/latest/modules.html for API docs.
 
 ## Links
 
