@@ -71,6 +71,8 @@ valid_kwds = {'line': ['alpha', 'colormap', 'grid', 'legend', 'linestyle','ms',
                          'linewidth', 'marker', 'subplots', 'rot', 'kind'],
             'boxplot': ['rot','grid','logy','colormap','alpha','linewidth','legend',
                         'subplots','edgecolor','sharex','sharey'],
+            'violinplot': ['rot','grid','logy','colormap','alpha','linewidth','legend',
+                        'subplots','edgecolor','sharex','sharey'],
             'dotplot': ['marker','edgecolor','linewidth','colormap','alpha','legend',
                         'subplots','ms','bw','logy','sharex','sharey'],
             'scatter_matrix':['alpha', 'linewidth', 'marker', 'grid', 's'],
@@ -771,6 +773,8 @@ class PlotViewer(Frame):
                 patch.set_facecolor(clr)
             if kwargs['logy'] == 1:
                 ax.set_yscale('log')
+        elif kind == 'violinplot':
+            axs = self.violinplot(data, ax, kwargs)
         elif kind == 'dotplot':
             axs = self.dotplot(data, ax, kwargs)
 
@@ -1012,6 +1016,31 @@ class PlotViewer(Frame):
             ax.legend(cols[1:])
 
         return ax, handles
+
+    def violinplot(self, df, ax, kwds):
+        """violin plot"""
+
+        data=[]
+        clrs=[]
+        cols = len(df.columns)
+        cmap = plt.cm.get_cmap(kwds['colormap'])
+        for i,d in enumerate(df):
+            clrs.append(cmap(float(i)/cols))
+            data.append(df[d].values)
+        lw = kwds['linewidth']
+        alpha = kwds['alpha']
+        parts = ax.violinplot(data, showextrema=False, showmeans=True)
+        i=0
+        for pc in parts['bodies']:
+            pc.set_facecolor(clrs[i])
+            pc.set_edgecolor('black')
+            pc.set_alpha(alpha)
+            pc.set_linewidth(lw)
+            i+=1
+        labels = df.columns
+        ax.set_xticks(np.arange(1, len(labels) + 1))
+        ax.set_xticklabels(labels)
+        return
 
     def dotplot(self, df, ax, kwds):
         """Dot plot"""
@@ -1404,7 +1433,7 @@ class MPLBaseOptions(TkOptions):
     """Class to provide a dialog for matplotlib options and returning
         the selected prefs"""
 
-    kinds = ['line', 'scatter', 'bar', 'barh', 'pie', 'histogram', 'boxplot', 'dotplot',
+    kinds = ['line', 'scatter', 'bar', 'barh', 'pie', 'histogram', 'boxplot', 'violinplot', 'dotplot',
              'heatmap', 'area', 'hexbin', 'contour', 'imshow', 'scatter_matrix', 'density', 'radviz', 'venn']
     legendlocs = ['best','upper right','upper left','lower left','lower right','right','center left',
                 'center right','lower center','upper center','center']

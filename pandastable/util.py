@@ -36,7 +36,7 @@ SCRATCH = None
 
 
 def getTextLength(text, w, font=None):
-    """Get correct canvas text size (chars) that will fit in
+    """Get correct canvas text size (chars) that will fit in \
     a given canvas width"""
 
     global SCRATCH
@@ -124,7 +124,7 @@ def adjustColorMap(cmap, minval=0.0, maxval=1.0, n=100):
     return new_cmap
 
 def colorScale(hex_color, brightness_offset=1):
-    """Takes a hex color like #87c95f and produces a lighter or darker variantself.
+    """Takes a hex color and produces a lighter or darker variant.
     Returns:
         new color in hex format
     """

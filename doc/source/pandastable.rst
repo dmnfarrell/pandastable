@@ -84,18 +84,10 @@ pandastable\.plugin module
     :undoc-members:
     :show-inheritance:
 
-pandastable\.preferences module
+pandastable\.config module
 -------------------------------
 
-.. automodule:: pandastable.preferences
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-pandastable\.prefs module
--------------------------
-
-.. automodule:: pandastable.prefs
+.. automodule:: pandastable.config
     :members:
     :undoc-members:
     :show-inheritance:

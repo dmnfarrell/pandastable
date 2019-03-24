@@ -733,11 +733,11 @@ class Table(Canvas):
         return
 
     def adjustColumnWidths(self, limit=30):
-        """Optimally adjust col widths to accomodate the longest entry
+        """Optimally adjust col widths to accomodate the longest entry \
             in each column - usually only called on first redraw.
         Args:
             limit: max number of columns to resize
-            """
+        """
 
         fontsize = self.fontsize
         scale = self.getScale()
@@ -3369,7 +3369,7 @@ class Table(Canvas):
         """Preferences dialog"""
 
         options = config.load_options()
-        f = config.preferencesDialog(self.parentframe, options, table=self)
+        f = config.preferencesDialog(self, options, table=self)
         return
 
     def loadPrefs(self, prefs=None):

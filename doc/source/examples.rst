@@ -146,3 +146,15 @@ Non-table based plugins
 Plugins that don't rely on using the table directly do not need to use the above method and can have essentially anything in them as long as there is a main() method present. The Batch File Rename plugin is an example. This is a standalone utility launched in a separate toplevel window.
 
 see https://github.com/dmnfarrell/pandastable/blob/master/pandastable/plugins/rename.py
+
+Freezing the app
+----------------
+
+Dataexplore is available as an exe with msi installer for Windows. This was created using the cx_freeze package. For anyone wishing to freeze their tkinter app some details are given here. This is a rather hit and miss process as it seems to depend on your installed version of Python. Even when the msi/exe builds you need to check for runtime issues on another copy of windows to make sure it's working.
+Steps:
+	* Use a recent version of python (>=3.6 recommended) installed as normal and then using pip to install the dependencies that you normally need to run the app.
+	* The freeze script is found in the main pandastable folder, freeze.py. You can adopt it for your own app.
+	* Run the script using `python freeze.py bdist_msi`
+	* The resulting msi is placed in the dist folder. This is a 32 bit binary but should run fine on windows 10.
+
+You can probably use Anaconda to do the same thing but we have not tested this.

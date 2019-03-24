@@ -191,7 +191,10 @@ class preferencesDialog(Frame):
         self.parent = parent
         self.main = Toplevel()
         self.master = self.main
+        x,y,w,h = dialogs.getParentGeometry(self.parent)
+        self.main.geometry('+%d+%d' %(x+w/2-200,y+h/2-200))
         self.main.title('Preferences')
+        self.main.protocol("WM_DELETE_WINDOW", self.quit)
         self.main.grab_set()
         self.main.transient(parent)
         self.main.resizable(width=False, height=False)
@@ -235,11 +238,11 @@ class preferencesDialog(Frame):
         dialog.pack(side=TOP,fill=BOTH)
         #d = dialogs.getDictfromTkVars(opts, tkvars, widgets)
 
-        bf=Frame(self.main)
+        bf = Frame(self.main)
         bf.pack(fill=BOTH,expand=1)
         Button(bf, text='Apply', command=self.apply).pack(side=LEFT,padx=1,pady=1,fill=BOTH,expand=1)
         Button(bf, text='Save as Default',  command=self.save).pack(side=LEFT,padx=1,pady=1,fill=BOTH,expand=1)
-        Button(bf, text='Close',  command=self.destroy).pack(side=LEFT,padx=1,pady=1,fill=BOTH,expand=1)
+        Button(bf, text='Close',  command=self.quit).pack(side=LEFT,padx=1,pady=1,fill=BOTH,expand=1)
         return
 
     def updateFromOptions(self, options):
@@ -267,7 +270,7 @@ class preferencesDialog(Frame):
 
     def save(self):
         """Save from current dialog settings"""
-        
+
         options = dialogs.getDictfromTkVars(self.opts, self.tkvars, self.widgets)
         #print (options)
         #update configparser and write
@@ -276,5 +279,5 @@ class preferencesDialog(Frame):
         return
 
     def quit(self):
-        self.destroy()
+        self.main.destroy()
         return

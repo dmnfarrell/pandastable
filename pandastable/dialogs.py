@@ -66,7 +66,7 @@ def getDictfromTkVars(opts, tkvars, widgets):
             try:
                 kwds[i] = int(tkvars[i].get())
             except:
-                kwds[i] = tkvars[i].get()            
+                kwds[i] = tkvars[i].get()
     return kwds
 
 def pickColor(parent, oldcolor):
@@ -746,6 +746,8 @@ class BaseDialog(Frame):
         self.parent = parent
         self.main = Toplevel()
         self.master = self.main
+        x,y,w,h = getParentGeometry(self.parent)
+        self.main.geometry('+%d+%d' %(x+w/2-200,y+h/2-200))
         self.main.title(title)
         self.main.protocol("WM_DELETE_WINDOW", self.quit)
         self.main.grab_set()
@@ -954,27 +956,32 @@ def getListBoxSelection(w):
     return [w.get(j) for j in items]
 
 class AutoScrollbar(Scrollbar):
-    """a scrollbar that hides itself if it's not needed.  only
+    """A scrollbar that hides itself if it's not needed. only \
        works if you use the grid geometry manager."""
 
     def set(self, lo, hi):
         if float(lo) <= 0.0 and float(hi) >= 1.0:
-            # grid_remove is currently missing from Tkinter!
             self.tk.call("grid", "remove", self)
         else:
             self.grid()
         Scrollbar.set(self, lo, hi)
+
     def pack(self, **kw):
+        """pack"""
         raise TclError("cannot use pack with this widget")
+        return
+
     def place(self, **kw):
+        """place"""
         raise TclError("cannot use place with this widget")
+        return
 
 class VerticalScrolledFrame(Frame):
-    """A pure Tkinter scrollable frame
-    see http://tkinter.unpythonic.net/wiki/VerticalScrolledFrame.
-    * Use the 'interior' attribute to place widgets inside the scrollable frame
-    * Construct and pack/place/grid normally
+    """A pure Tkinter scrollable frame \
+    see http://tkinter.unpythonic.net/wiki/VerticalScrolledFrame. \
+    Use the 'interior' attribute to place widgets inside the scrollable frame.
     """
+
     def __init__(self, parent, height=None, width=None, *args, **kw):
         Frame.__init__(self, parent, *args, **kw)
 
@@ -1032,17 +1039,18 @@ class EasyListbox(Listbox):
         return
 
     def triggerListItemSelected(self, event):
-        """Strategy method to respond to an item selection in the list box.
-        Runs the client's listItemSelected method with the selected index if
-        there is one."""
+        """Strategy method to respond to an item selection in the list box. \
+        Runs the client's listItemSelected method with the selected index.
+        """
+
         if self.size() == 0: return
         widget = event.widget
         indexes = widget.curselection()
         #self._listItemSelected(index)
 
     def getSelectedIndex(self):
-        """Returns the index of the selected item or -1 if no item
-        is selected."""
+        """Returns the index of the selected item or -1 if no item is selected."""
+
         tup = self.curselection()
         if len(tup) == 0:
             return -1
@@ -1050,8 +1058,8 @@ class EasyListbox(Listbox):
             return tup
 
     def getSelectedItem(self):
-        """Returns the selected item or the empty string if no item
-        is selected."""
+        """Returns the selected item or the empty string if no item is selected."""
+
         index = self.getSelectedIndex()
         if index == -1:
             return ""
@@ -1060,17 +1068,19 @@ class EasyListbox(Listbox):
 
     def setSelectedIndex(self, index):
         """Selects the item at the index if it's in the range."""
+
         if index < 0 or index >= self.size(): return
         self.selection_set(index, index)
 
     def clear(self):
         """Deletes all items from the list box."""
+
         while self.size() > 0:
             self.delete(0)
 
     def getIndex(self, item):
-        """Returns the index of item if it's in the list box,
-        or -1 otherwise."""
+        """Returns the index of item if it's in the list box."""
+
         tup = self.get(0, self.size() - 1)
         if item in tup:
             return tup.index(item)
