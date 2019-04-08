@@ -848,8 +848,8 @@ class Table(Canvas):
         #if self.model.df.index.name is not None:
         self.showIndex()
         self.setSelectedCol(0)
-        #self.update_rowcolors()
-        self.set_rowcolors_index()
+        self.update_rowcolors()
+        #self.set_rowcolors_index()
         self.redraw()
         if hasattr(self, 'pf'):
             self.pf.updateData()
@@ -865,8 +865,8 @@ class Table(Canvas):
             drop = messagebox.askyesno("Reset Index", "Drop the index?",
                                       parent=self.parentframe)
         self.model.df.reset_index(drop=drop, inplace=True)
-        #self.update_rowcolors()
-        self.set_rowcolors_index()
+        self.update_rowcolors()
+        #self.set_rowcolors_index()
         self.redraw()
         #self.drawSelectedCol()
         if hasattr(self, 'pf'):
@@ -923,15 +923,17 @@ class Table(Canvas):
         return
 
     def set_rowcolors_index(self):
+
         df = self.model.df
-        if len(self.rowcolors) == len(df):
-            self.rowcolors.set_index(df.index, inplace=True)
+        self.rowcolors.set_index(df.index, inplace=True)
 
     def update_rowcolors(self):
         """Update row colors if present"""
 
         df = self.model.df
-        if len(df)>len(self.rowcolors):
+        if len(df) == len(self.rowcolors):
+            self.rowcolors.set_index(df.index, inplace=True)
+        elif len(df)>len(self.rowcolors):
             idx = df.index.difference(self.rowcolors.index)
             self.rowcolors = self.rowcolors.append(pd.DataFrame(index=idx))
 
@@ -1642,7 +1644,7 @@ class Table(Canvas):
             title = 'Date->string extract'
         else:
             title = 'String->datetime convert'
-        timeformats = ['infer','%d/%m/%Y','%Y/%m/%d','%Y/%d/%m']
+        timeformats = ['infer','%d/%m/%Y','%Y/%m/%d','%Y/%d/%m','%Y-%m-%d %H:%M:%S','%d-%m-%Y %H:%M:%S']
         props = ['day','month','hour','minute','second','year',
                  'dayofyear','weekofyear','quarter']
         d = MultipleValDialog(title=title,
@@ -1670,11 +1672,12 @@ class Table(Canvas):
             df[colname] = getattr(temp.dt, prop)
         else:
             try:
-                df[colname] = pd.to_datetime(temp, format=fmt, errors='coerce')
+                df[colname] = pd.to_datetime(temp, format=fmt)#, errors='coerce')
             except Exception as e:
                 logging.error("Exception occurred", exc_info=True)
                 messagebox.showwarning("Convert error", e,
                                         parent=self.parentframe)
+                return
         if inplace == False or len(cols)>1:
             self.placeColumn(colname, cols[-1])
 
@@ -2749,6 +2752,18 @@ class Table(Canvas):
         table = self.parenttable
         model = TableModel(self.model.df)
         table.updateModel(model)
+        return'''
+
+    '''def splitView(self):
+        """Split the view with a copy of the table and sync scrolling"""
+
+        df = self.model.df
+        self.splitframe = Frame(self.parentframe)
+        self.splitframe.grid(row=0,column=4,rowspan=self.childrow+1,columnspan=2,sticky='news')
+        newtable = self.__class__(self.splitframe, dataframe=df, showtoolbar=0, showstatusbar=0)
+        newtable.adjustColumnWidths()
+        newtable.show()
+        self.splittable = newtable
         return'''
 
     def showInfo(self):
