@@ -299,12 +299,13 @@ class MultipleValDialog(Dialog):
     """Simple dialog to get multiple values"""
 
     def __init__(self, parent, title=None, initialvalues=None, labels=None,
-                    types=None, tooltips=None):
+                    types=None, tooltips=None, width=14, **kwargs):
         if labels != None and types is not None:
             self.initialvalues = initialvalues
             self.labels = labels
             self.types = types
             self.tooltips = tooltips
+            self.maxwidth = width
 
         Dialog.__init__(self, parent, title)
         #super(MultipleValDialog, self).__init__(parent, title)
@@ -343,7 +344,7 @@ class MultipleValDialog(Dialog):
                 if default == None:
                     default=''
                 self.vrs[i].set(default)
-                self.entries.append(Entry(master, textvariable=self.vrs[i], width=10, show=s))
+                self.entries.append(Entry(master, textvariable=self.vrs[i], width=self.maxwidth, show=s))
             self.entries[i].grid(row=r, column=1,padx=2,pady=2,sticky='ew')
             if self.tooltips != None:
                 ToolTip.createToolTip(self.entries[i], self.tooltips[i])

@@ -1644,14 +1644,17 @@ class Table(Canvas):
             title = 'Date->string extract'
         else:
             title = 'String->datetime convert'
-        timeformats = ['infer','%d/%m/%Y','%Y/%m/%d','%Y/%d/%m','%Y-%m-%d %H:%M:%S','%d-%m-%Y %H:%M:%S']
+        timeformats = ['infer','%d/%m/%Y','%Y/%m/%d','%Y/%d/%m',
+                        '%Y-%m-%d %H:%M:%S','%Y-%m-%d %H:%M',
+                        '%d-%m-%Y %H:%M:%S','%d-%m-%Y %H:%M']
         props = ['day','month','hour','minute','second','year',
                  'dayofyear','weekofyear','quarter']
         d = MultipleValDialog(title=title,
-                                initialvalues=['',timeformats,props,False],
+                                initialvalues=['',timeformats,props,False,False],
                                 labels=['Column name:','Conversion format:',
-                                        'Extract from datetime:','In place:'],
-                                types=['string','combobox','combobox','checkbutton'],
+                                        'Extract from datetime:','In place:','Force:'],
+                                types=['string','combobox','combobox','checkbutton','checkbutton'],
+                                width=22,
                                 parent = self.parentframe)
 
         if d.result == None:
@@ -1663,8 +1666,13 @@ class Table(Canvas):
         fmt = d.results[1]
         prop = d.results[2]
         inplace = d.results[3]
+        force = d.results[4]
         if fmt == 'infer':
             fmt = None
+        if force == True:
+            errors='coerce'
+        else:
+            errors='ignore'
 
         if len(cols) == 1 and temp.dtype == 'datetime64[ns]':
             if newname == '':
@@ -1672,7 +1680,7 @@ class Table(Canvas):
             df[colname] = getattr(temp.dt, prop)
         else:
             try:
-                df[colname] = pd.to_datetime(temp, format=fmt)#, errors='coerce')
+                df[colname] = pd.to_datetime(temp, format=fmt, errors=errors)
             except Exception as e:
                 logging.error("Exception occurred", exc_info=True)
                 messagebox.showwarning("Convert error", e,
@@ -3430,15 +3438,11 @@ class Table(Canvas):
         self.rows = self.model.getRowCount()
         self.cols = self.model.getColumnCount()
         self.tablewidth = (self.cellwidth)*self.cols
-        self.tablecolheader.model = model
-        self.rowheader.model = model
+        if hasattr(self, 'tablecolheader'):
+            self.tablecolheader.model = model
+            self.rowheader.model = model
         self.tableChanged()
         self.adjustColumnWidths()
-        #if hasattr(self, 'tablecolheader'):
-            #self.tablecolheader.destroy()
-            #self.rowheader.destroy()
-            #self.selectNone()
-        #self.show()
         return
 
     def new(self):
