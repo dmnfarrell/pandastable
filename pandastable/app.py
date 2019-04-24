@@ -954,7 +954,7 @@ class DataExplore(Frame):
         return
 
     def loadPlugin(self, plugin):
-        """Instansiate the plugin and call it's main method"""
+        """Instantiate the plugin and call it's main method"""
 
         p = plugin()
         #plugin should add itself to the table frame if it's a dialog
