@@ -47,13 +47,21 @@ class MyTable(Table):
       Custom table class inherits from Table.
       You can then override required methods
      """
-    def __init__(self, parent=None, **kwargs):
+    def __init__(self, parent=None, app=None, **kwargs):
         Table.__init__(self, parent, **kwargs)
+        self.app = app
         return
 
     def handle_right_click(self, event):
         """respond to a right click"""
 
+        return
+
+    def handle_left_click(self, event):
+        """respond to a right click"""
+
+        Table.handle_left_click(self, event)
+        self.app.previewTable()
         return
 
 class BatchProcessPlugin(Plugin):
@@ -86,27 +94,29 @@ class BatchProcessPlugin(Plugin):
             self._doFrame()
             self.main=self.mainwin
         self.doGUI()
-        self.currentdir = os.path.expanduser('~')
+        self.currentdir = self.homedir = os.path.expanduser('~')
 
         self.addFolder(path='test_batch')
+        self.savepath = os.path.join(self.homedir,'batchplots')
         #self.test()
         return
 
     def doGUI(self):
         """Create GUI"""
 
-        #self.m = PanedWindow(self.main,
-        #                     orient=VERTICAL)
-        #self.m.pack(side=LEFT,fill=BOTH,expand=1)
-
         frame = Frame(self.main)
         frame.pack(side=LEFT,fill=BOTH,expand=1)
         df = pd.DataFrame()
-        self.pt = MyTable(frame, dataframe=df, read_only=1, showtoolbar=0, width=100)
+        self.pt = MyTable(frame, app=self, dataframe=df, read_only=1, showtoolbar=0, width=100)
         self.pt.show()
         #self.m.add(frame)
         fr = Frame(self.main, padding=(4,4), width=120)
         fr.pack(side=RIGHT,fill=BOTH)
+
+        b=Button(fr,text='Add Folder',command=self.addFolder)
+        b.pack(side=TOP,fill=BOTH,pady=2)
+        b=Button(fr,text='Clear',command=self.clear)
+        b.pack(side=TOP,fill=BOTH,pady=2)
 
         self.extensionvar = StringVar()
         w = Combobox(fr, values=['csv','tsv','txt','csv.gz','*'],
@@ -124,10 +134,6 @@ class BatchProcessPlugin(Plugin):
         Label(fr,text='index column').pack()
         w=Entry(fr,textvariable=self.indexcolvar,width=6)
         w.pack(side=TOP,fill=BOTH,pady=2)
-        b=Button(fr,text='Add Folder',command=self.addFolder)
-        b.pack(side=TOP,fill=BOTH,pady=2)
-        b=Button(fr,text='Clear',command=self.clear)
-        b.pack(side=TOP,fill=BOTH,pady=2)
         self.recursivevar = BooleanVar()
         self.recursivevar.set(False)
         b=Checkbutton(fr,text='Load Recursive',variable=self.recursivevar)
@@ -136,17 +142,28 @@ class BatchProcessPlugin(Plugin):
         self.useselectedvar.set(False)
         b=Checkbutton(fr,text='Selected Only',variable=self.useselectedvar)
         b.pack(side=TOP,fill=BOTH,pady=2)
-        b=Button(fr,text='Show Table',command=self.previewTable)
-        b.pack(side=TOP,fill=BOTH,pady=2)
         b=Button(fr,text='Import All',command=self.importAll)
         b.pack(side=TOP,fill=BOTH,pady=2)
         b=Button(fr,text='Preview Plot',command=self.previewPlot)
         b.pack(side=TOP,fill=BOTH,pady=2)
         b=Button(fr,text='Run Batch Plots',command=self.batchPlot)
         b.pack(side=TOP,fill=BOTH,pady=2)
+        self.saveformatvar = StringVar()
+        self.saveformatvar.set('png')
+        w = Combobox(fr, values=['png','jpg','svg','tif','eps','pdf'],
+                 textvariable=self.saveformatvar,width=6)
+        w.pack(side=TOP,fill=BOTH,pady=2)
+        b=Button(fr,text='Save Folder',command=self.selectSaveFolder)
+        b.pack(side=TOP,fill=BOTH,pady=2)
 
         table = self.parent.getCurrentTable()
         self.pf = table.pf
+        return
+
+    def selectSaveFolder(self):
+        self.savepath = filedialog.askdirectory(parent=self.main,
+                                        initialdir=self.currentdir,
+                                        title='Select folder')
         return
 
     def addFolder(self, path=None):
@@ -165,6 +182,7 @@ class BatchProcessPlugin(Plugin):
     def refresh(self):
         """Load files list into table"""
 
+        currdf = self.pt.model.df
         ext = self.extensionvar.get()
         fp = '*.'+ext
         if self.recursivevar.get() == 1:
@@ -183,9 +201,11 @@ class BatchProcessPlugin(Plugin):
         df = pd.DataFrame({'filename':flist, 'filesize':sizes,
                             'columns':cols})
         #print (df)
-        self.pt.model.df = df
+        new = pd.concat([currdf,df])
+        new = new.drop_duplicates('filename')
+        self.pt.model.df = new
         self.pt.autoResizeColumns()
-        self.pt.columnwidths['filename'] = 300
+        self.pt.columnwidths['filename'] = 350
         #self.pt.redraw()
         return
 
@@ -214,7 +234,7 @@ class BatchProcessPlugin(Plugin):
     def importAll(self):
         """Import selected or all files as tables"""
 
-        ops = ['separately', 'join']
+        ops = ['separately', 'concat', 'merge']
         d = dialogs.MultipleValDialog(title='Batch Import Files',
                                 initialvalues=[ops],
                                 labels=['How to Import:'],
@@ -256,26 +276,56 @@ class BatchProcessPlugin(Plugin):
     def previewPlot(self):
         """Make preview plot"""
 
+        cols = self.getCurrentSelections()
         df = self.loadFile()
+        df = df[df.columns[cols]]
         self.pf.replot(df)
         return
 
     def batchPlot(self):
         """Plot multiple files"""
 
-        plotdir = 'batchplots'
+        plotdir = self.savepath
+        if not os.path.exists(plotdir):
+            os.mkdir(plotdir)
+        format = self.saveformatvar.get()
+        if format == 'pdf':
+            pdf_pages = self.pdfPages()
         df = self.pt.model.df
+        cols = self.getCurrentSelections()
         for i,r in df.iterrows():
             f = r.filename
             name = os.path.basename(f)
             df = self.loadFile(i)
             if len(df)==0:
                 continue
+            df = df[df.columns[cols]]
             self.pf.replot(df)
             self.pf.fig.suptitle(name)
-            self.pf.savePlot(filename=os.path.join(plotdir, name+'.png'))
-
+            if format == 'pdf':
+                fig = self.pf.fig
+                pdf_pages.savefig(fig)
+            else:
+                self.pf.savePlot(filename=os.path.join(plotdir, name+'.'+format))
+        if format == 'pdf':
+            pdf_pages.close()
         return
+
+    def getCurrentSelections(self):
+        """Get row/col selections from main table for plotting"""
+
+        table = self.parent.getCurrentTable()
+        cols = table.multiplecollist
+        return cols
+
+    def pdfPages(self):
+        """Create pdf pages object"""
+
+        from matplotlib.backends.backend_pdf import PdfPages
+        filename = os.path.join(self.savepath, 'batch_plots.pdf')
+        pdf_pages = PdfPages(filename)
+        from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+        return pdf_pages
 
     def test(self):
         path='test_batch'

@@ -12,6 +12,8 @@ Column widths now saved in dataexplore
 Fix to string query to allow python code
 New preferences system uses a text config file
 Violinplot
+Datetime conversion fixes
+Batch process plugin
 
 ------
 0.11.0
