@@ -102,13 +102,15 @@ class PlotViewer(Frame):
         layout: 'horizontal' or 'vertical'
     """
 
-    def __init__(self, table, parent=None, layout='horizontal'):
+    def __init__(self, table, parent=None, layout='horizontal', showdialogs=True):
 
         self.parent = parent
         self.table = table
-        self.table.pf = self #opaque ref
+        if table is not None:
+            self.table.pf = self #opaque ref
         #self.mode = '2d'
         self.multiviews = False
+        self.showdialogs = showdialogs
         if self.parent != None:
             Frame.__init__(self, parent)
             self.main = self.master
@@ -207,6 +209,19 @@ class PlotViewer(Frame):
                 v.trace("w", partial(self.setGlobalOption, n))
             b.pack(side=LEFT,padx=2)
 
+        self.addWidgets()
+
+        def onpick(event):
+            print(event)
+        #self.fig.canvas.mpl_connect('pick_event', onpick)
+        #self.fig.canvas.mpl_connect('button_release_event', onpick)
+        from . import handlers
+        dr = handlers.DragHandler(self)
+        dr.connect()
+        return
+
+    def addWidgets(self):
+
         if self.toolslayout== 'vertical':
             sf = VerticalScrolledFrame(self.ctrlfr,width=100,height=1050)
             sf.pack(side=TOP,fill=BOTH)
@@ -215,6 +230,8 @@ class PlotViewer(Frame):
             self.nb = Notebook(self.ctrlfr,height=210)
 
         self.nb.pack(side=TOP,fill=BOTH,expand=0)
+        #if self.showdialogs == 0:
+        #self.m.paneconfigure(self.nb, height=10)
 
         #add plotter tool dialogs
         w1 = self.mplopts.showDialog(self.nb, layout=self.toolslayout)
@@ -236,14 +253,6 @@ class PlotViewer(Frame):
         self.mplopts3d.updateFromOptions()
         w6 = self.animateopts.showDialog(self.nb,layout=self.toolslayout)
         self.nb.add(w6, text='Animate', sticky='news')
-
-        def onpick(event):
-            print(event)
-        #self.fig.canvas.mpl_connect('pick_event', onpick)
-        #self.fig.canvas.mpl_connect('button_release_event', onpick)
-        from . import handlers
-        dr = handlers.DragHandler(self)
-        dr.connect()
         return
 
     def setGlobalOption(self, name='', *args):
@@ -498,7 +507,7 @@ class PlotViewer(Frame):
 
         data = self.data
         data.columns = self.checkColumnNames(data.columns)
-
+        #print (data)
         #get all options from the mpl options object
         kwds = self.mplopts.kwds
         lkwds = self.labelopts.kwds.copy()
@@ -1312,6 +1321,8 @@ class PlotViewer(Frame):
     def updateData(self):
         """Update data widgets"""
 
+        if self.table is None:
+            return
         df = self.table.model.df
         self.mplopts.update(df)
         return
@@ -1323,14 +1334,15 @@ class PlotViewer(Frame):
             plt.style.use(self.style)
         return
 
-    def savePlot(self):
+    def savePlot(self, filename=None):
         """Save the current plot"""
 
         ftypes = [('png','*.png'),('jpg','*.jpg'),('tif','*.tif'),('pdf','*.pdf'),
                     ('eps','*.eps'),('svg','*.svg')]
-        filename = filedialog.asksaveasfilename(parent=self.master,
-                                                 initialdir = self.currentdir,
-                                                 filetypes=ftypes)
+        if filename == None:
+            filename = filedialog.asksaveasfilename(parent=self.master,
+                                                     initialdir = self.currentdir,
+                                                     filetypes=ftypes)
         if filename:
             self.currentdir = os.path.dirname(os.path.abspath(filename))
             dpi = self.globalopts['dpi']

@@ -39,8 +39,7 @@ import os, string, time
 import re, glob
 import pandas as pd
 from pandastable.plugin import Plugin
-from pandastable import Table
-from pandastable import dialogs
+from pandastable import Table, TableModel, dialogs
 import pylab as plt
 
 class MyTable(Table):
@@ -62,7 +61,7 @@ class BatchProcessPlugin(Plugin):
     and plotting.
     """
 
-    capabilities = ['gui']
+    capabilities = ['gui','uses_sidepane']
     requires = ['']
     menuentry = 'Batch Process'
     gui_methods = {}
@@ -73,43 +72,42 @@ class BatchProcessPlugin(Plugin):
 
     def main(self, parent):
         self.parent=parent
-        if not self.parent:
-            Frame.__init__(self)
-            self.main=self.master
-        else:
+        if parent==None:
             self.main=Toplevel()
             self.master=self.main
-        self.main.title('Batch Process')
-        ws = self.main.winfo_screenwidth()
-        hs = self.main.winfo_screenheight()
-        w = 900; h=500
-        x = (ws/2)-(w/2); y = (hs/2)-(h/2)
-        self.main.geometry('%dx%d+%d+%d' % (w,h,x,y))
+            self.main.title('Batch Process')
+            ws = self.main.winfo_screenwidth()
+            hs = self.main.winfo_screenheight()
+            w = 900; h=500
+            x = (ws/2)-(w/2); y = (hs/2)-(h/2)
+            self.main.geometry('%dx%d+%d+%d' % (w,h,x,y))
+        else:
+            self.parent = parent
+            self._doFrame()
+            self.main=self.mainwin
         self.doGUI()
         self.currentdir = os.path.expanduser('~')
 
         self.addFolder(path='test_batch')
+        #self.test()
         return
 
     def doGUI(self):
         """Create GUI"""
 
-        self.m = PanedWindow(self.main,
-                             orient=VERTICAL)
-        self.m.pack(side=LEFT,fill=BOTH,expand=1)
+        #self.m = PanedWindow(self.main,
+        #                     orient=VERTICAL)
+        #self.m.pack(side=LEFT,fill=BOTH,expand=1)
 
-        #self.fileslist = ScrolledText(self.m, width=50, height=20)
-        frame = Frame(self.m)
-        frame.pack(fill=BOTH,expand=1)
+        frame = Frame(self.main)
+        frame.pack(side=LEFT,fill=BOTH,expand=1)
         df = pd.DataFrame()
-        self.pt = MyTable(frame, dataframe=df, read_only=1, showtoolbar=0)
+        self.pt = MyTable(frame, dataframe=df, read_only=1, showtoolbar=0, width=100)
         self.pt.show()
-        self.m.add(frame)
-        self.prevframe = Frame(self.m)
-        self.prevframe.pack(fill=BOTH,expand=1)
-        self.m.add(self.prevframe)
+        #self.m.add(frame)
+        fr = Frame(self.main, padding=(4,4), width=120)
+        fr.pack(side=RIGHT,fill=BOTH)
 
-        fr = Frame(self.main, padding=(4,4), width=90)
         self.extensionvar = StringVar()
         w = Combobox(fr, values=['csv','tsv','txt','csv.gz','*'],
                  textvariable=self.extensionvar,width=6)
@@ -118,11 +116,14 @@ class BatchProcessPlugin(Plugin):
         Label(fr,text='delimiter').pack()
         self.delimvar = StringVar()
         delimiters = [',',r'\t',' ',';','/','&','|','^','+','-']
-        #w,self.extensionvar = dialogs.addListBox(fr, values=delimiters,width=12)
         w = Combobox(fr, values=delimiters,
                  textvariable=self.delimvar,width=6)
         w.pack(side=TOP,fill=BOTH,pady=2)
         w.set(',')
+        self.indexcolvar=IntVar()
+        Label(fr,text='index column').pack()
+        w=Entry(fr,textvariable=self.indexcolvar,width=6)
+        w.pack(side=TOP,fill=BOTH,pady=2)
         b=Button(fr,text='Add Folder',command=self.addFolder)
         b.pack(side=TOP,fill=BOTH,pady=2)
         b=Button(fr,text='Clear',command=self.clear)
@@ -135,19 +136,17 @@ class BatchProcessPlugin(Plugin):
         self.useselectedvar.set(False)
         b=Checkbutton(fr,text='Selected Only',variable=self.useselectedvar)
         b.pack(side=TOP,fill=BOTH,pady=2)
-        b=Button(fr,text='Preview Table',command=self.previewTable)
+        b=Button(fr,text='Show Table',command=self.previewTable)
         b.pack(side=TOP,fill=BOTH,pady=2)
-        b=Button(fr,text='Join Tables',command=self.joinTables)
+        b=Button(fr,text='Import All',command=self.importAll)
         b.pack(side=TOP,fill=BOTH,pady=2)
         b=Button(fr,text='Preview Plot',command=self.previewPlot)
         b.pack(side=TOP,fill=BOTH,pady=2)
-        b=Button(fr,text='Run Plots',command=self.execute)
+        b=Button(fr,text='Run Batch Plots',command=self.batchPlot)
         b.pack(side=TOP,fill=BOTH,pady=2)
-        fr.pack(side=LEFT,fill=BOTH)
 
-        pframe = Frame(self.main, padding=(4,4), width=90)
-        pframe.pack(side=LEFT,fill=BOTH)
-
+        table = self.parent.getCurrentTable()
+        self.pf = table.pf
         return
 
     def addFolder(self, path=None):
@@ -180,29 +179,57 @@ class BatchProcessPlugin(Plugin):
             sizes.append(s)
             df = pd.read_csv(f, nrows=10)
             cols.append(len(df.columns))
-            #rows.append(len(df))
+
         df = pd.DataFrame({'filename':flist, 'filesize':sizes,
-                            'columns':cols})#, 'rows':rows})
-        print (df)
+                            'columns':cols})
+        #print (df)
         self.pt.model.df = df
         self.pt.autoResizeColumns()
-        self.pt.columnwidths['filename'] = 400
+        self.pt.columnwidths['filename'] = 300
         #self.pt.redraw()
         return
 
-    def previewTable(self):
-        """Preview selected table"""
+    def loadFile(self, row=None):
+        """Load a file from the table"""
 
+        if row is None:
+            row = self.pt.currentrow
         df = self.pt.model.df
-        r = df.iloc[self.pt.currentrow]
+        r = df.iloc[row]
         df = pd.read_csv(r.filename, sep=self.delimvar.get())
-        print (df)
-        frame = self.prevframe
-        if hasattr(self, 'prevt'):
-            self.prevt.destroy()
-        self.prevt = Table(frame, dataframe=df, showtoolbar=0)
-        self.prevt.show()
-        self.prevt.autoResizeColumns()
+        idx=self.indexcolvar.get()
+        df=df.set_index(df.columns[idx])
+        return df
+
+    def previewTable(self):
+        """Preview selected table in main table."""
+
+        df = self.loadFile()
+        #print (df)
+        table = self.parent.getCurrentTable()
+        table.model.df = df
+        table.autoResizeColumns()
+        return
+
+    def importAll(self):
+        """Import selected or all files as tables"""
+
+        ops = ['separately', 'join']
+        d = dialogs.MultipleValDialog(title='Batch Import Files',
+                                initialvalues=[ops],
+                                labels=['How to Import:'],
+                                types=['combobox'],
+                                parent = self.mainwin)
+        if d.result == None:
+            return
+        how = d.results[0]
+        if how == 'join':
+            self.joinTables()
+        else:
+            filelist = self.pt.model.df
+            for i,r in filelist.iterrows():
+                df = self.loadFile(i)
+                self.parent.addSheet(i, df)
         return
 
     def joinTables(self):
@@ -211,79 +238,51 @@ class BatchProcessPlugin(Plugin):
         filelist = self.pt.model.df
         res=[]
         for i,r in filelist.iterrows():
-            df = pd.read_csv(r.filename, sep=self.delimvar.get())
+            df = self.loadFile(i)
             res.append(df)
         res = pd.concat(res)
         t = time.strftime('%X')
-        self.parent.addSheet('joined-'+t, res, select=True)
+        self.parent.addSheet('joined-'+t, res)
         return
 
     def clear(self):
         """Clear file list"""
 
         self.path = None
-        self.pt = MyTable()
+        self.pt.model.df = pd.DataFrame()
+        self.pt.redraw()
         return
 
-    def getPlotOptions(self):
-        """Get current plot options"""
-
-        table = self.parent.getCurrentTable()
-        opts = table.pf.mplopts
-        opts.applyOptions()
-        return opts.kwds
-
     def previewPlot(self):
-        """Make a preview plot"""
+        """Make preview plot"""
 
-        kwds = self.getPlotOptions()
-
+        df = self.loadFile()
+        self.pf.replot(df)
         return
 
     def batchPlot(self):
         """Plot multiple files"""
 
-        kwds = self.getPlotOptions()
         plotdir = 'batchplots'
         df = self.pt.model.df
         for i,r in df.iterrows():
             f = r.filename
-            print (f)
             name = os.path.basename(f)
-            df = pd.read_csv(f)
+            df = self.loadFile(i)
             if len(df)==0:
                 continue
-            ax=df.plot(kind='line')
-            plt.savefig(os.path.join(plotdir, name+'.png'))
-            plt.clf()
-            #pt = Table(self.main)
-            #pt.importCSV(filename=f, dialog=False)
-            #pt.startrow=0
-            #print (pt.model.df)
-            #pf = pt.pf
-            #pf.plotCurrent()
-            #print (pf.ax)
-        return
-
-    def plots(self):
-        """Create batch plots for selected tables/rows/cols"""
-
-        cols = 0
-        rows = 0
+            self.pf.replot(df)
+            self.pf.fig.suptitle(name)
+            self.pf.savePlot(filename=os.path.join(plotdir, name+'.png'))
 
         return
 
-    def execute(self):
-        """Do rename"""
-
-        #n = messagebox.askyesno("Rename",
-        #                          "Rename the files?",
-        #                          parent=self.master)
-        #if not n:
-        #    return
-        self.batchPlot()
+    def test(self):
+        path='test_batch'
+        for i in range(20):
+            df = TableModel.getSampleData()
+            df.to_csv(os.path.join(path,'test%s.csv' %str(i)))
         return
-
 
 def main():
     from optparse import OptionParser

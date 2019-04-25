@@ -235,6 +235,10 @@ Preferences for table formatting can be set from the edit->preferences menu item
   rowselectedcolor = #E4DED4
   textcolor = black
 
+Batch processing
+----------------
+
+A plugin provides the ability to batch import and/or plot multiple files at once. This is generally designed for many similarly formatted files that you wish to clean or plot in bulk without loading each individually. You can also use this to join many files into one table. Access this tool from Plugins->Batch Process.
 
 Other examples
 --------------

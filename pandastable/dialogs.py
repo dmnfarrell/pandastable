@@ -462,9 +462,12 @@ class ImportDialog(Frame):
 
         delimiters = [',',r'\t',' ',';','/','&','|','^','+','-']
         encodings = ['utf-8','ascii','iso8859_15','cp037','cp1252','big5','euc_jp']
+        timeformats = ['infer','%d/%m/%Y','%Y/%m/%d','%Y/%d/%m',
+                        '%Y-%m-%d %H:%M:%S','%Y-%m-%d %H:%M',
+                        '%d-%m-%Y %H:%M:%S','%d-%m-%Y %H:%M']
         grps = {'formats':['delimiter','decimal','comment'],
                 'data':['header','skiprows','index_col','skipinitialspace',
-                        'skip_blank_lines','parse_dates','encoding','names'],
+                        'skip_blank_lines','parse_dates','time format','encoding','names'],
                 'other':['rowsperfile']}
         grps = OrderedDict(sorted(grps.items()))
         opts = self.opts = {'delimiter':{'type':'combobox','default':',',
@@ -485,6 +488,8 @@ class ImportDialog(Frame):
                                 'tooltip':'do not use blank lines'},
                      'parse_dates':  {'type':'checkbutton','default':1,'label':'parse dates',
                                 'tooltip':'try to parse date/time columns'},
+                     'time format': {'type':'combobox','default':'','items':timeformats,
+                                'tooltip':'date/time format'},
                      'encoding':{'type':'combobox','default':'utf-8','items':encodings,
                                 'tooltip':'file encoding'},
                      #'prefix':{'type':'entry','default':None,'label':'prefix',
@@ -535,7 +540,7 @@ class ImportDialog(Frame):
         """Reload previews"""
 
         kwds = {}
-        other = ['rowsperfile']
+        other = ['rowsperfile','time format']
         for i in self.opts:
             if i in other:
                 continue
@@ -554,11 +559,12 @@ class ImportDialog(Frame):
                     pass
             kwds[i] = val
         self.kwds = kwds
-
+        timeformat = self.tkvars['time format'].get()
+        dateparse = lambda x: pd.datetime.strptime(x, timeformat)
         self.showText()
         try:
             f = pd.read_csv(self.filename, chunksize=400, error_bad_lines=False,
-                        warn_bad_lines=False, **kwds)
+                        warn_bad_lines=False, date_parser=dateparse, **kwds)
         except Exception as e:
             print ('read csv error')
             print (e)
