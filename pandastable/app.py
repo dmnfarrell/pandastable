@@ -500,10 +500,6 @@ class DataExplore(Frame):
             print ('does not appear to be a project file')
             return
         if os.path.isfile(filename):
-            #pb = self.progressDialog()
-            #t = threading.Thread()
-            #t.__init__(target=pd.read_msgpack, args=(filename))
-            #t.start()
             data = pd.read_msgpack(filename)
             #create backup file before we change anything
             backupfile = filename+'.bak'

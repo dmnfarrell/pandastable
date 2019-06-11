@@ -3033,6 +3033,14 @@ class Table(Canvas):
                 return pd.DataFrame()
         return data
 
+    def getSelectedRows(self):
+        """Return a sub-dataframe of the selected rows"""
+
+        df = self.model.df
+        rows = self.multiplerowlist
+        data = df.iloc[list(rows),]
+        return data
+
     def getPlotData(self):
         """Plot data from selection"""
 

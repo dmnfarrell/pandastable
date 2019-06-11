@@ -287,7 +287,7 @@ class PlotViewer(Frame):
         data: set current dataframe, otherwise use
         current table selection"""
 
-        #self.data = self.table.getPlotData()
+        print (self.table.getSelectedRows())
         if data is None:
             self.data = self.table.getSelectedDataFrame()
         else:
