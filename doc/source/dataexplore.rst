@@ -121,8 +121,23 @@ A transpose is rotating the table on its axes so the rows become columns and vic
 Filtering tables
 ----------------
 
-Filtering tables is done using either a string query and/or one or more pre-defined filters defined with widgets. Pressing the filtering button will bring up the dialog below the table. Manual predefined filters can be added by pressing the + button. These are used alone or in conjunction with the string query as shown below. The filters are joined together using the first menu item using either 'AND', 'OR' or 'NOT' boolean logic. When filtered results are found the found rows are highlighted. You can also limit the table to show the filtered set which can be treated as usual (i.e. plots made etc). Closing the query box restores the full table. If you want to keep the filtered table you can copy and paste in another sheet.
-String based query are made up fairly intuitive expressions. The one caveat is that column names cannot contain spaces to be used in an expression. It is best in these cases to convert column names (i.e. replace spaces with an underscore '_').
+Filtering tables is done using either a string query and/or one or more pre-defined filters defined with widgets.
+
+Query with widgets
+++++++++++++++++++
+
+Pressing the filtering button will bring up the dialog below the table. Manual predefined filters can be added by pressing the + button. These are used alone or in conjunction with the string query as shown below. The filters are joined together using the first menu item using either 'AND', 'OR' or 'NOT' boolean logic. When filtered results are found the found rows are highlighted. You can also limit the table to show the filtered set which can be treated as usual (i.e. plots made etc). Closing the query box restores the full table. If you want to keep the filtered table you can copy and paste in another sheet.
+
+String query
+++++++++++++
+
+String based query are made up fairly intuitive expressions. The one caveat is that column names cannot contain spaces to be used in an expression. It is best in these cases to convert column names (i.e. replace spaces with an underscore '_'). You may also use Python/pandas style expressions to perform filters, useful with string based queries.
+
+Examples::
+
+    x>4 and y<3 #filter by values of columns x and y
+    x.str.contains("abc") #find only values of column x containing substring #abc
+    x.str.len()>3 #find only rows where length of strings in x is greater than 3
 
 .. image:: filtering_example.gif
 

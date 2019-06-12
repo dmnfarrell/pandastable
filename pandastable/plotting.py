@@ -38,7 +38,6 @@ import matplotlib as mpl
 #mpl.use("TkAgg")
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-from matplotlib.mlab import griddata
 from matplotlib.lines import Line2D
 import matplotlib.transforms as mtrans
 from collections import OrderedDict
@@ -287,7 +286,7 @@ class PlotViewer(Frame):
         data: set current dataframe, otherwise use
         current table selection"""
 
-        print (self.table.getSelectedRows())
+        #print (self.table.getSelectedRows())
         if data is None:
             self.data = self.table.getSelectedDataFrame()
         else:
@@ -1135,6 +1134,7 @@ class PlotViewer(Frame):
     def contourData(self, data):
         """Get data for contour plot"""
 
+        from matplotlib.mlab import griddata
         x = data.values[:,0]
         y = data.values[:,1]
         z = data.values[:,2]
@@ -1146,13 +1146,7 @@ class PlotViewer(Frame):
     def meshData(self, x,y,z):
         """Prepare 1D data for plotting in the form (x,y)->Z"""
 
-        '''x = np.random.uniform(-2,2,50)
-        y = np.random.uniform(-2,2,50)
-        z = x*np.exp(-x**2-y**2)
-        # define grid.
-        xi = np.linspace(-2.1,2.1,100)
-        yi = np.linspace(-2.1,2.1,100)'''
-
+        from matplotlib.mlab import griddata
         xi = np.linspace(x.min(), x.max())
         yi = np.linspace(y.min(), y.max())
         zi = griddata(x, y, z, xi, yi, interp='linear')
@@ -1206,9 +1200,11 @@ class PlotViewer(Frame):
         elif kind == 'bar':
             self.bar3D(data, ax, kwds)
         elif kind == 'contour':
+            #from matplotlib.mlab import griddata
             xi = np.linspace(x.min(), x.max())
             yi = np.linspace(y.min(), y.max())
             zi = griddata(x, y, z, xi, yi, interp='linear')
+            #zi = np.meshgrid(x, y, z, xi, yi)
             surf = ax.contour(xi, yi, zi, rstride=rstride, cstride=cstride,
                               cmap=kwds['colormap'], alpha=alpha,
                               linewidth=lw, antialiased=True)
