@@ -181,6 +181,7 @@ class Table(Canvas):
         self.multipleselectioncolor = '#E0F2F7'
         self.boxoutlinecolor = '#084B8A'
         self.colselectedcolor = '#e4e3e4'
+        self.colheadercolor = 'gray25'
         self.floatprecision = 0
         self.showindex = False
         self.columnwidths = {}
@@ -275,7 +276,7 @@ class Table(Canvas):
 
         #Add the table and header to the frame
         self.rowheader = RowHeader(self.parentframe, self)
-        self.tablecolheader = ColumnHeader(self.parentframe, self)
+        self.tablecolheader = ColumnHeader(self.parentframe, self, bg=self.colheadercolor)
         self.rowindexheader = IndexHeader(self.parentframe, self)
         self.Yscrollbar = AutoScrollbar(self.parentframe,orient=VERTICAL,command=self.set_yviews)
         self.Yscrollbar.grid(row=1,column=2,rowspan=1,sticky='news',pady=0,ipady=0)

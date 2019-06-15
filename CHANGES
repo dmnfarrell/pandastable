@@ -3,6 +3,13 @@ CHANGES
 =======
 
 ------
+0.12.1
+------
+
+Fix to mlab griddata bug
+Added col header color preference
+
+------
 0.12.0
 ------
 

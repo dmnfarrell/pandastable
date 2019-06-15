@@ -47,8 +47,8 @@ class ColumnHeader(Canvas):
     """Class that takes it's size and rendering from a parent table
         and column names from the table model."""
 
-    def __init__(self, parent=None, table=None):
-        Canvas.__init__(self, parent, bg='gray25', width=500, height=25)
+    def __init__(self, parent=None, table=None, bg='gray25'):
+        Canvas.__init__(self, parent, bg=bg, width=500, height=25)
         self.thefont = 'Arial 14'
         if table != None:
             self.table = table
@@ -121,7 +121,7 @@ class ColumnHeader(Canvas):
         self.configure(scrollregion=(0,0,
                                      self.table.tablewidth+self.table.x_start,
                                      self.height))
-        self.config(height=self.height)
+        self.config(height=self.height, bg=self.table.colheadercolor)
         self.delete('gridline','text')
         self.delete('rect')
         self.delete('dragrect')

@@ -54,7 +54,8 @@ baseoptions['base'] = {'font': 'Arial','fontsize':12, 'fontstyle':'',
 baseoptions['colors'] =  {'cellbackgr':'#F4F4F3',
                         'textcolor':'black',
                         'grid_color':'#ABB1AD',
-                        'rowselectedcolor':'#E4DED4'}
+                        'rowselectedcolor':'#E4DED4',
+                        'colheadercolor':'gray25'}
 '''baseoptions['plotting'] = {'marker': '','linestyle':'-',
                         'colormap':'Spectral',
                         'ms':5, 'grid':1
@@ -221,19 +222,21 @@ class preferencesDialog(Frame):
                 'font':{'type':'combobox','default':'Arial','items':fonts},
                 'fontstyle':{'type':'combobox','default':'','items':['','bold','italic']},
                 'fontsize':{'type':'scale','default':12,'range':(5,40),'interval':1,'label':'font size'},
-                'floatprecision':{'type':'entry','default':2},
+                'floatprecision':{'type':'entry','default':2,'label':'precision'},
                 'cellbackgr':{'type':'colorchooser','default':'#F4F4F3', 'label':'background color'},
                 'textcolor':{'type':'colorchooser','default':'black', 'label':'text color'},
                 'grid_color':{'type':'colorchooser','default':'#ABB1AD', 'label':'grid color'},
                 'rowselectedcolor':{'type':'colorchooser','default':'#E4DED4','label':'highlight color'},
+                'colheadercolor':{'type':'colorchooser','default':'gray25','label':'column header color'},
                 'colormap':{'type':'combobox','default':'Spectral','items':plotting.colormaps},
                 'marker':{'type':'combobox','default':'','items':plotting.markers},
                 'linestyle':{'type':'combobox','default':'-','items':plotting.linestyles},
                 'ms':{'type':'scale','default':5,'range':(1,80),'interval':1,'label':'marker size'},
                 'grid':{'type':'checkbutton','default':0,'label':'show grid'},
                 }
-        sections = {'table':['align','rowheight','cellwidth','linewidth','vertlines','horizlines'],
-                    'formats':['font','fontstyle','fontsize','floatprecision','cellbackgr','textcolor','grid_color','rowselectedcolor']}
+        sections = {'table':['align','floatprecision','rowheight','cellwidth','linewidth','vertlines','horizlines'],
+                    'formats':['font','fontstyle','fontsize','cellbackgr','textcolor',
+                               'grid_color','rowselectedcolor','colheadercolor']}
                     #'plotting':['marker','linestyle','ms','grid','colormap']}
 
 
