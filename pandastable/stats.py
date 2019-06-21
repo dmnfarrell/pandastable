@@ -135,7 +135,7 @@ class StatsViewer(Frame):
             sub = data.index
         else:
             sub = data.index[s]
-        self.sub = sub
+        self.sub = sub        
         y,X = dmatrices(formula, data=data, return_type='dataframe')
         self.X = X
         self.y = y
@@ -163,8 +163,8 @@ class StatsViewer(Frame):
         try:
             self.model = mod = self.getModel(formula, data, est)
         except Exception as e:
-            self.pf.showWarning(e)
-            return
+           self.pf.showWarning(e)
+           return
 
         self.fit = fit = mod.fit()
         self.summary()
@@ -230,8 +230,8 @@ class StatsViewer(Frame):
         sub = self.sub
         if len(sub) == 0:
             sub = X.index
-        Xout = self.X.ix[-self.X.index.isin(sub)]
-        yout = self.y.ix[-self.y.index.isin(sub)]
+        Xout = self.X.ix[~self.X.index.isin(sub)]
+        yout = self.y.ix[~self.y.index.isin(sub)]
         ypred = fit.predict(Xout)
         ax.scatter(yout, ypred, alpha=0.6, edgecolor='black',
                    color='blue', lw=0.5, label='fit')
@@ -261,8 +261,8 @@ class StatsViewer(Frame):
         sub = self.sub
         if len(sub) == 0:
             sub = X.index
-        Xout = self.X.ix[-self.X.index.isin(sub)]
-        yout = self.y.ix[-self.y.index.isin(sub)]
+        Xout = self.X.ix[~self.X.index.isin(sub)]
+        yout = self.y.ix[~self.y.index.isin(sub)]
         yfit = fit.predict(Xout)
         x = Xout[indvar]
         #fitted data

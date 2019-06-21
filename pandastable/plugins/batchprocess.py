@@ -115,6 +115,10 @@ class BatchProcessPlugin(Plugin):
 
         b=Button(fr,text='Add Folder',command=self.addFolder)
         b.pack(side=TOP,fill=BOTH,pady=2)
+        self.recursivevar = BooleanVar()
+        self.recursivevar.set(False)
+        b=Checkbutton(fr,text='Load Recursive',variable=self.recursivevar)
+        b.pack(side=TOP,fill=BOTH,pady=2)
         b=Button(fr,text='Clear',command=self.clear)
         b.pack(side=TOP,fill=BOTH,pady=2)
 
@@ -134,10 +138,6 @@ class BatchProcessPlugin(Plugin):
         Label(fr,text='index column').pack()
         w=Entry(fr,textvariable=self.indexcolvar,width=6)
         w.pack(side=TOP,fill=BOTH,pady=2)
-        self.recursivevar = BooleanVar()
-        self.recursivevar.set(False)
-        b=Checkbutton(fr,text='Load Recursive',variable=self.recursivevar)
-        b.pack(side=TOP,fill=BOTH,pady=2)
         self.useselectedvar = BooleanVar()
         self.useselectedvar.set(False)
         b=Checkbutton(fr,text='Selected Only',variable=self.useselectedvar)
@@ -269,7 +269,8 @@ class BatchProcessPlugin(Plugin):
         """Clear file list"""
 
         self.path = None
-        self.pt.model.df = pd.DataFrame()
+        df = self.pt.model.df
+        self.pt.model.df = df.iloc[0:0]
         self.pt.redraw()
         return
 
