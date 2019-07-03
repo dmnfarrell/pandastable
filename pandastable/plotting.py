@@ -810,6 +810,7 @@ class PlotViewer(Frame):
             cs = ax.contour(xi,yi,zi,15,linewidths=.5,colors='k')
             #plt.clabel(cs,fontsize=9)
             cs = ax.contourf(xi,yi,zi,15,cmap=cmap)
+            #ax.scatter(x,y,marker='o',c='b',s=5)
             self.fig.colorbar(cs,ax=ax)
             axs = ax
         elif kind == 'imshow':
@@ -1010,7 +1011,7 @@ class PlotViewer(Frame):
             if kwds['subplots'] == 1:
                 ax.set_title(cols[i])
             if colormap is not None and kwds['colorbar'] == True:
-                self.fig.colorbar(scplt, ax=ax)
+                self.fig.colorbar(sc, ax=ax)
 
             if labelcol != '':
                 if not labelcol in data.columns:
@@ -1134,22 +1135,24 @@ class PlotViewer(Frame):
     def contourData(self, data):
         """Get data for contour plot"""
 
-        from matplotlib.mlab import griddata
+        #from matplotlib.mlab import griddata
+        from scipy.interpolate import griddata
         x = data.values[:,0]
         y = data.values[:,1]
         z = data.values[:,2]
         xi = np.linspace(x.min(), x.max())
         yi = np.linspace(y.min(), y.max())
-        zi = griddata(x, y, z, xi, yi, interp='linear')
+        zi = griddata((x, y), z, (xi[None,:], yi[:,None]), method='cubic')
         return xi,yi,zi
 
     def meshData(self, x,y,z):
         """Prepare 1D data for plotting in the form (x,y)->Z"""
 
-        from matplotlib.mlab import griddata
+        from scipy.interpolate import griddata
         xi = np.linspace(x.min(), x.max())
         yi = np.linspace(y.min(), y.max())
-        zi = griddata(x, y, z, xi, yi, interp='linear')
+        #zi = griddata(x, y, z, xi, yi, interp='linear')
+        zi = griddata((x, y), z, (xi[None,:], yi[:,None]), method='cubic')
         X, Y = np.meshgrid(xi, yi)
         return X,Y,zi
 
@@ -1200,10 +1203,10 @@ class PlotViewer(Frame):
         elif kind == 'bar':
             self.bar3D(data, ax, kwds)
         elif kind == 'contour':
-            #from matplotlib.mlab import griddata
+            from scipy.interpolate import griddata
             xi = np.linspace(x.min(), x.max())
             yi = np.linspace(y.min(), y.max())
-            zi = griddata(x, y, z, xi, yi, interp='linear')
+            zi = griddata((x, y), z, (xi[None,:], yi[:,None]), method='cubic')
             #zi = np.meshgrid(x, y, z, xi, yi)
             surf = ax.contour(xi, yi, zi, rstride=rstride, cstride=cstride,
                               cmap=kwds['colormap'], alpha=alpha,

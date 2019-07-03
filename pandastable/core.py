@@ -1797,6 +1797,7 @@ class Table(Canvas):
             self.functionentry.configure(style="White.TCombobox")
         except Exception as e:
             print ('function parse error')
+            print (e)
             logging.error("Exception occurred", exc_info=True)
             self.functionentry.configure(style="Red.TCombobox")
             return
