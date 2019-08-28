@@ -82,6 +82,8 @@ class DataExplore(Frame):
         #if not hasattr(self,'defaultsavedir'):
         self.defaultsavedir = os.path.join(os.path.expanduser('~'))
         self.loadAppOptions()
+        #start logging
+        self.start_logging()
 
         self.main.title('DataExplore')
         self.createMenuBar()
@@ -105,6 +107,11 @@ class DataExplore(Frame):
         self.main.protocol('WM_DELETE_WINDOW',self.quit)
         self.main.lift()
         return
+
+    def start_logging(self):
+        import logging
+        from .core import logfile
+        logging.basicConfig(filename=logfile,format='%(asctime)s %(message)s')
 
     def setStyles(self):
         """Set theme and widget styles"""

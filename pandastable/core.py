@@ -59,8 +59,6 @@ config_path = os.path.join(os.path.expanduser("~"), '.pandastable')
 logfile = os.path.join(config_path, 'error.log')
 if not os.path.exists(config_path):
     os.mkdir(config_path)
-logging.basicConfig(filename=logfile,format='%(asctime)s %(message)s')
-
 
 class Table(Canvas):
     """A tkinter class for providing table functionality.
