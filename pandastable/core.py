@@ -681,6 +681,8 @@ class Table(Canvas):
         return scale
 
     def setWrap(self):
+        """Toogle column header wrap"""
+
         ch=self.tablecolheader
         if ch.wrap is False:
             ch.wrap = True
@@ -2306,7 +2308,7 @@ class Table(Canvas):
                 self.currentcol = self.currentcol - 1
 
         if self.currentcol > cmax or self.currentcol <= cmin:
-            print (self.currentcol, self.visiblecols)
+            #print (self.currentcol, self.visiblecols)
             self.xview('moveto', x)
             self.tablecolheader.xview('moveto', x)
             self.redraw()

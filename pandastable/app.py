@@ -1146,6 +1146,11 @@ class TestApp(Frame):
         df = TableModel.getSampleData()
         self.table = pt = Table(f, dataframe=df,
                                 showtoolbar=True, showstatusbar=True)
+        #options = config.load_options()
+        #import pprint
+        #pprint.pprint(dict(options))
+        options = {'colheadercolor':'green','floatprecision': 4}
+        config.apply_options(options, pt)
         pt.show()
         return
 
