@@ -524,14 +524,14 @@ class ImportDialog(Frame):
         self.main.wait_window()
         return
 
-    def showText(self):
-        """show text contents"""
+    def showText(self, encoding='utf-8'):
+        """Show text contents"""
 
-        with open(self.filename, 'r') as stream:
+        with open(self.filename, 'r', encoding=encoding) as stream:
             try:
                 text = stream.read()
             except:
-                text = 'failed to preview, check encoding and then update preview'
+                text = 'failed to preview this file, change the file encoding and then press update preview'
         self.textpreview.delete('1.0', END)
         self.textpreview.insert('1.0', text)
         return
@@ -547,9 +547,9 @@ class ImportDialog(Frame):
             try:
                 val = self.tkvars[i].get()
             except:
-                val=None
+                val = None
             if val == '':
-                val=None
+                val = None
             if self.opts[i]['type'] == 'checkbutton':
                 val = bool(val)
             elif type(self.opts[i]['default']) != int:
@@ -561,20 +561,22 @@ class ImportDialog(Frame):
         self.kwds = kwds
         timeformat = self.tkvars['time format'].get()
         dateparse = lambda x: pd.datetime.strptime(x, timeformat)
-        self.showText()
+        self.showText(encoding=kwds['encoding'])
         try:
             f = pd.read_csv(self.filename, chunksize=400, error_bad_lines=False,
                         warn_bad_lines=False, date_parser=dateparse, **kwds)
         except Exception as e:
             print ('read csv error')
             print (e)
-            return
-        try:
-            df = f.get_chunk()
-        except pandas.errors.ParserError:
-            print ('parser error')
+            f = None
+        if f is not None:
+            try:
+                df = f.get_chunk()
+            except:
+                print ('parser error')
+                df = pd.DataFrame()
+        else:
             df = pd.DataFrame()
-
         model = TableModel(dataframe=df)
         self.previewtable.updateModel(model)
         self.previewtable.showIndex()
