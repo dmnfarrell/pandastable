@@ -116,6 +116,34 @@ To clear formatting::
 	table.clearFormatting()
 	table.redraw()
 
+Set Preferences
+---------------
+
+Preferences are normally loaded from a configuration file that can be edited manually or via the menu. You can also programmatically set these preferences using the config module::
+
+	#load from prefs file if you want need to (done by default when tables are created)
+	options = config.load_options()
+	#options is a dict that you can set yourself
+	options = {'colheadercolor':'green'}
+	config.apply_options(options, table)
+
+You can set the following configuration values::
+
+	{'align': 'w',
+	 'cellbackgr': '#F4F4F3',
+	 'cellwidth': 80,
+	 'colheadercolor': '#535b71',
+	 'floatprecision': 2,
+	 'font': 'Arial',
+	 'fontsize': 12,
+	 'fontstyle': '',
+	 'grid_color': '#ABB1AD',
+	 'linewidth': 1,
+	 'rowheight': 22,
+	 'rowselectedcolor': '#E4DED4',
+	 'textcolor': 'black'}
+
+
 Writing DataExplore Plugins
 ---------------------------
 

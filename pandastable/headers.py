@@ -87,10 +87,11 @@ class ColumnHeader(Canvas):
     def redraw(self):
         """Redraw column header"""
 
-        wrap = self.wrap
         df = self.model.df
+        multiindex = util.check_multiindex(df.columns)
+        wrap = self.wrap
         cols = self.model.getColumnCount()
-        colwidths = self.table.columnwidths
+        colwidths = self.table.columnwidths        
         scale = self.table.getScale() * 1.5
         self.height = self.table.rowheight
 
@@ -116,7 +117,7 @@ class ColumnHeader(Canvas):
         if self.height>250:
             self.height=250
 
-        self.tablewidth=self.table.tablewidth
+        self.tablewidth = self.table.tablewidth
         self.thefont = self.table.thefont
         self.configure(scrollregion=(0,0,
                                      self.table.tablewidth+self.table.x_start,
@@ -134,7 +135,7 @@ class ColumnHeader(Canvas):
         if cols == 0:
             return
 
-        if util.check_multiindex(df.columns) == 1:
+        if multiindex == 1:
             anchor = 'nw'
             y=2
             #print (df)
@@ -156,10 +157,12 @@ class ColumnHeader(Canvas):
                     colstr = colname.encode('utf-8','ignore').decode('utf-8')
                 except:
                     colstr = str(colname)
+
                 if colstr in colwidths:
                     w = colwidths[colstr]
                 else:
                     w = self.table.cellwidth
+
                 if w<=8:
                     colname=''
                 x = self.table.col_positions[col]
