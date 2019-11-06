@@ -466,8 +466,8 @@ class Table(Canvas):
 
         self.colorColumns()
         self.colorRows()
-        self.tablecolheader.redraw()
-        self.rowheader.redraw()#align=self.align)
+        self.tablecolheader.redraw(align=self.align)
+        self.rowheader.redraw()
         self.rowindexheader.redraw()
         self.drawSelectedRow()
         self.drawSelectedRect(self.currentrow, self.currentcol)

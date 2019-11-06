@@ -84,14 +84,14 @@ class ColumnHeader(Canvas):
         self.sort_ascending = 1
         return
 
-    def redraw(self):
+    def redraw(self, align='w'):
         """Redraw column header"""
 
         df = self.model.df
         multiindex = util.check_multiindex(df.columns)
         wrap = self.wrap
         cols = self.model.getColumnCount()
-        colwidths = self.table.columnwidths        
+        colwidths = self.table.columnwidths
         scale = self.table.getScale() * 1.5
         self.height = self.table.rowheight
 
@@ -128,7 +128,7 @@ class ColumnHeader(Canvas):
         self.delete('dragrect')
         self.atdivider = None
         font = self.thefont
-        anchor = 'w'
+        anchor = align
         pad = 5
 
         x_start = self.table.x_start
@@ -171,7 +171,7 @@ class ColumnHeader(Canvas):
                 elif anchor == 'e':
                     xt = x+w-pad
                 elif anchor == 'center':
-                    xt = x-w/2
+                    xt = x+w/2
 
                 colname = colstr
                 tw,length = util.getTextLength(colstr, w-pad, font=font)
