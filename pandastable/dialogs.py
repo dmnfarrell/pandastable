@@ -46,6 +46,28 @@ import pandas as pd
 from .data import TableModel
 from . import util, images
 
+def setGeometry(win, width=None):
+    """Set window geometry to center of screen"""
+
+    winsize = getBestGeometry(win, width)
+    win.geometry(winsize)
+    return
+
+def getBestGeometry(win, width=None):
+    """Calculate optimal geometry from screen size or given width"""
+
+    ws = win.winfo_screenwidth()
+    hs = win.winfo_screenheight()
+    if width == None:
+        w = ws/1.4; h = hs*0.7
+    else:
+        w = width
+        h = width / 2
+
+    x = (ws/2)-(w/2); y = (hs/2)-(h/2)
+    g = '%dx%d+%d+%d' % (w,h,x,y)
+    return g
+
 def getParentGeometry(parent):
     x = parent.winfo_rootx()
     y = parent.winfo_rooty()
@@ -443,7 +465,6 @@ class ProgressDialog(Toplevel):
         prog = Progressbar(self, orient='horizontal',
                             length=200, mode='indeterminate')
 
-
 class ImportDialog(Frame):
     """Provides a frame for figure canvas and MPL settings"""
 
@@ -459,6 +480,7 @@ class ImportDialog(Frame):
         self.main.protocol("WM_DELETE_WINDOW", self.quit)
         self.main.grab_set()
         self.main.transient(parent)
+        setGeometry(self.main, width=900)
 
         delimiters = [',',r'\t',' ',';','/','&','|','^','+','-']
         encodings = ['utf-8','ascii','iso8859_15','cp037','cp1252','big5','euc_jp']
