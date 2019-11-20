@@ -59,7 +59,7 @@ def getBestGeometry(win, width=None):
     ws = win.winfo_screenwidth()
     hs = win.winfo_screenheight()
     if width == None:
-        w = ws/1.4; h = hs*0.7
+        w = ws/1.4; h = hs*0.8
     else:
         w = width
         h = width / 2
@@ -480,7 +480,7 @@ class ImportDialog(Frame):
         self.main.protocol("WM_DELETE_WINDOW", self.quit)
         self.main.grab_set()
         self.main.transient(parent)
-        setGeometry(self.main, width=900)
+        #setGeometry(self.main, width=900)
 
         delimiters = [',',r'\t',' ',';','/','&','|','^','+','-']
         encodings = ['utf-8','ascii','iso8859_15','cp037','cp1252','big5','euc_jp']
@@ -488,16 +488,17 @@ class ImportDialog(Frame):
                         '%Y-%m-%d %H:%M:%S','%Y-%m-%d %H:%M',
                         '%d-%m-%Y %H:%M:%S','%d-%m-%Y %H:%M']
         grps = {'formats':['delimiter','decimal','comment'],
-                'data':['header','skiprows','index_col','skipinitialspace',
-                        'skip_blank_lines','parse_dates','time format','encoding','names'],
+                'data':['header','skiprows','skipinitialspace',
+                        'skip_blank_lines','numbers_as_string',
+                        'parse_dates','time format','encoding','names'],
                 'other':['rowsperfile']}
         grps = OrderedDict(sorted(grps.items()))
         opts = self.opts = {'delimiter':{'type':'combobox','default':',',
                         'items':delimiters, 'tooltip':'seperator'},
                      'header':{'type':'entry','default':0,'label':'header',
                                'tooltip':'position of column header'},
-                     'index_col':{'type':'entry','default':'','label':'index col',
-                                'tooltip':''},
+                     #'index_col':{'type':'entry','default':'','label':'index col',
+                     #            'tooltip':''},
                      'decimal':{'type':'combobox','default':'.','items':['.',','],
                                 'tooltip':'decimal point symbol'},
                      'comment':{'type':'entry','default':'#','label':'comment',
@@ -508,6 +509,8 @@ class ImportDialog(Frame):
                                 'tooltip':'rows to skip'},
                      'skip_blank_lines':  {'type':'checkbutton','default':0,'label':'skip blank lines',
                                 'tooltip':'do not use blank lines'},
+                     'numbers_as_string':  {'type':'checkbutton','default':0,'label':'numbers as string',
+                                'tooltip':'import numbers as string'},
                      'parse_dates':  {'type':'checkbutton','default':1,'label':'parse dates',
                                 'tooltip':'try to parse date/time columns'},
                      'time format': {'type':'combobox','default':'','items':timeformats,
@@ -532,7 +535,7 @@ class ImportDialog(Frame):
         self.m.add(self.textpreview, weight=3)
         tf = Frame(self.main)
         self.m.add(tf, weight=1)
-        self.previewtable = Table(tf,rows=0,columns=0)
+        self.previewtable = Table(tf,rows=0,columns=0,editable=False,enable_menus=False)
         self.previewtable.show()
         self.update()
 
@@ -562,7 +565,7 @@ class ImportDialog(Frame):
         """Reload previews"""
 
         kwds = {}
-        other = ['rowsperfile','time format']
+        other = ['rowsperfile','time format','numbers_as_string']
         for i in self.opts:
             if i in other:
                 continue
@@ -581,12 +584,21 @@ class ImportDialog(Frame):
                     pass
             kwds[i] = val
         self.kwds = kwds
+        as_string = self.tkvars['numbers_as_string'].get()
         timeformat = self.tkvars['time format'].get()
         dateparse = lambda x: pd.datetime.strptime(x, timeformat)
         self.showText(encoding=kwds['encoding'])
+        if as_string == True:
+            temp = pd.read_csv(self.filename, chunksize=50, **kwds).get_chunk()
+            cols = temp.columns
+            self.converters = {col: str for col in cols}
+        else:
+            self.converters = None
         try:
-            f = pd.read_csv(self.filename, chunksize=400, error_bad_lines=False,
-                        warn_bad_lines=False, date_parser=dateparse, **kwds)
+            f = self.textfilereader = pd.read_csv(self.filename,
+                        chunksize=500, error_bad_lines=False,
+                        warn_bad_lines=False, date_parser=dateparse,
+                        converters=self.converters, **kwds)
         except Exception as e:
             print ('read csv error')
             print (e)
@@ -608,13 +620,8 @@ class ImportDialog(Frame):
     def doImport(self):
         """Do the import"""
 
-        '''pw = Toplevel(self.main)
-        pb = Progressbar(pw, orient='horizontal', mode='indeterminate')
-        pb.pack(expand=True, fill=BOTH, side=TOP)
-        pb.start(500)'''
-
         self.update()
-        self.df = pd.read_csv(self.filename, **self.kwds)
+        self.df = pd.read_csv(self.filename, converters=self.converters, **self.kwds)
         self.quit()
         return
 

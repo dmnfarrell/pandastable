@@ -78,6 +78,7 @@ class Table(Canvas):
     def __init__(self, parent=None, model=None, dataframe=None,
                    width=None, height=None,
                    rows=20, cols=5, showtoolbar=False, showstatusbar=False,
+                   editable=True, enable_menus=True,
                    **kwargs):
 
         Canvas.__init__(self, parent, bg='white',
@@ -107,7 +108,8 @@ class Table(Canvas):
         self.multiplecollist=[]
         self.col_positions=[]
         self.mode = 'normal'
-        self.editable = True
+        self.editable = editable
+        self.enable_menus = enable_menus
         self.filtered = False
         self.child = None
         self.queryrow = 4
@@ -2343,6 +2345,8 @@ class Table(Canvas):
         self.rowheader.clearSelected()
         if hasattr(self, 'rightmenu'):
             self.rightmenu.destroy()
+        if self.enable_menus == False:
+            return
         rowclicked = self.get_row_clicked(event)
         colclicked = self.get_col_clicked(event)
         if colclicked == None:

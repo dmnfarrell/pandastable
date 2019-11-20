@@ -138,7 +138,6 @@ class ColumnHeader(Canvas):
         if multiindex == 1:
             anchor = 'nw'
             y=2
-            #print (df)
             levels = df.columns.levels
             h = self.height
             self.height *= len(levels)
@@ -175,6 +174,7 @@ class ColumnHeader(Canvas):
 
                 colname = colstr
                 tw,length = util.getTextLength(colstr, w-pad, font=font)
+                #print (colstr, tw)
                 if wrap is True:
                     colname = textwrap.fill(colstr, length-1)
                     y=3
@@ -263,6 +263,8 @@ class ColumnHeader(Canvas):
     def handle_right_click(self, event):
         """respond to a right click"""
 
+        if self.table.enable_menus == False:
+            return
         colclicked = self.table.get_col_clicked(event)
         multicollist = self.table.multiplecollist
         if len(multicollist) > 1:
@@ -418,8 +420,7 @@ class ColumnHeader(Canvas):
                           #"Delete": self.table.deleteColumn,
                           "Copy": self.table.copyColumn,
                           "Move to Start": self.table.moveColumns,
-                          "Move to End": lambda: self.table.moveColumns(pos='end'),
-                          "Set Data Type": self.table.setColumnType
+                          "Move to End": lambda: self.table.moveColumns(pos='end')
                          }
         formatcommands = {'Set Color': self.table.setColumnColors,
                           'Color by Value': self.table.setColorbyValue,
@@ -441,6 +442,8 @@ class ColumnHeader(Canvas):
         popupmenu.add_command(label="Value Counts", command=self.table.valueCounts)
         popupmenu.add_command(label="String Operation", command=self.table.applyStringMethod)
         popupmenu.add_command(label="Date/Time Conversion", command=self.table.convertDates)
+        popupmenu.add_command(label="Set Data Type", command=self.table.setColumnType)
+
         createSubMenu(popupmenu, 'Column', columncommands)
         createSubMenu(popupmenu, 'Format', formatcommands)
         popupmenu.bind("<FocusOut>", popupFocusOut)

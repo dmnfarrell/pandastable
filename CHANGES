@@ -3,6 +3,14 @@ CHANGES
 =======
 
 ------
+0.13.0
+------
+
+Added editable parameter to TableCanvas
+Added enable_menus parameter
+Option to import numbers as string
+
+------
 0.12.1
 ------
 
