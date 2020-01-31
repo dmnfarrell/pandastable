@@ -55,7 +55,7 @@ def getTextLength(text, w, font=None):
 def check_multiindex(index):
     """Check if index is a multiindex"""
 
-    if isinstance(index, pd.core.index.MultiIndex):
+    if isinstance(index, pd.core.indexes.multi.MultiIndex):
         return 1
     else:
         return 0
