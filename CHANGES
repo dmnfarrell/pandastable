@@ -9,6 +9,7 @@ CHANGES
 Added editable parameter to TableCanvas
 Added enable_menus parameter
 Option to import numbers as string
+Changed to pickle for dataexplore project files
 
 ------
 0.12.1

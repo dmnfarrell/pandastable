@@ -715,23 +715,23 @@ class Table(Canvas):
         self.redraw()
         return
 
-    def expandColumns(self):
+    def expandColumns(self, factor=10):
         """Reduce column widths"""
 
-        self.cellwidth +=10
+        self.cellwidth += factor
         widths = self.columnwidths
         for c in widths:
-            widths[c] += 10
+            widths[c] += factor
         self.redraw()
         return
 
-    def contractColumns(self):
+    def contractColumns(self, factor=10):
         """Reduce column widths"""
 
-        self.cellwidth -=10
+        self.cellwidth -= factor
         widths = self.columnwidths
         for c in widths:
-            widths[c] -= 10
+            widths[c] -= factor
         self.redraw()
         return
 

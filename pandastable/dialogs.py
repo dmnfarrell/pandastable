@@ -113,6 +113,7 @@ def dialogFromOptions(parent, opts, groups=None, callback=None,
         groups = {'options': opts.keys()}
     c=0
     row=0
+    scol=1
     for g in groups:
         if g == 'hidden':
             continue

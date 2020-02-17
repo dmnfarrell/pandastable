@@ -20,7 +20,7 @@
 """
 
 from __future__ import absolute_import, print_function
-import sys, datetime, pickle
+import sys, datetime, pickle, gzip
 try:
     from tkinter import *
     from tkinter.ttk import *
@@ -506,11 +506,16 @@ class DataExplore(Frame):
         if ext != '.dexpl':
             print ('does not appear to be a project file')
             return
-        if os.path.isfile(filename):
-            data = pd.read_msgpack(filename)
+        if os.path.isfile(filename):            
+            #new format uses pickle
+            try:
+                data = pickle.load(gzip.GzipFile(filename, 'r'))
+            except:
+                data = pd.read_msgpack(filename)
+                print ('your file is using the old format.')
             #create backup file before we change anything
-            backupfile = filename+'.bak'
-            pd.to_msgpack(backupfile, data, encoding='utf-8')
+            #backupfile = filename+'.bak'
+            #pd.to_msgpack(backupfile, data, encoding='utf-8')
         else:
             print ('no such file')
             self.quit()
@@ -580,7 +585,10 @@ class DataExplore(Frame):
             data[i]['table'] = table.model.df
             data[i]['meta'] = self.saveMeta(table)
 
-        pd.to_msgpack(filename, data, encoding='utf-8')
+        #pd.to_msgpack(filename, data, encoding='utf-8')
+        #changed to pickle format
+        file = gzip.GzipFile(filename, 'w')
+        pickle.dump(data, file)
         return
 
     def _checkTables(self):
@@ -1146,12 +1154,12 @@ class TestApp(Frame):
         df = TableModel.getSampleData()
         self.table = pt = Table(f, dataframe=df,
                                 showtoolbar=True, showstatusbar=True)
+
         #options = config.load_options()
-        #import pprint
-        #pprint.pprint(dict(options))
-        options = {'colheadercolor':'green','floatprecision': 4}
-        config.apply_options(options, pt)
+        options = {'colheadercolor':'green','floatprecision': 5}
         pt.show()
+        config.apply_options(options, pt)
+        #self.table.rowheader.maxwidth = 50
         return
 
 def main():
