@@ -802,21 +802,19 @@ class Table(Canvas):
         df = self.model.df
         if columnIndex == None:
             columnIndex = self.multiplecollist
+            columnIndex = 0
         if isinstance(columnIndex, int):
             columnIndex = [columnIndex]
-        #assert len(columnIndex) < len(df.columns)
+        
         if index == True:
             df.sort_index(inplace=True)
-        else:
-            colnames = list(df.columns[columnIndex])
-            for col in colnames:
-                if df[col].dtype is 'category':
-                    print (df[col].cats)
-            try:
+        else:  
+            colnames = list(df.columns[columnIndex])   
+            try:                
                 df.sort_values(by=colnames, inplace=True, ascending=ascending)
             except Exception as e:
                 print('could not sort')
-                logging.error("Exception occurred", exc_info=True)
+                #logging.error("Exception occurred", exc_info=True)
         self.redraw()
         return
 
@@ -3481,8 +3479,7 @@ class Table(Canvas):
             filename = filedialog.askopenfilename(parent=self.master,
                                                       defaultextension='.mpk',
                                                       initialdir=os.getcwd(),
-                                                      filetypes=[("msgpack","*.mpk"),
-                                                                 ("pickle","*.pickle"),
+                                                      filetypes=[("pickle","*.pickle"),
                                                         ("All files","*.*")])
         if not os.path.exists(filename):
             print('file does not exist')
@@ -3503,11 +3500,9 @@ class Table(Canvas):
         """Save dataframe to file"""
 
         if filename == None:
-            filename = filedialog.asksaveasfilename(parent=self.master,
-                                                     #defaultextension='.mpk',
+            filename = filedialog.asksaveasfilename(parent=self.master,                                                     
                                                      initialdir = self.currentdir,
-                                                     filetypes=[("msgpack","*.mpk"),
-                                                                ("pickle","*.pickle"),
+                                                     filetypes=[("pickle","*.pickle"),
                                                                 ("All files","*.*")])
         if filename:
             self.model.save(filename)

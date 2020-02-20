@@ -120,18 +120,9 @@ class TableTests(unittest.TestCase):
         model = TableModel(df)
         table = self.app.table
         table.updateModel(model)
-        table.saveAs('temp.mpk')
-        table.load('temp.mpk')
+        table.saveAs('temp.pickle')
+        table.load('temp.pickle')
         return
-
-    '''def testE(self):
-        """Plugins test"""
-
-        from . import plugin
-        for plg in plugin.get_plugins_classes('gui'):
-            p = plg()
-            print (p)
-        return'''
 
     def quit(self):
         self.app.quit()

@@ -124,10 +124,8 @@ class TableModel(object):
     def save(self, filename):
         """Save dataframe"""
 
-        ftype = os.path.splitext(filename)[1]
-        if ftype == '.mpk':
-            self.df.to_msgpack(filename)
-        elif ftype == '.pickle':
+        ftype = os.path.splitext(filename)[1] 
+        if ftype == '.pickle':
             self.df.to_pickle(filename)
         elif ftype == '.xls':
             self.df.to_excel(filename)
@@ -138,12 +136,12 @@ class TableModel(object):
         return
 
     def load(self, filename, filetype=None):
-        """Load file, if no filetype given assume it's msgpack format"""
+        """Load file, if no filetype given assume it's pickle format"""
 
-        if filetype == '.pickle':
-            self.df = pd.read_pickle(filename)
-        else:
+        if filetype == '.mpk':
             self.df = pd.read_msgpack(filename)
+        else:            
+            self.df = pd.read_pickle(filename)
             #print (len(self.df))
         return
 

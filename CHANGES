@@ -3,10 +3,10 @@ CHANGES
 =======
 
 ------
-0.13.0
+0.12.2
 ------
 
-Added editable parameter to TableCanvas
+Added editable parameter to Table
 Added enable_menus parameter
 Option to import numbers as string
 Changed to pickle for dataexplore project files
