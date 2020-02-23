@@ -506,13 +506,13 @@ class DataExplore(Frame):
         if ext != '.dexpl':
             print ('does not appear to be a project file')
             return
-        if os.path.isfile(filename):            
+        if os.path.isfile(filename):
             #new format uses pickle
             try:
                 data = pickle.load(gzip.GzipFile(filename, 'r'))
             except:
                 data = pd.read_msgpack(filename)
-                print ('your file is using the old format.')
+                print ('WARNING: your file is using the old format.')
             #create backup file before we change anything
             #backupfile = filename+'.bak'
             #pd.to_msgpack(backupfile, data, encoding='utf-8')

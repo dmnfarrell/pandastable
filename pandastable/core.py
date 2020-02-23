@@ -572,6 +572,9 @@ class Table(Canvas):
         rows = self.visiblerows
         offset = rows[0]
         idx = df.index[rows]
+        #diff = df.index.difference(rc.index)
+        #print (diff)
+        #print (rc)
         for col in self.visiblecols:
             colname = df.columns[col]
             if colname in list(rc.columns):
@@ -607,7 +610,8 @@ class Table(Canvas):
         for c in colnames:
             if c not in rc.columns:
                 rc[c] = pd.Series(np.nan,index=df.index)
-            rc[c][idx] = clr
+            #rc[c][idx] = clr
+            rc.at[idx,c] = clr
         self.redraw()
         return
 
@@ -805,12 +809,12 @@ class Table(Canvas):
             columnIndex = 0
         if isinstance(columnIndex, int):
             columnIndex = [columnIndex]
-        
+
         if index == True:
             df.sort_index(inplace=True)
-        else:  
-            colnames = list(df.columns[columnIndex])   
-            try:                
+        else:
+            colnames = list(df.columns[columnIndex])
+            try:
                 df.sort_values(by=colnames, inplace=True, ascending=ascending)
             except Exception as e:
                 print('could not sort')
@@ -872,6 +876,7 @@ class Table(Canvas):
         #self.drawSelectedCol()
         if hasattr(self, 'pf'):
             self.pf.updateData()
+        self.update_rowcolors()
         self.tableChanged()
         return
 
@@ -929,16 +934,26 @@ class Table(Canvas):
         self.rowcolors.set_index(df.index, inplace=True)
 
     def update_rowcolors(self):
-        """Update row colors if present"""
+        """Update row colors if present so that it syncs with current dataframe."""
 
         df = self.model.df
+        rc = self.rowcolors
         if len(df) == len(self.rowcolors):
-            self.rowcolors.set_index(df.index, inplace=True)
-        elif len(df)>len(self.rowcolors):
-            idx = df.index.difference(self.rowcolors.index)
-            self.rowcolors = self.rowcolors.append(pd.DataFrame(index=idx))
-
-        #print (self.rowcolors)
+            rc.set_index(df.index, inplace=True)
+        elif len(df)>len(rc):        
+            idx = df.index.difference(rc.index)
+            self.rowcolors = rc.append(pd.DataFrame(index=idx))
+        else:
+            idx = rc.index.difference(df.index)
+            rc.drop(idx,inplace=True)
+        #check columns
+        cols = list(rc.columns.difference(df.columns))
+        if len(cols)>0:
+            rc.drop(cols,1,inplace=True)
+        cols = list(df.columns.difference(rc.columns))
+        if len(cols)>0:
+            for col in cols:
+                rc[col] = np.nan
         return
 
     def set_xviews(self,*args):
@@ -977,9 +992,9 @@ class Table(Canvas):
             return
         self.storeCurrent()
         keys = self.model.autoAddRows(num)
+        self.update_rowcolors()
         self.redraw()
         self.tableChanged()
-        self.update_rowcolors()
         return
 
     def addColumn(self, newname=None):
@@ -1008,6 +1023,7 @@ class Table(Canvas):
                 self.storeCurrent()
                 self.model.addColumn(newname, dtype)
                 self.parentframe.configure(width=self.width)
+                self.update_rowcolors()
                 self.redraw()
                 self.tableChanged()
         return
@@ -1025,6 +1041,7 @@ class Table(Canvas):
                 self.model.deleteRows(rows)
                 self.setSelectedRow(0)
                 self.clearSelected()
+                self.update_rowcolors()
                 self.redraw()
         else:
             n = messagebox.askyesno("Delete",
@@ -1036,6 +1053,7 @@ class Table(Canvas):
                 self.model.deleteRows([row])
                 self.setSelectedRow(row-1)
                 self.clearSelected()
+                self.update_rowcolors()
                 self.redraw()
         return
 
@@ -1061,6 +1079,7 @@ class Table(Canvas):
         cols = self.multiplecollist
         self.model.deleteColumns(cols)
         self.setSelectedCol(0)
+        self.update_rowcolors()
         self.redraw()
         #self.drawSelectedCol()
         self.tableChanged()
@@ -3500,7 +3519,7 @@ class Table(Canvas):
         """Save dataframe to file"""
 
         if filename == None:
-            filename = filedialog.asksaveasfilename(parent=self.master,                                                     
+            filename = filedialog.asksaveasfilename(parent=self.master,
                                                      initialdir = self.currentdir,
                                                      filetypes=[("pickle","*.pickle"),
                                                                 ("All files","*.*")])

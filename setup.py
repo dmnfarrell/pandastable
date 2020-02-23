@@ -19,7 +19,7 @@ setup(
                                   'datasets/*.csv',
                                   'plugins/*.py','plugins/*.R']},
     install_requires=['matplotlib>=2.0',
-                      'pandas>=0.21',                     
+                      'pandas>=0.24',                     
                       'numexpr>=2.4',
                       'xlrd>=0.9',
                       'future'],
