@@ -1,5 +1,5 @@
 name: dataexplore
-version: '0.12.2'
+version: 'v0.12.2'
 #version-script: git describe --abbrev=1 --tags
 summary: data plotting and analysis package
 description: |

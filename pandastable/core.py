@@ -806,7 +806,6 @@ class Table(Canvas):
         df = self.model.df
         if columnIndex == None:
             columnIndex = self.multiplecollist
-            columnIndex = 0
         if isinstance(columnIndex, int):
             columnIndex = [columnIndex]
 
@@ -940,7 +939,7 @@ class Table(Canvas):
         rc = self.rowcolors
         if len(df) == len(self.rowcolors):
             rc.set_index(df.index, inplace=True)
-        elif len(df)>len(rc):        
+        elif len(df)>len(rc):
             idx = df.index.difference(rc.index)
             self.rowcolors = rc.append(pd.DataFrame(index=idx))
         else:

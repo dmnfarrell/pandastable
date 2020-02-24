@@ -510,9 +510,11 @@ class DataExplore(Frame):
             #new format uses pickle
             try:
                 data = pickle.load(gzip.GzipFile(filename, 'r'))
-            except:
-                data = pd.read_msgpack(filename)
-                print ('WARNING: your file is using the old format.')
+            except OSError as oe:
+                msg = 'DataExplore can no longer open the old format project files.\n'\
+                'if you really need the file revert to pandastable<=0.12.1 and save the data.'
+                messagebox.showwarning("Project open error", msg)
+                return
             #create backup file before we change anything
             #backupfile = filename+'.bak'
             #pd.to_msgpack(backupfile, data, encoding='utf-8')
