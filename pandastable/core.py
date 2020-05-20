@@ -604,7 +604,7 @@ class Table(Canvas):
         rc = self.rowcolors
         if cols is None:
             cols = self.multiplecollist
-        elif cols is 'all':
+        elif cols == 'all':
             cols = range(len(df.columns))
         colnames = df.columns[cols]
         for c in colnames:
@@ -1788,7 +1788,7 @@ class Table(Canvas):
         #uses assignments to globals() - check this is ok
         import numexpr as ne
         for c in df:
-            globals()[c] = df[c].as_matrix()
+            globals()[c] = df[c].to_numpy()
         a = ne.evaluate(ex)
         return a
 
@@ -3574,9 +3574,20 @@ class Table(Canvas):
                                                             ("All files","*.*")])
         if not filename:
             return
-        df = pd.read_excel(filename,sheetname=0)
+        df = pd.read_excel(filename, sheet_name=0)
+        xl = pd.ExcelFile(filename)
+        names = xl.sheet_names
+        d = MultipleValDialog(title='Import Sheet',
+                                initialvalues=([names]),
+                                labels=(['Sheet']),
+                                types=(['combobox']),
+                                parent = self.parentframe)
+        if d.result == None:
+            return
+        df = xl.parse(d.result)        
         model = TableModel(dataframe=df)
         self.updateModel(model)
+        self.redraw()
         return
 
     def doExport(self, filename=None):

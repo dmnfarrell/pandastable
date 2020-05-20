@@ -29,6 +29,10 @@ Requires python>=3.6 or 2.7 and numpy, matplotlib and pandas. These requirements
 
 ```pip install pandastable```
 
+Install latest from github:
+
+```pip install -e git+https://github.com/dmnfarrell/pandastable.git#egg=pandastable```
+
 You can also install the dataexplore snap package on any linux distribution that supports snaps. This installs everything you need as one app:
 
 ```sudo snap install dataexplore```

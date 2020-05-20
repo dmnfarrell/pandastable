@@ -349,7 +349,7 @@ class MultipleValDialog(Dialog):
                 s='*'
             else:
                 s=None
-            if self.types[i] == 'combobox':
+            if self.types[i] == 'combobox':                
                 self.vrs[i].set(default[0])
                 w = Combobox(master, values=default,
                          textvariable=self.vrs[i],width=14)

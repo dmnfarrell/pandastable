@@ -660,7 +660,7 @@ class DataExplore(Frame):
                                                                      ("xlsx","*.xlsx"),
                                                             ("All files","*.*")])
 
-        data = pd.read_excel(filename,sheetname=None)
+        data = pd.read_excel(filename,sheet_name=None)
         for n in data:
             self.addSheet(n, df=data[n], select=True)
         return
