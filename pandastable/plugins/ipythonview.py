@@ -572,7 +572,7 @@ class IPythonView(TkConsoleView, IterableIPShell):
 class IPythonPlugin(Plugin):
     """Plugin for ipython console"""
 
-    capabilities = ['gui','uses_sidepane']
+    capabilities = ['uses_sidepane']
     requires = ['']
     menuentry = 'IPython Console'
     version = '0.1'

@@ -947,7 +947,7 @@ class DataExplore(Frame):
                                               parent=self.main)
         if filename:
             import shutil
-            shtutil.copy(filename, self.pluginpath)
+            shutil.copy(filename, self.pluginpath)
             self.updatePluginMenu()
         return
 

@@ -32,10 +32,10 @@ class ExamplePlugin(Plugin):
     """Template plugin for DataExplore"""
 
     #uncomment capabilities list to appear in menu
-    capabilities = [] # ['gui','uses_sidepane']
+    capabilities = #['gui','uses_sidepane']
     requires = ['']
     menuentry = 'Example Plugin'
-    pluginrow = 6 #row to add plugin frame beneath table
+
 
     def main(self, parent):
         """Customise this or _doFrame for your widgets"""
@@ -52,17 +52,18 @@ class ExamplePlugin(Plugin):
         if 'uses_sidepane' in self.capabilities:
             self.table = self.parent.getCurrentTable()
             self.mainwin = Frame(self.table.parentframe)
-            self.mainwin.grid(row=pluginrow,column=0,columnspan=2,sticky='news')
+            self.mainwin.grid(row=6,column=0,columnspan=2,sticky='news')
         else:
             self.mainwin=Toplevel()
             self.mainwin.title('A DataExplore Plugin')
             self.mainwin.geometry('600x600+200+100')
 
         self.ID='Basic Plugin'
-        #self._createMenuBar()
 
         l=Label(self.mainwin, text='This is a template plugin')
         l.pack(side=TOP,fill=BOTH)
+        b=Button(self.mainwin,text='Close',command=self.quit)
+        b.pack(side=TOP,fill=BOTH,pady=2)
         self.mainwin.bind("<Destroy>", self.quit)
         return
 
@@ -78,6 +79,8 @@ class ExamplePlugin(Plugin):
 
     def quit(self, evt=None):
         """Override this to handle pane closing"""
+
+        self.mainwin.destroy()
         return
 
     def about(self):
