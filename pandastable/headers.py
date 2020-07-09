@@ -148,6 +148,7 @@ class ColumnHeader(Canvas):
             y = h/2
         i=0
         #iterate over index levels
+        col=0
         for level in levels:
             values = df.columns.get_level_values(i)
             for col in self.table.visiblecols:

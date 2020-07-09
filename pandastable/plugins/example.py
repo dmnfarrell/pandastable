@@ -32,7 +32,7 @@ class ExamplePlugin(Plugin):
     """Template plugin for DataExplore"""
 
     #uncomment capabilities list to appear in menu
-    capabilities = #['gui','uses_sidepane']
+    capabilities = ['gui','uses_sidepane']
     requires = ['']
     menuentry = 'Example Plugin'
 

@@ -2884,6 +2884,7 @@ class Table(Canvas):
                         "Save": self.save,
                         "Save As": self.saveAs,
                         "Import Text/CSV": lambda: self.importCSV(dialog=True),
+                        "Import hdf5": lambda: self.importHDF(dialog=True),
                         "Export": self.doExport,
                         "Plot Selected" : self.plotSelected,
                         "Hide plot" : self.hidePlot,
@@ -2901,7 +2902,7 @@ class Table(Canvas):
         general = ["Select All", "Filter Rows",
                    "Show as Text", "Table Info", "Preferences"]
 
-        filecommands = ['Open','Import Text/CSV','Save','Save As','Export']
+        filecommands = ['Open','Import Text/CSV',"Import hdf5",'Save','Save As','Export']
         editcommands = ['Undo Last Change','Copy Table','Find/Replace']
         plotcommands = ['Plot Selected','Hide plot','Show plot']
         tablecommands = ['Table to Text','Clean Data','Clear Formatting']
@@ -3562,6 +3563,25 @@ class Table(Canvas):
         self.importpath = os.path.dirname(filename)
         return
 
+    def importHDF(self, filename=None, dialog=False, **kwargs):
+
+        if self.importpath == None:
+            self.importpath = os.getcwd()
+        if filename == None:
+            filename = filedialog.askopenfilename(parent=self.master,
+                                                          defaultextension='.hdf5',
+                                                          initialdir=self.importpath,
+                                                          filetypes=[("hdf","*.hdf5"),
+                                                            ("All files","*.*")])
+        if not filename:
+            return
+        df = pd.read_hdf(filename, **kwargs)
+        model = TableModel(dataframe=df)
+        self.updateModel(model)
+        self.redraw()
+        self.importpath = os.path.dirname(filename)
+        return
+
     def loadExcel(self, filename=None):
         """Load excel file"""
 
@@ -3584,7 +3604,7 @@ class Table(Canvas):
                                 parent = self.parentframe)
         if d.result == None:
             return
-        df = xl.parse(d.result)        
+        df = xl.parse(d.result)
         model = TableModel(dataframe=df)
         self.updateModel(model)
         self.redraw()

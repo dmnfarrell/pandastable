@@ -168,11 +168,12 @@ class DataExplore(Frame):
                     '05Save As':{'cmd':self.saveasProject},
                     '06sep':'',
                     '07Import CSV':{'cmd':self.importCSV},
-                    '08Import from URL':{'cmd':self.importURL},
-                    '08Import Excel':{'cmd':self.importExcel},
-                    '09Export CSV':{'cmd':self.exportCSV},
-                    '10sep':'',
-                    '11Quit':{'cmd':self.quit}}
+                    '08Import HDF5':{'cmd':self.importHDF},
+                    '09Import from URL':{'cmd':self.importURL},
+                    '10Import Excel':{'cmd':self.importExcel},
+                    '10Export CSV':{'cmd':self.exportCSV},
+                    '11sep':'',
+                    '12Quit':{'cmd':self.quit}}
 
         self.file_menu = self.createPulldown(self.menu, filemenuitems, var=file_menu)
         self.menu.add_cascade(label='File',menu=self.file_menu['var'])
@@ -631,6 +632,14 @@ class DataExplore(Frame):
         self.addSheet(select=True)
         table = self.getCurrentTable()
         table.importCSV(dialog=True)
+        return
+
+    def importHDF(self):
+        """Import csv to a new sheet"""
+
+        self.addSheet(select=True)
+        table = self.getCurrentTable()
+        table.importHDF(dialog=True)
         return
 
     def importURL(self):
