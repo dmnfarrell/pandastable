@@ -36,7 +36,7 @@ else:
 
 from collections import OrderedDict
 import matplotlib
-matplotlib.use('TkAgg', warn=False)
+matplotlib.use('TkAgg')
 import pandas as pd
 import re, os, platform, time
 from .core import Table

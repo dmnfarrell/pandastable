@@ -91,7 +91,7 @@ def getDictfromTkVars(opts, tkvars, widgets):
                 kwds[i] = tkvars[i].get()
     return kwds
 
-def pickColor(parent, oldcolor):
+def pickColor(parent, oldcolor='gray'):
 
     import tkinter.colorchooser
     ctuple, newcolor = tkinter.colorchooser.askcolor(title='pick a color',
@@ -349,7 +349,7 @@ class MultipleValDialog(Dialog):
                 s='*'
             else:
                 s=None
-            if self.types[i] == 'combobox':                
+            if self.types[i] == 'combobox':
                 self.vrs[i].set(default[0])
                 w = Combobox(master, values=default,
                          textvariable=self.vrs[i],width=14)
@@ -1468,7 +1468,7 @@ class QueryDialog(Frame):
         table=self.table
         if not hasattr(self.table,'dataframe') or not hasattr(self, 'filtdf'):
             return
-        clr = self.table.getaColor('#dcf1fc')
+        clr = pickColor(table.parentframe, '#dcf1fc')
         if clr is None: return
         df = table.model.df = table.dataframe
         idx = self.filtdf.index
