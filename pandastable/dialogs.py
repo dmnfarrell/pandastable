@@ -22,6 +22,7 @@
 from __future__ import absolute_import, division, print_function
 import sys,os,types
 import platform
+from datetime import datetime
 try:
     from tkinter import *
     from tkinter.ttk import *
@@ -91,7 +92,7 @@ def getDictfromTkVars(opts, tkvars, widgets):
                 kwds[i] = tkvars[i].get()
     return kwds
 
-def pickColor(parent, oldcolor='gray'):
+def pickColor(parent, oldcolor):
 
     import tkinter.colorchooser
     ctuple, newcolor = tkinter.colorchooser.askcolor(title='pick a color',
@@ -587,7 +588,7 @@ class ImportDialog(Frame):
         self.kwds = kwds
         as_string = self.tkvars['numbers_as_string'].get()
         timeformat = self.tkvars['time format'].get()
-        dateparse = lambda x: pd.datetime.strptime(x, timeformat)
+        dateparse = lambda x: datetime.strptime(x, timeformat)
         self.showText(encoding=kwds['encoding'])
         if as_string == True:
             temp = pd.read_csv(self.filename, chunksize=50, **kwds).get_chunk()
@@ -1468,7 +1469,7 @@ class QueryDialog(Frame):
         table=self.table
         if not hasattr(self.table,'dataframe') or not hasattr(self, 'filtdf'):
             return
-        clr = pickColor(table.parentframe, '#dcf1fc')
+        clr = self.table.getaColor('#dcf1fc')
         if clr is None: return
         df = table.model.df = table.dataframe
         idx = self.filtdf.index

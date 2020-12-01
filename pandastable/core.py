@@ -1302,21 +1302,22 @@ class Table(Canvas):
         """Deal with missing data"""
 
         df = self.model.df
-        cols = df.columns
+        cols = ['']+list(df.columns)
         fillopts = ['fill scalar','','ffill','bfill','interpolate']
         d = MultipleValDialog(title='Clean Data',
-                                initialvalues=(fillopts,'','10',0,0,['all','any'],0,0,0),
+                                initialvalues=(fillopts,'','10',0,0,['all','any'],cols,0,0,0),
                                 labels=('Fill missing method:',
                                         'Fill empty data with:',
                                         'Limit gaps:',
                                         'Drop columns with null data:',
                                         'Drop rows with null data:',
                                         'Drop method:',
+                                        'Column subset for dropping:',
                                         'Drop duplicate rows:',
                                         'Drop duplicate columns:',
                                         'Round numbers:'),
                                 types=('combobox','string','string','checkbutton',
-                                       'checkbutton','combobox','checkbutton','checkbutton','string'),
+                                       'checkbutton','combobox','combobox','checkbutton','checkbutton','string'),
                                 parent = self.parentframe)
         if d.result == None:
             return
@@ -1327,14 +1328,20 @@ class Table(Canvas):
         dropcols = d.results[3]
         droprows = d.results[4]
         how = d.results[5]
-        dropdups = d.results[6]
-        dropdupcols = d.results[7]
-        rounddecimals = int(d.results[8])
+        subset = d.results[6]
+        if subset == '':
+            subset = None
+        else:
+            subset = [subset]
+        dropdups = d.results[7]
+        dropdupcols = d.results[8]
+        rounddecimals = int(d.results[9])
 
         if dropcols == 1:
             df = df.dropna(axis=1,how=how)
         if droprows == 1:
-            df = df.dropna(axis=0,how=how)
+            df = df.dropna(axis=0,how=how,subset=subset)
+            print (len(df))
         if method == '':
             pass
         elif method == 'fill scalar':
@@ -1349,6 +1356,13 @@ class Table(Canvas):
             df = df.loc[:,~df.columns.duplicated()]
         if rounddecimals != 0:
             df = df.round(rounddecimals)
+
+        r = len(df); c = len(df.columns)
+        n = messagebox.askyesno("Clean Data?",
+                                "New table has %s rows and %s columns. Proceed?" %(r,c),
+                                parent=self.parentframe)
+        if n == None:
+            return
         self.model.df = df
         self.redraw()
         return
@@ -2575,15 +2589,14 @@ class Table(Canvas):
     def pivot(self):
         """Pivot table"""
 
-        #self.convertNumeric()
         df = self.model.df
         cols = list(df.columns)
         valcols = list(df.select_dtypes(include=[np.float64,np.int32,np.int64]))
         funcs = ['mean','sum','count','max','min','std','first','last']
         d = MultipleValDialog(title='Pivot',
                                 initialvalues=(cols,cols,valcols,funcs),
-                                labels=('Index:', 'Column:', 'Values:','Agg Function:'),
-                                types=('combobox','combobox','listbox','combobox'),
+                                labels=('Index:', 'Columns:', 'Values:','Agg Function:'),
+                                types=('combobox','listbox','listbox','combobox'),
                                 tooltips=('a unique index to reshape on','column with variables',
                                     'selecting no values uses all remaining cols',
                                     'function to aggregate on'),
