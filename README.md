@@ -21,7 +21,9 @@ The DataExplore application using these classes is included in the distribution 
 
 **Documentation** is at http://pandastable.readthedocs.io/
 
-**Note:** pandas 1.0 no longer supports msgpack format so the project files now use pickle. You will not be able to open your old project files in pandastable versions >0.12.1.
+**Note:** dataexplore has now been re-implemented in the Qt toolkit in a new app called [Tablexplore](https://github.com/dmnfarrell/tablexplore). If you're only interested in the application and not the Tkinter widget, the new app is recommended.
+
+**Note 2:** pandas 1.0 no longer supports msgpack format so the project files now use pickle. You will not be able to open your old project files in pandastable versions >0.12.1.
 
 ## Installation
 
