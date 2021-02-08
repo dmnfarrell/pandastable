@@ -437,15 +437,6 @@ class Table(Canvas):
         bgcolor = self.cellbackgr
         df = self.model.df
 
-        #st=time.time()
-        def set_precision(x, p):
-            if not pd.isnull(x):
-                if x<1:
-                    x = '{:.{}g}'.format(x, p)
-                else:
-                    x = '{:.{}f}'.format(x, p)
-            return x
-
         prec = self.floatprecision
         rows = self.visiblerows
         for col in self.visiblecols:
@@ -458,7 +449,7 @@ class Table(Canvas):
                 align = self.align
             if prec != 0:
                 if coldata.dtype == 'float64':
-                    coldata = coldata.apply(lambda x: set_precision(x, prec), 1)
+                    coldata = coldata.apply(lambda x: self.setPrecision(x, prec), 1)
                     #print (coldata)
             coldata = coldata.astype(object).fillna('')
             offset = rows[0]
@@ -481,6 +472,16 @@ class Table(Canvas):
 
         self.drawHighlighted()
         return
+
+    def setPrecision(self, x, p):
+        """Set precision of a float value"""
+
+        if not pd.isnull(x):
+            if x<1:
+                x = '{:.{}g}'.format(x, p)
+            else:
+                x = '{:.{}f}'.format(x, p)
+        return x
 
     def redraw(self, event=None, callback=None):
         """Redraw table"""
