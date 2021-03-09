@@ -3608,7 +3608,7 @@ class Table(Canvas):
                                                             ("All files","*.*")])
         if not filename:
             return
-        df = pd.read_excel(filename, sheet_name=0)
+
         xl = pd.ExcelFile(filename)
         names = xl.sheet_names
         d = MultipleValDialog(title='Import Sheet',
@@ -3616,9 +3616,10 @@ class Table(Canvas):
                                 labels=(['Sheet']),
                                 types=(['combobox']),
                                 parent = self.parentframe)
-        if d.result == None:
+        if not d.result:
             return
-        df = xl.parse(d.result)
+
+        df = xl.parse(d.results[0])
         model = TableModel(dataframe=df)
         self.updateModel(model)
         self.redraw()
