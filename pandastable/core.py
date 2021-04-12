@@ -610,7 +610,7 @@ class Table(Canvas):
         colnames = df.columns[cols]
         for c in colnames:
             if c not in rc.columns:
-                rc[c] = pd.Series(np.nan,index=df.index)
+                rc[c] = pd.Series("",index=df.index)
             #rc[c][idx] = clr
             rc.at[idx,c] = clr
         self.redraw()
