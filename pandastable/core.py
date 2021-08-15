@@ -315,7 +315,9 @@ class Table(Canvas):
     def resized(self, event):
         """Check if size changed when event triggered to avoid unnecessary redraws"""
 
-        if self.currwidth !=self.parentframe.winfo_width() or \
+        if not hasattr(self, 'currwidth'):
+            return
+        if self.currwidth != self.parentframe.winfo_width() or \
            self.currheight != self.parentframe.winfo_height():
             self.redrawVisible()
         self.currwidth = self.parentframe.winfo_width()
