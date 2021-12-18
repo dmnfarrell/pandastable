@@ -457,7 +457,7 @@ class Table(Canvas):
             offset = rows[0]
             for row in self.visiblerows:
                 text = coldata.iloc[row-offset]
-                self.drawText(row, col, text, align)
+                self.drawText(row, col, text, align, self.textcolor)
 
         self.colorColumns()
         self.colorRows()
@@ -3282,7 +3282,7 @@ class Table(Canvas):
             return 1
         return 1
 
-    def drawText(self, row, col, celltxt, align=None):
+    def drawText(self, row, col, celltxt, align=None, fgcolor='black'):
         """Draw the text inside a cell area"""
 
         self.delete('celltext'+str(col)+'_'+str(row))
@@ -3304,7 +3304,7 @@ class Table(Canvas):
             celltxt = '.'
             return
 
-        fgcolor = self.textcolor
+        #fgcolor = self.textcolor
         if align == None:
             align = 'center'
         elif align == 'w':
