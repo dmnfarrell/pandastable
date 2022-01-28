@@ -28,6 +28,7 @@ except:
     from Tkinter import *
     from ttk import *
 
+import os, sys, string, time
 if (sys.version_info > (3, 0)):
     from tkinter import filedialog, messagebox, simpledialog
 else:
@@ -35,7 +36,6 @@ else:
     import tkSimpleDialog as simpledialog
     import tkMessageBox as messagebox
     from ScrolledText import ScrolledText
-import os, string, time
 import re, glob
 import pandas as pd
 from pandastable.plugin import Plugin

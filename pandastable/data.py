@@ -124,7 +124,7 @@ class TableModel(object):
     def save(self, filename):
         """Save dataframe"""
 
-        ftype = os.path.splitext(filename)[1] 
+        ftype = os.path.splitext(filename)[1]
         if ftype == '.pickle':
             self.df.to_pickle(filename)
         elif ftype == '.xls':
@@ -140,7 +140,7 @@ class TableModel(object):
 
         if filetype == '.mpk':
             self.df = pd.read_msgpack(filename)
-        else:            
+        else:
             self.df = pd.read_pickle(filename)
             #print (len(self.df))
         return
@@ -187,7 +187,7 @@ class TableModel(object):
         df = self.df
         if len(df) == 0:
             self.df = pd.DataFrame(pd.Series(range(num)))
-            print (df)
+            #print (df)
             return
         try:
             ind = self.df.index.max()+1
@@ -197,14 +197,16 @@ class TableModel(object):
         self.df = pd.concat([df, new])
         return
 
-    def addRow(self, rowindex):
+    def insertRow(self, row):
         """Inserts a row at the required index by append/concat"""
 
         df = self.df
-        a, b = df[:rowindex], df[rowindex:]
-        a = a.append(pd.Series(), ignore_index=1)
+        a, b = df[:row], df[row:]
+        idx = len(df)+1
+        new = pd.DataFrame(np.nan,index=[idx],columns=df.columns)
+        a = pd.concat([a,new])
         self.df = pd.concat([a,b])
-        return
+        return idx
 
     def deleteRow(self, row, unique=True):
         """Delete a row"""

@@ -1171,8 +1171,15 @@ class TestApp(Frame):
         pt.show()
         config.apply_options(options, pt)
         #self.table.rowheader.maxwidth = 50
-        #pt.setRowColors(rows=[3,4,5,6], clr='red', cols='all')
+        #test row coloring
+        pt.setRowColors(rows=range(2,100,2), clr='lightblue', cols='all')
+        #test deleting
+        pt.setSelectedRows([[4,6,8,10]])
+        pt.deleteRow()
+        pt.setSelectedRow(10)
+        pt.insertRow()
         #pt.redraw()
+        
         return
 
 def main():

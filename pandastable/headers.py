@@ -733,7 +733,7 @@ class RowHeader(Canvas):
                          "Sort columns by row" : lambda: self.table.sortColumnIndex(),
                          "Select All" : self.table.selectAll,
                          "Add Row(s)" : lambda: self.table.addRows(),
-                         "Delete Row(s)" : lambda: self.table.deleteRow(),
+                         "Delete Row(s)" : lambda: self.table.deleteRow(ask=True),
                          "Duplicate Row(s)":  lambda: self.table.duplicateRows(),
                          "Set Row Color" : lambda: self.table.setRowColors(cols='all')}
         main = ["Sort by index","Reset index","Toggle index",

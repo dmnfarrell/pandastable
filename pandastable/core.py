@@ -580,7 +580,7 @@ class Table(Canvas):
         #print (rc)
         for col in self.visiblecols:
             colname = df.columns[col]
-            if colname in list(rc.columns):
+            if colname in list(rc.columns):                
                 colors = rc[colname].loc[idx]
                 for row in rows:
                     clr = colors.iloc[row-offset]
@@ -613,8 +613,8 @@ class Table(Canvas):
         for c in colnames:
             if c not in rc.columns:
                 rc[c] = pd.Series("",index=df.index)
-            #rc[c][idx] = clr
-            rc.at[idx,c] = clr
+            #update colors dataframe
+            rc.loc[idx,c] = clr
         self.redraw()
         return
 
@@ -944,7 +944,8 @@ class Table(Canvas):
             rc.set_index(df.index, inplace=True)
         elif len(df)>len(rc):
             idx = df.index.difference(rc.index)
-            self.rowcolors = rc.append(pd.DataFrame(index=idx))
+            #self.rowcolors = rc.append(pd.DataFrame(index=idx))
+            self.rowcolors = pd.concat([rc,pd.DataFrame(index=idx)])
         else:
             idx = rc.index.difference(df.index)
             rc.drop(idx,inplace=True)
@@ -974,11 +975,13 @@ class Table(Canvas):
         self.redrawVisible()
         return
 
-    def addRow(self):
+    def insertRow(self):
         """Insert a new row"""
 
         row = self.getSelectedRow()
-        key = self.model.addRow(row)
+        key = self.model.insertRow(row)
+        #self.rowcolors.append(pd.DataFrame(np.nan,index=[key],columns=self.model.df.columns))
+        self.update_rowcolors()
         self.redraw()
         self.tableChanged()
         return
@@ -1030,13 +1033,16 @@ class Table(Canvas):
                 self.tableChanged()
         return
 
-    def deleteRow(self):
-        """Delete a row"""
+    def deleteRow(self, ask=False):
+        """Delete a selected row"""
+
+        n = True
+        if ask == True:
+            n = messagebox.askyesno("Delete",
+                                   "Delete selected rows?",
+                                    parent=self.parentframe)
 
         if len(self.multiplerowlist)>1:
-            n = messagebox.askyesno("Delete",
-                                      "Delete selected rows?",
-                                      parent=self.parentframe)
             if n == True:
                 self.storeCurrent()
                 rows = self.multiplerowlist
@@ -1046,9 +1052,6 @@ class Table(Canvas):
                 self.update_rowcolors()
                 self.redraw()
         else:
-            n = messagebox.askyesno("Delete",
-                                      "Delete this row?",
-                                      parent=self.parentframe)
             if n:
                 self.storeCurrent()
                 row = self.getSelectedRow()
@@ -1069,12 +1072,14 @@ class Table(Canvas):
         self.redraw()
         return
 
-    def deleteColumn(self):
+    def deleteColumn(self, ask=True):
         """Delete currently selected column(s)"""
 
-        n =  messagebox.askyesno("Delete",
-                                   "Delete Column(s)?",
-                                   parent=self.parentframe)
+        n = True
+        if ask == True:
+            n =  messagebox.askyesno("Delete",
+                                    "Delete Column(s)?",
+                                     parent=self.parentframe)
         if not n:
             return
         self.storeCurrent()
@@ -2039,6 +2044,14 @@ class Table(Canvas):
         self.multiplecollist = []
         self.multiplecollist.append(col)
         return
+
+    def setSelectedRows(self, rows):
+
+        self.startrow = rows[0]
+        self.endrow = rows[-1]
+        self.multiplerowlist = []
+        for r in rows:
+            self.multiplerowlist.append(r)
 
     def setSelectedCells(self, startrow, endrow, startcol, endcol):
         """Set a block of cells selected"""

@@ -2140,7 +2140,7 @@ def addFigure(parent, figure=None, resize_callback=None):
     if figure == None:
         figure = Figure(figsize=(5,4), dpi=80, facecolor='white')
 
-    canvas = FigureCanvasTkAgg(figure, master=parent, resize_callback=resize_callback)
+    canvas = FigureCanvasTkAgg(figure, master=parent)#, resize_callback=resize_callback)
     canvas.draw()
     canvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=1)
     canvas.get_tk_widget().configure(highlightcolor='gray75',

@@ -20,6 +20,7 @@
 """
 
 from __future__ import absolute_import, division, print_function
+import sys, os, string
 try:
     from tkinter import *
     from tkinter.ttk import *
@@ -35,7 +36,6 @@ else:
     import tkSimpleDialog as simpledialog
     import tkMessageBox as messagebox
     from ScrolledText import ScrolledText
-import os, string
 import re, glob
 from pandastable.plugin import Plugin
 
