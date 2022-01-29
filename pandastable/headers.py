@@ -325,6 +325,8 @@ class ColumnHeader(Canvas):
         x_start = self.table.x_start
         #x = event.x
         x = int(self.canvasx(event.x))
+        if not hasattr(self, 'tablewidth'):
+            return
         if x > self.tablewidth+w:
             return
         #if event x is within x pixels of divider, draw resize symbol

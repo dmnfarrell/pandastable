@@ -304,38 +304,6 @@ class TableModel(object):
         except:
             return self.df.columns[columnIndex].encode('ascii', 'ignore')
 
-    def getColumnData(self, columnIndex=None, columnName=None,
-                        filters=None):
-        """Return the data in a list for this col,
-            filters is a tuple of the form (key,value,operator,bool)"""
-        if columnIndex != None and columnIndex < len(self.columnNames):
-            columnName = self.getColumnName(columnIndex)
-        names = Filtering.doFiltering(searchfunc=self.filterBy,
-                                         filters=filters)
-        coldata = [self.data[n][columnName] for n in names]
-        return coldata
-
-    def getColumns(self, colnames, filters=None, allowempty=True):
-        """Get column data for multiple cols, with given filter options,
-            filterby: list of tuples of the form (key,value,operator,bool)
-            allowempty: boolean if false means rows with empty vals for any
-            required fields are not returned
-            returns: lists of column data"""
-
-        def evaluate(l):
-            for i in l:
-                if i == '' or i == None:
-                    return False
-            return True
-        coldata=[]
-        for c in colnames:
-            vals = self.getColumnData(columnName=c, filters=filters)
-            coldata.append(vals)
-        if allowempty == False:
-            result = [i for i in zip(*coldata) if evaluate(i) == True]
-            coldata = list(zip(*result))
-        return coldata
-
     def getRowCount(self):
          """Returns the number of rows in the table model."""
          return len(self.df)

@@ -580,7 +580,7 @@ class Table(Canvas):
         #print (rc)
         for col in self.visiblecols:
             colname = df.columns[col]
-            if colname in list(rc.columns):                
+            if colname in list(rc.columns):
                 colors = rc[colname].loc[idx]
                 for row in rows:
                     clr = colors.iloc[row-offset]
@@ -3085,7 +3085,7 @@ class Table(Canvas):
                 return pd.DataFrame()
         return data
 
-    def getSelectedRows(self):
+    def getSelectedRowData(self):
         """Return a sub-dataframe of the selected rows"""
 
         df = self.model.df

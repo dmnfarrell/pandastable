@@ -299,9 +299,13 @@ class DataExplore(Frame):
 
         ws = self.main.winfo_screenwidth()
         hs = self.main.winfo_screenheight()
-        self.w = w = ws/1.4; h = hs*0.7
-        x = (ws/2)-(w/2); y = (hs/2)-(h/2)
-        g = '%dx%d+%d+%d' % (w,h,x,y)
+        if ws<1400:
+            g = '%dx%d+%d+%d' % (ws,hs,0,0)
+            self.w = ws
+        else:
+            self.w = w = ws/1.4; h = hs*0.7
+            x = (ws/2)-(w/2); y = (hs/2)-(h/2)
+            g = '%dx%d+%d+%d' % (w,h,x,y)
         return g
 
     def setGeometry(self):
@@ -1179,7 +1183,7 @@ class TestApp(Frame):
         pt.setSelectedRow(10)
         pt.insertRow()
         #pt.redraw()
-        
+
         return
 
 def main():
