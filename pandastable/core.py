@@ -862,12 +862,11 @@ class Table(Canvas):
             self.pf.updateData()
         return
 
-    def resetIndex(self, ask=True):
+    def resetIndex(self, ask=True, drop=False):
         """Reset index and redraw row header"""
 
         self.storeCurrent()
         df = self.model.df
-        drop = False
         if (df.index.name is None or df.index.names[0] is None) and ask == True:
             drop = messagebox.askyesno("Reset Index", "Drop the index?",
                                       parent=self.parentframe)
