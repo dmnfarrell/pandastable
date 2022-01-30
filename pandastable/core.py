@@ -3074,8 +3074,10 @@ class Table(Canvas):
         if len(rows)<1 or self.allrows == True:
             rows = list(range(self.rows))
         cols = self.multiplecollist
+        if len(cols) < 1 or self.allcols == True:
+            cols = list(range(self.cols))
         try:
-            data = df.iloc[list(rows),cols]
+            data = df.iloc[rows,cols]
         except Exception as e:
             print ('error indexing data')
             logging.error("Exception occurred", exc_info=True)
@@ -3089,8 +3091,10 @@ class Table(Canvas):
         """Return a sub-dataframe of the selected rows"""
 
         df = self.model.df
-        rows = self.multiplerowlist
-        data = df.iloc[list(rows),]
+        if len(self.multiplerowlist) > 0:
+            data = df.iloc[self.multiplerowlist,]
+        else:
+            data = df.iloc[[self.currentrow],]
         return data
 
     def getPlotData(self):
