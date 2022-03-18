@@ -585,7 +585,8 @@ class Table(Canvas):
                 for row in rows:
                     clr = colors.iloc[row-offset]
                     if not pd.isnull(clr):
-                        self.drawRect(row, col, color=clr, tag='colorrect', delete=1)
+                        #self.drawRect(row, col, color=clr, tag='colorrect', delete=1)
+                        self.drawRect(row, col, color=clr, tag='colorrect', delete=0)
         return
 
     def setRowColors(self, rows=None, clr=None, cols=None):
