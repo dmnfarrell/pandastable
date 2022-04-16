@@ -2145,7 +2145,5 @@ def addFigure(parent, figure=None, resize_callback=None):
     canvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=1)
     canvas.get_tk_widget().configure(highlightcolor='gray75',
                                    highlightbackground='gray75')
-    #toolbar = NavigationToolbar2TkAgg(canvas, parent)
-    #toolbar.update()
     canvas._tkcanvas.pack(side=TOP, fill=BOTH, expand=1)
     return figure, canvas

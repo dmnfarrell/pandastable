@@ -183,6 +183,7 @@ class Table(Canvas):
         self.colselectedcolor = '#e4e3e4'
         self.colheadercolor = 'gray25'
         self.floatprecision = 0
+        self.thousandseparator = ''
         self.showindex = False
         self.columnwidths = {}
         self.columncolors = {}
@@ -191,7 +192,7 @@ class Table(Canvas):
         self.columnformats['alignment'] = {}
         self.rowcolors = pd.DataFrame()
         self.highlighted = None
-        self.bg = Style().lookup('TLabel.label', 'background')
+        #self.bg = Style().lookup('TLabel.label', 'background')
         return
 
     def setFont(self):
@@ -452,7 +453,6 @@ class Table(Canvas):
             if prec != 0:
                 if coldata.dtype == 'float64':
                     coldata = coldata.apply(lambda x: self.setPrecision(x, prec), 1)
-                    #print (coldata)
             coldata = coldata.astype(object).fillna('')
             offset = rows[0]
             for row in self.visiblerows:
@@ -481,6 +481,8 @@ class Table(Canvas):
         if not pd.isnull(x):
             if x<1:
                 x = '{:.{}g}'.format(x, p)
+            elif self.thousandseparator == ',':
+                x = '{:,.{}f}'.format(x, p)
             else:
                 x = '{:.{}f}'.format(x, p)
         return x
@@ -3073,8 +3075,8 @@ class Table(Canvas):
         if len(rows)<1 or self.allrows == True:
             rows = list(range(self.rows))
         cols = self.multiplecollist
-        if len(cols) < 1 or self.allcols == True:
-            cols = list(range(self.cols))
+        #if len(cols) < 1 or self.allcols == True:
+        #    cols = list(range(self.cols))
         try:
             data = df.iloc[rows,cols]
         except Exception as e:
