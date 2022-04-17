@@ -7,6 +7,10 @@ CHANGES
 ------
 
 Fixes to read_excel
+HDF import
+Fix to plot error
+Fix to maximise app on small screens
+Added thousand separator formatting
 
 ------
 0.12.2

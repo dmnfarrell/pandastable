@@ -219,7 +219,7 @@ class preferencesDialog(Frame):
                 'fontstyle':{'type':'combobox','default':'','items':['','bold','italic']},
                 'fontsize':{'type':'scale','default':12,'range':(5,40),'interval':1,'label':'font size'},
                 'floatprecision':{'type':'entry','default':2,'label':'precision'},
-                'thousandseparator':{'type':'combobox','default':'','items':['',',']},
+                'thousandseparator':{'type':'combobox','default':'','items':['',','],'label':'thousands separator'},
                 'cellbackgr':{'type':'colorchooser','default':'#F4F4F3', 'label':'background color'},
                 'textcolor':{'type':'colorchooser','default':'black', 'label':'text color'},
                 'grid_color':{'type':'colorchooser','default':'#ABB1AD', 'label':'grid color'},

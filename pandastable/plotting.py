@@ -156,7 +156,9 @@ class PlotViewer(Frame):
     def setupGUI(self):
         """Add GUI elements"""
 
+        #import tkinter as tk
         self.m = PanedWindow(self.main, orient=self.orient)
+        #self.m = Frame(self.main)
         self.m.pack(fill=BOTH,expand=1)
         #frame for figure
         self.plotfr = Frame(self.m)
@@ -164,10 +166,14 @@ class PlotViewer(Frame):
         self.fig, self.canvas = addFigure(self.plotfr)
         self.ax = self.fig.add_subplot(111)
 
-        self.m.add(self.plotfr, weight=2)
+        self.m.add(self.plotfr, weight=10)
+        #self.plotfr.pack(side=TOP,fill=BOTH, expand=1)
+
         #frame for controls
         self.ctrlfr = Frame(self.main)
-        self.m.add(self.ctrlfr)
+        self.m.add(self.ctrlfr, weight=3)
+        #self.ctrlfr.pack(side=BOTTOM,fill=BOTH)
+
         #button frame
         bf = Frame(self.ctrlfr, padding=2)
         bf.pack(side=TOP,fill=BOTH)
@@ -210,8 +216,8 @@ class PlotViewer(Frame):
 
         self.addWidgets()
 
-        def onpick(event):
-            print(event)
+        #def onpick(event):
+        #    print(event)
         #self.fig.canvas.mpl_connect('pick_event', onpick)
         #self.fig.canvas.mpl_connect('button_release_event', onpick)
         from . import handlers
@@ -220,17 +226,16 @@ class PlotViewer(Frame):
         return
 
     def addWidgets(self):
+        """Add option widgets to control panel"""
 
         if self.toolslayout== 'vertical':
             sf = VerticalScrolledFrame(self.ctrlfr,width=100,height=1050)
             sf.pack(side=TOP,fill=BOTH)
             self.nb = Notebook(sf.interior,width=100,height=1050)
         else:
-            self.nb = Notebook(self.ctrlfr,height=210)
+            self.nb = Notebook(self.ctrlfr, height=210)
 
         self.nb.pack(side=TOP,fill=BOTH,expand=0)
-        #if self.showdialogs == 0:
-        #self.m.paneconfigure(self.nb, height=10)
 
         #add plotter tool dialogs
         w1 = self.mplopts.showDialog(self.nb, layout=self.toolslayout)
@@ -2138,12 +2143,13 @@ def addFigure(parent, figure=None, resize_callback=None):
     from matplotlib.figure import Figure
 
     if figure == None:
-        figure = Figure(figsize=(5,4), dpi=80, facecolor='white')
+        figure = Figure(figsize=(6,4), dpi=100, facecolor='white')
 
-    canvas = FigureCanvasTkAgg(figure, master=parent)#, resize_callback=resize_callback)
+    canvas = FigureCanvasTkAgg(figure, master=parent)
     canvas.draw()
     canvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=1)
     canvas.get_tk_widget().configure(highlightcolor='gray75',
                                    highlightbackground='gray75')
-    canvas._tkcanvas.pack(side=TOP, fill=BOTH, expand=1)
+    #canvas._tkcanvas.pack(side=TOP, fill=BOTH, expand=1)
+    figure.subplots_adjust(bottom=0.15)
     return figure, canvas

@@ -1,5 +1,5 @@
 name: dataexplore
-version: '0.12.2'
+version: '0.12.3'
 #version-script: git describe --abbrev=1 --tags
 summary: data plotting and analysis package
 description: |
@@ -27,13 +27,6 @@ parts:
       fonts-liberation,ttf-dejavu-core,ttf-mscorefonts-installer]
     after: [desktop-glib-only]
 
-  files: #to deal with problem finding init.tcl
-    plugin: dump
-    source: /usr/share/tcltk
-    source-type: local
-    organize:
-       'tcl8.6' : usr/lib/
-
   desktop-glib-only:
       source: https://github.com/ubuntu/snapcraft-desktop-helpers.git
       source-subdir: glib-only
@@ -42,3 +35,9 @@ parts:
         - libglib2.0-dev
       stage-packages:
         - libglib2.0-bin
+
+layout:
+  /usr/share/tcltk:
+    bind: $SNAP/usr/share/tcltk
+  /usr/lib/tcltk:
+    bind: $SNAP/usr/lib/tcltk
