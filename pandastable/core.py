@@ -181,7 +181,8 @@ class Table(Canvas):
         self.multipleselectioncolor = '#E0F2F7'
         self.boxoutlinecolor = '#084B8A'
         self.colselectedcolor = '#e4e3e4'
-        self.colheadercolor = 'gray25'
+        #self.colheadercolor = 'gray25'
+        #self.rowheadercolor = 'gray75'
         self.floatprecision = 0
         self.thousandseparator = ''
         self.showindex = False
@@ -277,28 +278,28 @@ class Table(Canvas):
 
         #Add the table and header to the frame
         self.rowheader = RowHeader(self.parentframe, self)
-        self.tablecolheader = ColumnHeader(self.parentframe, self, bg=self.colheadercolor)
-        self.rowindexheader = IndexHeader(self.parentframe, self)
+        self.colheader = ColumnHeader(self.parentframe, self, bg='gray25')
+        self.rowindexheader = IndexHeader(self.parentframe, self, bg='gray75')
         self.Yscrollbar = AutoScrollbar(self.parentframe,orient=VERTICAL,command=self.set_yviews)
         self.Yscrollbar.grid(row=1,column=2,rowspan=1,sticky='news',pady=0,ipady=0)
         self.Xscrollbar = AutoScrollbar(self.parentframe,orient=HORIZONTAL,command=self.set_xviews)
         self.Xscrollbar.grid(row=2,column=1,columnspan=1,sticky='news')
         self['xscrollcommand'] = self.Xscrollbar.set
         self['yscrollcommand'] = self.Yscrollbar.set
-        self.tablecolheader['xscrollcommand'] = self.Xscrollbar.set
+        self.colheader['xscrollcommand'] = self.Xscrollbar.set
         self.rowheader['yscrollcommand'] = self.Yscrollbar.set
         self.parentframe.rowconfigure(1,weight=1)
         self.parentframe.columnconfigure(1,weight=1)
 
         self.rowindexheader.grid(row=0,column=0,rowspan=1,sticky='news')
-        self.tablecolheader.grid(row=0,column=1,rowspan=1,sticky='news')
+        self.colheader.grid(row=0,column=1,rowspan=1,sticky='news')
         self.rowheader.grid(row=1,column=0,rowspan=1,sticky='news')
         self.grid(row=1,column=1,rowspan=1,sticky='news',pady=0,ipady=0)
 
         self.adjustColumnWidths()
         #bind redraw to resize, may trigger redraws when widgets added
         self.parentframe.bind("<Configure>", self.resized) #self.redrawVisible)
-        self.tablecolheader.xview("moveto", 0)
+        self.colheader.xview("moveto", 0)
         self.xview("moveto", 0)
         if self.showtoolbar == True:
             self.toolbar = ToolBar(self.parentframe, self)
@@ -397,7 +398,7 @@ class Table(Canvas):
             callback: function to be called after redraw, default None
         """
 
-        if not hasattr(self, 'tablecolheader'):
+        if not hasattr(self, 'colheader'):
             return
         model = self.model
         self.rows = len(self.model.df.index)
@@ -411,7 +412,7 @@ class Table(Canvas):
             self.delete('colorrect')
             self.setColPositions()
             if self.cols == 0:
-                self.tablecolheader.redraw()
+                self.colheader.redraw()
             if self.rows == 0:
                 self.visiblerows = []
                 self.rowheader.redraw()
@@ -461,7 +462,7 @@ class Table(Canvas):
 
         self.colorColumns()
         self.colorRows()
-        self.tablecolheader.redraw(align=self.align)
+        self.colheader.redraw(align=self.align)
         self.rowheader.redraw()
         self.rowindexheader.redraw()
         self.drawSelectedRow()
@@ -694,7 +695,7 @@ class Table(Canvas):
     def setWrap(self):
         """Toogle column header wrap"""
 
-        ch=self.tablecolheader
+        ch=self.colheader
         if ch.wrap is False:
             ch.wrap = True
         else:
@@ -707,7 +708,7 @@ class Table(Canvas):
 
         self.fontsize = self.fontsize+1
         self.rowheight += 2
-        self.tablecolheader.height +=1
+        self.colheader.height +=1
         self.setFont()
         self.adjustColumnWidths()
         self.redraw()
@@ -718,7 +719,7 @@ class Table(Canvas):
 
         self.fontsize = self.fontsize-1
         self.rowheight -= 2
-        self.tablecolheader.height -=1
+        self.colheader.height -=1
         self.setFont()
         self.adjustColumnWidths()
         self.redraw()
@@ -964,7 +965,7 @@ class Table(Canvas):
         """Set the xview of table and col header"""
 
         self.xview(*args)
-        self.tablecolheader.xview(*args)
+        self.colheader.xview(*args)
         self.redrawVisible()
         return
 
@@ -1993,7 +1994,7 @@ class Table(Canvas):
         """Resize a column by dragging"""
 
         colname = self.model.getColumnName(col)
-        if self.tablecolheader.wrap == True:
+        if self.colheader.wrap == True:
             if width<40:
                 width=40
         self.columnwidths[colname] = width
@@ -2029,13 +2030,14 @@ class Table(Canvas):
                 return self.col_positions.index(colpos)
         return
 
-    def setSelectedRow(self, row):
+    def setSelectedRow(self, row=None):
         """Set currently selected row and reset multiple row list"""
 
         self.currentrow = row
         self.startrow = row
         self.multiplerowlist = []
-        self.multiplerowlist.append(row)
+        if row != None:
+            self.multiplerowlist.append(row)
         return
 
     def setSelectedCol(self, col):
@@ -2207,8 +2209,8 @@ class Table(Canvas):
         #ensure popup menus are removed if present
         if hasattr(self, 'rightmenu'):
             self.rightmenu.destroy()
-        if hasattr(self.tablecolheader, 'rightmenu'):
-            self.tablecolheader.rightmenu.destroy()
+        if hasattr(self.colheader, 'rightmenu'):
+            self.colheader.rightmenu.destroy()
 
         self.startrow = rowclicked
         self.endrow = rowclicked
@@ -2223,7 +2225,7 @@ class Table(Canvas):
             self.drawSelectedRect(self.currentrow, self.currentcol)
             self.drawSelectedRow()
             self.rowheader.drawSelectedRows(rowclicked)
-            self.tablecolheader.delete('rect')
+            self.colheader.delete('rect')
         if hasattr(self, 'cellentry'):
             self.cellentry.destroy()
         return
@@ -2359,7 +2361,7 @@ class Table(Canvas):
         if self.currentcol > cmax or self.currentcol <= cmin:
             #print (self.currentcol, self.visiblecols)
             self.xview('moveto', x)
-            self.tablecolheader.xview('moveto', x)
+            self.colheader.xview('moveto', x)
             self.redraw()
 
         if self.currentrow <= rmin:
@@ -2449,7 +2451,7 @@ class Table(Canvas):
         #print (row,col)
         self.xview('moveto', x)
         self.yview('moveto', y)
-        self.tablecolheader.xview('moveto', x)
+        self.colheader.xview('moveto', x)
         self.rowheader.yview('moveto', y)
         self.rowheader.redraw()
         return
@@ -2468,7 +2470,7 @@ class Table(Canvas):
 
         self.storeCurrent()
         try:
-            df = pd.read_clipboard(sep=',',error_bad_lines=False)
+            df = pd.read_clipboard(sep=',',on_bad_lines=False)
         except Exception as e:
             messagebox.showwarning("Could not read data", e,
                                     parent=self.parentframe)
@@ -3194,6 +3196,8 @@ class Table(Canvas):
         if color == None:
             color = 'gray25'
         w=2
+        if row == None:
+            return
         x1,y1,x2,y2 = self.getCellCoords(row,col)
         rect = self.create_rectangle(x1+w/2+1,y1+w/2+1,x2-w/2,y2-w/2,
                                   outline=color,
@@ -3348,6 +3352,9 @@ class Table(Canvas):
 
         self.delete('rowrect')
         row = self.currentrow
+
+        if row == None:
+            return
         x1,y1,x2,y2 = self.getCellCoords(row,0)
         x2 = self.tablewidth
         rect = self.create_rectangle(x1,y1,x2,y2,
@@ -3503,8 +3510,8 @@ class Table(Canvas):
         self.rows = self.model.getRowCount()
         self.cols = self.model.getColumnCount()
         self.tablewidth = (self.cellwidth)*self.cols
-        if hasattr(self, 'tablecolheader'):
-            self.tablecolheader.model = model
+        if hasattr(self, 'colheader'):
+            self.colheader.model = model
             self.rowheader.model = model
         self.tableChanged()
         self.adjustColumnWidths()

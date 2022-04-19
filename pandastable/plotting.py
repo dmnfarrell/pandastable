@@ -166,12 +166,12 @@ class PlotViewer(Frame):
         self.fig, self.canvas = addFigure(self.plotfr)
         self.ax = self.fig.add_subplot(111)
 
-        self.m.add(self.plotfr, weight=10)
+        self.m.add(self.plotfr, weight=12)
         #self.plotfr.pack(side=TOP,fill=BOTH, expand=1)
 
         #frame for controls
         self.ctrlfr = Frame(self.main)
-        self.m.add(self.ctrlfr, weight=3)
+        self.m.add(self.ctrlfr, weight=4)
         #self.ctrlfr.pack(side=BOTTOM,fill=BOTH)
 
         #button frame

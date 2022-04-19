@@ -3,7 +3,7 @@ CHANGES
 =======
 
 ------
-0.12.3
+0.13.0
 ------
 
 Fixes to read_excel
@@ -11,6 +11,8 @@ HDF import
 Fix to plot error
 Fix to maximise app on small screens
 Added thousand separator formatting
+Changed tablecolheader to colheader
+Can now set header colors on object
 
 ------
 0.12.2

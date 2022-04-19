@@ -93,17 +93,15 @@ See the home page for this application at http://dmnfarrell.github.io/pandastabl
 
 ## For programmers
 
-See https://pandastable.readthedocs.io/en/latest/modules.html for API docs.
+* Check the [Code examples](https://pandastable.readthedocs.io/en/latest/examples.html) section in the documentation.
+* See https://pandastable.readthedocs.io/en/latest/modules.html for API docs.
 
 ## Links
 
-http://openresearchsoftware.metajnl.com/articles/10.5334/jors.94/
-
-http://dmnfarrell.github.io/pandastable/
-
-https://youtu.be/Ss0QIFywt74
-
-http://decisionstats.com/2015/12/25/interview-damien-farrell-python-gui-dataexplore-python-rstats-pydata/
+* http://openresearchsoftware.metajnl.com/articles/10.5334/jors.94/
+* http://dmnfarrell.github.io/pandastable/
+* https://youtu.be/Ss0QIFywt74
+* [Interview about dataexplore](http://decisionstats.com/2015/12/25/interview-damien-farrell-python-gui-dataexplore-python-rstats-pydata/)
 
 ## Citation
 

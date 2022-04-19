@@ -50,6 +50,8 @@ class ColumnHeader(Canvas):
     def __init__(self, parent=None, table=None, bg='gray25'):
         Canvas.__init__(self, parent, bg=bg, width=500, height=25)
         self.thefont = 'Arial 14'
+        self.textcolor = 'white'
+        self.bgcolor = bg
         if table != None:
             self.table = table
             self.model = self.table.model
@@ -122,7 +124,7 @@ class ColumnHeader(Canvas):
         self.configure(scrollregion=(0,0,
                                      self.table.tablewidth+self.table.x_start,
                                      self.height))
-        self.config(height=self.height, bg=self.table.colheadercolor)
+        self.config(height=self.height, bg=self.bgcolor)
         self.delete('gridline','text')
         self.delete('rect')
         self.delete('dragrect')
@@ -187,7 +189,7 @@ class ColumnHeader(Canvas):
                                      fill='white', width=1)
                 self.create_text(xt,y,
                                     text=colname,
-                                    fill='white',
+                                    fill=self.textcolor,
                                     font=self.thefont,
                                     tag='text', anchor=anchor)
 
@@ -196,8 +198,6 @@ class ColumnHeader(Canvas):
                             fill='white', width=2)
             i+=1
             y=y+h-2
-            #line = self.create_line(0, y, self.tablewidth, y, tag=('gridline', 'vertline'),
-            #                    fill='white', width=1)
         self.config(height=self.height)
         return
 
@@ -517,13 +517,15 @@ class RowHeader(Canvas):
        This also handles row/record selection as opposed to cell
        selection"""
 
-    def __init__(self, parent=None, table=None, width=50):
-        Canvas.__init__(self, parent, bg='gray75', width=width, height=None)
+    def __init__(self, parent=None, table=None, width=50, bg='gray75'):
+        Canvas.__init__(self, parent, bg=bg, width=width, height=None)
         if table != None:
             self.table = table
             self.width = width
             self.inset = 1
-            self.color = '#C8C8C8'
+            #self.color = '#C8C8C8'
+            self.textcolor = 'black'
+            self.bgcolor = bg
             self.showindex = False
             self.maxwidth = 500
             self.config(height = self.table.height)
@@ -612,13 +614,14 @@ class RowHeader(Canvas):
             for row in col:
                 text = row
                 x1,y1,x2,y2 = self.table.getCellCoords(r,0)
-                self.create_rectangle(x,y1,w-1,y2, fill=self.color,
+                self.create_rectangle(x,y1,w-1,y2, #fill=self.color,
                                         outline='white', width=1,
                                         tag='rowheader')
                 self.create_text(x+pad,y1+h/2, text=text,
-                                  fill='black', font=self.table.thefont,
+                                  fill=self.textcolor, font=self.table.thefont,
                                   tag='text', anchor=align)
                 r+=1
+        self.config(bg=self.bgcolor)
         return
 
     def setWidth(self, w):
@@ -794,14 +797,15 @@ class RowHeader(Canvas):
 class IndexHeader(Canvas):
     """Class that displays the row index headings."""
 
-    def __init__(self, parent=None, table=None, width=40, height=25):
-        Canvas.__init__(self, parent, bg='gray50', width=width, height=height)
+    def __init__(self, parent=None, table=None, width=40, height=25, bg='gray50'):
+        Canvas.__init__(self, parent, bg=bg, width=width, height=height)
         if table != None:
             self.table = table
             self.width = width
             self.height = self.table.rowheight
             self.config(height=self.height)
-            self.color = '#C8C8C8'
+            self.textcolor = 'white'
+            self.bgcolor = bg
             self.startrow = self.endrow = None
             self.model = self.table.model
             self.bind('<Button-1>',self.handle_left_click)
@@ -838,16 +842,13 @@ class IndexHeader(Canvas):
         for name in names:
             if name != None:
                 w=widths[i]
-                #if self.table.showindex == True:
-                    #self.create_rectangle(x,y-1,x+w,y+h, fill='gray50',tag='rect',
-                    #                        outline='white', width=1)
                 self.create_text(x+pad,y+h/2,text=name,
-                                    fill='white', font=self.table.thefont,
+                                    fill=self.textcolor, font=self.table.thefont,
                                     tag='text', anchor=align)
                 x=x+widths[i]
                 i+=1
         #w=sum(widths)
-        #self.config(width=w)
+        self.config(bg=self.bgcolor)
         return
 
     def handle_left_click(self, event):

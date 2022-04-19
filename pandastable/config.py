@@ -177,8 +177,7 @@ def apply_options(options, table):
     """Apply options to a table"""
 
     for i in options:
-        table.__dict__[i] = options[i]
-        #print (i, type(options[i]))
+        table.__dict__[i] = options[i]    
     table.setFont()
     table.redraw()
     return
