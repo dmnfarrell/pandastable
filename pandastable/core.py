@@ -3045,11 +3045,11 @@ class Table(Canvas):
             lists.append(x)
         return lists
 
-    def showPlotViewer(self, parent=None, layout='horizontal'):
+    def showPlotViewer(self, parent=None):
         """Create plot frame"""
 
         if not hasattr(self, 'pf'):
-            self.pf = PlotViewer(table=self, parent=parent, layout=layout)
+            self.pf = PlotViewer(table=self, parent=parent)
         if hasattr(self, 'child') and self.child is not None:
             self.child.pf = self.pf
         return self.pf
@@ -3117,7 +3117,7 @@ class Table(Canvas):
             if type(self.pf.main) is Toplevel:
                 self.pf.main.deiconify()
         #plot could be hidden
-        self.showPlot()
+        #self.showPlot()
         #update reference to table
         self.pf.table = self
         #call plot, updates plot data with current selection

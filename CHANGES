@@ -13,6 +13,8 @@ Fix to maximise app on small screens
 Added thousand separator formatting
 Changed tablecolheader to colheader
 Can now set header colors on object
+Removed vertical plot tools option
+Hide/show plot tools button
 
 ------
 0.12.2

@@ -101,15 +101,15 @@ class PlotViewer(Frame):
         layout: 'horizontal' or 'vertical'
     """
 
-    def __init__(self, table, parent=None, layout='horizontal', showdialogs=True):
+    def __init__(self, table, parent=None, showoptions=True):
 
         self.parent = parent
         self.table = table
         if table is not None:
             self.table.pf = self #opaque ref
         #self.mode = '2d'
+        self.showoptions = showoptions
         self.multiviews = False
-        self.showdialogs = showdialogs
         if self.parent != None:
             Frame.__init__(self, parent)
             self.main = self.master
@@ -118,13 +118,13 @@ class PlotViewer(Frame):
             self.master = self.main
             self.main.title('Plot Viewer')
             self.main.protocol("WM_DELETE_WINDOW", self.close)
-            g = '800x500+900+300'
+            g = '800x700+900+200'
             self.main.geometry(g)
-        self.toolslayout = layout
-        if layout == 'horizontal':
-            self.orient = VERTICAL
-        else:
-            self.orient = HORIZONTAL
+        #self.toolslayout = layout
+        #if layout == 'horizontal':
+        self.orient = VERTICAL
+        #else:
+        #    self.orient = HORIZONTAL
         self.mplopts = MPLBaseOptions(parent=self)
         self.mplopts3d = MPL3DOptions(parent=self)
         self.labelopts = AnnotationOptions(parent=self)
@@ -138,27 +138,12 @@ class PlotViewer(Frame):
         self.currentdir = os.path.expanduser('~')
         return
 
-    def refreshLayout(self):
-        """Redraw plot tools dialogs"""
-
-        self.m.destroy()
-        if self.toolslayout== 'horizontal':
-            self.toolslayout= 'vertical'
-            self.orient = HORIZONTAL
-        else:
-            self.toolslayout= 'horizontal'
-            self.orient = VERTICAL
-
-        self.setupGUI()
-        self.replot()
-        return
-
     def setupGUI(self):
         """Add GUI elements"""
 
         #import tkinter as tk
-        self.m = PanedWindow(self.main, orient=self.orient)
-        #self.m = Frame(self.main)
+        #self.m = PanedWindow(self.main, orient=self.orient)
+        self.m = Frame(self.main)
         self.m.pack(fill=BOTH,expand=1)
         #frame for figure
         self.plotfr = Frame(self.m)
@@ -166,33 +151,31 @@ class PlotViewer(Frame):
         self.fig, self.canvas = addFigure(self.plotfr)
         self.ax = self.fig.add_subplot(111)
 
-        self.m.add(self.plotfr, weight=12)
-        #self.plotfr.pack(side=TOP,fill=BOTH, expand=1)
+        #self.m.add(self.plotfr, weight=12)
+        self.plotfr.pack(side=TOP,fill=BOTH, expand=1)
 
         #frame for controls
         self.ctrlfr = Frame(self.main)
-        self.m.add(self.ctrlfr, weight=4)
-        #self.ctrlfr.pack(side=BOTTOM,fill=BOTH)
+        #self.m.add(self.ctrlfr, weight=4)
+        self.ctrlfr.pack(side=BOTTOM,fill=BOTH)
 
         #button frame
         bf = Frame(self.ctrlfr, padding=2)
         bf.pack(side=TOP,fill=BOTH)
-        if self.toolslayout== 'vertical':
-            side = TOP
-        else:
-            side = LEFT
 
+        side = LEFT
         #add button toolbar
         addButton(bf, 'Plot', self.replot, images.plot(),
-                  'plot current data', side=side, compound="left", width=20)
+                  'plot current data', side=side, compound="left", width=16)
         addButton(bf, 'Apply Options', self.updatePlot, images.refresh(),
-                  'refresh plot with current options', side=side, compound="left", width=20)
+                  'refresh plot with current options', side=side,
+                   width=20)
+        addButton(bf, 'Zoom Out', lambda: self.zoom(False), images.zoom_out(),
+                  'zoom out', side=side)
+        addButton(bf, 'Zoom In', self.zoom, images.zoom_in(),
+                  'zoom in', side=side)
         addButton(bf, 'Clear', self.clear, images.plot_clear(),
                   'clear plot', side=side)
-        addButton(bf, 'Hide', self.hide, images.cross(),
-                  'hide plot frame', side=side)
-        addButton(bf, 'Vertical', self.refreshLayout, images.tilehorizontal(),
-                  'change plot tools orientation', side=side)
         addButton(bf, 'Save', self.savePlot, images.save(),
                   'save plot', side=side)
 
@@ -213,7 +196,8 @@ class PlotViewer(Frame):
                 b = Entry(bf,textvariable=v, width=5)
                 v.trace("w", partial(self.setGlobalOption, n))
             b.pack(side=LEFT,padx=2)
-
+        addButton(bf, 'Hide', self.toggle_options, images.prefs(),
+                  'show/hide plot options', side=RIGHT)
         self.addWidgets()
 
         #def onpick(event):
@@ -228,34 +212,29 @@ class PlotViewer(Frame):
     def addWidgets(self):
         """Add option widgets to control panel"""
 
-        if self.toolslayout== 'vertical':
-            sf = VerticalScrolledFrame(self.ctrlfr,width=100,height=1050)
-            sf.pack(side=TOP,fill=BOTH)
-            self.nb = Notebook(sf.interior,width=100,height=1050)
-        else:
-            self.nb = Notebook(self.ctrlfr, height=210)
-
-        self.nb.pack(side=TOP,fill=BOTH,expand=0)
+        self.nb = Notebook(self.ctrlfr, height=210)
+        if self.showoptions == 1:
+            self.nb.pack(side=TOP,fill=BOTH,expand=0)
 
         #add plotter tool dialogs
-        w1 = self.mplopts.showDialog(self.nb, layout=self.toolslayout)
+        w1 = self.mplopts.showDialog(self.nb)
         self.nb.add(w1, text='Base Options', sticky='news')
         #reload tkvars again from stored kwds variable
-        self.mplopts.updateFromOptions()
+        self.mplopts.updateFromDict()
         self.styleopts = ExtraOptions(parent=self)
         self.animateopts = AnimateOptions(parent=self)
 
-        w3 = self.labelopts.showDialog(self.nb,layout=self.toolslayout)
+        w3 = self.labelopts.showDialog(self.nb)
         self.nb.add(w3, text='Annotation', sticky='news')
-        self.labelopts.updateFromOptions()
-        w4 = self.layoutopts.showDialog(self.nb,layout=self.toolslayout)
+        self.labelopts.updateFromDict()
+        w4 = self.layoutopts.showDialog(self.nb)
         self.nb.add(w4, text='Grid Layout', sticky='news')
         w2 = self.styleopts.showDialog(self.nb)
         self.nb.add(w2, text='Other Options', sticky='news')
-        w5 = self.mplopts3d.showDialog(self.nb,layout=self.toolslayout)
+        w5 = self.mplopts3d.showDialog(self.nb)
         self.nb.add(w5, text='3D Options', sticky='news')
-        self.mplopts3d.updateFromOptions()
-        w6 = self.animateopts.showDialog(self.nb,layout=self.toolslayout)
+        self.mplopts3d.updateFromDict()
+        w6 = self.animateopts.showDialog(self.nb)
         self.nb.add(w6, text='Animate', sticky='news')
         return
 
@@ -333,6 +312,23 @@ class PlotViewer(Frame):
             self.plot3D(redraw=redraw)
         else:
             self.plot2D(redraw=redraw)
+        return
+
+    def zoom(self, zoomin=True):
+        """Zoom in/out to plot by changing size of elements"""
+
+        if zoomin == False:
+            val=-1.0
+        else:
+            val=1.0
+
+        if len(self.mplopts.kwds) == 0:
+            return
+
+        self.mplopts.increment('linewidth',val)
+        self.mplopts.increment('ms',val)
+        self.mplopts.increment('fontsize',val)
+        self.replot()
         return
 
     def clear(self):
@@ -1364,15 +1360,18 @@ class PlotViewer(Frame):
         self.canvas.draw()
         return
 
-    def hide(self):
-        self.m.pack_forget()
-        return
+    def toggle_options(self):
+        """Show/hide plot options"""
 
-    def show(self):
-        self.m.pack(fill=BOTH,expand=1)
+        if self.nb.winfo_ismapped() == 1:
+            self.nb.pack_forget()
+        else:
+            self.nb.pack(fill=BOTH,expand=1)
         return
 
     def close(self):
+        """Close the window"""
+
         self.table.pf = None
         self.animateopts.stop()
         self.main.destroy()
@@ -1432,7 +1431,7 @@ class TkOptions(object):
         self.setWidgetStyles()
         return dialog
 
-    def updateFromOptions(self, kwds=None):
+    def updateFromDict(self, kwds=None):
         """Update all widget tk vars using plot kwds dict"""
 
         if kwds != None:
@@ -1446,6 +1445,13 @@ class TkOptions(object):
         for i in kwds:
             if i in self.tkvars and self.tkvars[i]:
                 self.tkvars[i].set(kwds[i])
+        return
+
+    def increment(self, key, inc):
+        """Increase the value of a widget"""
+
+        new = self.kwds[key]+inc
+        self.tkvars[key].set(new)
         return
 
 class MPLBaseOptions(TkOptions):

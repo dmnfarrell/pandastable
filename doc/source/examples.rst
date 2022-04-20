@@ -142,7 +142,7 @@ You can set table attributes directly such as these examples::
 		self.table.colheader.bgcolor = 'lightgreen'
 		self.table.colheader.textcolor = 'black'
 		#make editable or not
-	  table.editable = False
+    table.editable = False
 
 Set Preferences
 ---------------
@@ -234,6 +234,7 @@ Freezing the app
 
 Dataexplore is available as an exe with msi installer for Windows. This was created using the cx_freeze package. For anyone wishing to freeze their tkinter app some details are given here. This is a rather hit and miss process as it seems to depend on your installed version of Python. Even when the msi/exe builds you need to check for runtime issues on another copy of windows to make sure it's working.
 Steps:
+
 	* Use a recent version of python (>=3.6 recommended) installed as normal and then using pip to install the dependencies that you normally need to run the app.
 	* The freeze script is found in the main pandastable folder, freeze.py. You can adopt it for your own app.
 	* Run the script using `python freeze.py bdist_msi`
