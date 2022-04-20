@@ -1,5 +1,5 @@
 name: dataexplore
-version: '0.12.3'
+version: '0.13.0'
 #version-script: git describe --abbrev=1 --tags
 summary: data plotting and analysis package
 description: |
@@ -11,7 +11,6 @@ base: core18
 grade: stable
 confinement: strict
 icon: img/logo.png
-#adopt-info: dataexplore
 
 apps:
   dataexplore:

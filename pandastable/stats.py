@@ -119,7 +119,7 @@ class StatsViewer(Frame):
         """Suggest a start formula"""
 
         df = self.table.model.df
-        df = df.convert_objects(convert_numeric='force')
+        #df = df.convert_objects(convert_numeric='force')
         cols = list(df.columns)
         if len(cols)>1:
             formula = '%s ~ %s' %(cols[1], cols[0])
@@ -135,12 +135,12 @@ class StatsViewer(Frame):
             sub = data.index
         else:
             sub = data.index[s]
-        self.sub = sub        
+        self.sub = sub
         y,X = dmatrices(formula, data=data, return_type='dataframe')
         self.X = X
         self.y = y
-        Xf = X.ix[sub]
-        yf = y.ix[sub]
+        Xf = X.iloc[sub]
+        yf = y.iloc[sub]
 
         if est == 'ols':
             #model = smf.ols(formula=formula, data=s)
@@ -230,8 +230,8 @@ class StatsViewer(Frame):
         sub = self.sub
         if len(sub) == 0:
             sub = X.index
-        Xout = self.X.ix[~self.X.index.isin(sub)]
-        yout = self.y.ix[~self.y.index.isin(sub)]
+        Xout = self.X.iloc[~self.X.index.isin(sub)]
+        yout = self.y.iloc[~self.y.index.isin(sub)]
         ypred = fit.predict(Xout)
         ax.scatter(yout, ypred, alpha=0.6, edgecolor='black',
                    color='blue', lw=0.5, label='fit')
@@ -261,13 +261,13 @@ class StatsViewer(Frame):
         sub = self.sub
         if len(sub) == 0:
             sub = X.index
-        Xout = self.X.ix[~self.X.index.isin(sub)]
-        yout = self.y.ix[~self.y.index.isin(sub)]
+        Xout = self.X.iloc[~self.X.index.isin(sub)]
+        yout = self.y.iloc[~self.y.index.isin(sub)]
         yfit = fit.predict(Xout)
         x = Xout[indvar]
         #fitted data
-        Xin = self.X.ix[sub]
-        yin = self.y.ix[sub]
+        Xin = self.X.iloc[sub]
+        yin = self.y.iloc[sub]
 
         marker=kwds['marker']
         if marker == '':

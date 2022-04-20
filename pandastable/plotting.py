@@ -325,7 +325,7 @@ class PlotViewer(Frame):
         if len(self.mplopts.kwds) == 0:
             return
 
-        self.mplopts.increment('linewidth',val)
+        self.mplopts.increment('linewidth',val/10)
         self.mplopts.increment('ms',val)
         self.mplopts.increment('fontsize',val)
         self.replot()
@@ -545,8 +545,8 @@ class PlotViewer(Frame):
                     self.showWarning('%s is too many subplots' %len(g))
                     return
                 size = len(g)
-                nrows = round(np.sqrt(size),0)
-                ncols = np.ceil(size/nrows)
+                nrows = int(round(np.sqrt(size),0))
+                ncols = int(np.ceil(size/nrows))
                 self.ax.set_visible(False)
                 kwargs['subplots'] = None
                 for n,df in g:
@@ -556,7 +556,7 @@ class PlotViewer(Frame):
                     else:
                         ax = self.fig.add_subplot(nrows,ncols,i)
                     kwargs['legend'] = False #remove axis legends
-                    d = df.drop(by,1) #remove grouping columns
+                    d = df.drop(by,axis=1) #remove grouping columns
                     axs = self._doplot(d, ax, kind, False,  errorbars, useindex,
                                   bw=bw, yerr=None, kwargs=kwargs)
                     ax.set_title(n)
@@ -957,8 +957,8 @@ class PlotViewer(Frame):
             marker = 'o'
         if kwds['subplots'] == 1:
             size = plots-1
-            nrows = round(np.sqrt(size),0)
-            ncols = np.ceil(size/nrows)
+            nrows = int(round(np.sqrt(size),0))
+            ncols = int(np.ceil(size/nrows))
             self.fig.clear()
         if c is not None:
             colormap = kwds['colormap']

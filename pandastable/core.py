@@ -1749,6 +1749,7 @@ class Table(Canvas):
         """Show model fitting dialog"""
 
         from .stats import StatsViewer
+        self.showPlotViewer()
         if StatsViewer._doimport() == 0:
             messagebox.showwarning("no such module",
                                     "statsmodels is not installed.",
@@ -2470,7 +2471,7 @@ class Table(Canvas):
 
         self.storeCurrent()
         try:
-            df = pd.read_clipboard(sep=',',on_bad_lines=False)
+            df = pd.read_clipboard(sep=',',on_bad_lines='skip')
         except Exception as e:
             messagebox.showwarning("Could not read data", e,
                                     parent=self.parentframe)
@@ -2478,7 +2479,7 @@ class Table(Canvas):
         if len(df) == 0:
             return
 
-        df = pd.read_clipboard(sep=',', index_col=0, error_bad_lines=False)
+        df = pd.read_clipboard(sep=',', index_col=0, on_bad_lines='skip')
         model = TableModel(df)
         self.updateModel(model)
         self.redraw()
@@ -3068,7 +3069,8 @@ class Table(Canvas):
         return
 
     def getSelectedDataFrame(self):
-        """Return a sub-dataframe of the selected cells"""
+        """Return a sub-dataframe of the selected cells. Will try to convert object
+        types to float so that plotting works."""
 
         df = self.model.df
         rows = self.multiplerowlist
@@ -3088,6 +3090,13 @@ class Table(Canvas):
                 raise e
             else:
                 return pd.DataFrame()
+        #try to extract numeric
+        colnames = data.columns
+        for c in colnames:
+            x = pd.to_numeric(data[c], errors='coerce').astype(float)
+            if x.isnull().all():
+                continue
+            data[c] = x            
         return data
 
     def getSelectedRowData(self):
