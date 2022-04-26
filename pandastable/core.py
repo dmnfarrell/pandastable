@@ -1159,6 +1159,8 @@ class Table(Canvas):
     def deleteCells(self, rows, cols, answer=None):
         """Clear the cell contents"""
 
+        if self.editable == False:
+            return
         if answer == None:
             answer =  messagebox.askyesno("Clear Confirm",
                                     "Clear this data?",
@@ -3096,7 +3098,7 @@ class Table(Canvas):
             x = pd.to_numeric(data[c], errors='coerce').astype(float)
             if x.isnull().all():
                 continue
-            data[c] = x            
+            data[c] = x
         return data
 
     def getSelectedRowData(self):
