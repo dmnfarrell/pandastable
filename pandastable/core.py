@@ -3315,7 +3315,7 @@ class Table(Canvas):
             return 1
         return 1
 
-    def drawText(self, row, col, celltxt, align=None, fgcolor='black'):
+    def drawText(self, row, col, celltxt, align=None, fgcolor='black', single_line=True):
         """Draw the text inside a cell area"""
 
         self.delete('celltext'+str(col)+'_'+str(row))
@@ -3327,6 +3327,10 @@ class Table(Canvas):
         #if type(celltxt) is np.float64:
         #    celltxt = np.round(celltxt,3)
         celltxt = str(celltxt)
+        
+        if single_line:
+            celltxt = celltxt.split('\n', 1)[0]
+
         length = len(celltxt)
         if length == 0:
             return
