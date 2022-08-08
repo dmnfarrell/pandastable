@@ -251,9 +251,9 @@ class Table(Canvas):
 
         self.bind("<Control-c>", self.copy)
         #self.bind("<Control-x>", self.deleteRow)
-        #self.bind_all("<Control-n>", self.addRow)
         self.bind("<Delete>", self.clearData)
         self.bind("<Control-v>", self.paste)
+        self.bind("<Control-z>", self.undo)
         self.bind("<Control-a>", self.selectAll)
         self.bind("<Control-f>", self.findText)
 
@@ -1145,7 +1145,7 @@ class Table(Canvas):
         self.prevdf = self.model.df.copy()
         return
 
-    def undo(self):
+    def undo(self, event=None):
         """Undo last major table change"""
 
         if self.prevdf is None:
@@ -2468,7 +2468,7 @@ class Table(Canvas):
         df.to_clipboard(sep=',')
         return
 
-    def pasteTable(self, event=None):
+    def paste(self, event=None):
         """Paste a new table from the clipboard"""
 
         self.storeCurrent()
@@ -2481,19 +2481,14 @@ class Table(Canvas):
         if len(df) == 0:
             return
 
-        df = pd.read_clipboard(sep=',', index_col=0, on_bad_lines='skip')
+        df = pd.read_clipboard(sep=',', on_bad_lines='skip')
         model = TableModel(df)
         self.updateModel(model)
         self.redraw()
         return
 
-    def paste(self, event=None):
-        """Paste selections - not implemented"""
-        #df = pd.read_clipboard()
-        return
-
     def copy(self, rows, cols=None):
-        """Copy cell contents to clipboard"""
+        """Copy cell contents from clipboard - overwrites table."""
 
         data = self.getSelectedDataFrame()
         try:
@@ -2900,7 +2895,7 @@ class Table(Canvas):
         defaultactions = {
                         "Copy" : lambda: self.copy(rows, cols),
                         "Undo" : lambda: self.undo(),
-                        #"Paste" : lambda: self.paste(rows, cols),
+                        "Paste" : lambda: self.paste(),
                         "Fill Down" : lambda: self.fillDown(rows, cols),
                         #"Fill Right" : lambda: self.fillAcross(cols, rows),
                         "Add Row(s)" : lambda: self.addRows(),
@@ -2932,7 +2927,7 @@ class Table(Canvas):
                         "Copy Table": self.copyTable,
                         "Find/Replace": self.findText}
 
-        main = ["Copy", "Undo", "Fill Down", #"Fill Right",
+        main = ["Copy", "Paste", "Undo", "Fill Down",
                 "Clear Data", "Set Color"]
         general = ["Select All", "Filter Rows",
                    "Show as Text", "Table Info", "Preferences"]
@@ -3713,7 +3708,7 @@ class ToolBar(Frame):
         img = images.copy()
         addButton(self, 'Copy', self.parentapp.copyTable, img, 'copy table to clipboard')
         img = images.paste()
-        addButton(self, 'Paste', self.parentapp.pasteTable, img, 'paste table')
+        addButton(self, 'Paste', self.parentapp.paste, img, 'paste table')
         img = images.plot()
         addButton(self, 'Plot', self.parentapp.plotSelected, img, 'plot selected')
         img = images.transpose()
@@ -3760,7 +3755,7 @@ class ChildToolBar(ToolBar):
         img = images.copy()
         addButton(self, 'Copy', self.parentapp.copyTable, img, 'copy to clipboard')
         img = images.paste()
-        addButton(self, 'Paste', self.parentapp.pasteTable, img, 'paste table')
+        addButton(self, 'Paste', self.parentapp.paste, img, 'paste table')
         img = images.table_delete()
         addButton(self, 'Clear', self.parentapp.clearTable, img, 'clear table')
         img = images.cross()
