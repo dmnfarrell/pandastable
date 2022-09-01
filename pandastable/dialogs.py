@@ -234,7 +234,7 @@ def dialogFromOptions(parent, opts, groups=None, callback=None,
     return dialog, tkvars, widgets
 
 def addButton(frame, name, callback, img=None, tooltip=None,
-              side=TOP, compound=None, width=None, padding=None):
+              side=TOP, compound=None, width=None, padding=1):
     """Add a button with image, toolip to a tkinter frame"""
 
     #style = ttk.Style()
@@ -245,7 +245,7 @@ def addButton(frame, name, callback, img=None, tooltip=None,
         b = Button(frame, text=name, command=callback, width=width,
                          image=img, compound=compound, padding=padding)
     b.image = img
-    b.pack(side=side,fill=X,pady=padding)
+    b.pack(side=side,fill=X,padx=padding)
     if tooltip != None:
         ToolTip.createToolTip(b, tooltip)
     return
@@ -437,7 +437,7 @@ class ToolTip(object):
             pass
         label = Label(tw, text=self.text, justify=LEFT,
                       background="#ffffe0", relief=SOLID, borderwidth=1,
-                      font=("tahoma", "8", "normal"))
+                      font=("tahoma", "8", "normal"), foreground='black')
         label.pack(ipadx=1)
 
     def hidetip(self, event=None):
@@ -598,7 +598,7 @@ class ImportDialog(Frame):
             self.converters = None
         try:
             f = self.textfilereader = pd.read_csv(self.filename,
-                        chunksize=500, error_bad_lines=False,
+                        chunksize=500, on_bad_lines='skip',
                         warn_bad_lines=False, date_parser=dateparse,
                         converters=self.converters, **kwds)
         except Exception as e:

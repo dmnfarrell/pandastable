@@ -181,8 +181,10 @@ class Table(Canvas):
         self.multipleselectioncolor = '#E0F2F7'
         self.boxoutlinecolor = '#084B8A'
         self.colselectedcolor = '#e4e3e4'
-        self.colheadercolor = 'gray25'
+        #self.colheadercolor = 'gray25'
+        #self.rowheadercolor = 'gray75'
         self.floatprecision = 0
+        self.thousandseparator = ''
         self.showindex = False
         self.columnwidths = {}
         self.columncolors = {}
@@ -191,7 +193,7 @@ class Table(Canvas):
         self.columnformats['alignment'] = {}
         self.rowcolors = pd.DataFrame()
         self.highlighted = None
-        self.bg = Style().lookup('TLabel.label', 'background')
+        #self.bg = Style().lookup('TLabel.label', 'background')
         return
 
     def setFont(self):
@@ -249,9 +251,9 @@ class Table(Canvas):
 
         self.bind("<Control-c>", self.copy)
         #self.bind("<Control-x>", self.deleteRow)
-        #self.bind_all("<Control-n>", self.addRow)
         self.bind("<Delete>", self.clearData)
         self.bind("<Control-v>", self.paste)
+        self.bind("<Control-z>", self.undo)
         self.bind("<Control-a>", self.selectAll)
         self.bind("<Control-f>", self.findText)
 
@@ -276,28 +278,28 @@ class Table(Canvas):
 
         #Add the table and header to the frame
         self.rowheader = RowHeader(self.parentframe, self)
-        self.tablecolheader = ColumnHeader(self.parentframe, self, bg=self.colheadercolor)
-        self.rowindexheader = IndexHeader(self.parentframe, self)
+        self.colheader = ColumnHeader(self.parentframe, self, bg='gray25')
+        self.rowindexheader = IndexHeader(self.parentframe, self, bg='gray75')
         self.Yscrollbar = AutoScrollbar(self.parentframe,orient=VERTICAL,command=self.set_yviews)
         self.Yscrollbar.grid(row=1,column=2,rowspan=1,sticky='news',pady=0,ipady=0)
         self.Xscrollbar = AutoScrollbar(self.parentframe,orient=HORIZONTAL,command=self.set_xviews)
         self.Xscrollbar.grid(row=2,column=1,columnspan=1,sticky='news')
         self['xscrollcommand'] = self.Xscrollbar.set
         self['yscrollcommand'] = self.Yscrollbar.set
-        self.tablecolheader['xscrollcommand'] = self.Xscrollbar.set
+        self.colheader['xscrollcommand'] = self.Xscrollbar.set
         self.rowheader['yscrollcommand'] = self.Yscrollbar.set
         self.parentframe.rowconfigure(1,weight=1)
         self.parentframe.columnconfigure(1,weight=1)
 
         self.rowindexheader.grid(row=0,column=0,rowspan=1,sticky='news')
-        self.tablecolheader.grid(row=0,column=1,rowspan=1,sticky='news')
+        self.colheader.grid(row=0,column=1,rowspan=1,sticky='news')
         self.rowheader.grid(row=1,column=0,rowspan=1,sticky='news')
         self.grid(row=1,column=1,rowspan=1,sticky='news',pady=0,ipady=0)
 
         self.adjustColumnWidths()
         #bind redraw to resize, may trigger redraws when widgets added
         self.parentframe.bind("<Configure>", self.resized) #self.redrawVisible)
-        self.tablecolheader.xview("moveto", 0)
+        self.colheader.xview("moveto", 0)
         self.xview("moveto", 0)
         if self.showtoolbar == True:
             self.toolbar = ToolBar(self.parentframe, self)
@@ -396,7 +398,7 @@ class Table(Canvas):
             callback: function to be called after redraw, default None
         """
 
-        if not hasattr(self, 'tablecolheader'):
+        if not hasattr(self, 'colheader'):
             return
         model = self.model
         self.rows = len(self.model.df.index)
@@ -410,7 +412,7 @@ class Table(Canvas):
             self.delete('colorrect')
             self.setColPositions()
             if self.cols == 0:
-                self.tablecolheader.redraw()
+                self.colheader.redraw()
             if self.rows == 0:
                 self.visiblerows = []
                 self.rowheader.redraw()
@@ -452,16 +454,15 @@ class Table(Canvas):
             if prec != 0:
                 if coldata.dtype == 'float64':
                     coldata = coldata.apply(lambda x: self.setPrecision(x, prec), 1)
-                    #print (coldata)
             coldata = coldata.astype(object).fillna('')
             offset = rows[0]
             for row in self.visiblerows:
                 text = coldata.iloc[row-offset]
-                self.drawText(row, col, text, align, self.textcolor)
+                self.drawText(row, col, text, align=align)
 
         self.colorColumns()
         self.colorRows()
-        self.tablecolheader.redraw(align=self.align)
+        self.colheader.redraw(align=self.align)
         self.rowheader.redraw()
         self.rowindexheader.redraw()
         self.drawSelectedRow()
@@ -481,6 +482,8 @@ class Table(Canvas):
         if not pd.isnull(x):
             if x<1:
                 x = '{:.{}g}'.format(x, p)
+            elif self.thousandseparator == ',':
+                x = '{:,.{}f}'.format(x, p)
             else:
                 x = '{:.{}f}'.format(x, p)
         return x
@@ -585,7 +588,7 @@ class Table(Canvas):
                 for row in rows:
                     clr = colors.iloc[row-offset]
                     if not pd.isnull(clr):
-                        self.drawRect(row, col, color=clr, tag='colorrect', delete=1)
+                        self.drawRect(row, col, color=clr, tag='colorrect', delete=0)
         return
 
     def setRowColors(self, rows=None, clr=None, cols=None):
@@ -692,7 +695,7 @@ class Table(Canvas):
     def setWrap(self):
         """Toogle column header wrap"""
 
-        ch=self.tablecolheader
+        ch=self.colheader
         if ch.wrap is False:
             ch.wrap = True
         else:
@@ -705,7 +708,7 @@ class Table(Canvas):
 
         self.fontsize = self.fontsize+1
         self.rowheight += 2
-        self.tablecolheader.height +=1
+        self.colheader.height +=1
         self.setFont()
         self.adjustColumnWidths()
         self.redraw()
@@ -716,7 +719,7 @@ class Table(Canvas):
 
         self.fontsize = self.fontsize-1
         self.rowheight -= 2
-        self.tablecolheader.height -=1
+        self.colheader.height -=1
         self.setFont()
         self.adjustColumnWidths()
         self.redraw()
@@ -962,7 +965,7 @@ class Table(Canvas):
         """Set the xview of table and col header"""
 
         self.xview(*args)
-        self.tablecolheader.xview(*args)
+        self.colheader.xview(*args)
         self.redrawVisible()
         return
 
@@ -1142,7 +1145,7 @@ class Table(Canvas):
         self.prevdf = self.model.df.copy()
         return
 
-    def undo(self):
+    def undo(self, event=None):
         """Undo last major table change"""
 
         if self.prevdf is None:
@@ -1156,6 +1159,8 @@ class Table(Canvas):
     def deleteCells(self, rows, cols, answer=None):
         """Clear the cell contents"""
 
+        if self.editable == False:
+            return
         if answer == None:
             answer =  messagebox.askyesno("Clear Confirm",
                                     "Clear this data?",
@@ -1746,6 +1751,7 @@ class Table(Canvas):
         """Show model fitting dialog"""
 
         from .stats import StatsViewer
+        self.showPlotViewer()
         if StatsViewer._doimport() == 0:
             messagebox.showwarning("no such module",
                                     "statsmodels is not installed.",
@@ -1991,7 +1997,7 @@ class Table(Canvas):
         """Resize a column by dragging"""
 
         colname = self.model.getColumnName(col)
-        if self.tablecolheader.wrap == True:
+        if self.colheader.wrap == True:
             if width<40:
                 width=40
         self.columnwidths[colname] = width
@@ -2027,13 +2033,14 @@ class Table(Canvas):
                 return self.col_positions.index(colpos)
         return
 
-    def setSelectedRow(self, row):
+    def setSelectedRow(self, row=None):
         """Set currently selected row and reset multiple row list"""
 
         self.currentrow = row
         self.startrow = row
         self.multiplerowlist = []
-        self.multiplerowlist.append(row)
+        if row != None:
+            self.multiplerowlist.append(row)
         return
 
     def setSelectedCol(self, col):
@@ -2205,8 +2212,8 @@ class Table(Canvas):
         #ensure popup menus are removed if present
         if hasattr(self, 'rightmenu'):
             self.rightmenu.destroy()
-        if hasattr(self.tablecolheader, 'rightmenu'):
-            self.tablecolheader.rightmenu.destroy()
+        if hasattr(self.colheader, 'rightmenu'):
+            self.colheader.rightmenu.destroy()
 
         self.startrow = rowclicked
         self.endrow = rowclicked
@@ -2221,7 +2228,7 @@ class Table(Canvas):
             self.drawSelectedRect(self.currentrow, self.currentcol)
             self.drawSelectedRow()
             self.rowheader.drawSelectedRows(rowclicked)
-            self.tablecolheader.delete('rect')
+            self.colheader.delete('rect')
         if hasattr(self, 'cellentry'):
             self.cellentry.destroy()
         return
@@ -2357,7 +2364,7 @@ class Table(Canvas):
         if self.currentcol > cmax or self.currentcol <= cmin:
             #print (self.currentcol, self.visiblecols)
             self.xview('moveto', x)
-            self.tablecolheader.xview('moveto', x)
+            self.colheader.xview('moveto', x)
             self.redraw()
 
         if self.currentrow <= rmin:
@@ -2447,7 +2454,7 @@ class Table(Canvas):
         #print (row,col)
         self.xview('moveto', x)
         self.yview('moveto', y)
-        self.tablecolheader.xview('moveto', x)
+        self.colheader.xview('moveto', x)
         self.rowheader.yview('moveto', y)
         self.rowheader.redraw()
         return
@@ -2461,12 +2468,12 @@ class Table(Canvas):
         df.to_clipboard(sep=',')
         return
 
-    def pasteTable(self, event=None):
+    def paste(self, event=None):
         """Paste a new table from the clipboard"""
 
         self.storeCurrent()
         try:
-            df = pd.read_clipboard(sep=',',error_bad_lines=False)
+            df = pd.read_clipboard(sep=',',on_bad_lines='skip')
         except Exception as e:
             messagebox.showwarning("Could not read data", e,
                                     parent=self.parentframe)
@@ -2474,19 +2481,14 @@ class Table(Canvas):
         if len(df) == 0:
             return
 
-        df = pd.read_clipboard(sep=',', index_col=0, error_bad_lines=False)
+        df = pd.read_clipboard(sep=',', on_bad_lines='skip')
         model = TableModel(df)
         self.updateModel(model)
         self.redraw()
         return
 
-    def paste(self, event=None):
-        """Paste selections - not implemented"""
-        #df = pd.read_clipboard()
-        return
-
     def copy(self, rows, cols=None):
-        """Copy cell contents to clipboard"""
+        """Copy cell contents from clipboard - overwrites table."""
 
         data = self.getSelectedDataFrame()
         try:
@@ -2893,7 +2895,7 @@ class Table(Canvas):
         defaultactions = {
                         "Copy" : lambda: self.copy(rows, cols),
                         "Undo" : lambda: self.undo(),
-                        #"Paste" : lambda: self.paste(rows, cols),
+                        "Paste" : lambda: self.paste(),
                         "Fill Down" : lambda: self.fillDown(rows, cols),
                         #"Fill Right" : lambda: self.fillAcross(cols, rows),
                         "Add Row(s)" : lambda: self.addRows(),
@@ -2925,7 +2927,7 @@ class Table(Canvas):
                         "Copy Table": self.copyTable,
                         "Find/Replace": self.findText}
 
-        main = ["Copy", "Undo", "Fill Down", #"Fill Right",
+        main = ["Copy", "Paste", "Undo", "Fill Down",
                 "Clear Data", "Set Color"]
         general = ["Select All", "Filter Rows",
                    "Show as Text", "Table Info", "Preferences"]
@@ -3041,11 +3043,11 @@ class Table(Canvas):
             lists.append(x)
         return lists
 
-    def showPlotViewer(self, parent=None, layout='horizontal'):
+    def showPlotViewer(self, parent=None):
         """Create plot frame"""
 
         if not hasattr(self, 'pf'):
-            self.pf = PlotViewer(table=self, parent=parent, layout=layout)
+            self.pf = PlotViewer(table=self, parent=parent)
         if hasattr(self, 'child') and self.child is not None:
             self.child.pf = self.pf
         return self.pf
@@ -3064,7 +3066,8 @@ class Table(Canvas):
         return
 
     def getSelectedDataFrame(self):
-        """Return a sub-dataframe of the selected cells"""
+        """Return a sub-dataframe of the selected cells. Will try to convert object
+        types to float so that plotting works."""
 
         df = self.model.df
         rows = self.multiplerowlist
@@ -3073,8 +3076,8 @@ class Table(Canvas):
         if len(rows)<1 or self.allrows == True:
             rows = list(range(self.rows))
         cols = self.multiplecollist
-        if len(cols) < 1 or self.allcols == True:
-            cols = list(range(self.cols))
+        #if len(cols) < 1 or self.allcols == True:
+        #    cols = list(range(self.cols))
         try:
             data = df.iloc[rows,cols]
         except Exception as e:
@@ -3084,6 +3087,13 @@ class Table(Canvas):
                 raise e
             else:
                 return pd.DataFrame()
+        #try to extract numeric
+        colnames = data.columns
+        for c in colnames:
+            x = pd.to_numeric(data[c], errors='coerce').astype(float)
+            if x.isnull().all():
+                continue
+            data[c] = x
         return data
 
     def getSelectedRowData(self):
@@ -3113,7 +3123,7 @@ class Table(Canvas):
             if type(self.pf.main) is Toplevel:
                 self.pf.main.deiconify()
         #plot could be hidden
-        self.showPlot()
+        #self.showPlot()
         #update reference to table
         self.pf.table = self
         #call plot, updates plot data with current selection
@@ -3192,6 +3202,8 @@ class Table(Canvas):
         if color == None:
             color = 'gray25'
         w=2
+        if row == None:
+            return
         x1,y1,x2,y2 = self.getCellCoords(row,col)
         rect = self.create_rectangle(x1+w/2+1,y1+w/2+1,x2-w/2,y2-w/2,
                                   outline=color,
@@ -3298,7 +3310,7 @@ class Table(Canvas):
             return 1
         return 1
 
-    def drawText(self, row, col, celltxt, align=None, fgcolor='black'):
+    def drawText(self, row, col, celltxt, align=None, single_line=True):
         """Draw the text inside a cell area"""
 
         self.delete('celltext'+str(col)+'_'+str(row))
@@ -3310,6 +3322,10 @@ class Table(Canvas):
         #if type(celltxt) is np.float64:
         #    celltxt = np.round(celltxt,3)
         celltxt = str(celltxt)
+
+        if single_line:
+            celltxt = celltxt.strip().split('\n', 1)[0]
+
         length = len(celltxt)
         if length == 0:
             return
@@ -3334,7 +3350,7 @@ class Table(Canvas):
         y=y1+h/2
         rect = self.create_text(x1+w/2,y,
                                   text=celltxt,
-                                  fill=fgcolor,
+                                  fill=self.textcolor,
                                   font=self.thefont,
                                   anchor=align,
                                   tag=('text','celltext'+str(col)+'_'+str(row)),
@@ -3346,6 +3362,9 @@ class Table(Canvas):
 
         self.delete('rowrect')
         row = self.currentrow
+
+        if row == None:
+            return
         x1,y1,x2,y2 = self.getCellCoords(row,0)
         x2 = self.tablewidth
         rect = self.create_rectangle(x1,y1,x2,y2,
@@ -3501,8 +3520,8 @@ class Table(Canvas):
         self.rows = self.model.getRowCount()
         self.cols = self.model.getColumnCount()
         self.tablewidth = (self.cellwidth)*self.cols
-        if hasattr(self, 'tablecolheader'):
-            self.tablecolheader.model = model
+        if hasattr(self, 'colheader'):
+            self.colheader.model = model
             self.rowheader.model = model
         self.tableChanged()
         self.adjustColumnWidths()
@@ -3689,7 +3708,7 @@ class ToolBar(Frame):
         img = images.copy()
         addButton(self, 'Copy', self.parentapp.copyTable, img, 'copy table to clipboard')
         img = images.paste()
-        addButton(self, 'Paste', self.parentapp.pasteTable, img, 'paste table')
+        addButton(self, 'Paste', self.parentapp.paste, img, 'paste table')
         img = images.plot()
         addButton(self, 'Plot', self.parentapp.plotSelected, img, 'plot selected')
         img = images.transpose()
@@ -3736,7 +3755,7 @@ class ChildToolBar(ToolBar):
         img = images.copy()
         addButton(self, 'Copy', self.parentapp.copyTable, img, 'copy to clipboard')
         img = images.paste()
-        addButton(self, 'Paste', self.parentapp.pasteTable, img, 'paste table')
+        addButton(self, 'Paste', self.parentapp.paste, img, 'paste table')
         img = images.table_delete()
         addButton(self, 'Clear', self.parentapp.clearTable, img, 'clear table')
         img = images.cross()

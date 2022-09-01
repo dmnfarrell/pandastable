@@ -47,7 +47,7 @@ default_conf = os.path.join(configpath, 'default.conf')
 
 baseoptions = OrderedDict()
 baseoptions['base'] = {'font': 'Arial','fontsize':12, 'fontstyle':'',
-                        'floatprecision':2,
+                        'floatprecision':2, 'thousandseparator': '',
                         'rowheight':22,'cellwidth':80, 'linewidth':1,
                         'align':'w',
                         }
@@ -56,10 +56,6 @@ baseoptions['colors'] =  {'cellbackgr':'#F4F4F3',
                         'grid_color':'#ABB1AD',
                         'rowselectedcolor':'#E4DED4',
                         'colheadercolor':'gray25'}
-'''baseoptions['plotting'] = {'marker': '','linestyle':'-',
-                        'colormap':'Spectral',
-                        'ms':5, 'grid':1
-                        }'''
 
 def write_default_config():
     """Write a default config to users .config folder. Used to add global settings."""
@@ -181,8 +177,7 @@ def apply_options(options, table):
     """Apply options to a table"""
 
     for i in options:
-        table.__dict__[i] = options[i]
-        #print (i, type(options[i]))
+        table.__dict__[i] = options[i]    
     table.setFont()
     table.redraw()
     return
@@ -223,6 +218,7 @@ class preferencesDialog(Frame):
                 'fontstyle':{'type':'combobox','default':'','items':['','bold','italic']},
                 'fontsize':{'type':'scale','default':12,'range':(5,40),'interval':1,'label':'font size'},
                 'floatprecision':{'type':'entry','default':2,'label':'precision'},
+                'thousandseparator':{'type':'combobox','default':'','items':['',','],'label':'thousands separator'},
                 'cellbackgr':{'type':'colorchooser','default':'#F4F4F3', 'label':'background color'},
                 'textcolor':{'type':'colorchooser','default':'black', 'label':'text color'},
                 'grid_color':{'type':'colorchooser','default':'#ABB1AD', 'label':'grid color'},
@@ -234,7 +230,7 @@ class preferencesDialog(Frame):
                 'ms':{'type':'scale','default':5,'range':(1,80),'interval':1,'label':'marker size'},
                 'grid':{'type':'checkbutton','default':0,'label':'show grid'},
                 }
-        sections = {'table':['align','floatprecision','rowheight','cellwidth','linewidth','vertlines','horizlines'],
+        sections = {'table':['align','floatprecision','thousandseparator','rowheight','cellwidth','linewidth','vertlines','horizlines'],
                     'formats':['font','fontstyle','fontsize','cellbackgr','textcolor',
                                'grid_color','rowselectedcolor','colheadercolor']}
                     #'plotting':['marker','linestyle','ms','grid','colormap']}

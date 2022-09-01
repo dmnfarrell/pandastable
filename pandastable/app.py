@@ -24,6 +24,8 @@ import sys, datetime, pickle, gzip
 try:
     from tkinter import *
     from tkinter.ttk import *
+    #import ttkbootstrap as ttk
+    #from ttkbootstrap.constants import *
 except:
     from Tkinter import *
     from ttk import *
@@ -303,7 +305,7 @@ class DataExplore(Frame):
             g = '%dx%d+%d+%d' % (ws,hs,0,0)
             self.w = ws
         else:
-            self.w = w = ws/1.4; h = hs*0.7
+            self.w = w = ws/1.3; h = hs*0.7
             x = (ws/2)-(w/2); y = (hs/2)-(h/2)
             g = '%dx%d+%d+%d' % (w,h,x,y)
         return g
@@ -384,7 +386,7 @@ class DataExplore(Frame):
         for m in opts:
             if m in meta and meta[m] is not None:
                 #util.setAttributes(opts[m], meta[m])
-                opts[m].updateFromOptions(meta[m])
+                opts[m].updateFromDict(meta[m])
                 #check options loaded for missing values
                 #avoids breaking file saves when options changed
                 defaults = plotting.get_defaults(m)
@@ -748,7 +750,7 @@ class DataExplore(Frame):
         table = Table(f1, dataframe=df, showtoolbar=1, showstatusbar=1)
         f2 = Frame(main)
         #show the plot frame
-        pf = table.showPlotViewer(f2, layout='horizontal')
+        pf = table.showPlotViewer(f2)
         #load meta data
         if meta != None:
             self.loadMeta(table, meta)
@@ -1171,19 +1173,21 @@ class TestApp(Frame):
                                 showtoolbar=True, showstatusbar=True)
 
         #options = config.load_options()
-        options = {'colheadercolor':'green','floatprecision': 5}
+        options = {'floatprecision': 5, 'textcolor':'blue'}
         pt.show()
         config.apply_options(options, pt)
-        #self.table.rowheader.maxwidth = 50
+        self.table.rowheader.bgcolor = 'orange'
+        self.table.colheader.bgcolor = 'lightgreen'
+        self.table.colheader.textcolor = 'purple'
         #test row coloring
         pt.setRowColors(rows=range(2,100,2), clr='lightblue', cols='all')
         #test deleting
         pt.setSelectedRows([[4,6,8,10]])
         pt.deleteRow()
-        pt.setSelectedRow(10)
+        pt.setSelectedRow()
         pt.insertRow()
         #pt.redraw()
-
+        pt.editable = False
         return
 
 def main():

@@ -101,6 +101,11 @@ class BatchRenamePlugin(Plugin):
         self.replacetext = Entry(fr, textvariable=self.replacevar)
         Label(fr,text='Replace With:').pack(side=TOP)
         self.replacetext.pack(side=TOP,fill=BOTH,pady=2)
+        self.occurencesvar = IntVar()
+        self.occurencesvar.set(0)
+        Label(fr,text='Occurences:').pack(side=TOP)
+        self.occtext = Entry(fr, textvariable=self.occurencesvar)
+        self.occtext.pack(side=TOP,fill=BOTH,pady=2)
 
         b=Button(fr,text='Preview',command=self.dopreview)
         b.pack(side=TOP,fill=BOTH,pady=2)
@@ -142,7 +147,9 @@ class BatchRenamePlugin(Plugin):
         flist = flist.split('\n')
         find = self.findvar.get()
         repl = self.replacevar.get()
-        new = doFindReplace(files=flist, find=find, replace=repl)
+        occ = self.occurencesvar.get()
+        if occ == 0: occ = None
+        new = doFindReplace(files=flist, find=find, replace=repl, occ=occ)
         new = '\n'.join(new)
         self.preview.insert(END,new)
         return
@@ -165,28 +172,13 @@ class BatchRenamePlugin(Plugin):
         flist = self.fileslist.get('1.0',END).split('\n')
         find = self.findvar.get()
         repl = self.replacevar.get()
-        doFindReplace(files=flist, find=find, replace=repl, rename=True)
+        occ = self.occurencesvar.get()
+        if occ == 0: occ = None
+        doFindReplace(files=flist, find=find, replace=repl, rename=True, occ=occ)
         self.refresh()
         return
 
-def doRename(files=None, wildcard=None, pattern='', replacement='', rename=False):
-    """Rename all files in a directory using replacement"""
-
-    newfiles = []
-    if files==None:
-        files = glob.glob(wildcard)
-    for pathname in files:
-        basename= os.path.basename(pathname)
-        new_filename= re.sub(pattern, replacement, basename)
-        if new_filename != basename:
-            newfiles.append(new_filename)
-            if rename == True:
-                os.rename(pathname,
-                          os.path.join(os.path.dirname(pathname),
-                          new_filename))
-    return newfiles
-
-def doFindReplace(files=None, wildcard=None, find='', replace='', rename=False):
+def doFindReplace(files=None, wildcard=None, find='', replace='', rename=False, occ=None):
     """Find replace method"""
 
     newfiles = []
@@ -194,7 +186,10 @@ def doFindReplace(files=None, wildcard=None, find='', replace='', rename=False):
         files = glob.glob(wildcard)
     for pathname in files:
         basename= os.path.basename(pathname)
-        new_filename = basename.replace(find,replace)
+        if occ != None:
+            new_filename = basename.replace(find,replace,occ)
+        else:
+            new_filename = basename.replace(find,replace)
         newfiles.append(new_filename)
         if new_filename != basename:
 

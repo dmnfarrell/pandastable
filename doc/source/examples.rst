@@ -26,7 +26,7 @@ Import a csv file::
 A class for launching a basic table in a frame::
 
 	from tkinter import *
-	from pandastable import Table, TableModel
+	from pandastable import Table, TableModel, config
 
 	class TestApp(Frame):
 		"""Basic test frame for the table"""
@@ -41,6 +41,10 @@ A class for launching a basic table in a frame::
 		    df = TableModel.getSampleData()
 		    self.table = pt = Table(f, dataframe=df,
 		                            showtoolbar=True, showstatusbar=True)
+				pt.show()
+				#set some options
+				options = {'colheadercolor':'green','floatprecision': 5}
+				config.apply_options(options, pt)
 		    pt.show()
 		    return
 
@@ -85,13 +89,30 @@ Table methods
 
 You can use the Table class methods to directly access data and perform many more functions. Check the API for all the methods. Some examples are given here::
 
-	table.autoAddColumns(10) #add 10 empty columns
-	table.autoResizeColumns() #resize the columns to fit the data better
-	table.clearFormatting() #clear the current formatting
-	table.contractColumns() #reduce column witdths proportionally
-	table.getSelectedColumn() #get selected column
-	table.sortTable(0) #sort by column index 0
-	table.zoomIn() #enlarge all table elements
+	#add 10 empty columns
+	table.autoAddColumns(10)
+	#resize the columns to fit the data better
+	table.autoResizeColumns()
+	#clear the current formatting
+	table.clearFormatting()
+	#reduce column witdths proportionally
+	table.contractColumns()
+	#get selected column
+	table.getSelectedColumn()
+	#sort by column index 0
+	table.sortTable(0)
+	#enlarge all table elements
+	table.zoomIn()
+	#set row colors
+	table.setRowColors(rows=range(2,100,2), clr='lightblue', cols='all')
+	#delete selected rows
+	table.setSelectedRows([[4,6,8,10]])
+	#delete current row
+	table.deleteRow()
+	#set current row
+	table.setSelectedRow(10)
+	#insert below current row
+	table.insertRow()
 
 Accessing and modifying data directly
 -------------------------------------
@@ -107,6 +128,48 @@ Examples of simple dataframe operations. Remember when you update the dataframe 
 	df.drop(0) #delete column with this index
 	df.T #transpose the DataFrame
 	df.drop(columns=['x'])
+
+Set table attributes
+--------------------
+
+You can set table attributes directly such as these examples::
+
+		table.textcolor = 'blue'
+		table.cellbackgr = 'white'
+		table.boxoutlinecolor = 'black'
+		#set header colors
+		self.table.rowheader.bgcolor = 'orange'
+		self.table.colheader.bgcolor = 'lightgreen'
+		self.table.colheader.textcolor = 'black'
+		#make editable or not
+    table.editable = False
+
+Set Preferences
+---------------
+
+Preferences are normally loaded from a configuration file that can be edited manually or via the menu. You can also programmatically set these preferences using the config module::
+
+			#load from a config file if you need to (done by default when tables are created)
+			options = config.load_options()
+			#options is a dict that you can set yourself
+			options = {'floatprecision': 2}
+			config.apply_options(options, table)
+
+You can set the following configuration values::
+
+			{'align': 'w',
+			 'cellbackgr': '#F4F4F3',
+			 'cellwidth': 80,
+			 'floatprecision': 2,
+			 'thousandseparator': '',
+			 'font': 'Arial',
+			 'fontsize': 12,
+			 'fontstyle': '',
+			 'grid_color': '#ABB1AD',
+			 'linewidth': 1,
+			 'rowheight': 22,
+			 'rowselectedcolor': '#E4DED4',
+			 'textcolor': 'black'}
 
 Table Coloring
 --------------
@@ -133,33 +196,7 @@ To clear formatting::
 	table.clearFormatting()
 	table.redraw()
 
-Set Preferences
----------------
-
-Preferences are normally loaded from a configuration file that can be edited manually or via the menu. You can also programmatically set these preferences using the config module::
-
-	#load from prefs file if you want need to (done by default when tables are created)
-	options = config.load_options()
-	#options is a dict that you can set yourself
-	options = {'colheadercolor':'green'}
-	config.apply_options(options, table)
-
-You can set the following configuration values::
-
-	{'align': 'w',
-	 'cellbackgr': '#F4F4F3',
-	 'cellwidth': 80,
-	 'colheadercolor': '#535b71',
-	 'floatprecision': 2,
-	 'font': 'Arial',
-	 'fontsize': 12,
-	 'fontstyle': '',
-	 'grid_color': '#ABB1AD',
-	 'linewidth': 1,
-	 'rowheight': 22,
-	 'rowselectedcolor': '#E4DED4',
-	 'textcolor': 'black'}
-
+Note: You should generally use a simple integer index for the table when using colors as there may be inconsistencies otherwise.
 
 Writing DataExplore Plugins
 ---------------------------
@@ -197,6 +234,7 @@ Freezing the app
 
 Dataexplore is available as an exe with msi installer for Windows. This was created using the cx_freeze package. For anyone wishing to freeze their tkinter app some details are given here. This is a rather hit and miss process as it seems to depend on your installed version of Python. Even when the msi/exe builds you need to check for runtime issues on another copy of windows to make sure it's working.
 Steps:
+
 	* Use a recent version of python (>=3.6 recommended) installed as normal and then using pip to install the dependencies that you normally need to run the app.
 	* The freeze script is found in the main pandastable folder, freeze.py. You can adopt it for your own app.
 	* Run the script using `python freeze.py bdist_msi`
