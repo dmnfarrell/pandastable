@@ -94,6 +94,7 @@ class Table(Canvas):
         self.filename = None
         self.showtoolbar = showtoolbar
         self.showstatusbar = showstatusbar
+        self.showrowheader = True
         self.set_defaults()
         self.logfile = logfile
         self.currentpage = None
@@ -312,6 +313,24 @@ class Table(Canvas):
         self.currheight = self.parentframe.winfo_height()
         if hasattr(self, 'pf'):
             self.pf.updateData()
+        return
+
+    def hideRowHeader(self):
+        """Hide the row header, must have run show() first"""
+
+        if not hasattr(self, 'rowheader'):
+            return
+        self.rowheader.grid_forget()
+        self.rowindexheader.grid_forget()
+        return
+
+    def showRowHeader(self):
+        """Show the row header if hidden, must have run show() first"""
+        
+        if not hasattr(self, 'rowheader'):
+            return
+        self.rowindexheader.grid(row=0,column=0,rowspan=1,sticky='news')
+        self.rowheader.grid(row=1,column=0,rowspan=1,sticky='news')
         return
 
     def resized(self, event):

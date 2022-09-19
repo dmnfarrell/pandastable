@@ -1169,12 +1169,12 @@ class TestApp(Frame):
         f = Frame(self.main)
         f.pack(fill=BOTH,expand=1)
         df = TableModel.getSampleData()
-        self.table = pt = Table(f, dataframe=df,
+        self.table = pt = Table(f, dataframe=df, enable_menus=True,
                                 showtoolbar=True, showstatusbar=True)
-
         #options = config.load_options()
         options = {'floatprecision': 5, 'textcolor':'blue'}
         pt.show()
+        #pt.hideRowHeader()
         config.apply_options(options, pt)
         self.table.rowheader.bgcolor = 'orange'
         self.table.colheader.bgcolor = 'lightgreen'
@@ -1188,6 +1188,7 @@ class TestApp(Frame):
         pt.insertRow()
         #pt.redraw()
         pt.editable = False
+        #pt.showRowHeader()
         return
 
 def main():

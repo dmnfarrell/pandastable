@@ -678,6 +678,8 @@ class RowHeader(Canvas):
     def handle_right_click(self, event):
         """respond to a right click"""
 
+        if self.table.enable_menus == False:
+            return
         self.delete('tooltip')
         if hasattr(self, 'rightmenu'):
             self.rightmenu.destroy()
