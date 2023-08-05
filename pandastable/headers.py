@@ -166,7 +166,7 @@ class ColumnHeader(Canvas):
                     w = self.table.cellwidth
 
                 if w<=8:
-                    colname=''
+                    colstr=''       # correct variable allowing hidding columns
                 x = self.table.col_positions[col]
                 if anchor in ['w','nw']:
                     xt = x+pad

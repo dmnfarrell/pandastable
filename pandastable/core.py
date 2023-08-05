@@ -218,12 +218,12 @@ class Table(Canvas):
         return
 
     def mouse_wheel(self, event):
-        """Handle mouse wheel scroll for windows"""
+        """Handle mouse wheel scroll for windows and mac (darwin)"""
 
-        if event.num == 5 or event.delta == -120:
+        if event.num == 5 or event.delta == -120 or (self.ostyp == "darwin" and event.delta == -1):
             event.widget.yview_scroll(1, UNITS)
             self.rowheader.yview_scroll(1, UNITS)
-        if event.num == 4 or event.delta == 120:
+        if event.num == 4 or event.delta == 120 or (self.ostyp == "darwin" and event.delta == 1):
             if self.canvasy(0) < 0:
                 return
             event.widget.yview_scroll(-1, UNITS)
