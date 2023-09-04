@@ -1,5 +1,4 @@
 future
 numpy
 matplotlib
-pandas
-xlrd
+pandas[excel]
