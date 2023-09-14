@@ -19,9 +19,8 @@ setup(
                                   'datasets/*.csv',
                                   'plugins/*.py','plugins/*.R']},
     install_requires=['matplotlib>=3.0',
-                      'pandas>=1.5',
+                      'pandas[excel]>=1.5',
                       'numexpr>=2.4',
-                      'xlrd>=0.9',
                       'future'],
     entry_points = { 'gui_scripts': [
                      'dataexplore = pandastable.app:main']},
