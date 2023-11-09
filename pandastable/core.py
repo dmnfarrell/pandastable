@@ -764,11 +764,12 @@ class Table(Canvas):
         self.redraw()
         return
 
-    def adjustColumnWidths(self, limit=30):
+    def adjustColumnWidths(self, limit=30, max_cell_width=20):
         """Optimally adjust col widths to accomodate the longest entry \
             in each column - usually only called on first redraw.
         Args:
             limit: max number of columns to resize
+            max_cell_width: maximum cell size
         """
 
         fontsize = self.fontsize
@@ -785,7 +786,7 @@ class Table(Canvas):
                     continue
             else:
                 w = self.cellwidth
-            l = self.model.getlongestEntry(col)
+            l = max(self.model.getlongestEntry(col), len(colname), max_cell_width)
             txt = ''.join(['X' for i in range(l+1)])
             tw,tl = util.getTextLength(txt, self.maxcellwidth,
                                        font=self.thefont)
