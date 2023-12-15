@@ -764,12 +764,11 @@ class Table(Canvas):
         self.redraw()
         return
 
-    def adjustColumnWidths(self, limit=30, max_cell_width=20):
+    def adjustColumnWidths(self, limit=30):
         """Optimally adjust col widths to accomodate the longest entry \
             in each column - usually only called on first redraw.
         Args:
             limit: max number of columns to resize
-            max_cell_width: maximum cell size
         """
 
         fontsize = self.fontsize
@@ -786,7 +785,7 @@ class Table(Canvas):
                     continue
             else:
                 w = self.cellwidth
-            l = max(self.model.getlongestEntry(col), len(colname), max_cell_width)
+            l = self.model.getlongestEntry(col)
             txt = ''.join(['X' for i in range(l+1)])
             tw,tl = util.getTextLength(txt, self.maxcellwidth,
                                        font=self.thefont)
@@ -2261,7 +2260,7 @@ class Table(Canvas):
         colname = df.columns[self.currentcol]
         dtype = df.dtypes[colname]
 
-        if dtype.name == 'category':
+        if self.editable and dtype.name == 'category':
             #drop down menu for category entry
             row = self.get_row_clicked(event)
             col = self.get_col_clicked(event)
