@@ -599,7 +599,7 @@ class ImportDialog(Frame):
         try:
             f = self.textfilereader = pd.read_csv(self.filename,
                         chunksize=500, on_bad_lines='skip',
-                        warn_bad_lines=False, date_parser=dateparse,
+                        date_parser=dateparse,
                         converters=self.converters, **kwds)
         except Exception as e:
             print ('read csv error')

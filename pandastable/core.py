@@ -471,7 +471,7 @@ class Table(Canvas):
             else:
                 align = self.align
             if prec != 0:
-                if coldata.dtype == 'float64':
+                if coldata.dtype in ['float64','int']:
                     coldata = coldata.apply(lambda x: self.setPrecision(x, prec), 1)
             coldata = coldata.astype(object).fillna('')
             offset = rows[0]
@@ -499,7 +499,7 @@ class Table(Canvas):
         """Set precision of a float value"""
 
         if not pd.isnull(x):
-            if x<1:
+            if x<1 and x>-1:
                 x = '{:.{}g}'.format(x, p)
             elif self.thousandseparator == ',':
                 x = '{:,.{}f}'.format(x, p)
