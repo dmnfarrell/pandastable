@@ -47,7 +47,8 @@ default_conf = os.path.join(configpath, 'default.conf')
 
 baseoptions = OrderedDict()
 baseoptions['base'] = {'font': 'Arial','fontsize':12, 'fontstyle':'',
-                        'floatprecision':2, 'thousandseparator': '',
+                        'floatprecision':2, 'timeformat':"%Y-%m-%d %H:%M:%S",
+                        'thousandseparator': '',
                         'rowheight':22,'cellwidth':80, 'linewidth':1,
                         'align':'w',
                         }
@@ -56,6 +57,26 @@ baseoptions['colors'] =  {'cellbackgr':'#F4F4F3',
                         'grid_color':'#ABB1AD',
                         'rowselectedcolor':'#E4DED4',
                         'colheadercolor':'gray25'}
+
+time_formats = [
+        "%Y-%m-%d %H:%M:%S",
+        "%Y-%m-%d %H:%M:%S.%f",
+        "%Y-%m-%d",
+        "%m/%d/%Y",
+        "%m/%d/%Y %H:%M:%S",
+        "%m/%d/%Y %I:%M:%S %p",
+        "%Y-%m-%d %I:%M:%S %p",
+        "%Y%m%d",
+        "%Y%m%d%H%M%S",
+        "%Y%m%d %H:%M:%S",
+        "%d-%b-%Y",
+        "%d %b %Y",
+        "%d %B %Y",
+        "%b %d, %Y",
+        "%B %d, %Y",
+        "%Y/%m/%d",
+        "%d/%m/%Y",
+]
 
 def write_default_config():
     """Write a default config to users .config folder. Used to add global settings."""
@@ -86,7 +107,7 @@ def create_config_parser_from_dict(data=None, sections=baseoptions.keys(), **kwa
     if data is None:
         data = baseoptions
     #print (data)
-    cp = configparser.ConfigParser()
+    cp = configparser.ConfigParser(interpolation=None)
     for s in sections:
         cp.add_section(s)
         if not s in data:
@@ -102,21 +123,24 @@ def create_config_parser_from_dict(data=None, sections=baseoptions.keys(), **kwa
         opts = cp.options(s)
         for k in kwargs:
             if k in opts:
-                cp.set(s, k, kwargs[k])
+                val = kwargs[k]
+                cp.set(s, k, val)
     return cp
 
 def update_config(options):
+
     cp = create_config_parser_from_dict()
     for section in cp.sections():
         for o in cp[section]:
-            cp[section][o] = str(options[o])
+            val = options[o]
+            cp[section][o] = str(val)
     return cp
 
 def parse_config(conffile=None):
     """Parse a configparser file"""
 
     f = open(conffile,'r')
-    cp = configparser.ConfigParser()
+    cp = configparser.ConfigParser(interpolation=None)
     try:
         cp.read(conffile)
     except Exception as e:
@@ -177,7 +201,7 @@ def apply_options(options, table):
     """Apply options to a table"""
 
     for i in options:
-        table.__dict__[i] = options[i]    
+        table.__dict__[i] = options[i]
     table.setFont()
     table.redraw()
     return
@@ -218,6 +242,7 @@ class preferencesDialog(Frame):
                 'fontstyle':{'type':'combobox','default':'','items':['','bold','italic']},
                 'fontsize':{'type':'scale','default':12,'range':(5,40),'interval':1,'label':'font size'},
                 'floatprecision':{'type':'entry','default':2,'label':'precision'},
+                'timeformat':{'type':'combobox','default':"%Y-%m-%d %H:%M:%S",'items':time_formats,'label':'time format'},
                 'thousandseparator':{'type':'combobox','default':'','items':['',','],'label':'thousands separator'},
                 'cellbackgr':{'type':'colorchooser','default':'#F4F4F3', 'label':'background color'},
                 'textcolor':{'type':'colorchooser','default':'black', 'label':'text color'},
@@ -230,9 +255,10 @@ class preferencesDialog(Frame):
                 'ms':{'type':'scale','default':5,'range':(1,80),'interval':1,'label':'marker size'},
                 'grid':{'type':'checkbutton','default':0,'label':'show grid'},
                 }
-        sections = {'table':['align','floatprecision','thousandseparator','rowheight','cellwidth','linewidth','vertlines','horizlines'],
+        sections = {'table':['align','floatprecision','timeformat','thousandseparator','rowheight',
+                             'cellwidth','linewidth'],
                     'formats':['font','fontstyle','fontsize','cellbackgr','textcolor',
-                               'grid_color','rowselectedcolor','colheadercolor']}
+                               'grid_color','rowselectedcolor','colheadercolor','vertlines','horizlines']}
                     #'plotting':['marker','linestyle','ms','grid','colormap']}
 
 

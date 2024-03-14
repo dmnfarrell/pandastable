@@ -185,6 +185,7 @@ class Table(Canvas):
         #self.colheadercolor = 'gray25'
         #self.rowheadercolor = 'gray75'
         self.floatprecision = 0
+        self.timeformat = "%Y-%m-%d %H:%M:%S"
         self.thousandseparator = ''
         self.showindex = False
         self.columnwidths = {}
@@ -462,6 +463,7 @@ class Table(Canvas):
 
         prec = self.floatprecision
         rows = self.visiblerows
+
         for col in self.visiblecols:
             coldata = df.iloc[rows,col]
             colname = df.columns[col]
@@ -475,6 +477,9 @@ class Table(Canvas):
             if coldata.dtype in ['float64','int']:
                 #coldata = coldata.apply(lambda x: self.setPrecision(x, prec), 1)
                 coldata = coldata.apply(lambda x: self.setPrecision(x, prec))
+
+            if pd.api.types.is_datetime64_any_dtype(coldata):
+                coldata = coldata.dt.strftime(self.timeformat)
 
             #convert column data to object for display
             #coldata = coldata.astype(object).fillna('')
