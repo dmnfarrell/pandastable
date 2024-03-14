@@ -4,4 +4,4 @@ if platform.system() == 'Darwin':
     matplotlib.use('TkAgg')
 from .core import *
 from .data import *
-__version__ = '0.13.1'
+__version__ = '0.13.2pre'

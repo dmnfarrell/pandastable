@@ -326,7 +326,7 @@ class Table(Canvas):
 
     def showRowHeader(self):
         """Show the row header if hidden, must have run show() first"""
-        
+
         if not hasattr(self, 'rowheader'):
             return
         self.rowindexheader.grid(row=0,column=0,rowspan=1,sticky='news')
@@ -470,10 +470,16 @@ class Table(Canvas):
                 align = cfa[colname]
             else:
                 align = self.align
-            if prec != 0:
-                if coldata.dtype in ['float64','int']:
-                    coldata = coldata.apply(lambda x: self.setPrecision(x, prec), 1)
-            coldata = coldata.astype(object).fillna('')
+
+            #set precision
+            if coldata.dtype in ['float64','int']:
+                #coldata = coldata.apply(lambda x: self.setPrecision(x, prec), 1)
+                coldata = coldata.apply(lambda x: self.setPrecision(x, prec))
+
+            #convert column data to object for display
+            #coldata = coldata.astype(object).fillna('')
+            coldata = coldata.infer_objects(copy=False).fillna('')
+
             offset = rows[0]
             for row in self.visiblerows:
                 text = coldata.iloc[row-offset]
@@ -973,7 +979,10 @@ class Table(Canvas):
         #check columns
         cols = list(rc.columns.difference(df.columns))
         if len(cols)>0:
-            rc.drop(cols,1,inplace=True)
+            try:
+                rc.drop(cols,inplace=True)
+            except:
+                pass
         cols = list(df.columns.difference(rc.columns))
         if len(cols)>0:
             for col in cols:
