@@ -215,7 +215,7 @@ class preferencesDialog(Frame):
         self.main = Toplevel()
         self.master = self.main
         x,y,w,h = dialogs.getParentGeometry(self.parent)
-        self.main.geometry('+%d+%d' %(x+w/2-200,y+h/2-200))
+        self.main.geometry('+%d+%d' %(x+w/2-100,y+h/2-100))
         self.main.title('Preferences')
         self.main.protocol("WM_DELETE_WINDOW", self.quit)
         self.main.grab_set()
@@ -242,7 +242,8 @@ class preferencesDialog(Frame):
                 'fontstyle':{'type':'combobox','default':'','items':['','bold','italic']},
                 'fontsize':{'type':'scale','default':12,'range':(5,40),'interval':1,'label':'font size'},
                 'floatprecision':{'type':'entry','default':2,'label':'precision'},
-                'timeformat':{'type':'combobox','default':"%Y-%m-%d %H:%M:%S",'items':time_formats,'label':'time format'},
+                'timeformat':{'type':'combobox','default':"%Y-%m-%d %H:%M:%S",'width':20,
+                              'items':time_formats,'label':'time format'},
                 'thousandseparator':{'type':'combobox','default':'','items':['',','],'label':'thousands separator'},
                 'cellbackgr':{'type':'colorchooser','default':'#F4F4F3', 'label':'background color'},
                 'textcolor':{'type':'colorchooser','default':'black', 'label':'text color'},
