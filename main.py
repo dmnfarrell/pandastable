@@ -20,6 +20,7 @@
 """
 
 from pandastable.app import DataExplore, TestApp
+from pandastable import debug
 
 def main():
     """Run the application from outside the module - used for
