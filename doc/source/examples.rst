@@ -142,7 +142,9 @@ You can set table attributes directly such as these examples::
 	table.timeformat = "%Y-%m-%d"
 	#set header colors
 	self.table.rowheader.bgcolor = 'orange'
-	self.table.colheader.bgcolor = 'lightgreen'
+	self.table.rowheader.fgcolor = 'black'
+	self.table.colheader.bgcolor = 'darkgreen'
+	self.table.colheader.fgcolor = 'yellow'
 	self.table.colheader.textcolor = 'black'
 	#make editable or not
 	table.editable = False
@@ -173,7 +175,12 @@ You can set the following configuration values::
 	'linewidth': 1,
 	'rowheight': 22,
 	'rowselectedcolor': '#E4DED4',
-	'textcolor': 'black'}
+	'textcolor': 'black',
+	'colheaderbgcolor': 'gray25',
+	'colheaderfgcolor': 'white',
+	'rowheaderbgcolor': 'gray75',
+	'rowheaderfgcolor': 'black'
+	}
 
 The preferences are saved to a default.conf file in the home folder config folder. The location depends on the system. On Ubuntu this is under ~/.config/pandastable.
 

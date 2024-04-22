@@ -56,7 +56,8 @@ baseoptions['colors'] =  {'cellbackgr':'#F4F4F3',
                         'textcolor':'black',
                         'grid_color':'#ABB1AD',
                         'rowselectedcolor':'#E4DED4',
-                        'colheadercolor':'gray25'}
+                        'rowheaderbgcolor':'gray75',
+                        'colheaderbgcolor':'gray25'}
 
 time_formats = [
         "%Y-%m-%d %H:%M:%S",
@@ -203,6 +204,8 @@ def apply_options(options, table):
     for i in options:
         table.__dict__[i] = options[i]
     table.setFont()
+    #if hasattr(table,'colheader'):
+    #    table.colheader.redraw()
     table.redraw()
     return
 
@@ -249,7 +252,8 @@ class preferencesDialog(Frame):
                 'textcolor':{'type':'colorchooser','default':'black', 'label':'text color'},
                 'grid_color':{'type':'colorchooser','default':'#ABB1AD', 'label':'grid color'},
                 'rowselectedcolor':{'type':'colorchooser','default':'#E4DED4','label':'highlight color'},
-                'colheadercolor':{'type':'colorchooser','default':'gray25','label':'column header color'},
+                'colheaderbgcolor':{'type':'colorchooser','default':'gray25','label':'column header color'},
+                'rowheaderbgcolor':{'type':'colorchooser','default':'gray75','label':'row header color'},
                 'colormap':{'type':'combobox','default':'Spectral','items':plotting.colormaps},
                 'marker':{'type':'combobox','default':'','items':plotting.markers},
                 'linestyle':{'type':'combobox','default':'-','items':plotting.linestyles},
@@ -259,9 +263,8 @@ class preferencesDialog(Frame):
         sections = {'table':['align','floatprecision','timeformat','thousandseparator','rowheight',
                              'cellwidth','linewidth'],
                     'formats':['font','fontstyle','fontsize','cellbackgr','textcolor',
-                               'grid_color','rowselectedcolor','colheadercolor','vertlines','horizlines']}
+                               'grid_color','rowselectedcolor','colheaderbgcolor','rowheaderbgcolor','vertlines','horizlines']}
                     #'plotting':['marker','linestyle','ms','grid','colormap']}
-
 
         dialog, self.tkvars, self.widgets = dialogs.dialogFromOptions(self.main, self.opts, sections)
         dialog.pack(side=TOP,fill=BOTH)

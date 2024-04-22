@@ -182,8 +182,10 @@ class Table(Canvas):
         self.multipleselectioncolor = '#E0F2F7'
         self.boxoutlinecolor = '#084B8A'
         self.colselectedcolor = '#e4e3e4'
-        #self.colheadercolor = 'gray25'
-        #self.rowheadercolor = 'gray75'
+        self.colheaderbgcolor = 'gray25'
+        self.colheaderfgcolor = 'white'
+        self.rowheaderbgcolor = 'gray75'
+        self.rowheaderfgcolor = 'black'
         self.floatprecision = 0
         self.timeformat = "%Y-%m-%d %H:%M:%S"
         self.thousandseparator = ''
@@ -279,9 +281,11 @@ class Table(Canvas):
            Table is then redrawn."""
 
         #Add the table and header to the frame
-        self.rowheader = RowHeader(self.parentframe, self)
-        self.colheader = ColumnHeader(self.parentframe, self, bg='gray25')
-        self.rowindexheader = IndexHeader(self.parentframe, self, bg='gray75')
+        self.rowheader = RowHeader(self.parentframe, self,
+                                   fgcolor=self.rowheaderfgcolor, bgcolor=self.rowheaderbgcolor)
+        self.colheader = ColumnHeader(self.parentframe, self,
+                                   fgcolor=self.colheaderfgcolor, bgcolor=self.colheaderbgcolor)
+        self.rowindexheader = IndexHeader(self.parentframe, self, bg=self.rowheaderbgcolor)
         self.Yscrollbar = AutoScrollbar(self.parentframe,orient=VERTICAL,command=self.set_yviews)
         self.Yscrollbar.grid(row=1,column=2,rowspan=1,sticky='news',pady=0,ipady=0)
         self.Xscrollbar = AutoScrollbar(self.parentframe,orient=HORIZONTAL,command=self.set_xviews)
