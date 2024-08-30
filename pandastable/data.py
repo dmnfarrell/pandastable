@@ -91,7 +91,7 @@ class TableModel(object):
         #df['label'] = df.label.cat.as_ordered()
         #don't add date if rows too large
         if rows<2e6:
-            df['date'] = pd.date_range('1/1/2016', periods=rows, freq='H')
+            df['date'] = pd.date_range('1/1/2016', periods=rows, freq='h')
         return df
 
     @classmethod

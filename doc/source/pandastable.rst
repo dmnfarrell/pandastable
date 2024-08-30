@@ -4,14 +4,6 @@ pandastable package
 Submodules
 ----------
 
-pandastable\.annotation module
-------------------------------
-
-.. automodule:: pandastable.annotation
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 pandastable\.app module
 -----------------------
 

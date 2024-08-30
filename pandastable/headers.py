@@ -47,11 +47,11 @@ class ColumnHeader(Canvas):
     """Class that takes it's size and rendering from a parent table
         and column names from the table model."""
 
-    def __init__(self, parent=None, table=None, bg='gray25'):
-        Canvas.__init__(self, parent, bg=bg, width=500, height=25)
+    def __init__(self, parent=None, table=None, fgcolor='white', bgcolor='gray25'):
+        Canvas.__init__(self, parent, bg=bgcolor, width=500, height=25)
         self.thefont = 'Arial 14'
-        self.textcolor = 'white'
-        self.bgcolor = bg
+        self.bgcolor = bgcolor
+        self.fgcolor = fgcolor
         if table != None:
             self.table = table
             self.model = self.table.model
@@ -166,7 +166,7 @@ class ColumnHeader(Canvas):
                     w = self.table.cellwidth
 
                 if w<=8:
-                    colname=''
+                    colstr=''       # correct variable allowing hidding columns
                 x = self.table.col_positions[col]
                 if anchor in ['w','nw']:
                     xt = x+pad
@@ -189,7 +189,7 @@ class ColumnHeader(Canvas):
                                      fill='white', width=1)
                 self.create_text(xt,y,
                                     text=colname,
-                                    fill=self.textcolor,
+                                    fill=self.fgcolor,
                                     font=self.thefont,
                                     tag='text', anchor=anchor)
 
@@ -198,7 +198,7 @@ class ColumnHeader(Canvas):
                             fill='white', width=2)
             i+=1
             y=y+h-2
-        self.config(height=self.height)
+        self.config(height=self.height,bg=self.bgcolor)
         return
 
     def handle_left_click(self,event):
@@ -517,15 +517,14 @@ class RowHeader(Canvas):
        This also handles row/record selection as opposed to cell
        selection"""
 
-    def __init__(self, parent=None, table=None, width=50, bg='gray75'):
-        Canvas.__init__(self, parent, bg=bg, width=width, height=None)
+    def __init__(self, parent=None, table=None, width=50, fgcolor='black', bgcolor='gray75'):
+        Canvas.__init__(self, parent, bg=bgcolor, width=width, height=None)
         if table != None:
             self.table = table
             self.width = width
             self.inset = 1
-            #self.color = '#C8C8C8'
-            self.textcolor = 'black'
-            self.bgcolor = bg
+            self.fgcolor = fgcolor
+            self.bgcolor = bgcolor
             self.showindex = False
             self.maxwidth = 500
             self.config(height = self.table.height)
@@ -618,7 +617,7 @@ class RowHeader(Canvas):
                                         outline='white', width=1,
                                         tag='rowheader')
                 self.create_text(x+pad,y1+h/2, text=text,
-                                  fill=self.textcolor, font=self.table.thefont,
+                                  fill=self.fgcolor, font=self.table.thefont,
                                   tag='text', anchor=align)
                 r+=1
         self.config(bg=self.bgcolor)
@@ -678,6 +677,8 @@ class RowHeader(Canvas):
     def handle_right_click(self, event):
         """respond to a right click"""
 
+        if self.table.enable_menus == False:
+            return
         self.delete('tooltip')
         if hasattr(self, 'rightmenu'):
             self.rightmenu.destroy()

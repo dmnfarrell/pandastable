@@ -548,7 +548,7 @@ class PlotViewer(Frame):
                 nrows = int(round(np.sqrt(size),0))
                 ncols = int(np.ceil(size/nrows))
                 self.ax.set_visible(False)
-                kwargs['subplots'] = None
+                del kwargs['subplots']
                 for n,df in g:
                     if ncols==1 and nrows==1:
                         ax = self.fig.add_subplot(111)
@@ -734,7 +734,7 @@ class PlotViewer(Frame):
 
         rows = int(round(np.sqrt(len(data.columns)),0))
         if len(data.columns) == 1 and kind not in ['pie']:
-            kwargs['subplots'] = 0
+            kwargs['subplots'] = False
         if 'colormap' in kwargs:
             cmap = plt.cm.get_cmap(kwargs['colormap'])
         else:
@@ -955,7 +955,7 @@ class PlotViewer(Frame):
         plots = len(cols)
         if marker == '':
             marker = 'o'
-        if kwds['subplots'] == 1:
+        if kwds['subplots'] == True:
             size = plots-1
             nrows = int(round(np.sqrt(size),0))
             ncols = int(np.ceil(size/nrows))
@@ -983,7 +983,7 @@ class PlotViewer(Frame):
             if marker in ['x','+'] and bw == False:
                 ec = clr
 
-            if kwds['subplots'] == 1:
+            if kwds['subplots'] == True:
                 ax = self.fig.add_subplot(nrows,ncols,i)
             if pointsizes != '' and pointsizes in df.columns:
                 ms = df[pointsizes]
@@ -1009,7 +1009,7 @@ class PlotViewer(Frame):
                 ax.set_ylim((x.min()+.1,x.max()))
             if grid == 1:
                 ax.grid(True)
-            if kwds['subplots'] == 1:
+            if kwds['subplots'] == True:
                 ax.set_title(cols[i])
             if colormap is not None and kwds['colorbar'] == True:
                 self.fig.colorbar(sc, ax=ax)
@@ -1025,7 +1025,7 @@ class PlotViewer(Frame):
                         ax.annotate(txt, (x[i],y[i]), xycoords='data',
                                     xytext=(5, 5), textcoords='offset points',)
 
-        if kwds['legend'] == 1 and kwds['subplots'] == 0:
+        if kwds['legend'] == 1 and kwds['subplots'] == False:
             ax.legend(cols[1:])
 
         return ax, handles
@@ -1399,6 +1399,8 @@ class TkOptions(object):
                 kwds[i] = [self.widgets[i].get(j) for j in items]
             elif self.opts[i]['type'] == 'scrolledtext':
                 kwds[i] = self.widgets[i].get('1.0',END)
+            elif self.opts[i]['type'] == 'checkbutton':
+                kwds[i] = bool(self.tkvars[i].get())
             else:
                 kwds[i] = self.tkvars[i].get()
         self.kwds = kwds

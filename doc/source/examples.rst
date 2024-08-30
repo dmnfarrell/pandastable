@@ -134,42 +134,55 @@ Set table attributes
 
 You can set table attributes directly such as these examples::
 
-		table.textcolor = 'blue'
-		table.cellbackgr = 'white'
-		table.boxoutlinecolor = 'black'
-		#set header colors
-		self.table.rowheader.bgcolor = 'orange'
-		self.table.colheader.bgcolor = 'lightgreen'
-		self.table.colheader.textcolor = 'black'
-		#make editable or not
-    table.editable = False
+	table.textcolor = 'blue'
+	table.cellbackgr = 'white'
+	table.boxoutlinecolor = 'black'
+	#display formats
+	table.floatprecision = 2
+	table.timeformat = "%Y-%m-%d"
+	#set header colors
+	self.table.rowheader.bgcolor = 'orange'
+	self.table.rowheader.fgcolor = 'black'
+	self.table.colheader.bgcolor = 'darkgreen'
+	self.table.colheader.fgcolor = 'yellow'
+	self.table.colheader.textcolor = 'black'
+	#make editable or not
+	table.editable = False
 
 Set Preferences
 ---------------
 
-Preferences are normally loaded from a configuration file that can be edited manually or via the menu. You can also programmatically set these preferences using the config module::
+Preferences are used to save config settings so they can be re-used. These are normally loaded from a configuration file that can be edited manually or via the menu. You can also programmatically set these preferences using the config module::
 
-			#load from a config file if you need to (done by default when tables are created)
-			options = config.load_options()
-			#options is a dict that you can set yourself
-			options = {'floatprecision': 2}
-			config.apply_options(options, table)
+	#load from a config file if you need to (done by default when tables are created)
+	options = config.load_options()
+	#options is a dict that you can set yourself
+	options = {'floatprecision': 2}
+	config.apply_options(options, table)
 
 You can set the following configuration values::
 
-			{'align': 'w',
-			 'cellbackgr': '#F4F4F3',
-			 'cellwidth': 80,
-			 'floatprecision': 2,
-			 'thousandseparator': '',
-			 'font': 'Arial',
-			 'fontsize': 12,
-			 'fontstyle': '',
-			 'grid_color': '#ABB1AD',
-			 'linewidth': 1,
-			 'rowheight': 22,
-			 'rowselectedcolor': '#E4DED4',
-			 'textcolor': 'black'}
+	{'align': 'w',
+	'cellbackgr': '#F4F4F3',
+	'cellwidth': 80,
+	'floatprecision': 2,
+	'timeformat': "%Y-%m-%d",
+	'thousandseparator': '',
+	'font': 'Arial',
+	'fontsize': 12,
+	'fontstyle': '',
+	'grid_color': '#ABB1AD',
+	'linewidth': 1,
+	'rowheight': 22,
+	'rowselectedcolor': '#E4DED4',
+	'textcolor': 'black',
+	'colheaderbgcolor': 'gray25',
+	'colheaderfgcolor': 'white',
+	'rowheaderbgcolor': 'gray75',
+	'rowheaderfgcolor': 'black'
+	}
+
+The preferences are saved to a default.conf file in the home folder config folder. The location depends on the system. On Ubuntu this is under ~/.config/pandastable.
 
 Table Coloring
 --------------

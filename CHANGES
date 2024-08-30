@@ -3,6 +3,16 @@ CHANGES
 =======
 
 ------
+0.13.2
+------
+
+Fixed precision bug for negative numnbers
+Mouse_wheel now works for mac
+Removed xlrd dep
+Column name length and max cell width in adjustColumnWidths
+Can now use different datetime formats
+
+------
 0.13.0
 ------
 

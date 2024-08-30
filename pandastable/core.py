@@ -94,6 +94,7 @@ class Table(Canvas):
         self.filename = None
         self.showtoolbar = showtoolbar
         self.showstatusbar = showstatusbar
+        self.showrowheader = True
         self.set_defaults()
         self.logfile = logfile
         self.currentpage = None
@@ -181,9 +182,12 @@ class Table(Canvas):
         self.multipleselectioncolor = '#E0F2F7'
         self.boxoutlinecolor = '#084B8A'
         self.colselectedcolor = '#e4e3e4'
-        #self.colheadercolor = 'gray25'
-        #self.rowheadercolor = 'gray75'
+        self.colheaderbgcolor = 'gray25'
+        self.colheaderfgcolor = 'white'
+        self.rowheaderbgcolor = 'gray75'
+        self.rowheaderfgcolor = 'black'
         self.floatprecision = 0
+        self.timeformat = "%Y-%m-%d %H:%M:%S"
         self.thousandseparator = ''
         self.showindex = False
         self.columnwidths = {}
@@ -217,12 +221,12 @@ class Table(Canvas):
         return
 
     def mouse_wheel(self, event):
-        """Handle mouse wheel scroll for windows"""
+        """Handle mouse wheel scroll for windows and mac (darwin)"""
 
-        if event.num == 5 or event.delta == -120:
+        if event.num == 5 or event.delta == -120 or (self.ostyp == "darwin" and event.delta == -1):
             event.widget.yview_scroll(1, UNITS)
             self.rowheader.yview_scroll(1, UNITS)
-        if event.num == 4 or event.delta == 120:
+        if event.num == 4 or event.delta == 120 or (self.ostyp == "darwin" and event.delta == 1):
             if self.canvasy(0) < 0:
                 return
             event.widget.yview_scroll(-1, UNITS)
@@ -277,9 +281,11 @@ class Table(Canvas):
            Table is then redrawn."""
 
         #Add the table and header to the frame
-        self.rowheader = RowHeader(self.parentframe, self)
-        self.colheader = ColumnHeader(self.parentframe, self, bg='gray25')
-        self.rowindexheader = IndexHeader(self.parentframe, self, bg='gray75')
+        self.rowheader = RowHeader(self.parentframe, self,
+                                   fgcolor=self.rowheaderfgcolor, bgcolor=self.rowheaderbgcolor)
+        self.colheader = ColumnHeader(self.parentframe, self,
+                                   fgcolor=self.colheaderfgcolor, bgcolor=self.colheaderbgcolor)
+        self.rowindexheader = IndexHeader(self.parentframe, self, bg=self.rowheaderbgcolor)
         self.Yscrollbar = AutoScrollbar(self.parentframe,orient=VERTICAL,command=self.set_yviews)
         self.Yscrollbar.grid(row=1,column=2,rowspan=1,sticky='news',pady=0,ipady=0)
         self.Xscrollbar = AutoScrollbar(self.parentframe,orient=HORIZONTAL,command=self.set_xviews)
@@ -312,6 +318,24 @@ class Table(Canvas):
         self.currheight = self.parentframe.winfo_height()
         if hasattr(self, 'pf'):
             self.pf.updateData()
+        return
+
+    def hideRowHeader(self):
+        """Hide the row header, must have run show() first"""
+
+        if not hasattr(self, 'rowheader'):
+            return
+        self.rowheader.grid_forget()
+        self.rowindexheader.grid_forget()
+        return
+
+    def showRowHeader(self):
+        """Show the row header if hidden, must have run show() first"""
+
+        if not hasattr(self, 'rowheader'):
+            return
+        self.rowindexheader.grid(row=0,column=0,rowspan=1,sticky='news')
+        self.rowheader.grid(row=1,column=0,rowspan=1,sticky='news')
         return
 
     def resized(self, event):
@@ -443,6 +467,7 @@ class Table(Canvas):
 
         prec = self.floatprecision
         rows = self.visiblerows
+
         for col in self.visiblecols:
             coldata = df.iloc[rows,col]
             colname = df.columns[col]
@@ -451,10 +476,19 @@ class Table(Canvas):
                 align = cfa[colname]
             else:
                 align = self.align
-            if prec != 0:
-                if coldata.dtype == 'float64':
-                    coldata = coldata.apply(lambda x: self.setPrecision(x, prec), 1)
-            coldata = coldata.astype(object).fillna('')
+
+            #set precision
+            if coldata.dtype in ['float64','int']:
+                #coldata = coldata.apply(lambda x: self.setPrecision(x, prec), 1)
+                coldata = coldata.apply(lambda x: self.setPrecision(x, prec))
+
+            if pd.api.types.is_datetime64_any_dtype(coldata):
+                coldata = coldata.dt.strftime(self.timeformat)
+
+            #convert column data to object for display
+            #coldata = coldata.astype(object).fillna('')
+            coldata = coldata.infer_objects(copy=False).fillna('')
+
             offset = rows[0]
             for row in self.visiblerows:
                 text = coldata.iloc[row-offset]
@@ -480,7 +514,7 @@ class Table(Canvas):
         """Set precision of a float value"""
 
         if not pd.isnull(x):
-            if x<1:
+            if x<1 and x>-1:
                 x = '{:.{}g}'.format(x, p)
             elif self.thousandseparator == ',':
                 x = '{:,.{}f}'.format(x, p)
@@ -954,7 +988,10 @@ class Table(Canvas):
         #check columns
         cols = list(rc.columns.difference(df.columns))
         if len(cols)>0:
-            rc.drop(cols,1,inplace=True)
+            try:
+                rc.drop(cols,inplace=True)
+            except:
+                pass
         cols = list(df.columns.difference(rc.columns))
         if len(cols)>0:
             for col in cols:
@@ -2241,7 +2278,7 @@ class Table(Canvas):
         colname = df.columns[self.currentcol]
         dtype = df.dtypes[colname]
 
-        if dtype.name == 'category':
+        if self.editable and dtype.name == 'category':
             #drop down menu for category entry
             row = self.get_row_clicked(event)
             col = self.get_col_clicked(event)
