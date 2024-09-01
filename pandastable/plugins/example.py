@@ -40,7 +40,7 @@ class ExamplePlugin(Plugin):
     def main(self, parent):
         """Customise this or _doFrame for your widgets"""
 
-        if parent==None:
+        if parent is None:
             return
         self.parent = parent
         self.parentframe = None

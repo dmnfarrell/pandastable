@@ -25,13 +25,14 @@ import numpy as np
 import pandas as pd
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-#import matplotlib.animation as animation
+# import matplotlib.animation as animation
 from collections import OrderedDict
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle
 from matplotlib.text import Text, Annotation
 from matplotlib.collections import PathCollection
 from matplotlib.backend_bases import key_press_handler
+
 
 class DragHandler(object):
     """ A simple class to handle picking and dragging"""
@@ -41,7 +42,7 @@ class DragHandler(object):
         """
 
         self.parent = parent
-        #store the dragged text object
+        # store the dragged text object
         self.dragged = None
         self.selected = None
         self.selectedrect = None
@@ -59,19 +60,19 @@ class DragHandler(object):
 
     def button_press_event(self, event):
 
-        #print (event)
+        # print (event)
         fig = self.parent.fig
         fig.canvas._tkcanvas.focus_set()
-        if self.selectedrect != None:
+        if self.selectedrect is not None:
             self.selectedrect.set_visible(False)
         return
 
     def on_pick_event(self, event):
-        " Store which text object was picked and were the pick event occurs."
+        """ Store which text object was picked and were the pick event occurs."""
 
         df = self.parent.data
         self.dragged = event.artist
-        #print(self.dragged)
+        # print(self.dragged)
         if isinstance(event.artist, PathCollection):
             ind = event.ind
             print('onpick scatter:', ind, df.ix[ind])
@@ -88,24 +89,24 @@ class DragHandler(object):
             text = event.artist
             print('onpick text:', text.get_text())
             self.selected = text
-            #self.drawSelectionRect()
+            # self.drawSelectionRect()
         return True
 
     def on_release_event(self, event):
-        " Update and store text/annotation position "
+        """ Update and store text/annotation position """
 
         fig = self.parent.fig
-        #ax = fig.axes[0]
+        # ax = fig.axes[0]
         ax = self.parent.ax
         xy = (event.xdata, event.ydata)
-        #xy = (event.x, event.y)
-        print (xy)
-        #if annotation object moved we record new coords
+        # xy = (event.x, event.y)
+        print(xy)
+        # if annotation object moved we record new coords
         if isinstance(self.dragged, Annotation):
             key = self.dragged._id
-            #print (self.dragged.get_text(), key)
+            # print (self.dragged.get_text(), key)
             d = self.parent.labelopts.textboxes[key]
-            #print (d)
+            # print (d)
             fig.canvas.draw()
             bbox = self.dragged.get_window_extent()
 
@@ -116,9 +117,9 @@ class DragHandler(object):
             else:
                 inv = ax.transData.inverted()
             bbdata = inv.transform(bbox)
-            xy = bbdata[0][0],bbdata[0][1]
+            xy = bbdata[0][0], bbdata[0][1]
             d['xy'] = xy
-            print (xy)
+            print(xy)
         self.dragged = None
         return True
 
@@ -126,14 +127,14 @@ class DragHandler(object):
         """Handle key press"""
 
         if event.key == 'delete':
-            if self.selected == None:
+            if self.selected is None:
                 return
             self.selected.set_visible(False)
             fig = self.parent.fig
             key = self.selected._id
             del self.parent.labelopts.textboxes[key]
             self.selected = None
-            if self.selectedrect != None:
+            if self.selectedrect is not None:
                 self.selectedrect.set_visible(False)
         fig.canvas.draw()
         return
@@ -142,21 +143,21 @@ class DragHandler(object):
         """Draw a selection box"""
 
         from matplotlib.patches import FancyBboxPatch
-        if self.selectedrect != None:
+        if self.selectedrect is not None:
             self.selectedrect.set_visible(False)
         fig = self.parent.fig
         ax = fig.axes[0]
         bb = self.selected.get_window_extent()
         bb = ax.transAxes.inverted().transform(bb)
-        x,y = bb[0]
-        x1,y1 = bb[1]
-        print (x,y,x1,y1)
-        pad = (x1-x)/10
+        x, y = bb[0]
+        x1, y1 = bb[1]
+        print(x, y, x1, y1)
+        pad = (x1 - x) / 10
         self.selectedrect = FancyBboxPatch((x, y),
-                                 abs(x1-x), abs(y1-y),
-                                 boxstyle="round,pad=%s" %pad, lw=2, alpha=0.5,
-                                 ec="red", fc="red", zorder=10.,
-                                 transform=ax.transAxes)
+                                           abs(x1 - x), abs(y1 - y),
+                                           boxstyle="round,pad=%s" % pad, lw=2, alpha=0.5,
+                                           ec="red", fc="red", zorder=10.,
+                                           transform=ax.transAxes)
         ax.add_patch(self.selectedrect)
         fig.canvas.draw()
         return

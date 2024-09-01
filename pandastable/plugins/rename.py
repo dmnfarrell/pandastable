@@ -117,7 +117,7 @@ class BatchRenamePlugin(Plugin):
     def addFolder(self,path=None):
         """Get a folder"""
 
-        if path==None:
+        if path is None:
             path = filedialog.askdirectory(parent=self.main,
                                             initialdir=self.currentdir,
                                             title='Select folder')
@@ -182,18 +182,18 @@ def doFindReplace(files=None, wildcard=None, find='', replace='', rename=False, 
     """Find replace method"""
 
     newfiles = []
-    if files==None:
+    if files is None:
         files = glob.glob(wildcard)
     for pathname in files:
         basename= os.path.basename(pathname)
-        if occ != None:
+        if occ is not None:
             new_filename = basename.replace(find,replace,occ)
         else:
             new_filename = basename.replace(find,replace)
         newfiles.append(new_filename)
         if new_filename != basename:
 
-            if rename == True:
+            if rename:
                 os.rename(pathname,
                           os.path.join(os.path.dirname(pathname),
                           new_filename))
@@ -210,7 +210,7 @@ def main():
 
     opts, remainder = parser.parse_args()
     app = BatchRenameApp()
-    if opts.directory != None:
+    if opts.directory is not None:
         app.addFolder(opts.directory)
     app.mainloop()
 

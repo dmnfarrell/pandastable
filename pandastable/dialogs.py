@@ -20,9 +20,10 @@
 """
 
 from __future__ import absolute_import, division, print_function
-import sys,os,types
+import sys, os, types
 import platform
 from datetime import datetime
+
 try:
     from tkinter import *
     from tkinter.ttk import *
@@ -47,6 +48,7 @@ import pandas as pd
 from .data import TableModel
 from . import util, images
 
+
 def setGeometry(win, width=None):
     """Set window geometry to center of screen"""
 
@@ -54,27 +56,32 @@ def setGeometry(win, width=None):
     win.geometry(winsize)
     return
 
+
 def getBestGeometry(win, width=None):
     """Calculate optimal geometry from screen size or given width"""
 
     ws = win.winfo_screenwidth()
     hs = win.winfo_screenheight()
-    if width == None:
-        w = ws/1.4; h = hs*0.8
+    if width is None:
+        w = ws / 1.4
+        h = hs * 0.8
     else:
         w = width
         h = width / 2
 
-    x = (ws/2)-(w/2); y = (hs/2)-(h/2)
-    g = '%dx%d+%d+%d' % (w,h,x,y)
+    x = (ws / 2) - (w / 2)
+    y = (hs / 2) - (h / 2)
+    g = '%dx%d+%d+%d' % (w, h, x, y)
     return g
+
 
 def getParentGeometry(parent):
     x = parent.winfo_rootx()
     y = parent.winfo_rooty()
     w = parent.winfo_width()
     h = parent.winfo_height()
-    return x,y,w,h
+    return x, y, w, h
+
 
 def getDictfromTkVars(opts, tkvars, widgets):
     kwds = {}
@@ -84,7 +91,7 @@ def getDictfromTkVars(opts, tkvars, widgets):
         if opts[i]['type'] == 'listbox':
             items = widgets[i].curselection()
             kwds[i] = [widgets[i].get(j) for j in items]
-            #print (items, kwds[i])
+            # print (items, kwds[i])
         else:
             try:
                 kwds[i] = int(tkvars[i].get())
@@ -92,173 +99,181 @@ def getDictfromTkVars(opts, tkvars, widgets):
                 kwds[i] = tkvars[i].get()
     return kwds
 
-def pickColor(parent, oldcolor):
 
+def pickColor(parent, oldcolor):
     import tkinter.colorchooser
     ctuple, newcolor = tkinter.colorchooser.askcolor(title='pick a color',
                                                      initialcolor=oldcolor,
                                                      parent=parent)
-    if ctuple == None:
+    if ctuple is None:
         return None
     return str(newcolor)
 
+
 def dialogFromOptions(parent, opts, groups=None, callback=None,
-                        sticky='news',  layout='horizontal'):
+                      sticky='news', layout='horizontal'):
     """Auto create tk vars and widgets for corresponding options and
        and return the enclosing frame"""
 
     tkvars = {}
     widgets = {}
     dialog = Frame(parent)
-    if groups == None:
+    if groups is None:
         groups = {'options': opts.keys()}
-    c=0
-    row=0
-    scol=1
+    c = 0
+    row = 0
+    scol = 1
     for g in groups:
         if g == 'hidden':
             continue
-        if layout=='horizontal':
-            row=0; c+=1
-            side=LEFT
-            fill=Y
+        if layout == 'horizontal':
+            row = 0
+            c += 1
+            side = LEFT
+            fill = Y
         else:
-            c=0; row+=1
-            side=TOP
-            fill=X
+            c = 0
+            row += 1
+            side = TOP
+            fill = X
         frame = LabelFrame(dialog, text=g)
-        #frame.grid(row=row,column=c,sticky=sticky)
-        frame.pack(side=side,fill=fill,expand=False)
+        # frame.grid(row=row,column=c,sticky=sticky)
+        frame.pack(side=side, fill=fill, expand=False)
 
         for i in groups[g]:
-            w=None
+            w = None
             opt = opts[i]
             if opt['type'] == 'entry':
                 if 'label' in opt:
-                    label=opt['label']
+                    label = opt['label']
                 else:
-                    label=i
+                    label = i
                 if 'width' in opt:
-                    w=opt['width']
+                    w = opt['width']
                 else:
-                    w=6
-                Label(frame,text=label).pack()
+                    w = 6
+                Label(frame, text=label).pack()
                 if type(opts[i]['default']) is int:
                     tkvars[i] = v = IntVar()
                 else:
                     tkvars[i] = v = StringVar()
                 v.set(opts[i]['default'])
-                w = Entry(frame,textvariable=v, width=w, command=callback)
+                w = Entry(frame, textvariable=v, width=w, command=callback)
             elif opt['type'] == 'scrolledtext':
                 w = ScrolledText(frame, width=20, wrap=WORD)
                 tkvars[i] = None
             elif opt['type'] == 'checkbutton':
                 tkvars[i] = v = IntVar()
                 v.set(opts[i]['default'])
-                w = Checkbutton(frame,text=opt['label'],
-                         variable=v)
+                w = Checkbutton(frame, text=opt['label'],
+                                variable=v)
             elif opt['type'] == 'combobox':
                 if 'label' in opt:
-                   label=opt['label']
+                    label = opt['label']
                 else:
                     label = i
                 if 'width' in opt:
-                    w=opt['width']
+                    w = opt['width']
                 else:
-                    w=16
-                Label(frame,text=label).pack()
+                    w = 16
+                Label(frame, text=label).pack()
                 tkvars[i] = v = StringVar()
                 v.set(opts[i]['default'])
                 w = Combobox(frame, values=opt['items'],
-                         textvariable=v,width=w,
-                         validatecommand=callback,validate='key')
+                             textvariable=v, width=w,
+                             validatecommand=callback, validate='key')
                 w.set(opt['default'])
                 if 'tooltip' in opt:
                     ToolTip.createToolTip(w, opt['tooltip'])
             elif opt['type'] == 'spinbox':
                 if 'label' in opt:
-                   label=opt['label']
+                    label = opt['label']
                 else:
                     label = i
-                Label(frame,text=label).pack()
+                Label(frame, text=label).pack()
                 tkvars[i] = v = StringVar()
                 w = Spinbox(frame, values=opt['items'],
-                         textvariable=v,width=w,
-                         validatecommand=callback,validate='key')
+                            textvariable=v, width=w,
+                            validatecommand=callback, validate='key')
                 w.set(opt['default'])
-                #if 'tooltip' in opt:
+                # if 'tooltip' in opt:
                 #    ToolTip.createToolTip(w, opt['tooltip'])
             elif opt['type'] == 'listbox':
                 if 'label' in opt:
-                   label=opt['label']
+                    label = opt['label']
                 else:
                     label = i
-                Label(frame,text=label).pack()
-                w,v = addListBox(frame, values=opt['items'],width=12)
-                tkvars[i] = v #add widget instead of var
+                Label(frame, text=label).pack()
+                w, v = addListBox(frame, values=opt['items'], width=12)
+                tkvars[i] = v  # add widget instead of var
             elif opt['type'] == 'radio':
-                Label(frame,text=label).pack()
+                Label(frame, text=label).pack()
                 if 'label' in opt:
-                   label=opt['label']
+                    label = opt['label']
                 else:
                     label = i
-                Label(frame,text=label).pack()
+                Label(frame, text=label).pack()
                 tkvars[i] = v = StringVar()
                 for item in opt['items']:
                     w = Radiobutton(frame, text=item, variable=v, value=item).pack()
             elif opt['type'] == 'scale':
-                fr,to=opt['range']
+                fr, to = opt['range']
                 tkvars[i] = v = DoubleVar()
                 v.set(opts[i]['default'])
-                w = Scale(frame,label=opt['label'],
-                         from_=fr,to=to,
-                         orient='horizontal',
-                         resolution=opt['interval'],
-                         variable=v)
+                w = Scale(frame, label=opt['label'],
+                          from_=fr, to=to,
+                          orient='horizontal',
+                          resolution=opt['interval'],
+                          variable=v)
             elif opt['type'] == 'colorchooser':
                 tkvars[i] = v = StringVar()
                 clr = opts[i]['default']
                 v.set(clr)
-                def func(var):
-                    clr=var.get()
-                    new=pickColor(parent,clr)
-                    if new != None:
-                        var.set(new)
-                w = Button(frame, text=opt['label'], command=lambda v=v : func(v))
 
-            if w != None:
-                w.pack(fill=BOTH,expand=1,pady=1)
+                def func(var):
+                    clr = var.get()
+                    new = pickColor(parent, clr)
+                    if new is not None:
+                        var.set(new)
+
+                w = Button(frame, text=opt['label'], command=lambda v=v: func(v))
+
+            if w is not None:
+                w.pack(fill=BOTH, expand=1, pady=1)
                 widgets[i] = w
-            row+=1
+            row += 1
 
     return dialog, tkvars, widgets
+
 
 def addButton(frame, name, callback, img=None, tooltip=None,
               side=TOP, compound=None, width=None, padding=1):
     """Add a button with image, toolip to a tkinter frame"""
 
-    #style = ttk.Style()
-    #style.configure('TButton', padding=1)
-    if img==None:
+    # style = ttk.Style()
+    # style.configure('TButton', padding=1)
+    if img is None:
         b = Button(frame, text=name, command=callback)
     else:
         b = Button(frame, text=name, command=callback, width=width,
-                         image=img, compound=compound, padding=padding)
+                   image=img, compound=compound, padding=padding)
     b.image = img
-    b.pack(side=side,fill=X,padx=padding)
-    if tooltip != None:
+    b.pack(side=side, fill=X, padx=padding)
+    if tooltip is not None:
         ToolTip.createToolTip(b, tooltip)
     return
+
 
 def applyStyle(w):
     """Apply style to individual widget to prevent widget color issues on linux"""
 
     plf = util.checkOS()
-    if plf in ['linux','darwin']:
+    if plf in ['linux', 'darwin']:
         bg = Style().lookup('TLabel.label', 'background')
         w.configure(fg='black', bg=bg,
-                     activeforeground='white', activebackground='#0174DF')
+                    activeforeground='white', activebackground='#0174DF')
     return
+
 
 def setWidgetStyles(widgets):
     """set styles of list of widgets"""
@@ -272,18 +287,20 @@ def setWidgetStyles(widgets):
             pass
     return
 
+
 class Progress():
     """ threaded progress bar for tkinter gui """
+
     def __init__(self, parent, side=LEFT):
         import threading
         self.maximum = 100
         self.interval = 10
         self.progressbar = Progressbar(parent, orient=HORIZONTAL,
-                                           mode="indeterminate",
-                                           maximum=self.maximum)
-        #self.progressbar.grid(row=row, column=column,
+                                       mode="indeterminate",
+                                       maximum=self.maximum)
+        # self.progressbar.grid(row=row, column=column,
         #                      columnspan=columnspan, sticky="we")
-        self.progressbar.pack(fill=X,side=side)
+        self.progressbar.pack(fill=X, side=side)
         self.thread = threading.Thread()
         self.thread.__init__(target=self.progressbar.start(self.interval),
                              args=())
@@ -319,12 +336,13 @@ class Progress():
                                        maximum=self.maximum,
                                        value=self.maximum)
 
+
 class MultipleValDialog(Dialog):
     """Simple dialog to get multiple values"""
 
     def __init__(self, parent, title=None, initialvalues=None, labels=None,
-                    types=None, tooltips=None, width=14, **kwargs):
-        if labels != None and types is not None:
+                 types=None, tooltips=None, width=14, **kwargs):
+        if labels is not None and types is not None:
             self.initialvalues = initialvalues
             self.labels = labels
             self.types = types
@@ -332,54 +350,55 @@ class MultipleValDialog(Dialog):
             self.maxwidth = width
 
         Dialog.__init__(self, parent, title)
-        #super(MultipleValDialog, self).__init__(parent, title)
+        # super(MultipleValDialog, self).__init__(parent, title)
         return
 
     def body(self, master):
 
-        r=0
-        self.vrs=[];self.entries=[]
+        r = 0
+        self.vrs = []
+        self.entries = []
         for i in range(len(self.labels)):
-            Label(master, text=self.labels[i]).grid(row=r,column=0,sticky='news')
-            if self.types[i] in ['int','checkbutton']:
+            Label(master, text=self.labels[i]).grid(row=r, column=0, sticky='news')
+            if self.types[i] in ['int', 'checkbutton']:
                 self.vrs.append(IntVar())
             else:
                 self.vrs.append(StringVar())
             default = self.initialvalues[i]
             if self.types[i] == 'password':
-                s='*'
+                s = '*'
             else:
-                s=None
+                s = None
             if self.types[i] == 'combobox':
                 self.vrs[i].set(default[0])
                 w = Combobox(master, values=default,
-                         textvariable=self.vrs[i],width=14)
+                             textvariable=self.vrs[i], width=14)
                 self.entries.append(w)
             elif self.types[i] == 'listbox':
-                f,w = addListBox(master, values=default,width=14)
+                f, w = addListBox(master, values=default, width=14)
                 self.entries.append(f)
-                self.vrs[i] = w #add widget instead of var
+                self.vrs[i] = w  # add widget instead of var
             elif self.types[i] == 'checkbutton':
                 self.vrs[i].set(default)
                 w = Checkbutton(master, text='',
-                         variable=self.vrs[i])
+                                variable=self.vrs[i])
                 self.entries.append(w)
             else:
-                if default == None:
-                    default=''
+                if default is None:
+                    default = ''
                 self.vrs[i].set(default)
                 self.entries.append(Entry(master, textvariable=self.vrs[i], width=self.maxwidth, show=s))
-            self.entries[i].grid(row=r, column=1,padx=2,pady=2,sticky='ew')
-            if self.tooltips != None:
+            self.entries[i].grid(row=r, column=1, padx=2, pady=2, sticky='ew')
+            if self.tooltips is not None:
                 ToolTip.createToolTip(self.entries[i], self.tooltips[i])
-            r+=1
-        s=Style()
+            r += 1
+        s = Style()
         bg = s.lookup('TLabel.label', 'background')
         self.configure(background=bg)
         master.configure(background=bg)
         self.option_add("*background", bg)
         self.option_add("*foreground", 'black')
-        return self.entries[0] # initial focus
+        return self.entries[0]  # initial focus
 
     def apply(self):
         self.result = True
@@ -394,9 +413,9 @@ class MultipleValDialog(Dialog):
     def getResults(self, null=None):
         """Return a dict of options/values"""
 
-        res = dict(zip(self.labels,self.results))
-        #replace null values with None
-        if null != None:
+        res = dict(zip(self.labels, self.results))
+        # replace null values with None
+        if null is not None:
             for r in res:
                 if res[r] == null: res[r] = None
         for r in res:
@@ -406,8 +425,10 @@ class MultipleValDialog(Dialog):
                 pass
         return res
 
+
 class ToolTip(object):
     """Tooltip class for tkinter widgets"""
+
     def __init__(self, widget):
         self.widget = widget
         self.tipwindow = None
@@ -453,19 +474,24 @@ class ToolTip(object):
         """Create a tooltip for a widget"""
 
         toolTip = ToolTip(widget)
+
         def enter(event):
             toolTip.showtip(text, event)
+
         def leave(event):
             toolTip.hidetip(event)
+
         widget.bind('<Enter>', enter)
         widget.bind('<Leave>', leave)
         return
+
 
 class ProgressDialog(Toplevel):
     def __init__(self):
         Toplevel.__init__()
         prog = Progressbar(self, orient='horizontal',
-                            length=200, mode='indeterminate')
+                           length=200, mode='indeterminate')
+
 
 class ImportDialog(Frame):
     """Provides a frame for figure canvas and MPL settings"""
@@ -482,72 +508,72 @@ class ImportDialog(Frame):
         self.main.protocol("WM_DELETE_WINDOW", self.quit)
         self.main.grab_set()
         self.main.transient(parent)
-        #setGeometry(self.main, width=900)
+        # setGeometry(self.main, width=900)
 
-        delimiters = [',',r'\t',' ',';','/','&','|','^','+','-']
-        encodings = ['utf-8','ascii','iso8859_15','cp037','cp1252','big5','euc_jp']
-        timeformats = ['infer','%d/%m/%Y','%Y/%m/%d','%Y/%d/%m',
-                        '%Y-%m-%d %H:%M:%S','%Y-%m-%d %H:%M',
-                        '%d-%m-%Y %H:%M:%S','%d-%m-%Y %H:%M']
-        grps = {'formats':['delimiter','decimal','comment'],
-                'data':['header','skiprows','skipinitialspace',
-                        'skip_blank_lines','numbers_as_string',
-                        'parse_dates','time format','encoding','names'],
-                'other':['rowsperfile']}
+        delimiters = [',', r'\t', ' ', ';', '/', '&', '|', '^', '+', '-']
+        encodings = ['utf-8', 'ascii', 'iso8859_15', 'cp037', 'cp1252', 'big5', 'euc_jp']
+        timeformats = ['infer', '%d/%m/%Y', '%Y/%m/%d', '%Y/%d/%m',
+                       '%Y-%m-%d %H:%M:%S', '%Y-%m-%d %H:%M',
+                       '%d-%m-%Y %H:%M:%S', '%d-%m-%Y %H:%M']
+        grps = {'formats': ['delimiter', 'decimal', 'comment'],
+                'data': ['header', 'skiprows', 'skipinitialspace',
+                         'skip_blank_lines', 'numbers_as_string',
+                         'parse_dates', 'time format', 'encoding', 'names'],
+                'other': ['rowsperfile']}
         grps = OrderedDict(sorted(grps.items()))
-        opts = self.opts = {'delimiter':{'type':'combobox','default':',',
-                        'items':delimiters, 'tooltip':'seperator'},
-                     'header':{'type':'entry','default':0,'label':'header',
-                               'tooltip':'position of column header'},
-                     #'index_col':{'type':'entry','default':'','label':'index col',
-                     #            'tooltip':''},
-                     'decimal':{'type':'combobox','default':'.','items':['.',','],
-                                'tooltip':'decimal point symbol'},
-                     'comment':{'type':'entry','default':'#','label':'comment',
-                                'tooltip':'comment symbol'},
-                     'skipinitialspace':{'type':'checkbutton','default':0,'label':'skip initial space',
-                                'tooltip':'skip initial space'},
-                     'skiprows':{'type':'entry','default':0,'label':'skiprows',
-                                'tooltip':'rows to skip'},
-                     'skip_blank_lines':  {'type':'checkbutton','default':0,'label':'skip blank lines',
-                                'tooltip':'do not use blank lines'},
-                     'numbers_as_string':  {'type':'checkbutton','default':0,'label':'numbers as string',
-                                'tooltip':'import numbers as string'},
-                     'parse_dates':  {'type':'checkbutton','default':1,'label':'parse dates',
-                                'tooltip':'try to parse date/time columns'},
-                     'time format': {'type':'combobox','default':'','items':timeformats,
-                                'tooltip':'date/time format'},
-                     'encoding':{'type':'combobox','default':'utf-8','items':encodings,
-                                'tooltip':'file encoding'},
-                     #'prefix':{'type':'entry','default':None,'label':'prefix',
-                     #           'tooltip':''}
-                     'rowsperfile':{'type':'entry','default':'','label':'rows per file',
-                                'tooltip':'rows to read'},
-                     'names':{'type':'entry','default':'','label':'column names',
-                                'tooltip':'col labels'},
-                     }
+        opts = self.opts = {'delimiter': {'type': 'combobox', 'default': ',',
+                                          'items': delimiters, 'tooltip': 'seperator'},
+                            'header': {'type': 'entry', 'default': 0, 'label': 'header',
+                                       'tooltip': 'position of column header'},
+                            # 'index_col':{'type':'entry','default':'','label':'index col',
+                            #            'tooltip':''},
+                            'decimal': {'type': 'combobox', 'default': '.', 'items': ['.', ','],
+                                        'tooltip': 'decimal point symbol'},
+                            'comment': {'type': 'entry', 'default': '#', 'label': 'comment',
+                                        'tooltip': 'comment symbol'},
+                            'skipinitialspace': {'type': 'checkbutton', 'default': 0, 'label': 'skip initial space',
+                                                 'tooltip': 'skip initial space'},
+                            'skiprows': {'type': 'entry', 'default': 0, 'label': 'skiprows',
+                                         'tooltip': 'rows to skip'},
+                            'skip_blank_lines': {'type': 'checkbutton', 'default': 0, 'label': 'skip blank lines',
+                                                 'tooltip': 'do not use blank lines'},
+                            'numbers_as_string': {'type': 'checkbutton', 'default': 0, 'label': 'numbers as string',
+                                                  'tooltip': 'import numbers as string'},
+                            'parse_dates': {'type': 'checkbutton', 'default': 1, 'label': 'parse dates',
+                                            'tooltip': 'try to parse date/time columns'},
+                            'time format': {'type': 'combobox', 'default': '', 'items': timeformats,
+                                            'tooltip': 'date/time format'},
+                            'encoding': {'type': 'combobox', 'default': 'utf-8', 'items': encodings,
+                                         'tooltip': 'file encoding'},
+                            # 'prefix':{'type':'entry','default':None,'label':'prefix',
+                            #           'tooltip':''}
+                            'rowsperfile': {'type': 'entry', 'default': '', 'label': 'rows per file',
+                                            'tooltip': 'rows to read'},
+                            'names': {'type': 'entry', 'default': '', 'label': 'column names',
+                                      'tooltip': 'col labels'},
+                            }
         bf = Frame(self.main)
-        bf.pack(side=LEFT,fill=BOTH)
+        bf.pack(side=LEFT, fill=BOTH)
         optsframe, self.tkvars, w = dialogFromOptions(bf, opts, grps,
-                                    sticky='nwe', layout='vertical')
+                                                      sticky='nwe', layout='vertical')
 
         self.m = PanedWindow(self.main, orient=VERTICAL)
-        self.m.pack(side=LEFT,fill=BOTH,expand=1)
+        self.m.pack(side=LEFT, fill=BOTH, expand=1)
         self.textpreview = ScrolledText(self.main, width=100, height=10, bg='white')
         self.m.add(self.textpreview, weight=3)
         tf = Frame(self.main)
         self.m.add(tf, weight=1)
-        self.previewtable = Table(tf,rows=0,columns=0,editable=False,enable_menus=False)
+        self.previewtable = Table(tf, rows=0, columns=0, editable=False, enable_menus=False)
         self.previewtable.show()
         self.update()
 
-        optsframe.pack(side=TOP,fill=BOTH)
+        optsframe.pack(side=TOP, fill=BOTH)
         b = Button(bf, text="Update preview", command=self.update)
-        b.pack(side=TOP,fill=X,pady=2)
+        b.pack(side=TOP, fill=X, pady=2)
         b = Button(bf, text="Import", command=self.doImport)
-        b.pack(side=TOP,fill=X,pady=2)
+        b.pack(side=TOP, fill=X, pady=2)
         b = Button(bf, text="Cancel", command=self.quit)
-        b.pack(side=TOP,fill=X,pady=2)
+        b.pack(side=TOP, fill=X, pady=2)
         self.main.wait_window()
         return
 
@@ -567,7 +593,7 @@ class ImportDialog(Frame):
         """Reload previews"""
 
         kwds = {}
-        other = ['rowsperfile','time format','numbers_as_string']
+        other = ['rowsperfile', 'time format', 'numbers_as_string']
         for i in self.opts:
             if i in other:
                 continue
@@ -581,7 +607,7 @@ class ImportDialog(Frame):
                 val = bool(val)
             elif type(self.opts[i]['default']) != int:
                 try:
-                    val=int(val)
+                    val = int(val)
                 except:
                     pass
             kwds[i] = val
@@ -590,7 +616,7 @@ class ImportDialog(Frame):
         timeformat = self.tkvars['time format'].get()
         dateparse = lambda x: datetime.strptime(x, timeformat)
         self.showText(encoding=kwds['encoding'])
-        if as_string == True:
+        if as_string:
             temp = pd.read_csv(self.filename, chunksize=50, **kwds).get_chunk()
             cols = temp.columns
             self.converters = {col: str for col in cols}
@@ -598,18 +624,18 @@ class ImportDialog(Frame):
             self.converters = None
         try:
             f = self.textfilereader = pd.read_csv(self.filename,
-                        chunksize=500, on_bad_lines='skip',
-                        date_parser=dateparse,
-                        converters=self.converters, **kwds)
+                                                  chunksize=500, on_bad_lines='skip',
+                                                  date_parser=dateparse,
+                                                  converters=self.converters, **kwds)
         except Exception as e:
-            print ('read csv error')
-            print (e)
+            print('read csv error')
+            print(e)
             f = None
         if f is not None:
             try:
                 df = f.get_chunk()
             except:
-                print ('parser error')
+                print('parser error')
                 df = pd.DataFrame()
         else:
             df = pd.DataFrame()
@@ -631,6 +657,7 @@ class ImportDialog(Frame):
         self.main.destroy()
         return
 
+
 class CombineDialog(Frame):
     """Provides a frame for setting up merge/combine operations"""
 
@@ -649,53 +676,53 @@ class CombineDialog(Frame):
         self.merged = None
 
         wf = Frame(self.main)
-        wf.pack(side=LEFT,fill=BOTH)
-        f=Frame(wf)
-        f.pack(side=TOP,fill=BOTH)
-        ops = ['merge','concat']
+        wf.pack(side=LEFT, fill=BOTH)
+        f = Frame(wf)
+        f.pack(side=TOP, fill=BOTH)
+        ops = ['merge', 'concat']
         self.opvar = StringVar()
         w = Combobox(f, values=ops,
-                 textvariable=self.opvar,width=14 )
+                     textvariable=self.opvar, width=14)
         w.set('merge')
-        Label(f,text='operation:').pack()
+        Label(f, text='operation:').pack()
         w.pack()
 
-        #buttons to add for each op.
-        #merge: left, right, how, suff1, suff2
-        #concat assumes homogeneous dfs
-        how = ['inner','outer','left','right']
-        grps = {'merge': ['left_on','right_on','suffix1','suffix2','how'],
-                'concat': ['join','ignore_index','verify_integrity']}
+        # buttons to add for each op.
+        # merge: left, right, how, suff1, suff2
+        # concat assumes homogeneous dfs
+        how = ['inner', 'outer', 'left', 'right']
+        grps = {'merge': ['left_on', 'right_on', 'suffix1', 'suffix2', 'how'],
+                'concat': ['join', 'ignore_index', 'verify_integrity']}
         self.grps = grps = OrderedDict(sorted(grps.items()))
         cols1 = list(df1.columns)
         cols2 = list(df2.columns)
-        opts = self.opts = {'left_on':{'type':'listbox','default':'',
-                            'items':cols1, 'tooltip':'left column'},
-                            'right_on':{'type':'listbox','default':'',
-                            'items':cols2, 'tooltip':'right column'},
-                            #'left_index':{'type':'checkbutton','default':0,'label':'use left index'},
-                            #'right_index':{'type':'checkbutton','default':0,'label':'use right index'},
-                            'suffix1':{'type':'entry','default':'_1','label':'left suffix'},
-                            'suffix2':{'type':'entry','default':'_2','label':'right suffix'},
-                            'how':{'type':'combobox','default':'inner',
-                            'items':how, 'tooltip':'how to merge'},
-                            'join':{'type':'combobox','default':'inner',
-                            'items':['inner','outer'], 'tooltip':'how to join'},
-                            'ignore_index':{'type':'checkbutton','default':0,'label':'ignore index',
-                                'tooltip':'do not use the index values on the concatenation axis'},
-                            'verify_integrity':{'type':'checkbutton','default':0,'label':'check duplicates'},
-                             }
+        opts = self.opts = {'left_on': {'type': 'listbox', 'default': '',
+                                        'items': cols1, 'tooltip': 'left column'},
+                            'right_on': {'type': 'listbox', 'default': '',
+                                         'items': cols2, 'tooltip': 'right column'},
+                            # 'left_index':{'type':'checkbutton','default':0,'label':'use left index'},
+                            # 'right_index':{'type':'checkbutton','default':0,'label':'use right index'},
+                            'suffix1': {'type': 'entry', 'default': '_1', 'label': 'left suffix'},
+                            'suffix2': {'type': 'entry', 'default': '_2', 'label': 'right suffix'},
+                            'how': {'type': 'combobox', 'default': 'inner',
+                                    'items': how, 'tooltip': 'how to merge'},
+                            'join': {'type': 'combobox', 'default': 'inner',
+                                     'items': ['inner', 'outer'], 'tooltip': 'how to join'},
+                            'ignore_index': {'type': 'checkbutton', 'default': 0, 'label': 'ignore index',
+                                             'tooltip': 'do not use the index values on the concatenation axis'},
+                            'verify_integrity': {'type': 'checkbutton', 'default': 0, 'label': 'check duplicates'},
+                            }
         optsframe, self.tkvars, w = dialogFromOptions(wf, opts, grps, sticky='new')
-        optsframe.pack(side=TOP,fill=BOTH)
+        optsframe.pack(side=TOP, fill=BOTH)
 
         bf = Frame(wf)
-        bf.pack(side=TOP,fill=BOTH)
+        bf.pack(side=TOP, fill=BOTH)
         b = Button(bf, text="Apply", command=self.apply)
-        b.pack(side=LEFT,fill=X,expand=1,pady=1)
+        b.pack(side=LEFT, fill=X, expand=1, pady=1)
         b = Button(bf, text="Close", command=self.quit)
-        b.pack(side=LEFT,fill=X,expand=1,pady=1)
+        b.pack(side=LEFT, fill=X, expand=1, pady=1)
         b = Button(bf, text="Help", command=self.help)
-        b.pack(side=LEFT,fill=X,expand=1,pady=1)
+        b.pack(side=LEFT, fill=X, expand=1, pady=1)
         self.main.wait_window()
         return
 
@@ -711,23 +738,23 @@ class CombineDialog(Frame):
             else:
                 val = self.tkvars[i].get()
             if val == '':
-                val=None
+                val = None
             kwds[i] = val
-        #print (kwds)
+        # print (kwds)
         if method == 'merge':
-            s=(kwds['suffix1'],kwds['suffix2'])
+            s = (kwds['suffix1'], kwds['suffix2'])
             del kwds['suffix1']
             del kwds['suffix2']
-            m = pd.merge(self.df1,self.df2,on=None,suffixes=s, **kwds)
+            m = pd.merge(self.df1, self.df2, on=None, suffixes=s, **kwds)
         elif method == 'concat':
-            m = pd.concat([self.df1,self.df2], **kwds)
-        print (m)
-        #if successful ask user to replace table and close
+            m = pd.concat([self.df1, self.df2], **kwds)
+        print(m)
+        # if successful ask user to replace table and close
         if len(m) > 0:
             self.getResult(m)
         else:
             f = self.tbf = Frame(self.main)
-            f.pack(side=LEFT,fill=BOTH)
+            f.pack(side=LEFT, fill=BOTH)
             st = ScrolledText(f, bg='white', fg='black')
             st.pack(in_=f, fill=BOTH, expand=1)
             msg = 'result is empty, check your columns. column types might differ'
@@ -742,13 +769,13 @@ class CombineDialog(Frame):
         if hasattr(self, 'tbf'):
             self.tbf.destroy()
         f = self.tbf = Frame(self.main)
-        f.pack(side=LEFT,fill=BOTH)
+        f.pack(side=LEFT, fill=BOTH)
         newtable = core.Table(f, dataframe=df, showstatusbar=1)
         newtable.adjustColumnWidths()
         newtable.show()
         bf = Frame(f)
-        bf.grid(row=4,column=0,columnspan=2,sticky='news',padx=2,pady=2)
-        b = Button(bf, text="Copy Table", command=lambda : self.result.to_clipboard(sep=','))
+        bf.grid(row=4, column=0, columnspan=2, sticky='news', padx=2, pady=2)
+        b = Button(bf, text="Copy Table", command=lambda: self.result.to_clipboard(sep=','))
         b.pack(side=RIGHT)
         b = Button(bf, text="Replace Current Table", command=self.replaceTable)
         b.pack(side=RIGHT)
@@ -758,8 +785,8 @@ class CombineDialog(Frame):
         """replace parent table"""
 
         n = messagebox.askyesno("Replace with merged",
-                                 "Are you sure?",
-                                  parent=self.main)
+                                "Are you sure?",
+                                parent=self.main)
         if not n:
             return
         df = self.result
@@ -769,25 +796,25 @@ class CombineDialog(Frame):
         return
 
     def help(self):
-        link='http://pandas.pydata.org/pandas-docs/stable/merging.html'
-        webbrowser.open(link,autoraise=1)
+        link = 'http://pandas.pydata.org/pandas-docs/stable/merging.html'
+        webbrowser.open(link, autoraise=1)
         return
 
     def quit(self):
         self.main.destroy()
         return
 
+
 class BaseDialog(Frame):
     """Generic dialog - inherit from this and customise the
        createWidgets and apply methods."""
 
     def __init__(self, parent=None, df=None, title=''):
-
         self.parent = parent
         self.main = Toplevel()
         self.master = self.main
-        x,y,w,h = getParentGeometry(self.parent)
-        self.main.geometry('+%d+%d' %(x+w/2-200,y+h/2-200))
+        x, y, w, h = getParentGeometry(self.parent)
+        self.main.geometry('+%d+%d' % (x + w / 2 - 200, y + h / 2 - 200))
         self.main.title(title)
         self.main.protocol("WM_DELETE_WINDOW", self.quit)
         self.main.grab_set()
@@ -802,19 +829,19 @@ class BaseDialog(Frame):
 
         cols = list(self.df.columns)
         f = LabelFrame(m, text='frame')
-        f.pack(side=LEFT,fill=BOTH,padx=2)
+        f.pack(side=LEFT, fill=BOTH, padx=2)
         self.buttonsFrame()
         return
 
     def buttonsFrame(self):
         bf = Frame(self.main)
-        bf.pack(side=TOP,fill=BOTH)
+        bf.pack(side=TOP, fill=BOTH)
         b = Button(bf, text="Apply", command=self.apply)
-        b.pack(side=LEFT,fill=X,expand=1,pady=2)
+        b.pack(side=LEFT, fill=X, expand=1, pady=2)
         b = Button(bf, text="Close", command=self.quit)
-        b.pack(side=LEFT,fill=X,expand=1,pady=2)
+        b.pack(side=LEFT, fill=X, expand=1, pady=2)
         b = Button(bf, text="Help", command=self.help)
-        b.pack(side=LEFT,fill=X,expand=1,pady=2)
+        b.pack(side=LEFT, fill=X, expand=1, pady=2)
         return
 
     def apply(self):
@@ -829,6 +856,7 @@ class BaseDialog(Frame):
         self.main.destroy()
         return
 
+
 class CrosstabDialog(BaseDialog):
     def __init__(self, parent=None, df=None, title=''):
 
@@ -842,24 +870,24 @@ class CrosstabDialog(BaseDialog):
         """Create a set of grp-agg-func options together"""
 
         cols = list(self.df.columns)
-        funcs = ['mean','median','sum','size','count','std','first','last',
-                 'min','max','var']
+        funcs = ['mean', 'median', 'sum', 'size', 'count', 'std', 'first', 'last',
+                 'min', 'max', 'var']
         f = LabelFrame(m, text='crosstab')
-        f.pack(side=LEFT,fill=BOTH,padx=2)
-        w,self.colsvar = addListBox(f, values=cols,width=14, label='columns')
-        w.pack(side=LEFT,padx=2)
+        f.pack(side=LEFT, fill=BOTH, padx=2)
+        w, self.colsvar = addListBox(f, values=cols, width=14, label='columns')
+        w.pack(side=LEFT, padx=2)
         self.vars = OrderedDict()
-        w,self.rowsvar = addListBox(f, values=cols,width=14,label='rows')
-        w.pack(side=LEFT,padx=2)
-        valcols = list(self.df.select_dtypes(include=[np.float64,np.int32,np.int64]))
-        w,self.valsvar = addListBox(f, values=valcols,width=14,label='values')
-        w.pack(side=LEFT,padx=2)
-        w,self.funcvar = addListBox(f, values=funcs,width=14,label='functions')
-        w.pack(side=LEFT,padx=2)
+        w, self.rowsvar = addListBox(f, values=cols, width=14, label='rows')
+        w.pack(side=LEFT, padx=2)
+        valcols = list(self.df.select_dtypes(include=[np.float64, np.int32, np.int64]))
+        w, self.valsvar = addListBox(f, values=valcols, width=14, label='values')
+        w.pack(side=LEFT, padx=2)
+        w, self.funcvar = addListBox(f, values=funcs, width=14, label='functions')
+        w.pack(side=LEFT, padx=2)
         self.marginsvar = BooleanVar()
-        w = Checkbutton(self.main,text='add row/column subtotals',
-                         variable=self.marginsvar)
-        w.pack(padx=2,pady=2)
+        w = Checkbutton(self.main, text='add row/column subtotals',
+                        variable=self.marginsvar)
+        w.pack(padx=2, pady=2)
         self.buttonsFrame()
         return
 
@@ -875,11 +903,11 @@ class CrosstabDialog(BaseDialog):
         rowdata = [df[r] for r in rows]
         coldata = [df[c] for c in cols]
         if vals == '':
-            vals=None
+            vals = None
         else:
-            vals=df[vals]
+            vals = df[vals]
         if funcs == '':
-            funcs=None
+            funcs = None
         elif len(funcs) != len(cols):
             funcs = [funcs[0] for i in cols]
 
@@ -888,9 +916,10 @@ class CrosstabDialog(BaseDialog):
         return
 
     def help(self):
-        link='https://pandas.pydata.org/pandas-docs/stable/generated/pandas.crosstab.html'
-        webbrowser.open(link,autoraise=1)
+        link = 'https://pandas.pydata.org/pandas-docs/stable/generated/pandas.crosstab.html'
+        webbrowser.open(link, autoraise=1)
         return
+
 
 class AggregateDialog(BaseDialog):
     """Provides a frame for split-apply-combine operations"""
@@ -904,37 +933,37 @@ class AggregateDialog(BaseDialog):
         f = Frame(self.main)
         f.pack(side=TOP)
         self.mapcolfuncs = BooleanVar()
-        w = Checkbutton(f,text='map columns to functions',
-                         variable=self.mapcolfuncs)
-        w.pack(padx=2,pady=2)
+        w = Checkbutton(f, text='map columns to functions',
+                        variable=self.mapcolfuncs)
+        w.pack(padx=2, pady=2)
         ToolTip.createToolTip(w, 'do 1-1 mapping of cols to functions')
         self.keepcols = BooleanVar()
         self.keepcols.set(False)
-        w = Checkbutton(f,text='set grouping column as index',
-                         variable=self.keepcols)
-        w.pack(padx=2,pady=2)
+        w = Checkbutton(f, text='set grouping column as index',
+                        variable=self.keepcols)
+        w.pack(padx=2, pady=2)
 
-        #self.main.wait_window()
+        # self.main.wait_window()
         return
 
     def createWidgets(self, m):
         """Create a set of grp-agg-func options together"""
 
         cols = list(self.df.columns)
-        funcs = ['mean','median','sum','size','count','std','first','last',
-                 'min','max','var']
+        funcs = ['mean', 'median', 'sum', 'size', 'count', 'std', 'first', 'last',
+                 'min', 'max', 'var']
 
         f = LabelFrame(m, text='group by')
-        f.pack(side=LEFT,fill=BOTH,padx=2)
-        w,self.grpvar = addListBox(f, values=cols,width=14, label='columns')
+        f.pack(side=LEFT, fill=BOTH, padx=2)
+        w, self.grpvar = addListBox(f, values=cols, width=14, label='columns')
         w.pack()
         self.vars = OrderedDict()
         f = LabelFrame(m, text='aggregate on')
-        f.pack(side=LEFT,fill=BOTH,padx=2)
-        w,self.aggvar = addListBox(f, values=cols,width=14,label='columns')
-        w.pack(side=LEFT,padx=2)
-        w,self.funcvar = addListBox(f, values=funcs,width=14,label='functions')
-        w.pack(side=LEFT,padx=2)
+        f.pack(side=LEFT, fill=BOTH, padx=2)
+        w, self.aggvar = addListBox(f, values=cols, width=14, label='columns')
+        w.pack(side=LEFT, padx=2)
+        w, self.funcvar = addListBox(f, values=funcs, width=14, label='functions')
+        w.pack(side=LEFT, padx=2)
         self.buttonsFrame()
         return
 
@@ -946,19 +975,19 @@ class AggregateDialog(BaseDialog):
         agg = self.aggvar.getSelectedItem()
         mapfuncs = self.mapcolfuncs.get()
         keepcols = self.keepcols.get()
-        #print (grpcols, agg, funcs)
+        # print (grpcols, agg, funcs)
 
-        if mapfuncs == True:
-            aggdict = (dict(zip(agg,funcs)))
+        if mapfuncs:
+            aggdict = (dict(zip(agg, funcs)))
         else:
             aggdict = {}
-            if len(funcs)==1: funcs=funcs[0]
+            if len(funcs) == 1: funcs = funcs[0]
             for a in agg:
                 aggdict[a] = funcs
-        #print (aggdict)
-        self.result = self.df.groupby(grpcols,as_index=keepcols).agg(aggdict)
+        # print (aggdict)
+        self.result = self.df.groupby(grpcols, as_index=keepcols).agg(aggdict)
         self.parent.createChildTable(self.result, 'aggregated', index=True)
-        #self.quit()
+        # self.quit()
         return
 
     def copyResult(self, ):
@@ -966,34 +995,37 @@ class AggregateDialog(BaseDialog):
             self.parent.createChildTable(self.result, 'aggregated', index=True)
 
     def help(self):
-        link='http://pandas.pydata.org/pandas-docs/stable/groupby.html'
-        webbrowser.open(link,autoraise=1)
+        link = 'http://pandas.pydata.org/pandas-docs/stable/groupby.html'
+        webbrowser.open(link, autoraise=1)
         return
 
     def quit(self):
         self.main.destroy()
         return
 
+
 def addListBox(parent, values=[], width=10, height=6, label=''):
     """Add an EasyListBox"""
 
-    frame=Frame(parent)
+    frame = Frame(parent)
     Label(frame, text=label).grid(row=0)
-    yScroll = Scrollbar(frame, orient = VERTICAL)
-    yScroll.grid(row = 1, column = 1, sticky = N+S)
+    yScroll = Scrollbar(frame, orient=VERTICAL)
+    yScroll.grid(row=1, column=1, sticky=N + S)
     listItemSelected = lambda index: index
     lbx = EasyListbox(frame, width, height, yScroll.set, listItemSelected)
-    lbx.grid(row = 1, column = 0, sticky = N+S+E+W)
-    frame.columnconfigure(0, weight = 1)
-    frame.rowconfigure(0, weight = 1)
+    lbx.grid(row=1, column=0, sticky=N + S + E + W)
+    frame.columnconfigure(0, weight=1)
+    frame.rowconfigure(0, weight=1)
     yScroll["command"] = lbx.yview
     for i in values:
         lbx.insert(END, i)
     return frame, lbx
 
+
 def getListBoxSelection(w):
     items = w.curselection()
     return [w.get(j) for j in items]
+
 
 class AutoScrollbar(Scrollbar):
     """A scrollbar that hides itself if it's not needed. only \
@@ -1009,12 +1041,11 @@ class AutoScrollbar(Scrollbar):
     def pack(self, **kw):
         """pack"""
         raise TclError("cannot use pack with this widget")
-        return
 
     def place(self, **kw):
         """place"""
         raise TclError("cannot use place with this widget")
-        return
+
 
 class VerticalScrolledFrame(Frame):
     """A pure Tkinter scrollable frame \
@@ -1026,14 +1057,14 @@ class VerticalScrolledFrame(Frame):
         Frame.__init__(self, parent, *args, **kw)
 
         # create a canvas object and a vertical scrollbar for scrolling it
-        #vscrollbar = AutoScrollbar(self, orient=VERTICAL)
+        # vscrollbar = AutoScrollbar(self, orient=VERTICAL)
         vscrollbar = Scrollbar(self, orient=VERTICAL)
         vscrollbar.pack(fill=Y, side=RIGHT, expand=FALSE)
-        #vscrollbar.grid(row=0,column=2,rowspan=1,sticky='news',pady=0)
+        # vscrollbar.grid(row=0,column=2,rowspan=1,sticky='news',pady=0)
         canvas = Canvas(self, bd=0, highlightthickness=0, height=height, width=width,
-                            yscrollcommand=vscrollbar.set)
+                        yscrollcommand=vscrollbar.set)
         canvas.pack(side=LEFT, fill=BOTH, expand=TRUE)
-        #canvas.grid(row=0,column=0,rowspan=1,sticky='ns',pady=0)
+        # canvas.grid(row=0,column=0,rowspan=1,sticky='ns',pady=0)
         vscrollbar.config(command=canvas.yview)
 
         # reset the view
@@ -1054,15 +1085,18 @@ class VerticalScrolledFrame(Frame):
             if interior.winfo_reqwidth() != canvas.winfo_width():
                 # update the canvas's width to fit the inner frame
                 canvas.config(width=interior.winfo_reqwidth())
+
         interior.bind('<Configure>', _configure_interior)
 
         def _configure_canvas(event):
             if interior.winfo_reqwidth() != canvas.winfo_width():
                 # update the inner frame's width to fill the canvas
                 canvas.itemconfigure(interior_id, width=canvas.winfo_width())
+
         canvas.bind('<Configure>', _configure_canvas)
 
         return
+
 
 class EasyListbox(Listbox):
     """Customised list box to replace useless default one"""
@@ -1070,9 +1104,9 @@ class EasyListbox(Listbox):
     def __init__(self, parent, width, height, yscrollcommand, listItemSelected):
         self._listItemSelected = listItemSelected
         Listbox.__init__(self, parent,
-                                 width = width, height = height,
-                                 yscrollcommand = yscrollcommand,
-                                 selectmode = MULTIPLE, exportselection=0)
+                         width=width, height=height,
+                         yscrollcommand=yscrollcommand,
+                         selectmode=MULTIPLE, exportselection=0)
         self.bind("<<ListboxSelect>>", self.triggerListItemSelected)
         self.configure(background='white', foreground='black',
                        selectbackground='#0174DF', selectforeground='white')
@@ -1086,7 +1120,7 @@ class EasyListbox(Listbox):
         if self.size() == 0: return
         widget = event.widget
         indexes = widget.curselection()
-        #self._listItemSelected(index)
+        # self._listItemSelected(index)
 
     def getSelectedIndex(self):
         """Returns the index of the selected item or -1 if no item is selected."""
@@ -1127,6 +1161,7 @@ class EasyListbox(Listbox):
         else:
             return -1
 
+
 class SimpleEditor(Frame):
     """Simple text editor"""
 
@@ -1135,42 +1170,42 @@ class SimpleEditor(Frame):
         Frame.__init__(self, parent)
         st = self.text = ScrolledText(self, width=width, height=height, bg='white', fg='black')
         st.pack(in_=self, fill=BOTH, expand=1)
-        if font == None:
+        if font is None:
             if 'Windows' in platform.system():
-                font = ('Courier New',10)
+                font = ('Courier New', 10)
             else:
                 font = 'monospace 10'
         st.config(font=font)
         btnform = Frame(self)
         btnform.pack(fill=BOTH)
-        Button(btnform, text='Save',  command=self.onSave).pack(side=LEFT)
-        #Button(frm, text='Cut',   command=self.onCut).pack(side=LEFT)
-        #Button(frm, text='Paste', command=self.onPaste).pack(side=LEFT)
-        Button(btnform, text='Find',  command=self.onFind).pack(side=LEFT)
-        Button(btnform, text='Clear',  command=self.onClear).pack(side=LEFT)
-        self.target=''
+        Button(btnform, text='Save', command=self.onSave).pack(side=LEFT)
+        # Button(frm, text='Cut',   command=self.onCut).pack(side=LEFT)
+        # Button(frm, text='Paste', command=self.onPaste).pack(side=LEFT)
+        Button(btnform, text='Find', command=self.onFind).pack(side=LEFT)
+        Button(btnform, text='Clear', command=self.onClear).pack(side=LEFT)
+        self.target = ''
         return
 
     def onSave(self):
         """Save text"""
 
         filename = filedialog.asksaveasfilename(defaultextension='.txt',
-                                    initialdir=os.path.expanduser('~'),
-                                     filetypes=(('Text files', '*.txt'),
-                                                ('All files', '*.*')))
+                                                initialdir=os.path.expanduser('~'),
+                                                filetypes=(('Text files', '*.txt'),
+                                                           ('All files', '*.*')))
         if filename:
             with open(filename, 'w') as stream:
-                stream.write(self.text.get('1.0',END))
+                stream.write(self.text.get('1.0', END))
         return
 
     def onClear(self):
         """Clear text"""
-        self.text.delete('1.0',END)
+        self.text.delete('1.0', END)
         return
 
     def onFind(self):
         self.target = simpledialog.askstring('SimpleEditor', 'Search String?',
-                                initialvalue=self.target)
+                                             initialvalue=self.target)
         if self.target:
             where = self.text.search(self.target, INSERT, END, nocase=True)
             if where:
@@ -1179,6 +1214,7 @@ class SimpleEditor(Frame):
                 self.text.mark_set(INSERT, pastit)
                 self.text.see(INSERT)
                 self.text.focus()
+
 
 class FindReplaceDialog(Frame):
     """Find/replace dialog."""
@@ -1189,7 +1225,7 @@ class FindReplaceDialog(Frame):
         self.parent = parent
         self.table = table
         self.coords = []
-        self.current = 0 #coords of found cells
+        self.current = 0  # coords of found cells
         self.setup()
         return
 
@@ -1197,16 +1233,16 @@ class FindReplaceDialog(Frame):
 
         sf = self
         sfont = "Helvetica 10 bold"
-        Label(sf, text='Enter Search String:', font=sfont).pack(side=TOP,fill=X)
+        Label(sf, text='Enter Search String:', font=sfont).pack(side=TOP, fill=X)
         self.searchvar = StringVar()
         e = Entry(sf, textvariable=self.searchvar)
         self.searchvar.trace("w", self.updated)
         e.bind('<Return>', self.find)
-        e.pack(fill=BOTH,side=TOP,expand=1,padx=2,pady=2)
-        Label(sf, text='Replace With:', font=sfont).pack(side=TOP,fill=X)
+        e.pack(fill=BOTH, side=TOP, expand=1, padx=2, pady=2)
+        Label(sf, text='Replace With:', font=sfont).pack(side=TOP, fill=X)
         self.replacevar = StringVar()
         e = Entry(sf, textvariable=self.replacevar)
-        e.pack(fill=BOTH,side=TOP,expand=1,padx=2,pady=2)
+        e.pack(fill=BOTH, side=TOP, expand=1, padx=2, pady=2)
         f = Frame(sf)
         f.pack(side=TOP, fill=BOTH, padx=2, pady=2)
         addButton(f, 'Find Next', self.findNext, None, None, side=LEFT)
@@ -1217,13 +1253,13 @@ class FindReplaceDialog(Frame):
         f = Frame(sf)
         f.pack(side=TOP, fill=BOTH, padx=2, pady=2)
         self.casevar = BooleanVar()
-        cb=Checkbutton(f, text= 'case sensitive', variable=self.casevar, command=self.updated)
+        cb = Checkbutton(f, text='case sensitive', variable=self.casevar, command=self.updated)
         cb.pack(side=LEFT)
         return
 
     def updated(self, name='', index='', mode=''):
         """Widgets changed so run search again"""
-        self.search_changed=True
+        self.search_changed = True
         return
 
     def find(self):
@@ -1242,18 +1278,18 @@ class FindReplaceDialog(Frame):
         found = pd.DataFrame()
         for col in df:
             found[col] = df[col].str.contains(s, na=False, case=case)
-        #set the masked dataframe so that highlighted cells are shown on redraw
+        # set the masked dataframe so that highlighted cells are shown on redraw
         table.highlighted = found
-        i=0
+        i = 0
         self.coords = []
-        for r,row in found.iterrows():
-            j=0
-            for col,val in row.iteritems():
+        for r, row in found.iterrows():
+            j = 0
+            for col, val in row.iteritems():
                 if val is True:
-                    #print (r,col,val, i, j)
-                    self.coords.append((i,j))
-                j+=1
-            i+=1
+                    # print (r,col,val, i, j)
+                    self.coords.append((i, j))
+                j += 1
+            i += 1
         self.current = 0
         return
 
@@ -1272,18 +1308,18 @@ class FindReplaceDialog(Frame):
 
         table = self.table
         s = self.searchvar.get()
-        if len(self.coords)==0  or self.search_changed == True:
+        if len(self.coords) == 0 or self.search_changed:
             self.find()
-        if len(self.coords)==0:
+        if len(self.coords) == 0:
             return
         idx = self.current
-        i,j = self.coords[idx]
-        table.movetoSelection(row=i,col=j,offset=3)
+        i, j = self.coords[idx]
+        table.movetoSelection(row=i, col=j, offset=3)
         table.redraw()
         table.drawSelectedRect(i, j, color='red')
-        self.current+=1
-        if self.current>=len(self.coords):
-            self.current=0
+        self.current += 1
+        if self.current >= len(self.coords):
+            self.current = 0
         return
 
     def replace(self):
@@ -1292,12 +1328,12 @@ class FindReplaceDialog(Frame):
         table = self.table
         table.storeCurrent()
         df = table.model.df
-        s=self.searchvar.get()
-        r=self.replacevar.get()
+        s = self.searchvar.get()
+        r = self.replacevar.get()
         case = self.casevar.get()
-        #import re
-        #r = re.compile(re.escape(r), re.IGNORECASE)
-        table.model.df = df.replace(s,r,regex=True)
+        # import re
+        # r = re.compile(re.escape(r), re.IGNORECASE)
+        table.model.df = df.replace(s, r, regex=True)
         table.redraw()
         self.search_changed = True
         return
@@ -1311,9 +1347,10 @@ class FindReplaceDialog(Frame):
 
     def close(self):
         self.clear()
-        self.table.searchframe=None
+        self.table.searchframe = None
         self.destroy()
         return
+
 
 class QueryDialog(Frame):
     """Use string query to filter. Will not work with spaces in column
@@ -1332,13 +1369,13 @@ class QueryDialog(Frame):
 
         qf = self
         sfont = "Helvetica 10 bold"
-        Label(qf, text='Enter String Query:', font=sfont).pack(side=TOP,fill=X)
+        Label(qf, text='Enter String Query:', font=sfont).pack(side=TOP, fill=X)
         self.queryvar = StringVar()
         e = Entry(qf, textvariable=self.queryvar, font="Courier 12 bold")
         e.bind('<Return>', self.query)
-        e.pack(fill=BOTH,side=TOP,expand=1,padx=2,pady=2)
+        e.pack(fill=BOTH, side=TOP, expand=1, padx=2, pady=2)
         self.fbar = Frame(qf)
-        self.fbar.pack(side=TOP,fill=BOTH,expand=1,padx=2,pady=2)
+        self.fbar.pack(side=TOP, fill=BOTH, expand=1, padx=2, pady=2)
         f = Frame(qf)
         f.pack(side=TOP, fill=BOTH, padx=2, pady=2)
         addButton(f, 'find', self.query, images.filtering(), 'apply filters', side=LEFT)
@@ -1348,12 +1385,12 @@ class QueryDialog(Frame):
         self.applyqueryvar = BooleanVar()
         self.applyqueryvar.set(True)
         c = Checkbutton(f, text='show filtered only', variable=self.applyqueryvar,
-                      command=self.query)
-        c.pack(side=LEFT,padx=2)
+                        command=self.query)
+        c.pack(side=LEFT, padx=2)
         addButton(f, 'color rows', self.colorResult, images.color_swatch(), 'color filtered rows', side=LEFT)
 
         self.queryresultvar = StringVar()
-        l = Label(f,textvariable=self.queryresultvar, font=sfont)
+        l = Label(f, textvariable=self.queryresultvar, font=sfont)
         l.pack(side=RIGHT)
         return
 
@@ -1367,30 +1404,30 @@ class QueryDialog(Frame):
 
         table = self.table
         s = self.queryvar.get()
-        if table.filtered == True:
+        if table.filtered:
             table.model.df = table.dataframe
         df = table.model.df
         mask = None
 
-        #string query first
-        if s!='':
+        # string query first
+        if s != '':
             try:
                 mask = df.eval(s)
             except:
                 mask = df.eval(s, engine='python')
-        #add any filters from widgets
-        if len(self.filters)>0:
+        # add any filters from widgets
+        if len(self.filters) > 0:
             mask = self.applyFilter(df, mask)
         if mask is None:
             table.showAll()
             self.queryresultvar.set('')
             return
-        #apply the final mask
+        # apply the final mask
         self.filtdf = filtdf = df[mask]
-        self.queryresultvar.set('%s rows found' %len(filtdf))
+        self.queryresultvar.set('%s rows found' % len(filtdf))
 
         if self.applyqueryvar.get() == 1:
-            #replace current dataframe but keep a copy!
+            # replace current dataframe but keep a copy!
             table.dataframe = table.model.df.copy()
             table.delete('rowrect')
             table.multiplerowlist = []
@@ -1399,7 +1436,7 @@ class QueryDialog(Frame):
         else:
             idx = filtdf.index
             rows = table.multiplerowlist = table.getRowsFromIndex(idx)
-            if len(rows)>0:
+            if len(rows) > 0:
                 table.currentrow = rows[0]
 
         table.redraw()
@@ -1418,7 +1455,7 @@ class QueryDialog(Frame):
         """Apply the widget based filters, returns a boolean mask"""
 
         if mask is None:
-            mask = df.index==df.index
+            mask = df.index == df.index
 
         for f in self.filters:
             col, val, op, b = f.getFilter()
@@ -1426,17 +1463,17 @@ class QueryDialog(Frame):
                 val = float(val)
             except:
                 pass
-            #print (col, val, op, b)
+            # print (col, val, op, b)
             if op == 'contains':
                 m = df[col].str.contains(str(val))
             elif op == 'equals':
-                m = df[col]==val
+                m = df[col] == val
             elif op == 'not equals':
-                m = df[col]!=val
+                m = df[col] != val
             elif op == '>':
-                m = df[col]>val
+                m = df[col] > val
             elif op == '<':
-                m = df[col]<val
+                m = df[col] < val
             elif op == 'is empty':
                 m = df[col].isnull()
             elif op == 'not empty':
@@ -1446,7 +1483,7 @@ class QueryDialog(Frame):
             elif op == 'starts with':
                 m = df[col].str.startswith(val)
             elif op == 'has length':
-                m = df[col].str.len()>val
+                m = df[col].str.len() > val
             elif op == 'is number':
                 m = df[col].astype('object').str.isnumeric()
             elif op == 'is lowercase':
@@ -1466,8 +1503,8 @@ class QueryDialog(Frame):
     def colorResult(self):
         """Color filtered rows in main table"""
 
-        table=self.table
-        if not hasattr(self.table,'dataframe') or not hasattr(self, 'filtdf'):
+        table = self.table
+        if not hasattr(self.table, 'dataframe') or not hasattr(self, 'filtdf'):
             return
         clr = self.table.getaColor('#dcf1fc')
         if clr is None: return
@@ -1484,50 +1521,50 @@ class QueryDialog(Frame):
             f.update(cols)
         return
 
+
 class FilterBar(Frame):
     """Class providing filter widgets"""
 
-    operators = ['contains','excludes','equals','not equals','>','<','is empty','not empty',
-                 'starts with','ends with','has length','is number','is lowercase','is uppercase']
-    booleanops = ['AND','OR','NOT']
+    operators = ['contains', 'excludes', 'equals', 'not equals', '>', '<', 'is empty', 'not empty',
+                 'starts with', 'ends with', 'has length', 'is number', 'is lowercase', 'is uppercase']
+    booleanops = ['AND', 'OR', 'NOT']
 
     def __init__(self, parent, parentframe, cols):
-
         Frame.__init__(self, parentframe)
         self.parent = parent
         self.filtercol = StringVar()
         initial = cols[0]
         self.filtercolmenu = Combobox(self,
-                textvariable = self.filtercol,
-                values = cols,
-                #initialitem = initial,
-                width = 14)
-        self.filtercolmenu.grid(row=0,column=1,sticky='news',padx=2,pady=2)
+                                      textvariable=self.filtercol,
+                                      values=cols,
+                                      # initialitem = initial,
+                                      width=14)
+        self.filtercolmenu.grid(row=0, column=1, sticky='news', padx=2, pady=2)
         self.operator = StringVar()
-        #self.operator.set('equals')
+        # self.operator.set('equals')
         operatormenu = Combobox(self,
-                textvariable = self.operator,
-                values = self.operators,
-                width = 10)
-        operatormenu.grid(row=0,column=2,sticky='news',padx=2,pady=2)
-        self.filtercolvalue=StringVar()
-        valsbox = Entry(self,textvariable=self.filtercolvalue,width=26)
-        valsbox.grid(row=0,column=3,sticky='news',padx=2,pady=2)
-        #valsbox.bind("<Return>", self.parent.callback)
+                                textvariable=self.operator,
+                                values=self.operators,
+                                width=10)
+        operatormenu.grid(row=0, column=2, sticky='news', padx=2, pady=2)
+        self.filtercolvalue = StringVar()
+        valsbox = Entry(self, textvariable=self.filtercolvalue, width=26)
+        valsbox.grid(row=0, column=3, sticky='news', padx=2, pady=2)
+        # valsbox.bind("<Return>", self.parent.callback)
         self.booleanop = StringVar()
         self.booleanop.set('AND')
         booleanopmenu = Combobox(self,
-                textvariable = self.booleanop,
-                values = self.booleanops,
-                width = 6)
-        booleanopmenu.grid(row=0,column=0,sticky='news',padx=2,pady=2)
-        #disable the boolean operator if it's the first filter
-        #if self.index == 0:
+                                 textvariable=self.booleanop,
+                                 values=self.booleanops,
+                                 width=6)
+        booleanopmenu.grid(row=0, column=0, sticky='news', padx=2, pady=2)
+        # disable the boolean operator if it's the first filter
+        # if self.index == 0:
         #    booleanopmenu.component('menubutton').configure(state=DISABLED)
         img = images.cross()
-        cb = Button(self,text='-', image=img, command=self.close)
+        cb = Button(self, text='-', image=img, command=self.close)
         cb.image = img
-        cb.grid(row=0,column=5,sticky='news',padx=2,pady=2)
+        cb.grid(row=0, column=5, sticky='news', padx=2, pady=2)
         return
 
     def close(self):
@@ -1550,19 +1587,21 @@ class FilterBar(Frame):
         self.filtercolmenu['values'] = cols
         return
 
+
 class BaseTable(Canvas):
     """Basic table class based on tk canvas. inherit from this to add your own functionality"""
+
     def __init__(self, parent=None, width=280, height=190, rows=2, cols=2, **kwargs):
 
         Canvas.__init__(self, parent, bg='white',
-                         width=width, height=height )
+                        width=width, height=height)
         self.parent = parent
         self.rows = rows
         self.cols = cols
         self.selectedrows = [0]
         self.selectedcols = [0]
         self.top = .1
-        self.bottom =.9
+        self.bottom = .9
         self.height = height
         self.width = width
         self.doBindings()
@@ -1571,11 +1610,11 @@ class BaseTable(Canvas):
         return
 
     def update(self):
-        if self.update_callback != None:
+        if self.update_callback is not None:
             self.update_callback()
 
     def doBindings(self):
-        self.bind("<Button-1>",self.handle_left_click)
+        self.bind("<Button-1>", self.handle_left_click)
         self.bind('<B1-Motion>', self.handle_mouse_drag)
         return
 
@@ -1591,25 +1630,25 @@ class BaseTable(Canvas):
         rows = self.rows
         h = self.height
         w = self.width
-        for row in range(rows+1):
-            y = row*h/rows
-            self.create_line(1,y,w,y, tag='gridline',
-                                fill='gray', width=2)
-        for col in range(self.cols+1):
-            x = col*w/self.cols
-            self.create_line(x,1,x,rows*h, tag='gridline',
-                                fill='gray', width=2)
+        for row in range(rows + 1):
+            y = row * h / rows
+            self.create_line(1, y, w, y, tag='gridline',
+                             fill='gray', width=2)
+        for col in range(self.cols + 1):
+            x = col * w / self.cols
+            self.create_line(x, 1, x, rows * h, tag='gridline',
+                             fill='gray', width=2)
         return
 
     def handle_left_click(self, event):
         """Respond to a single press"""
 
-        #self.clearSelected()
-        #which row and column is the click inside?
+        # self.clearSelected()
+        # which row and column is the click inside?
         row = self.get_row_clicked(event)
         col = self.get_col_clicked(event)
         self.focus_set()
-        #print (row, col)
+        # print (row, col)
         self.delete('multiplesel')
         self.delete('currentrect')
         self.drawSelectedRect(row, col, tags='currentrect')
@@ -1629,20 +1668,20 @@ class BaseTable(Canvas):
         self.endcol = colover
         rows = [rowover]
         cols = [colover]
-        if colover == None or rowover == None:
+        if colover is None or rowover is None:
             return
-        #draw the selected rows
+        # draw the selected rows
         if self.endrow != self.startrow:
             if self.endrow < self.startrow:
-                rows = list(range(self.endrow, self.startrow+1))
+                rows = list(range(self.endrow, self.startrow + 1))
             else:
-                rows = list(range(self.startrow, self.endrow+1))
+                rows = list(range(self.startrow, self.endrow + 1))
         if self.endcol != self.startcol:
             if self.endcol < self.startcol:
-                cols = list(range(self.endcol, self.startcol+1))
+                cols = list(range(self.endcol, self.startcol + 1))
             else:
-                cols = list(range(self.startcol, self.endcol+1))
-        self.drawMultipleCells(rows,cols)
+                cols = list(range(self.startcol, self.endcol + 1))
+        self.drawMultipleCells(rows, cols)
         self.selectedrows = rows
         self.selectedcols = cols
         self.update()
@@ -1651,47 +1690,47 @@ class BaseTable(Canvas):
     def get_row_clicked(self, event):
         """Get row where event on canvas occurs"""
 
-        h = self.height/self.rows
-        #get coord on canvas, not window, need this if scrolling
+        h = self.height / self.rows
+        # get coord on canvas, not window, need this if scrolling
         y = int(self.canvasy(event.y))
-        row = int(int(y)/h)
+        row = int(int(y) / h)
         return row
 
     def get_col_clicked(self, event):
         """Get column where event on the canvas occurs"""
 
-        w = self.width/self.cols
+        w = self.width / self.cols
         x = int(self.canvasx(event.x))
-        col =int(int(x)/w)
+        col = int(int(x) / w)
         return col
 
     def getCellCoords(self, row, col):
         """Get x-y coordinates to drawing a cell in a given row/col"""
 
-        h = self.height/self.rows
-        x_start=0
-        y_start=0
-        #get nearest rect co-ords for that row/col
-        w = self.width/self.cols
-        x1 = w*col
-        y1=y_start+h*row
-        x2=x1+w
-        y2=y1+h
-        return x1,y1,x2,y2
+        h = self.height / self.rows
+        x_start = 0
+        y_start = 0
+        # get nearest rect co-ords for that row/col
+        w = self.width / self.cols
+        x1 = w * col
+        y1 = y_start + h * row
+        x2 = x1 + w
+        y2 = y1 + h
+        return x1, y1, x2, y2
 
-    def drawSelectedRect(self, row, col, color='#c2c2d6',pad=4, tags=''):
+    def drawSelectedRect(self, row, col, color='#c2c2d6', pad=4, tags=''):
         """User has clicked to select area"""
 
         if col >= self.cols:
             return
-        w=1
-        pad=pad
-        x1,y1,x2,y2 = self.getCellCoords(row,col)
-        #print (x1,y1,x2,y2)
-        rect = self.create_rectangle(x1+pad+w,y1+pad+w,x2-pad-w,y2-pad-w,
-                                  outline='gray50', fill=color,
-                                  width=w,
-                                  tag=tags)
+        w = 1
+        pad = pad
+        x1, y1, x2, y2 = self.getCellCoords(row, col)
+        # print (x1,y1,x2,y2)
+        rect = self.create_rectangle(x1 + pad + w, y1 + pad + w, x2 - pad - w, y2 - pad - w,
+                                     outline='gray50', fill=color,
+                                     width=w,
+                                     tag=tags)
         return
 
     def drawMultipleCells(self, rows, cols):
@@ -1701,6 +1740,6 @@ class BaseTable(Canvas):
         self.delete('currentrect')
         for col in cols:
             for row in rows:
-                #print (row, col)
+                # print (row, col)
                 self.drawSelectedRect(row, col, tags='multiplesel')
         return
