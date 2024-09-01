@@ -24,6 +24,7 @@ import math, time
 import os, types
 import string, copy
 from collections import OrderedDict
+
 try:
     from tkinter import *
     from tkinter.ttk import *
@@ -37,7 +38,7 @@ except:
 from . import util, plotting, dialogs
 
 homepath = os.path.join(os.path.expanduser('~'))
-configpath = os.path.join(homepath,'.config/pandastable')
+configpath = os.path.join(homepath, '.config/pandastable')
 if not os.path.exists(configpath):
     try:
         os.makedirs(configpath, exist_ok=True)
@@ -46,38 +47,39 @@ if not os.path.exists(configpath):
 default_conf = os.path.join(configpath, 'default.conf')
 
 baseoptions = OrderedDict()
-baseoptions['base'] = {'font': 'Arial','fontsize':12, 'fontstyle':'',
-                        'floatprecision':2, 'timeformat':"%Y-%m-%d %H:%M:%S",
-                        'thousandseparator': '',
-                        'rowheight':22,'cellwidth':80, 'linewidth':1,
-                        'align':'w',
-                        }
-baseoptions['colors'] =  {'cellbackgr':'#F4F4F3',
-                        'textcolor':'black',
-                        'grid_color':'#ABB1AD',
-                        'rowselectedcolor':'#E4DED4',
-                        'rowheaderbgcolor':'gray75',
-                        'colheaderbgcolor':'gray25'}
+baseoptions['base'] = {'font': 'Arial', 'fontsize': 12, 'fontstyle': '',
+                       'floatprecision': 2, 'timeformat': "%Y-%m-%d %H:%M:%S",
+                       'thousandseparator': '',
+                       'rowheight': 22, 'cellwidth': 80, 'linewidth': 1,
+                       'align': 'w',
+                       }
+baseoptions['colors'] = {'cellbackgr': '#F4F4F3',
+                         'textcolor': 'black',
+                         'grid_color': '#ABB1AD',
+                         'rowselectedcolor': '#E4DED4',
+                         'rowheaderbgcolor': 'gray75',
+                         'colheaderbgcolor': 'gray25'}
 
 time_formats = [
-        "%Y-%m-%d %H:%M:%S",
-        "%Y-%m-%d %H:%M:%S.%f",
-        "%Y-%m-%d",
-        "%m/%d/%Y",
-        "%m/%d/%Y %H:%M:%S",
-        "%m/%d/%Y %I:%M:%S %p",
-        "%Y-%m-%d %I:%M:%S %p",
-        "%Y%m%d",
-        "%Y%m%d%H%M%S",
-        "%Y%m%d %H:%M:%S",
-        "%d-%b-%Y",
-        "%d %b %Y",
-        "%d %B %Y",
-        "%b %d, %Y",
-        "%B %d, %Y",
-        "%Y/%m/%d",
-        "%d/%m/%Y",
+    "%Y-%m-%d %H:%M:%S",
+    "%Y-%m-%d %H:%M:%S.%f",
+    "%Y-%m-%d",
+    "%m/%d/%Y",
+    "%m/%d/%Y %H:%M:%S",
+    "%m/%d/%Y %I:%M:%S %p",
+    "%Y-%m-%d %I:%M:%S %p",
+    "%Y%m%d",
+    "%Y%m%d%H%M%S",
+    "%Y%m%d %H:%M:%S",
+    "%d-%b-%Y",
+    "%d %b %Y",
+    "%d %B %Y",
+    "%b %d, %Y",
+    "%B %d, %Y",
+    "%Y/%m/%d",
+    "%d/%m/%Y",
 ]
+
 
 def write_default_config():
     """Write a default config to users .config folder. Used to add global settings."""
@@ -85,21 +87,23 @@ def write_default_config():
     fname = os.path.join(config_path, 'default.conf')
     if not os.path.exists(fname):
         try:
-            #os.mkdir(config_path)
+            # os.mkdir(config_path)
             os.makedirs(config_path)
         except:
             pass
         write_config(conffile=fname, defaults=baseoptions)
     return fname
 
+
 def write_config(conffile='default.conf', defaults={}):
     """Write a default config file"""
 
     if not os.path.exists(conffile):
         cp = create_config_parser_from_dict(defaults)
-        cp.write(open(conffile,'w'))
-        print ('wrote config file %s' %conffile)
+        cp.write(open(conffile, 'w'))
+        print('wrote config file %s' % conffile)
     return conffile
+
 
 def create_config_parser_from_dict(data=None, sections=baseoptions.keys(), **kwargs):
     """Helper method to create a ConfigParser from a dict of the form shown in
@@ -107,11 +111,11 @@ def create_config_parser_from_dict(data=None, sections=baseoptions.keys(), **kwa
 
     if data is None:
         data = baseoptions
-    #print (data)
+    # print (data)
     cp = configparser.ConfigParser(interpolation=None)
     for s in sections:
         cp.add_section(s)
-        if not s in data:
+        if s not in data:
             continue
         for name in sorted(data[s]):
             val = data[s][name]
@@ -119,7 +123,7 @@ def create_config_parser_from_dict(data=None, sections=baseoptions.keys(), **kwa
                 val = ','.join(val)
             cp.set(s, name, str(val))
 
-    #use kwargs to create specific settings in the appropriate section
+    # use kwargs to create specific settings in the appropriate section
     for s in cp.sections():
         opts = cp.options(s)
         for k in kwargs:
@@ -128,8 +132,8 @@ def create_config_parser_from_dict(data=None, sections=baseoptions.keys(), **kwa
                 cp.set(s, k, val)
     return cp
 
-def update_config(options):
 
+def update_config(options):
     cp = create_config_parser_from_dict()
     for section in cp.sections():
         for o in cp[section]:
@@ -137,28 +141,30 @@ def update_config(options):
             cp[section][o] = str(val)
     return cp
 
+
 def parse_config(conffile=None):
     """Parse a configparser file"""
 
-    f = open(conffile,'r')
+    f = open(conffile, 'r')
     cp = configparser.ConfigParser(interpolation=None)
     try:
         cp.read(conffile)
     except Exception as e:
-        print ('failed to read config file! check format')
-        print ('Error returned:', e)
+        print('failed to read config file! check format')
+        print('Error returned:', e)
         return
     f.close()
     return cp
+
 
 def get_options(cp):
     """Makes sure boolean opts are parsed"""
 
     from collections import OrderedDict
     options = OrderedDict()
-    #options = cp._sections['base']
+    # options = cp._sections['base']
     for section in cp.sections():
-        options.update( (cp._sections[section]) )
+        options.update((cp._sections[section]))
     for o in options:
         for section in cp.sections():
             try:
@@ -171,12 +177,14 @@ def get_options(cp):
                 pass
     return options
 
+
 def print_options(options):
     """Print option key/value pairs"""
 
     for key in options:
-        print (key, ':', options[key])
-    print ()
+        print(key, ':', options[key])
+    print()
+
 
 def check_options(opts):
     """Check for missing default options in dict. Meant to handle
@@ -190,6 +198,7 @@ def check_options(opts):
                 opts[i] = defaults[i]
     return opts
 
+
 def load_options():
     if not os.path.exists(default_conf):
         write_config(default_conf, defaults=baseoptions)
@@ -198,16 +207,18 @@ def load_options():
     options = check_options(options)
     return options
 
+
 def apply_options(options, table):
     """Apply options to a table"""
 
     for i in options:
         table.__dict__[i] = options[i]
     table.setFont()
-    #if hasattr(table,'colheader'):
+    # if hasattr(table,'colheader'):
     #    table.colheader.redraw()
     table.redraw()
     return
+
 
 class preferencesDialog(Frame):
     """Preferences dialog from config parser options"""
@@ -217,8 +228,8 @@ class preferencesDialog(Frame):
         self.parent = parent
         self.main = Toplevel()
         self.master = self.main
-        x,y,w,h = dialogs.getParentGeometry(self.parent)
-        self.main.geometry('+%d+%d' %(x+w/2-100,y+h/2-100))
+        x, y, w, h = dialogs.getParentGeometry(self.parent)
+        self.main.geometry('+%d+%d' % (x + w / 2 - 100, y + h / 2 - 100))
         self.main.title('Preferences')
         self.main.protocol("WM_DELETE_WINDOW", self.quit)
         self.main.grab_set()
@@ -235,54 +246,57 @@ class preferencesDialog(Frame):
 
         fonts = util.getFonts()
 
-        self.opts = {'rowheight':{'type':'scale','default':18,'range':(5,50),'interval':1,'label':'row height'},
-                'cellwidth':{'type':'scale','default':80,'range':(10,300),'interval':5,'label':'cell width'},
-                'linewidth':{'type':'scale','default':1,'range':(1,10),'interval':1,'label':'grid line width'},
-                'align':{'type':'combobox','default':'w','items':['w','e','center'],'label':'text align'},
-                'vertlines':{'type':'checkbutton','default':1,'label':'show vertical lines'},
-                'horizlines':{'type':'checkbutton','default':1,'label':'show horizontal lines'},
-                'font':{'type':'combobox','default':'Arial','items':fonts},
-                'fontstyle':{'type':'combobox','default':'','items':['','bold','italic']},
-                'fontsize':{'type':'scale','default':12,'range':(5,40),'interval':1,'label':'font size'},
-                'floatprecision':{'type':'entry','default':2,'label':'precision'},
-                'timeformat':{'type':'combobox','default':"%Y-%m-%d %H:%M:%S",'width':20,
-                              'items':time_formats,'label':'time format'},
-                'thousandseparator':{'type':'combobox','default':'','items':['',','],'label':'thousands separator'},
-                'cellbackgr':{'type':'colorchooser','default':'#F4F4F3', 'label':'background color'},
-                'textcolor':{'type':'colorchooser','default':'black', 'label':'text color'},
-                'grid_color':{'type':'colorchooser','default':'#ABB1AD', 'label':'grid color'},
-                'rowselectedcolor':{'type':'colorchooser','default':'#E4DED4','label':'highlight color'},
-                'colheaderbgcolor':{'type':'colorchooser','default':'gray25','label':'column header color'},
-                'rowheaderbgcolor':{'type':'colorchooser','default':'gray75','label':'row header color'},
-                'colormap':{'type':'combobox','default':'Spectral','items':plotting.colormaps},
-                'marker':{'type':'combobox','default':'','items':plotting.markers},
-                'linestyle':{'type':'combobox','default':'-','items':plotting.linestyles},
-                'ms':{'type':'scale','default':5,'range':(1,80),'interval':1,'label':'marker size'},
-                'grid':{'type':'checkbutton','default':0,'label':'show grid'},
-                }
-        sections = {'table':['align','floatprecision','timeformat','thousandseparator','rowheight',
-                             'cellwidth','linewidth'],
-                    'formats':['font','fontstyle','fontsize','cellbackgr','textcolor',
-                               'grid_color','rowselectedcolor','colheaderbgcolor','rowheaderbgcolor','vertlines','horizlines']}
-                    #'plotting':['marker','linestyle','ms','grid','colormap']}
+        self.opts = {
+            'rowheight': {'type': 'scale', 'default': 18, 'range': (5, 50), 'interval': 1, 'label': 'row height'},
+            'cellwidth': {'type': 'scale', 'default': 80, 'range': (10, 300), 'interval': 5, 'label': 'cell width'},
+            'linewidth': {'type': 'scale', 'default': 1, 'range': (1, 10), 'interval': 1, 'label': 'grid line width'},
+            'align': {'type': 'combobox', 'default': 'w', 'items': ['w', 'e', 'center'], 'label': 'text align'},
+            'vertlines': {'type': 'checkbutton', 'default': 1, 'label': 'show vertical lines'},
+            'horizlines': {'type': 'checkbutton', 'default': 1, 'label': 'show horizontal lines'},
+            'font': {'type': 'combobox', 'default': 'Arial', 'items': fonts},
+            'fontstyle': {'type': 'combobox', 'default': '', 'items': ['', 'bold', 'italic']},
+            'fontsize': {'type': 'scale', 'default': 12, 'range': (5, 40), 'interval': 1, 'label': 'font size'},
+            'floatprecision': {'type': 'entry', 'default': 2, 'label': 'precision'},
+            'timeformat': {'type': 'combobox', 'default': "%Y-%m-%d %H:%M:%S", 'width': 20,
+                           'items': time_formats, 'label': 'time format'},
+            'thousandseparator': {'type': 'combobox', 'default': '', 'items': ['', ','],
+                                  'label': 'thousands separator'},
+            'cellbackgr': {'type': 'colorchooser', 'default': '#F4F4F3', 'label': 'background color'},
+            'textcolor': {'type': 'colorchooser', 'default': 'black', 'label': 'text color'},
+            'grid_color': {'type': 'colorchooser', 'default': '#ABB1AD', 'label': 'grid color'},
+            'rowselectedcolor': {'type': 'colorchooser', 'default': '#E4DED4', 'label': 'highlight color'},
+            'colheaderbgcolor': {'type': 'colorchooser', 'default': 'gray25', 'label': 'column header color'},
+            'rowheaderbgcolor': {'type': 'colorchooser', 'default': 'gray75', 'label': 'row header color'},
+            'colormap': {'type': 'combobox', 'default': 'Spectral', 'items': plotting.colormaps},
+            'marker': {'type': 'combobox', 'default': '', 'items': plotting.markers},
+            'linestyle': {'type': 'combobox', 'default': '-', 'items': plotting.linestyles},
+            'ms': {'type': 'scale', 'default': 5, 'range': (1, 80), 'interval': 1, 'label': 'marker size'},
+            'grid': {'type': 'checkbutton', 'default': 0, 'label': 'show grid'},
+        }
+        sections = {'table': ['align', 'floatprecision', 'timeformat', 'thousandseparator', 'rowheight',
+                              'cellwidth', 'linewidth'],
+                    'formats': ['font', 'fontstyle', 'fontsize', 'cellbackgr', 'textcolor',
+                                'grid_color', 'rowselectedcolor', 'colheaderbgcolor', 'rowheaderbgcolor', 'vertlines',
+                                'horizlines']}
+        # 'plotting':['marker','linestyle','ms','grid','colormap']}
 
         dialog, self.tkvars, self.widgets = dialogs.dialogFromOptions(self.main, self.opts, sections)
-        dialog.pack(side=TOP,fill=BOTH)
-        #d = dialogs.getDictfromTkVars(opts, tkvars, widgets)
+        dialog.pack(side=TOP, fill=BOTH)
+        # d = dialogs.getDictfromTkVars(opts, tkvars, widgets)
 
         bf = Frame(self.main)
-        bf.pack(fill=BOTH,expand=1)
-        Button(bf, text='Apply', command=self.apply).pack(side=LEFT,padx=1,pady=1,fill=BOTH,expand=1)
-        Button(bf, text='Save as Default',  command=self.save).pack(side=LEFT,padx=1,pady=1,fill=BOTH,expand=1)
-        Button(bf, text='Close',  command=self.quit).pack(side=LEFT,padx=1,pady=1,fill=BOTH,expand=1)
+        bf.pack(fill=BOTH, expand=1)
+        Button(bf, text='Apply', command=self.apply).pack(side=LEFT, padx=1, pady=1, fill=BOTH, expand=1)
+        Button(bf, text='Save as Default', command=self.save).pack(side=LEFT, padx=1, pady=1, fill=BOTH, expand=1)
+        Button(bf, text='Close', command=self.quit).pack(side=LEFT, padx=1, pady=1, fill=BOTH, expand=1)
         return
 
     def updateFromOptions(self, options):
         """Update all widget tk vars using dict"""
 
-        if self.tkvars == None:
+        if self.tkvars is None:
             return
-        #print (options)
+        # print (options)
         for i in options:
             if i in self.tkvars and self.tkvars[i]:
                 try:
@@ -304,10 +318,10 @@ class preferencesDialog(Frame):
         """Save from current dialog settings"""
 
         options = dialogs.getDictfromTkVars(self.opts, self.tkvars, self.widgets)
-        #print (options)
-        #update configparser and write
+        # print (options)
+        # update configparser and write
         cp = update_config(options)
-        cp.write(open(default_conf,'w'))
+        cp.write(open(default_conf, 'w'))
         return
 
     def quit(self):

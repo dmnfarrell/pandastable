@@ -40,23 +40,24 @@ def main():
                         default=False, help="Run a basic test app")
 
     opts, remainder = parser.parse_args()
-    if opts.test == True:
+    if opts.test:
         app = TestApp()
     else:
-        if opts.projfile != None:
+        if opts.projfile is not None:
             app = DataExplore(projfile=opts.projfile)
-        elif opts.msgpack != None:
+        elif opts.msgpack is not None:
             app = DataExplore(msgpack=opts.msgpack)
-        elif opts.csv != None:
+        elif opts.csv is not None:
             app = DataExplore()
             t = app.getCurrentTable()
             t.importCSV(opts.csv, dialog=True)
-        elif opts.excel != None:
+        elif opts.excel is not None:
             app = DataExplore()
             app.importExcel(opts.excel)
         else:
             app = DataExplore()
     app.mainloop()
+
 
 if __name__ == '__main__':
     main()

@@ -48,7 +48,7 @@ class DataReaderPlugin(Plugin):
 
     def main(self, parent):
 
-        if parent==None:
+        if parent is None:
             return
         self.parent = parent
         self._doFrame(width=480,height=140)

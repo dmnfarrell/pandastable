@@ -29,6 +29,7 @@ import numpy as np
 import pandas as pd
 from . import util
 
+
 class TableModel(object):
     """A data model for the Table class that uses pandas
 
@@ -38,7 +39,7 @@ class TableModel(object):
         columns: number of columns if empty table
     """
 
-    keywords = {'colors':'colors'}
+    keywords = {'colors': 'colors'}
 
     def __init__(self, dataframe=None, rows=20, columns=5):
         """Constructor for table model. """
@@ -53,9 +54,9 @@ class TableModel(object):
             self.df = dataframe
         else:
             colnames = list(string.ascii_lowercase[:columns])
-            self.df = pd.DataFrame(index=range(rows),columns=colnames)
-            #self.df = self.getSampleData()
-        #self.reclist = self.df.index # not needed now?
+            self.df = pd.DataFrame(index=range(rows), columns=colnames)
+            # self.df = self.getSampleData()
+        # self.reclist = self.df.index # not needed now?
         return
 
     @classmethod
@@ -69,28 +70,31 @@ class TableModel(object):
 
         import random
         s = string.ascii_lowercase
+
         def genstr(n=2):
             return ''.join(random.choice(s) for i in range(n))
+
         maxrows = 5e6
-        if rows>maxrows:
-            rows=maxrows
-        if cols>1e5:
-            cols=int(1e5)
-        n=2
-        if cols>100: n=3
+        if rows > maxrows:
+            rows = maxrows
+        if cols > 1e5:
+            cols = int(1e5)
+        n = 2
+        if cols > 100:
+            n = 3
         colnames = [genstr(n) for i in range(cols)]
-        coldata = [np.random.normal(x,1,rows) for x in np.random.normal(5,3,cols)]
+        coldata = [np.random.normal(x, 1, rows) for x in np.random.normal(5, 3, cols)]
         n = np.array(coldata).T
         df = pd.DataFrame(n, columns=colnames)
         col1 = colnames[0]
         col2 = colnames[1]
-        df[col2] = df[col1]*np.random.normal(.8, .2, len(df))
+        df[col2] = df[col1] * np.random.normal(.8, .2, len(df))
         df = np.round(df, 3)
-        cats = ['low','medium','high','very high']
+        cats = ['low', 'medium', 'high', 'very high']
         df['label'] = pd.cut(df[col1], bins=4, labels=cats).astype(str)
-        #df['label'] = df.label.cat.as_ordered()
-        #don't add date if rows too large
-        if rows<2e6:
+        # df['label'] = df.label.cat.as_ordered()
+        # don't add date if rows too large
+        if rows < 2e6:
             df['date'] = pd.date_range('1/1/2016', periods=rows, freq='h')
         return df
 
@@ -99,26 +103,27 @@ class TableModel(object):
         """Get iris dataset"""
 
         path = os.path.dirname(__file__)
-        cols = ['sepal length','sepal width','petal length','petal width','class']
-        df = pd.read_csv(os.path.join(path,'datasets','iris.data'),names=cols)
+        cols = ['sepal length', 'sepal width', 'petal length', 'petal width', 'class']
+        df = pd.read_csv(os.path.join(path, 'datasets', 'iris.data'), names=cols)
         return df
 
     @classmethod
     def getStackedData(self):
         """Get a dataframe to pivot test"""
 
-        import pandas.util.testing as tm; tm.N = 4
+        import pandas.util.testing as tm;
+        tm.N = 4
         frame = tm.makeTimeDataFrame()
         N, K = frame.shape
-        data = {'value' : frame.values.ravel('F'),
-                'variable' : np.asarray(frame.columns).repeat(N),
-                'date' : np.tile(np.asarray(frame.index), K)}
+        data = {'value': frame.values.ravel('F'),
+                'variable': np.asarray(frame.columns).repeat(N),
+                'date': np.tile(np.asarray(frame.index), K)}
         return pd.DataFrame(data, columns=['date', 'variable', 'value'])
 
     def initialiseFields(self):
         """Create meta data fields"""
         self.meta = {}
-        #self.columnwidths = {} #used to store col widths
+        # self.columnwidths = {} #used to store col widths
         return
 
     def save(self, filename):
@@ -131,7 +136,7 @@ class TableModel(object):
             self.df.to_excel(filename)
         elif ftype == '.csv':
             self.df.to_csv(filename)
-        #elif ftype == '.html':
+        # elif ftype == '.html':
         #    self.df.to_html(filename)
         return
 
@@ -142,7 +147,7 @@ class TableModel(object):
             self.df = pd.read_msgpack(filename)
         else:
             self.df = pd.read_pickle(filename)
-            #print (len(self.df))
+            # print (len(self.df))
         return
 
     def getlongestEntry(self, colindex, n=500):
@@ -187,13 +192,13 @@ class TableModel(object):
         df = self.df
         if len(df) == 0:
             self.df = pd.DataFrame(pd.Series(range(num)))
-            #print (df)
+            # print (df)
             return
         try:
-            ind = self.df.index.max()+1
+            ind = self.df.index.max() + 1
         except:
-            ind = len(df)+1
-        new = pd.DataFrame(np.nan, index=range(ind,ind+num), columns=df.columns)
+            ind = len(df) + 1
+        new = pd.DataFrame(np.nan, index=range(ind, ind + num), columns=df.columns)
         self.df = pd.concat([df, new])
         return
 
@@ -202,10 +207,10 @@ class TableModel(object):
 
         df = self.df
         a, b = df[:row], df[row:]
-        idx = len(df)+1
-        new = pd.DataFrame(np.nan,index=[idx],columns=df.columns)
-        a = pd.concat([a,new])
-        self.df = pd.concat([a,b])
+        idx = len(df) + 1
+        new = pd.DataFrame(np.nan, index=[idx], columns=df.columns)
+        a = pd.concat([a, new])
+        self.df = pd.concat([a, b])
         return idx
 
     def deleteRow(self, row, unique=True):
@@ -218,11 +223,11 @@ class TableModel(object):
         """Delete multiple or all rows"""
 
         df = self.df
-        if unique == True:
+        if unique:
             rows = list(set(range(len(df))) - set(rowlist))
             self.df = df.iloc[rows]
         else:
-            df.drop(df.index[rowlist],inplace=True)
+            df.drop(df.index[rowlist], inplace=True)
         return
 
     def addColumn(self, colname=None, dtype=None, data=None):
@@ -250,14 +255,14 @@ class TableModel(object):
         return
 
     def deleteCells(self, rows, cols):
-        self.df.iloc[rows,cols] = np.nan
+        self.df.iloc[rows, cols] = np.nan
         return
 
     def resetIndex(self, drop=False):
         """Reset index behaviour"""
 
         df = self.df
-        df.reset_index(drop=drop,inplace=True)
+        df.reset_index(drop=drop, inplace=True)
         return
 
     def setindex(self, colindex):
@@ -266,7 +271,7 @@ class TableModel(object):
         df = self.df
         colnames = list(df.columns[colindex])
         indnames = df.index.names
-        if indnames[0] != None:
+        if indnames[0] is not None:
             df.reset_index(inplace=True)
         df.set_index(colnames, inplace=True)
         return
@@ -276,8 +281,9 @@ class TableModel(object):
 
         df = self.df
         name = df.index.name
-        if name == None: name='index'
-        df[name] = df.index#.astype('object')
+        if name is None:
+            name = 'index'
+        df[name] = df.index  # .astype('object')
         return
 
     def groupby(self, cols):
@@ -294,8 +300,8 @@ class TableModel(object):
         return coltype
 
     def getColumnCount(self):
-         """Returns the number of columns in the data model"""
-         return len(self.df.columns)
+        """Returns the number of columns in the data model"""
+        return len(self.df.columns)
 
     def getColumnName(self, columnIndex):
         """Returns the name of the given column by columnIndex"""
@@ -305,18 +311,18 @@ class TableModel(object):
             return self.df.columns[columnIndex].encode('ascii', 'ignore')
 
     def getRowCount(self):
-         """Returns the number of rows in the table model."""
-         return len(self.df)
+        """Returns the number of rows in the table model."""
+        return len(self.df)
 
     def getValueAt(self, row, col):
-         """Returns the cell value at location specified
+        """Returns the cell value at location specified
              by columnIndex and rowIndex."""
 
-         df = self.df
-         value = self.df.iloc[row,col]
-         if type(value) is float and np.isnan(value):
-             return ''
-         return value
+        df = self.df
+        value = self.df.iloc[row, col]
+        if type(value) is float and np.isnan(value):
+            return ''
+        return value
 
     def setValueAt(self, value, row, col, df=None):
         """Change dataframe according to row/col numbers. You can
@@ -326,11 +332,11 @@ class TableModel(object):
             df = self.df
         rowindex = df.iloc[row].name
         colindex = df.columns[col]
-        #print (df.loc[rowindex,colindex])
+        # print (df.loc[rowindex,colindex])
         if value == '':
             value = np.nan
         dtype = self.df.dtypes[col]
-        #try to cast to column type
+        # try to cast to column type
         try:
             if dtype == 'float64':
                 value = float(value)
@@ -339,12 +345,12 @@ class TableModel(object):
             elif dtype == 'datetime64[ns]':
                 value = pd.to_datetime(value)
         except Exception as e:
-            print (e)
+            print(e)
         if df.index.is_unique is True:
-            df.loc[rowindex,colindex] = value
+            df.loc[rowindex, colindex] = value
         else:
-            #we cannot use index if not unique
-            df.iloc[row,col] = value
+            # we cannot use index if not unique
+            df.iloc[row, col] = value
         return
 
     def transpose(self):
@@ -363,7 +369,7 @@ class TableModel(object):
             self.df = df.infer_objects()
         except:
             self.df = df.convert_objects()
-        #self.columnwidths = {}
+        # self.columnwidths = {}
         return
 
     def query(self):
@@ -373,10 +379,10 @@ class TableModel(object):
     def filterby(self):
         import filtering
         funcs = filtering.operatornames
-        floatops = ['=','>','<']
+        floatops = ['=', '>', '<']
         func = funcs[op]
 
         return
 
     def __repr__(self):
-        return 'Table Model with %s rows' %len(self.df)
+        return 'Table Model with %s rows' % len(self.df)

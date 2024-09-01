@@ -21,6 +21,7 @@
 
 from __future__ import absolute_import, print_function
 import sys, os
+
 try:
     from tkinter import *
     from tkinter.ttk import *
@@ -34,6 +35,7 @@ from .app import DataExplore
 import unittest
 import threading
 
+
 class clickThread(threading.Thread):
     def __init__(self, root):
         threading.Thread.__init__(self)
@@ -45,35 +47,39 @@ class clickThread(threading.Thread):
     def run(self):
         button = lambda a: isinstance(a, Button)
         self.getButton(self.root)
-        print ("clicked")
+        print("clicked")
+
 
 class App(Frame):
     """Test frame for table"""
+
     def __init__(self, parent=None):
         self.parent = parent
         Frame.__init__(self)
         self.main = self.master
         self.main.geometry('600x400+200+100')
         f = Frame(self.main)
-        f.pack(fill=BOTH,expand=1)
+        f.pack(fill=BOTH, expand=1)
         df = TableModel.getSampleData()
         self.table = pt = Table(f, dataframe=df)
         pt.show()
         return
 
+
 class TableTests(unittest.TestCase):
     """Pandastable tests - test anything involving table manipulation
        but avoid actions that trigger dialogs"""
+
     def setUp(self):
         self.app = app = App()
-        #thread = clickThread(self.table.parentframe)
-        #thread.start()
+        # thread = clickThread(self.table.parentframe)
+        # thread.start()
         return
 
     def testA(self):
         """Simple table tests"""
 
-        #app.mainloop()
+        # app.mainloop()
         table = self.app.table
         model = table.model
         table.setSelectedRow(10)
@@ -109,8 +115,8 @@ class TableTests(unittest.TestCase):
         table.sortTable(0, ascending=1)
         table.transpose()
         table.sortTable(0, ascending=1)
-        table.deleteCells([2],[3],answer=1)
-        #print (table.model.df)
+        table.deleteCells([2], [3], answer=1)
+        # print (table.model.df)
         return
 
     def testD(self):
@@ -127,6 +133,7 @@ class TableTests(unittest.TestCase):
     def quit(self):
         self.app.quit()
 
+
 class DataExploreTests(unittest.TestCase):
     def setUp(self):
         return
@@ -140,6 +147,7 @@ class DataExploreTests(unittest.TestCase):
         table.selectAll()
         table.plotSelected()
         app.quit()'''
+
 
 if __name__ == '__main__':
     unittest.main()

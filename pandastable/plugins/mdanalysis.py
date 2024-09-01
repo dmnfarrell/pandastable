@@ -51,7 +51,7 @@ class MultivariatePlugin(Plugin):
 
     def main(self, parent):
 
-        if parent==None:
+        if parent is None:
             return
         self.parent = parent
         self._doFrame()
@@ -267,7 +267,7 @@ def plot_matrix(pX, plot3d=False, palette='Spectral', labels=False, ax=None,
              colors=None, **kwargs):
     """Plot PCA result, input should be a dataframe"""
 
-    if ax==None:
+    if ax is None:
         fig,ax = plt.subplots(1,1,figsize=(6,6))
     #print (kwargs)
     colormap = kwargs['colormap']
@@ -281,7 +281,7 @@ def plot_matrix(pX, plot3d=False, palette='Spectral', labels=False, ax=None,
 
     for c, i in zip(colors, cats):
         print (i, len(pX.ix[i]))
-        if plot3d == True:
+        if plot3d:
             ax.scatter(pX.ix[i, 0], pX.ix[i, 1], pX.ix[i, 2], color=c, s=ms, label=i,
                         edgecolor='black', **kwargs)
         else:
@@ -290,7 +290,7 @@ def plot_matrix(pX, plot3d=False, palette='Spectral', labels=False, ax=None,
 
     ax.set_xlabel('PC1')
     ax.set_ylabel('PC2')
-    if labels == True:
+    if labels:
         for i, point in pX.iterrows():
             ax.text(point[0]+.3, point[1]+.3, str(i),fontsize=(9))
     if len(cats)<20:

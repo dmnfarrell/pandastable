@@ -20,6 +20,7 @@
 """
 
 from __future__ import absolute_import, division, print_function
+
 try:
     from tkinter import *
     from tkinter.ttk import *
@@ -29,6 +30,7 @@ except:
     from ttk import *
 
 import os, sys, string, time
+
 if (sys.version_info > (3, 0)):
     from tkinter import filedialog, messagebox, simpledialog
 else:
@@ -42,11 +44,13 @@ from pandastable.plugin import Plugin
 from pandastable import Table, TableModel, dialogs
 import pylab as plt
 
+
 class MyTable(Table):
     """
       Custom table class inherits from Table.
       You can then override required methods
      """
+
     def __init__(self, parent=None, app=None, **kwargs):
         Table.__init__(self, parent, **kwargs)
         self.app = app
@@ -64,12 +68,13 @@ class MyTable(Table):
         self.app.previewTable()
         return
 
+
 class BatchProcessPlugin(Plugin):
     """Batch processing plugin for DataExplore. Useful for multiple file import
     and plotting.
     """
 
-    capabilities = ['gui','uses_sidepane']
+    capabilities = ['gui', 'uses_sidepane']
     requires = ['']
     menuentry = 'Batch Process'
     gui_methods = {}
@@ -79,82 +84,84 @@ class BatchProcessPlugin(Plugin):
         return
 
     def main(self, parent):
-        self.parent=parent
-        if parent==None:
-            self.main=Toplevel()
-            self.master=self.main
+        self.parent = parent
+        if parent == None:
+            self.main = Toplevel()
+            self.master = self.main
             self.main.title('Batch Process')
             ws = self.main.winfo_screenwidth()
             hs = self.main.winfo_screenheight()
-            w = 900; h=500
-            x = (ws/2)-(w/2); y = (hs/2)-(h/2)
-            self.main.geometry('%dx%d+%d+%d' % (w,h,x,y))
+            w = 900;
+            h = 500
+            x = (ws / 2) - (w / 2);
+            y = (hs / 2) - (h / 2)
+            self.main.geometry('%dx%d+%d+%d' % (w, h, x, y))
         else:
             self.parent = parent
             self._doFrame()
-            self.main=self.mainwin
+            self.main = self.mainwin
         self.doGUI()
         self.currentdir = self.homedir = os.path.expanduser('~')
 
         self.addFolder(path='test_batch')
-        self.savepath = os.path.join(self.homedir,'batchplots')
-        #self.test()
+        self.savepath = os.path.join(self.homedir, 'batchplots')
+        # self.test()
         return
 
     def doGUI(self):
         """Create GUI"""
 
         frame = Frame(self.main)
-        frame.pack(side=LEFT,fill=BOTH,expand=1)
+        frame.pack(side=LEFT, fill=BOTH, expand=1)
         df = pd.DataFrame()
         self.pt = MyTable(frame, app=self, dataframe=df, read_only=1, showtoolbar=0, width=100)
         self.pt.show()
-        #self.m.add(frame)
-        fr = Frame(self.main, padding=(4,4), width=120)
-        fr.pack(side=RIGHT,fill=BOTH)
+        # self.m.add(frame)
+        fr = Frame(self.main, padding=(4, 4), width=120)
+        fr.pack(side=RIGHT, fill=BOTH)
 
-        b=Button(fr,text='Add Folder',command=self.addFolder)
-        b.pack(side=TOP,fill=BOTH,pady=2)
+        b = Button(fr, text='Add Folder', command=self.addFolder)
+        b.pack(side=TOP, fill=BOTH, pady=2)
         self.recursivevar = BooleanVar()
         self.recursivevar.set(False)
-        b=Checkbutton(fr,text='Load Recursive',variable=self.recursivevar)
-        b.pack(side=TOP,fill=BOTH,pady=2)
-        b=Button(fr,text='Clear',command=self.clear)
-        b.pack(side=TOP,fill=BOTH,pady=2)
+        b = Checkbutton(fr, text='Load Recursive', variable=self.recursivevar)
+        b.pack(side=TOP, fill=BOTH, pady=2)
+        b = Button(fr, text='Clear', command=self.clear)
+        b.pack(side=TOP, fill=BOTH, pady=2)
 
         self.extensionvar = StringVar()
-        w = Combobox(fr, values=['csv','tsv','txt','csv.gz','*'],
-                 textvariable=self.extensionvar,width=6)
-        w.pack(side=TOP,fill=BOTH,pady=2)
+        w = Combobox(fr, values=['csv', 'tsv', 'txt', 'csv.gz', '*'],
+                     textvariable=self.extensionvar, width=6)
+        w.pack(side=TOP, fill=BOTH, pady=2)
         w.set('csv')
-        Label(fr,text='delimiter').pack()
+        Label(fr, text='delimiter').pack()
         self.delimvar = StringVar()
-        delimiters = [',',r'\t',' ',';','/','&','|','^','+','-']
+        delimiters = [',', r'\t', ' ', ';', '/', '&', '|', '^', '+', '-']
         w = Combobox(fr, values=delimiters,
-                 textvariable=self.delimvar,width=6)
-        w.pack(side=TOP,fill=BOTH,pady=2)
+                     textvariable=self.delimvar, width=6)
+        w.pack(side=TOP, fill=BOTH, pady=2)
         w.set(',')
-        self.indexcolvar=IntVar()
-        Label(fr,text='index column').pack()
-        w=Entry(fr,textvariable=self.indexcolvar,width=6)
-        w.pack(side=TOP,fill=BOTH,pady=2)
+        self.indexcolvar = IntVar()
+        Label(fr, text='index column').pack()
+        w = Entry(fr, textvariable=self.indexcolvar, width=6)
+        w.pack(side=TOP, fill=BOTH, pady=2)
         self.useselectedvar = BooleanVar()
         self.useselectedvar.set(False)
-        b=Checkbutton(fr,text='Selected Only',variable=self.useselectedvar)
-        b.pack(side=TOP,fill=BOTH,pady=2)
-        b=Button(fr,text='Import All',command=self.importAll)
-        b.pack(side=TOP,fill=BOTH,pady=2)
-        b=Button(fr,text='Preview Plot',command=self.previewPlot)
-        b.pack(side=TOP,fill=BOTH,pady=2)
-        b=Button(fr,text='Run Batch Plots',command=self.batchPlot)
-        b.pack(side=TOP,fill=BOTH,pady=2)
+        b = Checkbutton(fr, text='Selected Only', variable=self.useselectedvar)
+        b.pack(side=TOP, fill=BOTH, pady=2)
+        b = Button(fr, text='Import All', command=self.importAll)
+        b.pack(side=TOP, fill=BOTH, pady=2)
+        b = Button(fr, text='Preview Plot', command=self.previewPlot)
+        b.pack(side=TOP, fill=BOTH, pady=2)
+        b = Button(fr, text='Run Batch Plots', command=self.batchPlot)
+        b.pack(side=TOP, fill=BOTH, pady=2)
         self.saveformatvar = StringVar()
         self.saveformatvar.set('png')
-        w = Combobox(fr, values=['png','jpg','svg','tif','eps','pdf'],
-                 textvariable=self.saveformatvar,width=6)
-        w.pack(side=TOP,fill=BOTH,pady=2)
-        b=Button(fr,text='Save Folder',command=self.selectSaveFolder)
-        b.pack(side=TOP,fill=BOTH,pady=2)
+        w = Combobox(fr, values=['png', 'jpg', 'svg', 'tif', 'eps', 'pdf'],
+                     textvariable=self.saveformatvar, width=6)
+        w.pack(side=TOP, fill=BOTH, pady=2)
+        b = Button(fr, text='Save Folder', command=self.selectSaveFolder)
+        b.pack(side=TOP, fill=BOTH, pady=2)
 
         table = self.parent.getCurrentTable()
         self.pf = table.pf
@@ -162,17 +169,17 @@ class BatchProcessPlugin(Plugin):
 
     def selectSaveFolder(self):
         self.savepath = filedialog.askdirectory(parent=self.main,
-                                        initialdir=self.currentdir,
-                                        title='Select folder')
+                                                initialdir=self.currentdir,
+                                                title='Select folder')
         return
 
     def addFolder(self, path=None):
         """Get a folder"""
 
-        if path==None:
+        if path == None:
             path = filedialog.askdirectory(parent=self.main,
-                                            initialdir=self.currentdir,
-                                            title='Select folder')
+                                           initialdir=self.currentdir,
+                                           title='Select folder')
         if path:
             self.path = path
             self.refresh()
@@ -184,29 +191,30 @@ class BatchProcessPlugin(Plugin):
 
         currdf = self.pt.model.df
         ext = self.extensionvar.get()
-        fp = '*.'+ext
+        fp = '*.' + ext
         if self.recursivevar.get() == 1:
             fp = '**/*.csv'
-            flist = glob.glob(os.path.join(self.path,fp), recursive=True)
+            flist = glob.glob(os.path.join(self.path, fp), recursive=True)
         else:
-            flist = glob.glob(os.path.join(self.path,fp))
+            flist = glob.glob(os.path.join(self.path, fp))
         sizes = []
-        cols=[]; rows=[]
+        cols = [];
+        rows = []
         for f in flist:
             s = os.path.getsize(f)
             sizes.append(s)
             df = pd.read_csv(f, nrows=10)
             cols.append(len(df.columns))
 
-        df = pd.DataFrame({'filename':flist, 'filesize':sizes,
-                            'columns':cols})
-        #print (df)
-        new = pd.concat([currdf,df])
+        df = pd.DataFrame({'filename': flist, 'filesize': sizes,
+                           'columns': cols})
+        # print (df)
+        new = pd.concat([currdf, df])
         new = new.drop_duplicates('filename')
         self.pt.model.df = new
         self.pt.autoResizeColumns()
         self.pt.columnwidths['filename'] = 350
-        #self.pt.redraw()
+        # self.pt.redraw()
         return
 
     def loadFile(self, row=None):
@@ -217,15 +225,15 @@ class BatchProcessPlugin(Plugin):
         df = self.pt.model.df
         r = df.iloc[row]
         df = pd.read_csv(r.filename, sep=self.delimvar.get())
-        idx=self.indexcolvar.get()
-        df=df.set_index(df.columns[idx])
+        idx = self.indexcolvar.get()
+        df = df.set_index(df.columns[idx])
         return df
 
     def previewTable(self):
         """Preview selected table in main table."""
 
         df = self.loadFile()
-        #print (df)
+        # print (df)
         table = self.parent.getCurrentTable()
         table.model.df = df
         table.autoResizeColumns()
@@ -236,18 +244,18 @@ class BatchProcessPlugin(Plugin):
 
         ops = ['separately', 'concat', 'merge']
         d = dialogs.MultipleValDialog(title='Batch Import Files',
-                                initialvalues=[ops],
-                                labels=['How to Import:'],
-                                types=['combobox'],
-                                parent = self.mainwin)
-        if d.result == None:
+                                      initialvalues=[ops],
+                                      labels=['How to Import:'],
+                                      types=['combobox'],
+                                      parent=self.mainwin)
+        if d.result is None:
             return
         how = d.results[0]
         if how == 'join':
             self.joinTables()
         else:
             filelist = self.pt.model.df
-            for i,r in filelist.iterrows():
+            for i, r in filelist.iterrows():
                 df = self.loadFile(i)
                 self.parent.addSheet(i, df)
         return
@@ -256,13 +264,13 @@ class BatchProcessPlugin(Plugin):
         """Joins selected tables together and send to dataexplore"""
 
         filelist = self.pt.model.df
-        res=[]
-        for i,r in filelist.iterrows():
+        res = []
+        for i, r in filelist.iterrows():
             df = self.loadFile(i)
             res.append(df)
         res = pd.concat(res)
         t = time.strftime('%X')
-        self.parent.addSheet('joined-'+t, res)
+        self.parent.addSheet('joined-' + t, res)
         return
 
     def clear(self):
@@ -294,11 +302,11 @@ class BatchProcessPlugin(Plugin):
             pdf_pages = self.pdfPages()
         df = self.pt.model.df
         cols = self.getCurrentSelections()
-        for i,r in df.iterrows():
+        for i, r in df.iterrows():
             f = r.filename
             name = os.path.basename(f)
             df = self.loadFile(i)
-            if len(df)==0:
+            if len(df) == 0:
                 continue
             df = df[df.columns[cols]]
             self.pf.replot(df)
@@ -307,7 +315,7 @@ class BatchProcessPlugin(Plugin):
                 fig = self.pf.fig
                 pdf_pages.savefig(fig)
             else:
-                self.pf.savePlot(filename=os.path.join(plotdir, name+'.'+format))
+                self.pf.savePlot(filename=os.path.join(plotdir, name + '.' + format))
         if format == 'pdf':
             pdf_pages.close()
         return
@@ -329,23 +337,25 @@ class BatchProcessPlugin(Plugin):
         return pdf_pages
 
     def test(self):
-        path='test_batch'
+        path = 'test_batch'
         for i in range(20):
             df = TableModel.getSampleData()
-            df.to_csv(os.path.join(path,'test%s.csv' %str(i)))
+            df.to_csv(os.path.join(path, 'test%s.csv' % str(i)))
         return
+
 
 def main():
     from optparse import OptionParser
     parser = OptionParser()
     parser.add_option("-d", "--dir", dest="directory",
-                        help="Folder of raw files")
+                      help="Folder of raw files")
 
     opts, remainder = parser.parse_args()
     app = BatchProcessPlugin()
-    if opts.directory != None:
+    if opts.directory is not None:
         app.addFolder(opts.directory)
     app.mainloop()
+
 
 if __name__ == '__main__':
     main()
