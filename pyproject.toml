@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = 'pandastable'
+version = '0.13.1'
+description = 'Library for embedding tables in Tkinter using pandas DataFrames'
+readme = 'README.md'
+license = {text = 'GPL v3'}
+authors = [{ name = 'Damien Farrell', email='farrell.damien@gmail.com'}]
+requires-python = '>=3.6'
+dependencies = ['future', 'numpy', 'pandas', 'numexpr', "matplotlib"]
+keywords = ['tkinter', 'ttk', 'spreadsheet', 'table', 'pandas', 'data analysis']
+classifiers = [
+    'Development Status :: 4 - Beta',
+    'Intended Audience :: Science/Research',
+    'License :: OSI Approved :: GPL v3',
+    'Operating System :: OS Independent',
+    'Programming Language :: Python',
+    'Programming Language :: Python :: 2.7',
+    'Programming Language :: Python :: 3.6',
+    'Programming Language :: Python :: 3.7',
+    'Programming Language :: Python :: 3.8',
+    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.11',
+    'Programming Language :: Python :: 3.12',
+    'Topic :: Scientific/Engineering'
+]
+
+[project.optional-dependencies]
+gui = ["seaborn", "scikit-learn"]
+
+[project.urls]
+Repository = 'https://github.com/dmnfarrell/pandastable'
+Issues = "https://github.com/dmnfarrell/issues"
+Changelog = "https://github.com/dmnfarrell/pandastable/blob/master/CHANGES"
