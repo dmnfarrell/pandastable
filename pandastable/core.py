@@ -266,7 +266,7 @@ class Table(Canvas):
         self.bind("<Up>", self.handle_arrow_keys)
         self.bind("<Down>", self.handle_arrow_keys)
         self.parentframe.master.bind_all("<KP_8>", self.handle_arrow_keys)
-        self.parentframe.master.bind_all("<Return>", self.handle_arrow_keys)
+        #self.parentframe.master.bind_all("<Return>", self.handle_arrow_keys)
         self.parentframe.master.bind_all("<Tab>", self.handle_arrow_keys)
         #if 'windows' in self.platform:
         self.bind("<MouseWheel>", self.mouse_wheel)
@@ -1318,7 +1318,8 @@ class Table(Canvas):
             self.redraw()
         except:
             logging.error("Exception occurred", exc_info=True)
-            print('failed')
+            print(' to convert column data type')
+            print (e)
         return
 
     def findDuplicates(self):
@@ -1969,6 +1970,11 @@ class Table(Canvas):
     def evalBar(self, evt=None):
         """Use pd.eval to apply a function colwise or preset funcs."""
 
+        if self.filtered == 1:
+            messagebox.showwarning("Not available",
+                                   "You cannot add arithmetic columns when filtered.",
+                                    parent=self.parentframe)
+            return
         def reset():
             self.evalframe.destroy()
             self.evalframe = None
@@ -2361,14 +2367,13 @@ class Table(Canvas):
 
     def handle_arrow_keys(self, event):
         """Handle arrow keys press"""
-        #print event.keysym
 
         row = self.get_row_clicked(event)
         col = self.get_col_clicked(event)
         x,y = self.getCanvasPos(self.currentrow, self.currentcol-1)
         rmin = self.visiblerows[0]
         rmax = self.visiblerows[-1]-2
-        cmax = self.visiblecols[-1]-1
+        cmax = self.visiblecols[-1]
         cmin = self.visiblecols[0]
         if x == None:
             return
@@ -3282,11 +3287,18 @@ class Table(Canvas):
             df = self.dataframe
         else:
             df = None
-        self.model.setValueAt(value,row,col,df=df)
-
-        self.drawText(row, col, value, align=self.align)
-        self.delete('entry')
-        self.gotonextCell()
+        result = self.model.setValueAt(value,row,col,df=df)
+        dtype = self.model.getColumnType(col)
+        if result == False:
+            #if we failed show dialog
+            msg = f"The column type is not compatible with the value {value}. This column is {dtype}. Change data type first."
+            messagebox.showwarning("Incompatible type",
+                                    msg,
+                                    parent=self.parentframe)
+        else:
+            self.drawText(row, col, value, align=self.align)
+            self.delete('entry')
+            self.gotonextCell()
         return
 
     def handleEntryMenu(self, *args):

@@ -290,7 +290,8 @@ class TableModel(object):
 
     def getColumnType(self, columnIndex):
         """Get the column type"""
-        coltype = self.df.dtypes[columnIndex]
+
+        coltype = self.df.dtypes.iloc[columnIndex]
         return coltype
 
     def getColumnCount(self):
@@ -329,7 +330,8 @@ class TableModel(object):
         #print (df.loc[rowindex,colindex])
         if value == '':
             value = np.nan
-        dtype = self.df.dtypes[col]
+
+        dtype = self.getColumnType(col)
         #try to cast to column type
         try:
             if dtype in ['float32','float64']:
@@ -340,12 +342,13 @@ class TableModel(object):
                 value = pd.to_datetime(value)
         except Exception as e:
             print (e)
+            return False
         if df.index.is_unique is True:
             df.loc[rowindex,colindex] = value
         else:
             #we cannot use index if not unique
             df.iloc[row,col] = value
-        return
+        return True
 
     def transpose(self):
         """Transpose dataframe"""
