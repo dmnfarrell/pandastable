@@ -478,7 +478,7 @@ class Table(Canvas):
                 align = self.align
 
             #set precision
-            if coldata.dtype in ['float64','int']:
+            if coldata.dtype in ['float64','float32','int']:
                 #coldata = coldata.apply(lambda x: self.setPrecision(x, prec), 1)
                 coldata = coldata.apply(lambda x: self.setPrecision(x, prec))
 
@@ -1045,7 +1045,7 @@ class Table(Canvas):
         """Add a new column"""
 
         if newname == None:
-            coltypes = ['object','float64']
+            coltypes = ['object','float32','float64']
             d = MultipleValDialog(title='New Column',
                                     initialvalues=(coltypes, ''),
                                     labels=('Column Type','Name'),
@@ -1303,7 +1303,7 @@ class Table(Canvas):
 
         df = self.model.df
         col = df.columns[self.currentcol]
-        coltypes = ['object','str','int','float64','category']
+        coltypes = ['object','str','int','float32','float64','category']
         curr = df[col].dtype
         d = MultipleValDialog(title='current type is %s' %curr,
                                 initialvalues=[coltypes],

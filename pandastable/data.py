@@ -152,7 +152,7 @@ class TableModel(object):
         df = self.df
         col = df.columns[colindex]
         try:
-            if df.dtypes[col] == 'float64':
+            if df.dtypes[col] in ['float32','float64']:
                 c = df[col][:n].round(3)
             else:
                 c = df[col][:n]
@@ -332,7 +332,7 @@ class TableModel(object):
         dtype = self.df.dtypes[col]
         #try to cast to column type
         try:
-            if dtype == 'float64':
+            if dtype in ['float32','float64']:
                 value = float(value)
             elif dtype == 'int':
                 value = int(value)
