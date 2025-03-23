@@ -14,6 +14,9 @@ Can now use different datetime formats
 Changed header color variable names
 Can set row header color in prefs
 Index header uses row header color
+Fix to block editing when in filtered mode
+float32 type recognised, works for precision
+No longer allows non dtype edits unless column type is changed first
 
 ------
 0.13.0

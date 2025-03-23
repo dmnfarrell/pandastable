@@ -1469,7 +1469,7 @@ class QueryDialog(Frame):
         table=self.table
         if not hasattr(self.table,'dataframe') or not hasattr(self, 'filtdf'):
             return
-        clr = self.table.getaColor('#dcf1fc')
+        clr =  pickColor(self,'#dcf1fc')
         if clr is None: return
         df = table.model.df = table.dataframe
         idx = self.filtdf.index

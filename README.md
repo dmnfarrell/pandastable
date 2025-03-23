@@ -2,7 +2,6 @@
 
 [![PyPI version shields.io](https://img.shields.io/pypi/v/pandastable.svg)](https://pypi.python.org/pypi/pandastable/)
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Build: status](https://img.shields.io/travis/dmnfarrell/pandastable.svg)](https://travis-ci.org/dmnfarrell/pandastable)
 
 ## Introduction
 
@@ -35,13 +34,10 @@ Install latest from github:
 
 ```pip install -e git+https://github.com/dmnfarrell/pandastable.git#egg=pandastable```
 
-You can also install the dataexplore snap package on any linux distribution that supports snaps. This installs everything you need as one app:
-
-```sudo snap install dataexplore```
-
 see the [docs](https://pandastable.readthedocs.io/en/latest/description.html#installation) for more details on installing.
 
 ## Current features
+
 * add, remove rows and columns
 * spreadsheet-like drag, shift-click, ctrl-click selection
 * edit individual cells

@@ -1106,17 +1106,18 @@ class DataExplore(Frame):
         label.grid(row=0,column=0,sticky='ew',padx=4,pady=4)
         style = Style()
         style.configure("BW.TLabel", font='arial 11')
-        from . import __version__
+        try:
+            from .core import git_version
+            VERSION = git_version()
+        except:
+            from . import __version__ as VERSION
+
         pandasver = pd.__version__
         pythonver = platform.python_version()
         mplver = matplotlib.__version__
-        if self._check_snap == True:
-            snap='(snap)'
-        else:
-            snap=''
 
         text='DataExplore Application\n'\
-                +'version '+__version__+snap+'\n'\
+                +'version '+VERSION+'\n'\
                 +'Copyright (C) Damien Farrell 2014-\n'\
                 +'This program is free software; you can redistribute it and/or\n'\
                 +'modify it under the terms of the GNU General Public License\n'\

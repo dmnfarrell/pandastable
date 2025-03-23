@@ -71,6 +71,11 @@ Pandas supports a variety of options for data 'cleaning' or dealing with missing
 * Interpolate missing data (filling in the points between)
 * Drop duplicates
 
+Editing data and column types
+-----------------------------
+
+You can edit individual cells though a spreadsheet program is more efficient. To edit a cell double-click and then press return when finished. Note that columns can be set to a particular data type (object, float, int) so your value should match that type. i.e. You can't enter a string in a float32 column. To enter any value use the object type for the column. For consistent numeric sorting use number data types.
+
 String operations
 -----------------
 

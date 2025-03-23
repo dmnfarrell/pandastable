@@ -33,7 +33,7 @@ except:
     import tkMessageBox as messagebox
 from tkinter import font
 import math, time
-import os, types
+import os, types, subprocess
 import string, copy
 import platform
 import logging
@@ -59,6 +59,10 @@ config_path = os.path.join(os.path.expanduser("~"), '.pandastable')
 logfile = os.path.join(config_path, 'error.log')
 if not os.path.exists(config_path):
     os.mkdir(config_path)
+
+def git_version() -> str:
+    """Get git version"""
+    return subprocess.check_output(['git','describe','--tags']).decode('ascii').strip()
 
 class Table(Canvas):
     """A tkinter class for providing table functionality.
@@ -662,14 +666,14 @@ class Table(Canvas):
         cmaps = sorted(m for m in plt.cm.datad if not m.endswith("_r"))
         cols = self.multiplecollist
         d = MultipleValDialog(title='color by value',
-                                initialvalues=[cmaps,1.0],
+                                initialvalues=[cmaps,0.5],
                                 labels=['colormap:','alpha:'],
                                 types=['combobox','string'],
                                 parent = self.parentframe)
         if d.result == None:
             return
         cmap = d.results[0]
-        alpha =float(d.results[1])
+        alpha = float(d.results[1])
         df = self.model.df
         for col in cols:
             colname = df.columns[col]
@@ -687,8 +691,7 @@ class Table(Canvas):
         import pylab as plt
         import matplotlib as mpl
         cmap = plt.cm.get_cmap(cmap)
-        #if x.dtype in ['int','float64']:
-        if x.dtype in ['object']:#,'category']:
+        if x.dtype in ['object']:
             x = pd.Categorical(x).codes
         x = (x-x.min())/(x.max()-x.min())
         clrs = cmap(x)
@@ -857,7 +860,7 @@ class Table(Canvas):
                 df.sort_values(by=colnames, inplace=True, ascending=ascending)
             except Exception as e:
                 print('could not sort')
-                #logging.error("Exception occurred", exc_info=True)
+                print (e)
         self.redraw()
         return
 
@@ -1860,7 +1863,6 @@ class Table(Canvas):
     def evalFunction(self, evt=None):
         """Apply a function to create new columns"""
 
-        #self.convertNumeric(ask=False)
         s = self.evalvar.get()
 
         if s=='':
@@ -3284,14 +3286,13 @@ class Table(Canvas):
 
         value = self.cellentryvar.get()
         if self.filtered == 1:
-            df = self.dataframe
-        else:
-            df = None
+            return
+        df = None
         result = self.model.setValueAt(value,row,col,df=df)
         dtype = self.model.getColumnType(col)
         if result == False:
             #if we failed show dialog
-            msg = f"The column type is not compatible with the value {value}. This column is {dtype}. Change data type first."
+            msg = f"This column is {dtype} and is not compatible with the value {value}. Change data type first."
             messagebox.showwarning("Incompatible type",
                                     msg,
                                     parent=self.parentframe)

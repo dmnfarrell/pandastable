@@ -77,7 +77,7 @@ valid_kwds = {'line': ['alpha', 'colormap', 'grid', 'legend', 'linestyle','ms',
                         'subplots','edgecolor','sharex','sharey'],
             'dotplot': ['marker','edgecolor','linewidth','colormap','alpha','legend',
                         'subplots','ms','bw','logy','sharex','sharey'],
-            'scatter_matrix':['alpha', 'linewidth', 'marker', 'grid', 's'],
+            'scatter_matrix':['alpha', 'linewidth', 'grid', 's','alpha'],
             'contour': ['linewidth','colormap','alpha','subplots'],
             'imshow': ['colormap','alpha'],
             'venn': ['colormap','alpha'],
@@ -345,7 +345,7 @@ class PlotViewer(Frame):
         """Get only numeric data that can be plotted"""
 
         #x = df.convert_objects()._get_numeric_data()
-        x = df.apply( lambda x: pd.to_numeric(x,errors='ignore',downcast='float') )
+        x = df.apply( lambda x: pd.to_numeric(x,errors='coerce',downcast='float') )
         if x.empty==True:
             return False
 
@@ -801,7 +801,7 @@ class PlotViewer(Frame):
         elif kind == 'bootstrap':
             axs = plotting.bootstrap_plot(data)
         elif kind == 'scatter_matrix':
-            axs = pd.scatter_matrix(data, ax=ax, **kwargs)
+            axs = pd.plotting.scatter_matrix(data, ax=ax, **kwargs)
         elif kind == 'hexbin':
             x = cols[0]
             y = cols[1]

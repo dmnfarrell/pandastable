@@ -62,10 +62,6 @@ For Dataexplore
 
 For **Windows users** there is an MSI installer for the DataExplore application. This is recommended for anyone using windows not using the library directly as a widget.
 
-**On linux** snaps are highly recommended::
-
-    snap install dataexplore
-
 pandastable library
 -------------------
 
