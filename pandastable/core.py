@@ -147,6 +147,7 @@ class Table(Canvas):
         self.plotted = False
         self.importpath = None
         self.prevdf = None
+        self.__last_left_click_src = "column"
         return
 
     def close(self, evt=None):
@@ -3140,14 +3141,17 @@ class Table(Canvas):
         types to float so that plotting works."""
 
         df = self.model.df
-        rows = self.multiplerowlist
-        if not type(rows) is list:
+        cols, rows = self.multiplecollist, self.multiplerowlist
+        if not type(rows) is list:  # or self.allcols == True:
             rows = list(rows)
-        if len(rows)<1 or self.allrows == True:
-            rows = list(range(self.rows))
-        cols = self.multiplecollist
-        #if len(cols) < 1 or self.allcols == True:
-        #    cols = list(range(self.cols))
+        if self.__last_left_click_src == "row":
+            if len(cols) < 1:
+                cols = list(range(self.cols))
+                rows = [self.currentrow]
+        else:
+            if len(rows) < 1 or self.allrows == True:
+                rows = list(range(self.rows))
+                cols = [self.currentcol]
         try:
             data = df.iloc[rows,cols]
         except Exception as e:
@@ -3764,6 +3768,9 @@ class Table(Canvas):
         self.columnformats['alignment'] = {}
         self.redraw()
         return
+
+    def setLeftClickSrc(self, src):
+        self.__last_left_click_src = src
 
 class ToolBar(Frame):
     """Uses the parent instance to provide the functions"""

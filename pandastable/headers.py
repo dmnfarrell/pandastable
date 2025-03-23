@@ -228,6 +228,7 @@ class ColumnHeader(Canvas):
         self.table.drawSelectedCol()
         self.table.drawMultipleCells()
         self.table.drawMultipleRows(self.table.multiplerowlist)
+        self.table.setLeftClickSrc("column")
         return
 
     def handle_left_release(self,event):
@@ -646,6 +647,7 @@ class RowHeader(Canvas):
             self.table.setSelectedRow(rowclicked)
             self.table.drawSelectedRow()
             self.drawSelectedRows(self.table.currentrow)
+            self.table.setLeftClickSrc("row")
         return
 
     def handle_left_release(self,event):
@@ -854,4 +856,5 @@ class IndexHeader(Canvas):
     def handle_left_click(self, event):
         """Handle mouse left mouse click"""
         self.table.selectAll()
+        self.table.setLeftClickSrc("")
         return
