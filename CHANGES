@@ -17,6 +17,7 @@ Index header uses row header color
 Fix to block editing when in filtered mode
 float32 type recognised, works for precision
 No longer allows non dtype edits unless column type is changed first
+Show git version in help dialog
 
 ------
 0.13.0

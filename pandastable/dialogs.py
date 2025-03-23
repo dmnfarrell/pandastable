@@ -599,7 +599,7 @@ class ImportDialog(Frame):
         try:
             f = self.textfilereader = pd.read_csv(self.filename,
                         chunksize=500, on_bad_lines='skip',
-                        date_parser=dateparse,
+                        date_format=dateparse,
                         converters=self.converters, **kwds)
         except Exception as e:
             print ('read csv error')
@@ -1226,7 +1226,7 @@ class FindReplaceDialog(Frame):
         self.search_changed=True
         return
 
-    def find(self):
+    def find(self, event=None):
         """Do string search. Creates a masked dataframe for results and then stores each cell
         coordinate in a list."""
 
@@ -1248,7 +1248,7 @@ class FindReplaceDialog(Frame):
         self.coords = []
         for r,row in found.iterrows():
             j=0
-            for col,val in row.iteritems():
+            for col,val in row.items():
                 if val is True:
                     #print (r,col,val, i, j)
                     self.coords.append((i,j))

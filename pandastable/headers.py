@@ -419,9 +419,7 @@ class ColumnHeader(Canvas):
             popupmenu.unpost()
 
         columncommands = {"Rename": self.renameColumn,
-                          "Add": self.table.addColumn,
-                          #"Delete": self.table.deleteColumn,
-                          "Copy": self.table.copyColumn,
+                          "Duplicate": self.table.copyColumn,
                           "Move to Start": self.table.moveColumns,
                           "Move to End": lambda: self.table.moveColumns(pos='end')
                          }
@@ -436,6 +434,7 @@ class ColumnHeader(Canvas):
             command=lambda : self.table.sortTable(ascending=[0 for i in multicols]))
         popupmenu.add_command(label="Set %s as Index" %colnames, command=self.table.setindex)
         popupmenu.add_command(label="Delete Column(s)", command=self.table.deleteColumn)
+        popupmenu.add_command(label="Add Column", command=self.table.addColumn)
         if ismulti == True:
             popupmenu.add_command(label="Flatten Index", command=self.table.flattenIndex)
         popupmenu.add_command(label="Fill With Data", command=self.table.fillColumn)

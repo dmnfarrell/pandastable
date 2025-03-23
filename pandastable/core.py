@@ -272,7 +272,9 @@ class Table(Canvas):
         self.parentframe.master.bind_all("<KP_8>", self.handle_arrow_keys)
         #self.parentframe.master.bind_all("<Return>", self.handle_arrow_keys)
         self.parentframe.master.bind_all("<Tab>", self.handle_arrow_keys)
-        #if 'windows' in self.platform:
+        self.bind("<Prior>", self.handle_page_up)
+        self.bind("<Next>", self.handle_page_down)
+
         self.bind("<MouseWheel>", self.mouse_wheel)
         self.bind('<Button-4>', self.mouse_wheel)
         self.bind('<Button-5>', self.mouse_wheel)
@@ -2425,6 +2427,30 @@ class Table(Canvas):
         coltype = self.model.getColumnType(self.currentcol)
         return
 
+    def handle_page_up(self, event=None):
+        self.page_up()
+
+    def handle_page_down(self, event=None):
+        self.page_down()
+
+    def page_up(self):
+        """Scroll up by one page"""
+
+        first_visible_row = int(self.rows * self.yview()[0])
+        visible_rows = int(self.rows * (self.yview()[1] - self.yview()[0]))
+        new_row_index = max(0, first_visible_row - visible_rows)
+        self.movetoSelection(new_row_index, 0)  # Column index 0 to stay in the first column
+        return
+
+    def page_down(self):
+        """Scroll down by one page"""
+
+        first_visible_row = int(self.rows * self.yview()[0])
+        visible_rows = int(self.rows * (self.yview()[1] - self.yview()[0]))
+        new_row_index = min(self.rows - 1, first_visible_row + visible_rows)
+        self.movetoSelection(new_row_index, 0)  # Column index 0 to stay in the first column
+        return
+
     def handle_double_click(self, event):
         """Do double click stuff. Selected row/cols will already have
            been set with single click binding"""
@@ -2500,7 +2526,7 @@ class Table(Canvas):
         self.yview('moveto', y)
         self.colheader.xview('moveto', x)
         self.rowheader.yview('moveto', y)
-        self.rowheader.redraw()
+        self.redraw()
         return
 
     def copyTable(self, event=None):
