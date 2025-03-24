@@ -265,6 +265,8 @@ class Table(Canvas):
         self.bind("<Control-z>", self.undo)
         self.bind("<Control-a>", self.selectAll)
         self.bind("<Control-f>", self.findText)
+        self.bind("<Control-equal>", self.zoomIn)
+        self.bind("<Control-minus>", self.zoomOut)
 
         self.bind("<Right>", self.handle_arrow_keys)
         self.bind("<Left>", self.handle_arrow_keys)
@@ -670,18 +672,18 @@ class Table(Canvas):
         cols = self.multiplecollist
         d = MultipleValDialog(title='color by value',
                                 initialvalues=[cmaps,0.5],
-                                labels=['colormap:','alpha:'],
-                                types=['combobox','string'],
+                                labels=['colormap:'],
+                                types=['combobox'],
                                 parent = self.parentframe)
         if d.result == None:
             return
         cmap = d.results[0]
-        alpha = float(d.results[1])
+        #alpha = float(d.results[1])
         df = self.model.df
         for col in cols:
             colname = df.columns[col]
             x = df[colname]
-            clrs = self.values_to_colors(x, cmap, alpha)
+            clrs = self.values_to_colors(x, cmap)
             clrs = pd.Series(clrs,index=df.index)
             rc = self.rowcolors
             rc[colname] = clrs
@@ -743,7 +745,7 @@ class Table(Canvas):
         self.redraw()
         return
 
-    def zoomIn(self):
+    def zoomIn(self, event=None):
         """Zoom in, increases font and row heights."""
 
         self.fontsize = self.fontsize+1
@@ -754,7 +756,7 @@ class Table(Canvas):
         self.redraw()
         return
 
-    def zoomOut(self):
+    def zoomOut(self, event=None):
         """Zoom out, decreases font and row heights."""
 
         self.fontsize = self.fontsize-1

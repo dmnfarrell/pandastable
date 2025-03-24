@@ -3,7 +3,7 @@ CHANGES
 =======
 
 ------
-0.13.2
+0.14.0
 ------
 
 Fixed precision bug for negative numbers
@@ -14,10 +14,13 @@ Can now use different datetime formats
 Changed header color variable names
 Can set row header color in prefs
 Index header uses row header color
-Fix to block editing when in filtered mode
+Fix to prevent editing when in filtered mode
 float32 type recognised, works for precision
 No longer allows non dtype edits unless column type is changed first
 Show git version in help dialog
+Page up and page down now works
+ctrl+ and ctrl- for zooming table
+Fix to move_to_selection to redraw table
 
 ------
 0.13.0
