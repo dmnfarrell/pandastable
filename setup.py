@@ -12,6 +12,7 @@ setup(
     long_description = long_description,
     url='https://github.com/dmnfarrell/pandastable',
     license='GPL v3',
+    license_files = ('LICENSE',),
     author = 'Damien Farrell',
     author_email = 'farrell.damien@gmail.com',
     packages = ['pandastable'],

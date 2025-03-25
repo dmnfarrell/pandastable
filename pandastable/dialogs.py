@@ -1412,6 +1412,21 @@ class QueryDialog(Frame):
         fb = FilterBar(self, self.fbar, list(df.columns))
         fb.pack(side=TOP, fill=BOTH, expand=1, padx=2, pady=2)
         self.filters.append(fb)
+        return fb
+
+    def addFilterRow(self, column=None, operator=None, value=None, booleanop='AND'):
+        """Add filter with predefined values"""
+
+        filter_bar = self.addFilter()
+
+        filter_bar.booleanop.set(booleanop)
+        if column is not None:
+            filter_bar.filtercol.set(column)
+        if operator is not None:
+            filter_bar.operator.set(operator)
+        if value is not None:
+            filter_bar.filtercolvalue.set(str(value))
+        self.filters.append(filter_bar)
         return
 
     def applyFilter(self, df, mask=None):
@@ -1426,7 +1441,9 @@ class QueryDialog(Frame):
                 val = float(val)
             except:
                 pass
-            #print (col, val, op, b)
+            if col not in df.columns:
+                print (f'column {col} is not in the table')
+                continue
             if op == 'contains':
                 m = df[col].str.contains(str(val))
             elif op == 'equals':
