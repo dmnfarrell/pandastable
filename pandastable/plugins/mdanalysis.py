@@ -117,7 +117,7 @@ class MultivariatePlugin(Plugin):
         """Auto create tk vars, widgets for corresponding options and
            and return the frame"""
 
-        dialog, self.tkvars, self.widgets = plotting.dialogFromOptions(parent,
+        dialog, self.tkvars, self.widgets, *_ = plotting.dialogFromOptions(parent,
                                                                        self.opts, self.groups)
         #self.widgets['class_labels'].bind("<<ComboboxSelected>>", self.update)
         return dialog

@@ -48,6 +48,76 @@ from .data import TableModel
 from . import util, images
 
 
+class CollapsibleLabelFrame(Frame):
+    """
+    A LabelFrame-like widget that can be collapsed/expanded by clicking the header.
+    
+    The header shows ▼ when expanded and ▶ when collapsed.
+    """
+    
+    def __init__(self, parent, text="", collapsed=False, **kwargs):
+        """
+        Initialize the collapsible frame.
+        
+        Args:
+            parent: Parent widget.
+            text (str): The label text for the frame.
+            collapsed (bool): Whether to start collapsed.
+            **kwargs: Additional Frame options.
+        """
+        super().__init__(parent, **kwargs)
+        
+        self.text = text
+        self._collapsed = collapsed
+        
+        # Header frame with toggle button
+        self.header = Frame(self)
+        self.header.pack(fill=X)
+        
+        # Toggle label (acts as button)
+        arrow = "▶" if collapsed else "▼"
+        self.toggle_label = Label(self.header, text=f"{arrow} {text}", 
+                                   cursor="hand2", anchor="w",
+                                   font=('TkDefaultFont', 9, 'bold'))
+        self.toggle_label.pack(side=LEFT, fill=X, expand=True)
+        self.toggle_label.bind("<Button-1>", self._toggle)
+        
+        # Content frame (holds the actual widgets)
+        self.content = Frame(self, relief=GROOVE, borderwidth=1)
+        if not collapsed:
+            self.content.pack(fill=BOTH, expand=True, padx=2, pady=(0, 2))
+    
+    def _toggle(self, event=None):
+        """Toggle collapsed state."""
+        self._collapsed = not self._collapsed
+        self._update_display()
+    
+    def _update_display(self):
+        """Update the display based on collapsed state."""
+        if self._collapsed:
+            self.content.pack_forget()
+            self.toggle_label.configure(text=f"▶ {self.text}")
+        else:
+            self.content.pack(fill=BOTH, expand=True, padx=2, pady=(0, 2))
+            self.toggle_label.configure(text=f"▼ {self.text}")
+    
+    def collapse(self):
+        """Collapse the frame."""
+        if not self._collapsed:
+            self._collapsed = True
+            self._update_display()
+    
+    def expand(self):
+        """Expand the frame."""
+        if self._collapsed:
+            self._collapsed = False
+            self._update_display()
+    
+    def is_collapsed(self):
+        """Return whether the frame is collapsed."""
+        return self._collapsed
+
+
 def maybe_add_tooltip(text, *widgets):
     """Safely attach a tooltip to one or more tkinter widgets."""
 
@@ -162,7 +232,7 @@ def pickColor(parent, oldcolor):
     return str(newcolor)
 
 def dialogFromOptions(parent, opts, groups=None, callback=None,
-                        sticky='news',  layout='horizontal'):
+                        sticky='news',  layout='horizontal', collapsible=False, use_grid=False):
     """
     Auto create tk vars and widgets for corresponding options and return the enclosing frame.
 
@@ -173,13 +243,22 @@ def dialogFromOptions(parent, opts, groups=None, callback=None,
         callback (function): Function to call on widget updates.
         sticky (str): Sticky parameter for grid layout.
         layout (str): 'horizontal' or 'vertical' layout for groups.
+        collapsible (bool): If True, use CollapsibleLabelFrame for groups.
+        use_grid (bool): If True, use grid layout within groups for better alignment.
 
     Returns:
-        tuple: (frame, tkvars, widgets)
+        tuple: (frame, tkvars, widgets, group_frames)
+            group_frames is a dict mapping group names to their LabelFrame/CollapsibleLabelFrame widgets
     """
 
     tkvars = {}
     widgets = {}
+    group_frames = {}  # Store references to group frames for visibility control
+    
+    # Consistent widget widths for grid layout
+    ENTRY_WIDTH = 10
+    COMBO_WIDTH = 14
+    SCALE_LENGTH = 100
     
     # Create a canvas with scrollbar for scrollable options
     dialog = Frame(parent)
@@ -239,44 +318,51 @@ def dialogFromOptions(parent, opts, groups=None, callback=None,
             c=0; row+=1
             side=TOP
             fill=X
-        frame = LabelFrame(container, text=g)
+        if collapsible:
+            frame = CollapsibleLabelFrame(container, text=g)
+            content_frame = frame.content  # Widgets go in the content frame
+        else:
+            frame = LabelFrame(container, text=g)
+            content_frame = frame  # Widgets go directly in the LabelFrame
         #frame.grid(row=row,column=c,sticky=sticky)
         frame.pack(side=side,fill=fill,expand=False)
+        group_frames[g] = frame  # Store reference for visibility control
 
+        grid_row = 0  # Track row for grid layout
         for i in groups[g]:
             w = None
+            label_widget = None
             opt = opts[i]
             tooltip = opt.get('tooltip')
+            
             if opt['type'] == 'entry':
                 label_text = opt.get('label', i)
-                label_widget = Label(frame, text=label_text)
-                label_widget.pack()
-                width = opt.get('width', 6)
+                label_widget = Label(content_frame, text=label_text)
+                width = opt.get('width', ENTRY_WIDTH) if use_grid else opt.get('width', 6)
                 if isinstance(opt['default'], int):
                     tkvars[i] = v = IntVar()
                 else:
                     tkvars[i] = v = StringVar()
                 v.set(opt['default'])
-                w = Entry(frame, textvariable=v, width=width, command=callback)
+                w = Entry(content_frame, textvariable=v, width=width, command=callback)
                 maybe_add_tooltip(tooltip, label_widget, w)
             elif opt['type'] == 'scrolledtext':
-                w = ScrolledText(frame, width=20, wrap=WORD)
+                w = ScrolledText(content_frame, width=20, wrap=WORD)
                 tkvars[i] = None
                 maybe_add_tooltip(tooltip, w)
             elif opt['type'] == 'checkbutton':
                 tkvars[i] = v = IntVar()
                 v.set(opt['default'])
-                w = Checkbutton(frame, text=opt['label'], variable=v)
+                w = Checkbutton(content_frame, text=opt['label'], variable=v)
                 maybe_add_tooltip(tooltip, w)
             elif opt['type'] == 'combobox':
                 label_text = opt.get('label', i)
-                label_widget = Label(frame, text=label_text)
-                label_widget.pack()
-                width = opt.get('width', 16)
+                label_widget = Label(content_frame, text=label_text)
+                width = opt.get('width', COMBO_WIDTH) if use_grid else opt.get('width', 16)
                 tkvars[i] = v = StringVar()
                 v.set(opt['default'])
                 combo = Combobox(
-                    frame,
+                    content_frame,
                     values=opt['items'],
                     textvariable=v,
                     width=width,
@@ -288,12 +374,11 @@ def dialogFromOptions(parent, opts, groups=None, callback=None,
                 maybe_add_tooltip(tooltip, label_widget, combo)
             elif opt['type'] == 'spinbox':
                 label_text = opt.get('label', i)
-                label_widget = Label(frame, text=label_text)
-                label_widget.pack()
+                label_widget = Label(content_frame, text=label_text)
                 tkvars[i] = v = StringVar()
-                width = opt.get('width', 12)
+                width = opt.get('width', ENTRY_WIDTH) if use_grid else opt.get('width', 12)
                 spinbox = Spinbox(
-                    frame,
+                    content_frame,
                     values=opt['items'],
                     textvariable=v,
                     width=width,
@@ -305,39 +390,52 @@ def dialogFromOptions(parent, opts, groups=None, callback=None,
                 maybe_add_tooltip(tooltip, label_widget, spinbox)
             elif opt['type'] == 'listbox':
                 label_text = opt.get('label', i)
-                label_widget = Label(frame, text=label_text)
-                label_widget.pack()
-                list_frame, listbox_widget = addListBox(frame, values=opt['items'], width=12)
+                label_widget = Label(content_frame, text=label_text)
+                list_frame, listbox_widget = addListBox(content_frame, values=opt['items'], width=12)
                 tkvars[i] = listbox_widget  # add widget instead of var
                 w = list_frame
                 maybe_add_tooltip(tooltip, label_widget, listbox_widget)
             elif opt['type'] == 'radio':
                 label_text = opt.get('label', i)
-                label_widget = Label(frame, text=label_text)
-                label_widget.pack()
+                label_widget = Label(content_frame, text=label_text)
                 tkvars[i] = v = StringVar()
+                # Radio buttons need special handling - create a sub-frame
+                radio_frame = Frame(content_frame)
                 buttons = []
                 for item in opt['items']:
-                    rb = Radiobutton(frame, text=item, variable=v, value=item)
-                    rb.pack(fill=X)
+                    rb = Radiobutton(radio_frame, text=item, variable=v, value=item)
+                    rb.pack(side=LEFT, padx=2)
                     buttons.append(rb)
                 maybe_add_tooltip(tooltip, label_widget, *buttons)
                 widgets[i] = buttons
-                row += 1
+                # Place radio frame
+                if use_grid:
+                    if label_widget:
+                        label_widget.grid(row=grid_row, column=0, sticky='w', padx=(4, 2), pady=2)
+                    radio_frame.grid(row=grid_row, column=1, sticky='ew', padx=(2, 4), pady=2)
+                else:
+                    if label_widget:
+                        label_widget.pack()
+                    radio_frame.pack(fill=X)
+                grid_row += 1
                 continue
             elif opt['type'] == 'scale':
                 fr, to = opt['range']
                 tkvars[i] = v = DoubleVar()
                 v.set(opt['default'])
+                length = SCALE_LENGTH if use_grid else None
                 w = Scale(
-                    frame,
-                    label=opt['label'],
+                    content_frame,
+                    label=opt['label'] if not use_grid else None,
                     from_=fr,
                     to=to,
                     orient='horizontal',
                     resolution=opt['interval'],
-                    variable=v
+                    variable=v,
+                    length=length
                 )
+                if use_grid:
+                    label_widget = Label(content_frame, text=opt['label'])
                 maybe_add_tooltip(tooltip, w)
             elif opt['type'] == 'colorchooser':
                 tkvars[i] = v = StringVar()
@@ -350,20 +448,38 @@ def dialogFromOptions(parent, opts, groups=None, callback=None,
                     if new is not None:
                         var.set(new)
 
-                w = Button(frame, text=opt['label'], command=lambda v=v: func(v))
+                w = Button(content_frame, text=opt['label'], command=lambda v=v: func(v))
                 maybe_add_tooltip(tooltip, w)
 
+            # Place widgets using grid or pack
             if w is not None:
-                pack_kwargs = {'pady': 1}
-                if opt['type'] == 'scrolledtext':
-                    pack_kwargs.update({'fill': BOTH, 'expand': 1})
+                if use_grid:
+                    # Grid layout: label in column 0, widget in column 1
+                    if label_widget:
+                        label_widget.grid(row=grid_row, column=0, sticky='w', padx=(4, 2), pady=2)
+                        w.grid(row=grid_row, column=1, sticky='ew', padx=(2, 4), pady=2)
+                    else:
+                        # Checkbuttons and colorchooser span both columns
+                        w.grid(row=grid_row, column=0, columnspan=2, sticky='w', padx=4, pady=2)
                 else:
-                    pack_kwargs.update({'fill': X, 'expand': 0})
-                w.pack(**pack_kwargs)
+                    # Pack layout (original behavior)
+                    if label_widget:
+                        label_widget.pack()
+                    pack_kwargs = {'pady': 1}
+                    if opt['type'] == 'scrolledtext':
+                        pack_kwargs.update({'fill': BOTH, 'expand': 1})
+                    else:
+                        pack_kwargs.update({'fill': X, 'expand': 0})
+                    w.pack(**pack_kwargs)
                 widgets[i] = w
-            row += 1
+            grid_row += 1
+        
+        # Configure grid column weights for proper expansion
+        if use_grid:
+            content_frame.columnconfigure(1, weight=1)
 
-    return dialog, tkvars, widgets
+    # Return group_frames as 4th element; callers can ignore it for backward compatibility
+    return dialog, tkvars, widgets, group_frames
 
 def addButton(frame, name, callback, img=None, tooltip=None,
               side=TOP, compound=None, width=None, padding=1):

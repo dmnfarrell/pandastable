@@ -193,7 +193,7 @@ class DataReaderPlugin(Plugin):
         """Auto create tk vars, widgets for corresponding options and
            and return the frame"""
 
-        dialog, self.tkvars, self.widgets = plotting.dialogFromOptions(parent, self.opts, self.groups)
+        dialog, self.tkvars, self.widgets, *_ = plotting.dialogFromOptions(parent, self.opts, self.groups)
         self.widgets['source'].bind("<<ComboboxSelected>>", self.update)
         return dialog
 

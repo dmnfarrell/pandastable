@@ -3762,7 +3762,7 @@ class TkOptions(object):
             Frame: The dialog frame.
         """
 
-        dialog, self.tkvars, self.widgets = dialogFromOptions(parent,
+        dialog, self.tkvars, self.widgets, self.group_frames = dialogFromOptions(parent,
                                                               self.opts, self.groups,
                                                               layout=layout)
         self.setWidgetStyles()
@@ -3812,6 +3812,34 @@ class MPLBaseOptions(TkOptions):
     legendlocs = ['best','upper right','upper left','lower left','lower right','right','center left',
                 'center right','lower center','upper center','center']
     defaultfont = 'monospace'
+
+    # Map plot types to relevant option groups (context-aware filtering)
+    PLOT_TYPE_GROUPS = {
+        'line':           ['general', 'data', 'axes', 'sizes', 'formats', 'colors'],
+        'scatter':        ['general', 'data', 'axes', 'sizes', 'formats', 'colors'],
+        'bar':            ['general', 'data', 'axes', 'sizes', 'formats', 'colors'],
+        'barh':           ['general', 'data', 'axes', 'sizes', 'formats', 'colors'],
+        'area':           ['general', 'data', 'axes', 'sizes', 'formats', 'colors'],
+        'pie':            ['general', 'data', 'colors'],
+        'histogram':      ['general', 'data', 'axes', 'colors', 'density'],
+        'density':        ['general', 'data', 'axes', 'colors', 'density'],
+        'boxplot':        ['general', 'data', 'axes', 'formats', 'colors'],
+        'violinplot':     ['general', 'data', 'axes', 'formats', 'colors'],
+        'dotplot':        ['general', 'data', 'axes', 'sizes', 'formats', 'colors'],
+        'heatmap':        ['general', 'axes', 'colors'],
+        'hexbin':         ['general', 'axes', 'colors'],
+        'contour':        ['general', 'axes', 'colors'],
+        'imshow':         ['general', 'axes', 'colors'],
+        'scatter_matrix': ['general', 'data', 'axes', 'sizes', 'formats', 'colors'],
+        'radviz':         ['general', 'data', 'colors'],
+        'venn':           ['general', 'colors'],
+        'shmoo':          ['general', 'shmoo', 'colors'],
+        'bathtub':        ['general', 'bathtub', 'colors'],
+        'sparam':         ['general', 'sparam', 'axes', 'colors'],
+        'gantt':          ['general', 'gantt', 'colors'],
+        'eye':            ['general', 'eye', 'colors'],
+        'jitter':         ['general', 'jitter', 'colors'],
+    }
 
     def __init__(self, parent=None):
         """
@@ -3969,6 +3997,102 @@ class MPLBaseOptions(TkOptions):
         plt.rc('legend', fontsize=size-1)
         return
 
+    def showDialog(self, parent, layout='horizontal', collapsible=True, use_grid=True):
+        """
+        Create and return the dialog frame with auto-generated widgets.
+        Overrides parent to bind kind combobox for context-aware visibility.
+
+        Args:
+            parent: Parent widget.
+            layout (str): Layout direction.
+            collapsible (bool): If True, use collapsible frames for option groups.
+            use_grid (bool): If True, use grid layout within groups for better alignment.
+
+        Returns:
+            Frame: The dialog frame.
+        """
+        dialog, self.tkvars, self.widgets, self.group_frames = dialogFromOptions(parent,
+                                                              self.opts, self.groups,
+                                                              layout=layout,
+                                                              collapsible=collapsible,
+                                                              use_grid=use_grid)
+        self.setWidgetStyles()
+
+        # Add "Show All Options" checkbox to the general group
+        self._show_all_var = IntVar(value=0)
+        if 'general' in self.group_frames:
+            general_frame = self.group_frames['general']
+            # For collapsible frames, add to content; otherwise add directly
+            target_frame = general_frame.content if hasattr(general_frame, 'content') else general_frame
+            show_all_cb = Checkbutton(target_frame, text='show all options',
+                                      variable=self._show_all_var,
+                                      command=self._on_show_all_changed)
+            # Use grid if use_grid is enabled, otherwise pack
+            if use_grid:
+                # Find the next available row in the grid
+                grid_info = target_frame.grid_size()
+                next_row = grid_info[1]  # Number of rows
+                show_all_cb.grid(row=next_row, column=0, columnspan=2, sticky='w', padx=4, pady=2)
+            else:
+                show_all_cb.pack(fill=X)
+
+        # Bind kind combobox to update visible groups
+        if 'kind' in self.widgets:
+            self.widgets['kind'].bind('<<ComboboxSelected>>', self._on_kind_changed)
+            # Set initial visibility based on default kind
+            self.update_visible_groups(self.opts['kind']['default'])
+
+        return dialog
+
+    def _on_kind_changed(self, event=None):
+        """Handle plot type selection change."""
+        if hasattr(self, '_show_all_var') and self._show_all_var.get():
+            return  # Don't filter if "show all" is enabled
+        kind = self.tkvars['kind'].get()
+        self.update_visible_groups(kind)
+
+    def _on_show_all_changed(self):
+        """Handle 'Show All Options' checkbox toggle."""
+        if self._show_all_var.get():
+            self._show_all_groups()
+        else:
+            kind = self.tkvars['kind'].get()
+            self.update_visible_groups(kind)
+
+    def _show_all_groups(self):
+        """Show all option groups."""
+        if not hasattr(self, 'group_frames') or not self.group_frames:
+            return
+        for group_name, frame in self.group_frames.items():
+            if not frame.winfo_ismapped():
+                frame.pack(side=LEFT, fill=Y, expand=False)
+
+    def update_visible_groups(self, kind):
+        """
+        Show/hide option groups based on selected plot type.
+
+        Args:
+            kind (str): The selected plot type.
+        """
+        if not hasattr(self, 'group_frames') or not self.group_frames:
+            return
+
+        # If "show all" is enabled, don't filter
+        if hasattr(self, '_show_all_var') and self._show_all_var.get():
+            return
+
+        # Get relevant groups for this plot type, default to showing common groups
+        visible_groups = self.PLOT_TYPE_GROUPS.get(kind, ['general', 'data', 'axes', 'sizes', 'formats', 'colors'])
+
+        for group_name, frame in self.group_frames.items():
+            if group_name in visible_groups:
+                # Show the group
+                if not frame.winfo_ismapped():
+                    frame.pack(side=LEFT, fill=Y, expand=False)
+            else:
+                # Hide the group
+                frame.pack_forget()
+
     def update(self, df):
         """
         Update dropdown menus with column names from the DataFrame.
@@ -4035,6 +4159,25 @@ class MPL3DOptions(MPLBaseOptions):
         _apply_option_tooltips(self.opts, MPL3D_OPTION_TOOLTIPS)
         self.kwds = {}
         return
+
+    def showDialog(self, parent, layout='horizontal'):
+        """
+        Create and return the dialog frame.
+        Uses base TkOptions behavior without context-aware filtering.
+
+        Args:
+            parent: Parent widget.
+            layout (str): Layout direction.
+
+        Returns:
+            Frame: The dialog frame.
+        """
+        dialog, self.tkvars, self.widgets, self.group_frames = dialogFromOptions(parent,
+                                                              self.opts, self.groups,
+                                                              layout=layout,
+                                                              collapsible=True,
+                                                              use_grid=True)
+        return dialog
 
     def applyOptions(self):
         """
@@ -4278,7 +4421,7 @@ class AnnotationOptions(TkOptions):
             Frame: The dialog frame.
         """
 
-        dialog, self.tkvars, self.widgets = dialogFromOptions(parent,
+        dialog, self.tkvars, self.widgets, self.group_frames = dialogFromOptions(parent,
                                                               self.opts, self.groups,
                                                               layout=layout)
         self.main = dialog
@@ -4472,7 +4615,7 @@ class ExtraOptions(TkOptions):
             Frame: The dialog frame.
         """
 
-        dialog, self.tkvars, self.widgets = dialogFromOptions(parent,
+        dialog, self.tkvars, self.widgets, self.group_frames = dialogFromOptions(parent,
                                                               self.opts, self.groups,
                                                               layout=layout)
         self.main = dialog
@@ -4574,7 +4717,7 @@ class AnimateOptions(TkOptions):
             Frame: The dialog frame.
         """
 
-        dialog, self.tkvars, self.widgets = dialogFromOptions(parent,
+        dialog, self.tkvars, self.widgets, self.group_frames = dialogFromOptions(parent,
                                                               self.opts, self.groups,
                                                               layout=layout)
         self.main = dialog
