@@ -302,7 +302,9 @@ class CSVBrowser(tk.Tk):
         self.status_bar = ttk.Frame(self.main_container, height=20)
         self.status_bar.pack(fill="x", side="bottom", padx=5, pady=2)
         self.status_var = tk.StringVar(value="Ready")
-        ttk.Label(self.status_bar, textvariable=self.status_var, relief="sunken", anchor="w").pack(fill="x")
+        status_label = ttk.Label(self.status_bar, textvariable=self.status_var, relief="sunken", anchor="w")
+        status_label.pack(fill="x")
+        ToolTip(status_label, "Status bar: Shows current operation status, row/column counts, and filter feedback")
         
         # Create and pack the panels
         self.setup_panels()
@@ -489,7 +491,9 @@ class CSVBrowser(tk.Tk):
         filter_frame.pack(fill="x", padx=5, pady=5)
         
         # Add filter label and entry
-        ttk.Label(filter_frame, text="Filter Files:").pack(side="left", padx=(0,5))
+        filter_files_label = ttk.Label(filter_frame, text="Filter Files:")
+        filter_files_label.pack(side="left", padx=(0,5))
+        ToolTip(filter_files_label, "Filter the file list by filename\nUse space for AND, '!' to exclude")
         filter_entry = ttk.Entry(filter_frame, textvariable=self.filter_text)
         filter_entry.pack(side="left", fill="x", expand=True)
         ToolTip(filter_entry, "Filter files by name. Use space to combine terms, '!' to exclude.\nRight-click for more options.")
@@ -541,6 +545,7 @@ class CSVBrowser(tk.Tk):
         self.table.bind('<FocusOut>', self.on_focus_out)
         
         self.table.show()
+        ToolTip(self.table, "File list table\nClick to select, double-click to load CSV\nCtrl+Click for multi-select, right-click for options")
         
         # Configure table options
         self.table.autoResizeColumns()
@@ -837,7 +842,9 @@ class CSVBrowser(tk.Tk):
             self.csv_filter_frame.columnconfigure(1, weight=1)  # Make the entry expand
             self.csv_filter_frame.columnconfigure(3, weight=1)  # Make the column search entry expand
             
-            ttk.Label(self.csv_filter_frame, text="Row Filter:").grid(row=0, column=0, padx=(0,5))
+            row_filter_label = ttk.Label(self.csv_filter_frame, text="Row Filter:")
+            row_filter_label.grid(row=0, column=0, padx=(0,5))
+            ToolTip(row_filter_label, "Filter rows in the CSV data\nSupports pandas query syntax and text search\nUse '@' to combine query and text search")
             
             # Use the existing StringVar - don't add another trace
             print(f"Current filter value: '{self.csv_filter_text.get()}'")  # Debug print
@@ -861,7 +868,9 @@ class CSVBrowser(tk.Tk):
             self.csv_filter_entry.bind("<FocusOut>", lambda e: print("CSV filter entry lost focus"))
             
             # Add column search box
-            ttk.Label(self.csv_filter_frame, text="Search Column:").grid(row=0, column=2, padx=(10,5))
+            search_col_label = ttk.Label(self.csv_filter_frame, text="Search Column:")
+            search_col_label.grid(row=0, column=2, padx=(10,5))
+            ToolTip(search_col_label, "Search for columns by name\nRight-click or press Enter to see matches")
             self.column_search_entry = ttk.Entry(self.csv_filter_frame, textvariable=self.column_search_var)
             self.column_search_entry.grid(row=0, column=3, sticky='ew')
             self.column_search_entry.bind("<Button-3>", self.show_column_search_menu)
@@ -896,10 +905,12 @@ class CSVBrowser(tk.Tk):
             self.column_filter_frame.grid(row=1, column=0, sticky='ew', padx=5, pady=(0,5))
             self.column_filter_frame.columnconfigure(1, weight=1)  # Make the entry expand
             
-            ttk.Label(self.column_filter_frame, text="Column Filter:").grid(row=0, column=0, padx=(0,5))
+            col_filter_label = ttk.Label(self.column_filter_frame, text="Column Filter:")
+            col_filter_label.grid(row=0, column=0, padx=(0,5))
+            ToolTip(col_filter_label, "Filter which columns are visible\nUse quotes for exact match, '!' to exclude, '*' for remaining")
             self.column_filter_entry = ttk.Entry(self.column_filter_frame, textvariable=self.column_filter_var)
             self.column_filter_entry.grid(row=0, column=1, sticky='ew')
-            ToolTip(self.column_filter_entry, "Filter which columns are visible. Enter column names separated by spaces.")
+            ToolTip(self.column_filter_entry, "Filter which columns are visible\nSeparate terms with spaces, commas, or semicolons\nUse quotes for exact match, '!' to exclude, '*' for remaining\nRight-click for examples")
             
             # Add reset button for column filter
             self.reset_column_filter_btn = ttk.Button(
@@ -954,6 +965,7 @@ class CSVBrowser(tk.Tk):
             self.csv_table = Table(self.csv_table_frame, dataframe=empty_df,
                                 showtoolbar=True, showstatusbar=True)
             self.csv_table.show()
+            ToolTip(self.csv_table, "CSV data viewer\nClick column headers to sort\nCtrl+Click columns to select for plotting\nRight-click for more options")
             
             # Store original data
             self.original_csv_df = None
