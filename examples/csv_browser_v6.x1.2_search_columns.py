@@ -698,6 +698,7 @@ class CSVBrowser(tk.Tk):
                 print(f"Error in filter_files: {str(e)}")
                 traceback.print_exc()  # Print the full traceback for debugging
                 self.update_file_dataframe()
+
     def on_key_press(self, event):
         """Handle key press events"""
         try:
@@ -1104,11 +1105,6 @@ class CSVBrowser(tk.Tk):
             traceback.print_exc()
             return df
             
-        except Exception as e:
-            print(f"Error in _apply_filter: {e}")
-            traceback.print_exc()
-            return df
-            
     def row_filter(self, *args):
         """
         Advanced row filtering with support for:
@@ -1161,8 +1157,12 @@ class CSVBrowser(tk.Tk):
                 # No wildcard, apply normal filtering
                 filtered_df = self.row_filter_impl(filtered_df, filter_text)
             
-            # Store the filtered DataFrame for column filtering
-            self.filtered_csv_df = filtered_df
+            # Store the filtered DataFrame for column filtering (only if valid)
+            if filtered_df is not None and not filtered_df.empty:
+                self.filtered_csv_df = filtered_df
+            elif not filter_text:  # No filter, use original
+                self.filtered_csv_df = self.original_csv_df.copy()
+            # else: keep previous filtered_csv_df to avoid stale state issues
             
             # Apply column filter if it exists
             if has_column_filter:
@@ -1239,6 +1239,8 @@ class CSVBrowser(tk.Tk):
         # If query was not successful and no contains part, try contains on the original query
         elif not query_successful and not contains_part:
             print(f"Query failed, falling back to contains search for: '{query_part}'")
+            if hasattr(self, 'status_var'):
+                self.status_var.set(f"Query syntax invalid, searching as text: '{query_part}'")
             filtered_df = self._apply_single_filter(df, query_part)  # Use original df since query failed
             print(f"Rows after contains filter: {len(filtered_df) if filtered_df is not None else 0}")
         
@@ -3986,16 +3988,20 @@ Features:
                     print("No matching columns found, keeping current view")
                     return
                 
-                # Restore the index after filtering if lengths match
+                # Column filtering doesn't change rows, so index should be preserved automatically
+                # Only restore if the index values actually match (more robust check)
                 if current_index is not None:
                     current_df = self.csv_table.model.df
                     if len(current_df) == len(current_index):
-                        try:
-                            current_df.index = current_index
-                            print(f"Restored index with {len(current_index)} rows after filtering")
-                        except ValueError as e:
-                            print(f"Warning: Could not restore index - {e}")
-                            print(f"Current DataFrame length: {len(current_df)}, Index length: {len(current_index)}")
+                        # Verify the indices are actually compatible before restoring
+                        if set(current_df.index) == set(current_index):
+                            try:
+                                current_df.index = current_index
+                                print(f"Restored index with {len(current_index)} rows after filtering")
+                            except ValueError as e:
+                                print(f"Warning: Could not restore index - {e}")
+                        else:
+                            print("Index values don't match, skipping restoration to avoid misalignment")
                     else:
                         print(f"Warning: Cannot restore index - length mismatch. DataFrame: {len(current_df)}, Index: {len(current_index)}")
                 
@@ -4164,7 +4170,7 @@ Features:
                 
                 if not valid_columns:
                     print("No valid columns for this file, showing all columns")
-                    self.csv_table.model.df = self.original_csv_df.copy()
+                    filtered_df = self.original_csv_df.copy()
                 else:
                     # Apply column filter
                     # Use .loc to ensure the index is preserved
@@ -4172,8 +4178,8 @@ Features:
                     print(f"DEBUG: _apply_column_filter - Filtered DataFrame index type: {type(filtered_df.index)}")
                     print(f"DEBUG: _apply_column_filter - Filtered DataFrame index name: {filtered_df.index.name}")
                     print(f"DEBUG: _apply_column_filter - Filtered DataFrame index sample: {filtered_df.index[:5]}")
-                    
-                    self.csv_table.model.df = filtered_df
+                
+                self.csv_table.model.df = filtered_df
                 
                 # Redraw the table
                 self.csv_table.redraw()
@@ -4247,6 +4253,10 @@ Features:
     
     def reset_column_filter(self):
         """Reset the column filter to show all columns"""
+        # Guard against recursive calls (setting column_filter_var triggers filter_columns)
+        if getattr(self, '_resetting_column_filter', False):
+            return
+        self._resetting_column_filter = True
         try:
             self.visible_columns = None
             
@@ -4269,6 +4279,8 @@ Features:
         except Exception as e:
             print(f"Error resetting column filter: {e}")
             traceback.print_exc()
+        finally:
+            self._resetting_column_filter = False
 
     def setup_column_filter_context_menu(self):
         """Create a context menu for column filter with instructions and examples"""
