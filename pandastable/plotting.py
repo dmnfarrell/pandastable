@@ -3066,6 +3066,27 @@ class PlotViewer(Frame):
             stripped['z_display'] = None
             return stripped
 
+        def _build_boundary_norm(z_arr, tmin, tmax, cmap_name):
+            import numpy as np
+            from matplotlib import colors as mcolors
+            zmin = np.nanmin(z_arr)
+            zmax = np.nanmax(z_arr)
+            if not np.isfinite(zmin) or not np.isfinite(zmax) or zmin == zmax:
+                return None, plt.cm.get_cmap(cmap_name)
+            if tmin is None or tmax is None:
+                return None, plt.cm.get_cmap(cmap_name)
+            tmin = np.clip(tmin, zmin, zmax)
+            tmax = np.clip(tmax, zmin, zmax)
+            if tmin > tmax:
+                tmin, tmax = tmax, tmin
+            boundaries = np.array([zmin, tmin, tmax, zmax], dtype=float)
+            eps = np.finfo(float).eps
+            for i in range(1, len(boundaries)):
+                if boundaries[i] <= boundaries[i-1]:
+                    boundaries[i] = boundaries[i-1] + eps
+            norm = mcolors.BoundaryNorm(boundaries, ncolors=256)
+            return norm, plt.cm.get_cmap(cmap_name)
+
         # Check if data is on a regular grid
         x_unique = np.unique(x_data)
         y_unique = np.unique(y_data)
@@ -3093,11 +3114,7 @@ class PlotViewer(Frame):
 
                 # Create the plot using pcolormesh for regular grids
                 if threshold_min is not None and threshold_max is not None:
-                    # Create pass/fail colormap
-                    from matplotlib import colors as mcolors
-                    norm = mcolors.BoundaryNorm([z_data.min(), threshold_min, threshold_max, z_data.max()], 
-                                               ncolors=256)
-                    cmap = plt.cm.get_cmap(cmap_name)
+                    norm, cmap = _build_boundary_norm(z_data, threshold_min, threshold_max, cmap_name)
                 else:
                     norm = None
                     cmap = plt.cm.get_cmap(cmap_name)
@@ -3156,10 +3173,7 @@ class PlotViewer(Frame):
                         Zi_linear = Zi.copy() if Zi is not None else None
 
                     if threshold_min is not None and threshold_max is not None:
-                        from matplotlib import colors as mcolors
-                        norm = mcolors.BoundaryNorm([z_data.min(), threshold_min, threshold_max, z_data.max()],
-                                                   ncolors=256)
-                        cmap = plt.cm.get_cmap(cmap_name)
+                        norm, cmap = _build_boundary_norm(z_data, threshold_min, threshold_max, cmap_name)
                     else:
                         norm = None
                         cmap = plt.cm.get_cmap(cmap_name)
