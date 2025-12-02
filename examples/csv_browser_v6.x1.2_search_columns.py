@@ -1390,13 +1390,16 @@ class CSVBrowser(tk.Tk):
             
             # Try to read the file with advanced error handling
             df = self._advanced_file_read(file_path)
-            print(f"DEBUG: Original DataFrame index type: {type(df.index)}")
-            print(f"DEBUG: Original DataFrame index name: {df.index.name}")
-            print(f"DEBUG: Original DataFrame index sample: {df.index[:5]}")            
+            
+            # Check if file was successfully loaded before accessing attributes
             if df is None or df.empty:
                 messagebox.showerror("Error", f"Failed to load or empty file: {file_path}")
                 return
-                
+            
+            print(f"DEBUG: Original DataFrame index type: {type(df.index)}")
+            print(f"DEBUG: Original DataFrame index name: {df.index.name}")
+            print(f"DEBUG: Original DataFrame index sample: {df.index[:5]}")
+            
             # Store the original data
             self.original_csv_df = df.copy()
 

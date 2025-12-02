@@ -144,6 +144,9 @@ BASE_OPTION_TOOLTIPS = {
     'show_dual_dirac': 'Show dual-Dirac components in jitter plots.',
     'tj_separation': 'Total jitter (TJ) separation in picoseconds.',
     'show_components': 'Display RJ/DJ component breakdown.',
+    'carrier_freq': 'Carrier frequency in Hz for phase noise to jitter conversion.',
+    'freq_min': 'Minimum offset frequency (Hz) for integration range.',
+    'freq_max': 'Maximum offset frequency (Hz) for integration range.',
 }
 
 
@@ -263,7 +266,9 @@ valid_kwds = {'line': ['alpha', 'colormap', 'grid', 'legend', 'linestyle','ms',
                    'color_mode', 'overlay_count'],
             'jitter': ['alpha', 'colormap', 'grid', 'legend', 'bins',
                       'show_stats', 'show_gaussian', 'show_dual_dirac',
-                      'tj_separation', 'show_components']
+                      'tj_separation', 'show_components'],
+            'phasenoise': ['alpha', 'colormap', 'grid', 'legend', 'linewidth',
+                          'carrier_freq', 'freq_min', 'freq_max', 'show_stats']
             }
 
 def get_defaults(name):
@@ -1543,6 +1548,8 @@ class PlotViewer(Frame):
             axs = self.eye(data, ax, kwargs)
         elif kind == 'jitter':
             axs = self.jitter(data, ax, kwargs)
+        elif kind == 'phasenoise':
+            axs = self.phasenoise(data, ax, kwargs)
         else:
             if useindex == False:
                 x=data.columns[0]
@@ -1642,7 +1649,8 @@ class PlotViewer(Frame):
         """
 
         if len(df.columns)<2:
-            return
+            self.showWarning('scatter plot requires at least 2 columns')
+            return ax, []
         data = df
         df = df.copy()._get_numeric_data()
         cols = list(df.columns)
@@ -2761,6 +2769,202 @@ class PlotViewer(Frame):
         
         return ax
 
+    def phasenoise(self, df, ax, kwds):
+        """Convert phase noise to RMS jitter and plot results.
+        
+        This method takes phase noise data (offset frequency vs phase noise in dBc/Hz)
+        and calculates the RMS jitter by integrating the phase noise over a specified
+        frequency range. It displays both the phase noise curve and cumulative jitter.
+        
+        Parameters:
+        -----------
+        df : pandas.DataFrame
+            Data with two columns:
+            - First column: Offset frequency (Hz)
+            - Second column: Phase noise (dBc/Hz)
+        ax : matplotlib.axes.Axes
+            Axes object to plot on
+        kwds : dict
+            Plotting keywords including:
+            - carrier_freq: Carrier frequency in Hz (default: 156e6)
+            - freq_min: Minimum frequency for integration (Hz)
+            - freq_max: Maximum frequency for integration (Hz)
+            - show_stats: Show statistics text box
+            - grid: Show grid
+            - legend: Show legend
+            - linewidth: Line width
+            - alpha: Transparency
+            
+        Returns:
+        --------
+        ax : matplotlib.axes.Axes
+        
+        CSV file format:
+            Column 1: Offset frequency (Hz)
+            Column 2: Phase noise (dBc/Hz)
+        """
+        # Compatibility for numpy < 2.0 (trapz) and >= 2.0 (trapezoid)
+        trapz = getattr(np, 'trapezoid', np.trapz)
+        
+        print(f"DEBUG: phasenoise() called with {len(df)} rows, {len(df.columns)} columns")
+        print(f"DEBUG: Columns: {list(df.columns)}")
+        
+        # Get options
+        carrier_freq_str = kwds.get('carrier_freq', '156e6')
+        freq_min_str = kwds.get('freq_min', '')
+        freq_max_str = kwds.get('freq_max', '')
+        show_stats = kwds.get('show_stats', True)
+        grid = kwds.get('grid', True)
+        legend = kwds.get('legend', True)
+        linewidth = kwds.get('linewidth', 2)
+        alpha = kwds.get('alpha', 0.9)
+        
+        # Parse carrier frequency
+        try:
+            f_carrier = float(carrier_freq_str) if carrier_freq_str else 156e6
+        except ValueError:
+            f_carrier = 156e6
+            print(f"Warning: Invalid carrier frequency '{carrier_freq_str}', using default 156 MHz")
+        
+        # Parse frequency limits
+        freq_min = None
+        freq_max = None
+        try:
+            if freq_min_str:
+                freq_min = float(freq_min_str)
+        except ValueError:
+            print(f"Warning: Invalid freq_min '{freq_min_str}', ignoring")
+        try:
+            if freq_max_str:
+                freq_max = float(freq_max_str)
+        except ValueError:
+            print(f"Warning: Invalid freq_max '{freq_max_str}', ignoring")
+        
+        # Get data from dataframe
+        data = df.copy()
+        
+        if len(data.columns) < 2:
+            self.showWarning('Phase noise plot requires at least 2 columns:\n'
+                           'Column 1: Offset frequency (Hz)\n'
+                           'Column 2: Phase noise (dBc/Hz)')
+            return ax
+        
+        # Get the first two columns regardless of header names
+        try:
+            offset_freq = pd.to_numeric(data.iloc[:, 0], errors='coerce').values.astype(float)
+            phase_noise_dbc = pd.to_numeric(data.iloc[:, 1], errors='coerce').values.astype(float)
+        except Exception as e:
+            self.showWarning(f'Could not parse phase noise data: {str(e)}')
+            return ax
+        
+        # Remove NaN values
+        valid_mask = ~(np.isnan(offset_freq) | np.isnan(phase_noise_dbc))
+        offset_freq = offset_freq[valid_mask]
+        phase_noise_dbc = phase_noise_dbc[valid_mask]
+        
+        if len(offset_freq) == 0:
+            self.showWarning('No valid phase noise data found')
+            return ax
+        
+        # Sort by frequency
+        sort_idx = np.argsort(offset_freq)
+        offset_freq = offset_freq[sort_idx]
+        phase_noise_dbc = phase_noise_dbc[sort_idx]
+        
+        # Filter to user-defined frequency range
+        mask = np.ones(len(offset_freq), dtype=bool)
+        if freq_min is not None:
+            mask &= offset_freq >= freq_min
+        if freq_max is not None:
+            mask &= offset_freq <= freq_max
+        
+        offset_freq_filtered = offset_freq[mask]
+        phase_noise_dbc_filtered = phase_noise_dbc[mask]
+        
+        if len(offset_freq_filtered) < 2:
+            self.showWarning('Not enough data points in frequency range for integration')
+            return ax
+        
+        # Convert phase noise to linear scale
+        phase_noise_linear = 10 ** (phase_noise_dbc_filtered / 10)
+        
+        # Calculate cumulative jitter at each frequency point
+        cumulative_jitter = np.zeros(len(offset_freq_filtered))
+        for i in range(1, len(offset_freq_filtered)):
+            # Integrate phase noise up to this frequency point
+            sigma_phi_sq = 2 * trapz(phase_noise_linear[:i+1], offset_freq_filtered[:i+1])
+            sigma_phi = np.sqrt(sigma_phi_sq)
+            cumulative_jitter[i] = sigma_phi / (2 * np.pi * f_carrier)
+        
+        # Total RMS phase and jitter
+        sigma_phi_sq_total = 2 * trapz(phase_noise_linear, offset_freq_filtered)
+        sigma_phi = np.sqrt(sigma_phi_sq_total)
+        sigma_t = sigma_phi / (2 * np.pi * f_carrier)
+        
+        # Create two subplots
+        fig = ax.get_figure()
+        fig.clear()
+        ax1, ax2 = fig.subplots(2, 1, sharex=True)
+        
+        # Plot phase noise
+        ax1.semilogx(offset_freq_filtered, phase_noise_dbc_filtered, 'b-o', 
+                    linewidth=linewidth, markersize=4, alpha=alpha)
+        ax1.set_ylabel('Phase Noise (dBc/Hz)', fontsize=12)
+        ax1.set_title('Phase Noise vs Offset Frequency', fontsize=14)
+        if grid:
+            ax1.grid(True, which='both', linestyle='--', alpha=0.7)
+        ax1.set_xlim(offset_freq_filtered[0] * 0.5, offset_freq_filtered[-1] * 2)
+        
+        # Shade integration range if specified
+        if freq_min is not None or freq_max is not None:
+            x_min = freq_min if freq_min is not None else offset_freq_filtered[0]
+            x_max = freq_max if freq_max is not None else offset_freq_filtered[-1]
+            ax1.axvspan(x_min, x_max, alpha=0.2, color='green', 
+                       label=f'Integration: {x_min:.0e} - {x_max:.0e} Hz')
+            if legend:
+                ax1.legend(loc='upper right')
+        
+        # Plot cumulative jitter
+        cumulative_jitter_ps = cumulative_jitter * 1e12  # Convert to picoseconds
+        ax2.semilogx(offset_freq_filtered, cumulative_jitter_ps, 'r-o', 
+                    linewidth=linewidth, markersize=4, alpha=alpha)
+        ax2.set_xlabel('Offset Frequency (Hz)', fontsize=12)
+        ax2.set_ylabel('Cumulative RMS Jitter (ps)', fontsize=12)
+        ax2.set_title(f'Cumulative RMS Jitter (Total: {sigma_t*1e12:.3f} ps)', fontsize=14)
+        if grid:
+            ax2.grid(True, which='both', linestyle='--', alpha=0.7)
+        
+        # Add statistics text box
+        if show_stats:
+            stats_lines = [
+                f'Carrier: {f_carrier/1e6:.3f} MHz',
+                f'Freq Range: {offset_freq_filtered[0]:.2e} - {offset_freq_filtered[-1]:.2e} Hz',
+                f'RMS Phase: {sigma_phi:.6e} rad',
+                f'RMS Phase: {np.degrees(sigma_phi):.4f} deg',
+                f'RMS Jitter: {sigma_t*1e12:.3f} ps',
+            ]
+            stats_text = '\n'.join(stats_lines)
+            ax1.text(0.02, 0.02, stats_text,
+                    transform=ax1.transAxes,
+                    fontsize=9,
+                    verticalalignment='bottom',
+                    bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
+        
+        fig.tight_layout()
+        
+        # Print results to console
+        print(f"\n{'='*50}")
+        print("PHASE NOISE TO JITTER RESULTS")
+        print(f"{'='*50}")
+        print(f"Carrier frequency: {f_carrier/1e6:.3f} MHz")
+        print(f"Frequency range: {offset_freq_filtered[0]:.2e} Hz to {offset_freq_filtered[-1]:.2e} Hz")
+        print(f"Data points: {len(offset_freq_filtered)}")
+        print(f"RMS Phase:  {sigma_phi:.6e} rad ({np.degrees(sigma_phi):.4f} deg)")
+        print(f"RMS Jitter: {sigma_t:.6e} s ({sigma_t*1e12:.3f} ps)")
+        print(f"{'='*50}")
+        
+        return ax2
+
     def density(self, df, ax, kwds):
         """Create kernel density estimation plot.
         
@@ -3822,7 +4026,7 @@ class MPLBaseOptions(TkOptions):
     """
 
     kinds = ['line', 'scatter', 'bar', 'barh', 'pie', 'histogram', 'boxplot', 'violinplot', 'dotplot',
-             'heatmap', 'area', 'hexbin', 'contour', 'imshow', 'scatter_matrix', 'density', 'radviz', 'venn', 'shmoo', 'bathtub', 'sparam', 'gantt', 'eye', 'jitter']
+             'heatmap', 'area', 'hexbin', 'contour', 'imshow', 'scatter_matrix', 'density', 'radviz', 'venn', 'shmoo', 'bathtub', 'sparam', 'gantt', 'eye', 'jitter', 'phasenoise']
     legendlocs = ['best','upper right','upper left','lower left','lower right','right','center left',
                 'center right','lower center','upper center','center']
     defaultfont = 'monospace'
@@ -3853,6 +4057,7 @@ class MPLBaseOptions(TkOptions):
         'gantt':          ['general', 'gantt', 'colors'],
         'eye':            ['general', 'eye', 'colors'],
         'jitter':         ['general', 'jitter', 'colors'],
+        'phasenoise':     ['general', 'phasenoise', 'axes', 'colors'],
     }
 
     def __init__(self, parent=None):
@@ -3891,8 +4096,9 @@ class MPLBaseOptions(TkOptions):
                 'eye':['persistence','ui_width','sample_rate','bit_rate','show_mask',
                       'mask_margin','color_mode','overlay_count'],
                 'jitter':['bins','show_stats','show_gaussian','show_dual_dirac',
-                         'tj_separation','show_components']}
-        order = ['general','data','axes','sizes','formats','colors','density','shmoo','bathtub','sparam','gantt','eye','jitter']
+                         'tj_separation','show_components'],
+                'phasenoise':['carrier_freq','freq_min','freq_max','show_stats']}
+        order = ['general','data','axes','sizes','formats','colors','density','shmoo','bathtub','sparam','gantt','eye','jitter','phasenoise']
         self.groups = OrderedDict((key, grps[key]) for key in order)
         opts = self.opts = {'font':{'type':'combobox','default':self.defaultfont,'items':fonts},
                 'fontsize':{'type':'scale','default':12,'range':(5,40),'interval':1,'label':'font size'},
@@ -3995,6 +4201,9 @@ class MPLBaseOptions(TkOptions):
                 'show_dual_dirac':{'type':'checkbutton','default':0,'label':'show dual-Dirac'},
                 'tj_separation':{'type':'entry','default':'','width':15,'label':'TJ separation (ps)'},
                 'show_components':{'type':'checkbutton','default':0,'label':'show RJ/DJ components'},
+                'carrier_freq':{'type':'entry','default':'156e6','width':15,'label':'carrier freq (Hz)'},
+                'freq_min':{'type':'entry','default':'','width':15,'label':'freq min (Hz)'},
+                'freq_max':{'type':'entry','default':'','width':15,'label':'freq max (Hz)'},
                 }
         _apply_option_tooltips(self.opts, BASE_OPTION_TOOLTIPS)
         self.kwds = {}

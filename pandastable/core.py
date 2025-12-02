@@ -1152,7 +1152,7 @@ class Table(Canvas):
         self.update_rowcolors()
         #self.set_rowcolors_index()
         self.redraw()
-        if hasattr(self, 'pf'):
+        if hasattr(self, 'pf') and self.pf is not None:
             self.pf.updateData()
         return
 
