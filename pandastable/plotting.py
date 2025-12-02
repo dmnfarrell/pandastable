@@ -39,6 +39,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.lines import Line2D
+from matplotlib.backends.backend_tkagg import NavigationToolbar2Tk
 import matplotlib.transforms as mtrans
 import matplotlib.patheffects as patheffects
 from collections import OrderedDict
@@ -360,6 +361,22 @@ class PlotViewer(Frame):
         self.plotfr = Frame(self.m)
         self.fig, self.canvas = addFigure(self.plotfr)
         self.ax = self.fig.add_subplot(111)
+        
+        # Add navigation toolbar for zoom/pan (hidden by default, we use custom buttons)
+        self.toolbar = NavigationToolbar2Tk(self.canvas, self.plotfr, pack_toolbar=False)
+        self.toolbar.update()
+        # Track zoom/pan mode state
+        self._zoom_mode = False
+        self._pan_mode = False
+        self._fullscreen_mode = False
+        
+        # Connect mouse events for Ctrl+scroll zoom and right-click pan
+        self._connect_mouse_events()
+        
+        # Create active button style for zoom/pan toggle indication
+        style = Style()
+        style.configure('Active.TButton', background='lightblue', relief='sunken')
+        
         self.m.add(self.plotfr, weight=4)
 
         # frame for controls (options + toolbar)
@@ -378,9 +395,18 @@ class PlotViewer(Frame):
                   'refresh plot with current options', side=side,
                    width=20)
         addButton(bf, 'Zoom Out', lambda: self.zoom(False), images.zoom_out(),
-                  'zoom out', side=side)
+                  'zoom out element sizes', side=side)
         addButton(bf, 'Zoom In', self.zoom, images.zoom_in(),
-                  'zoom in', side=side)
+                  'zoom in element sizes', side=side)
+        # Interactive zoom/pan buttons
+        self.zoom_btn = addButton(bf, 'Rect Zoom', self.toggle_zoom_mode, images.zoom_in(),
+                  'toggle rectangle zoom mode (click and drag to zoom)', side=side)
+        self.pan_btn = addButton(bf, 'Pan', self.toggle_pan_mode, images.zoom_out(),
+                  'toggle pan mode (click and drag to pan)', side=side)
+        addButton(bf, 'Home', self.reset_view, images.plot_clear(),
+                  'reset view to original', side=side)
+        self.expand_btn = addButton(bf, 'Expand', self.toggle_fullscreen, images.zoom_in(),
+                  'expand/collapse plot to full area', side=side)
         addButton(bf, 'Clear', self.clear, images.plot_clear(),
                   'clear plot', side=side)
         addButton(bf, 'Save', self.savePlot, images.save(),
@@ -747,6 +773,225 @@ class PlotViewer(Frame):
         self.mplopts.increment('ms',val)
         self.mplopts.increment('fontsize',val)
         self.replot()
+        return
+
+    def toggle_zoom_mode(self):
+        """
+        Toggle interactive rectangle zoom mode.
+        When active, click and drag on the plot to zoom into a rectangular region.
+        """
+        if self._pan_mode:
+            # Deactivate pan mode first
+            self.toolbar.pan()
+            self._pan_mode = False
+            self._update_mode_button_style(self.pan_btn, False)
+        
+        # Toggle zoom mode
+        self.toolbar.zoom()
+        self._zoom_mode = not self._zoom_mode
+        self._update_mode_button_style(self.zoom_btn, self._zoom_mode)
+        return
+
+    def toggle_pan_mode(self):
+        """
+        Toggle interactive pan mode.
+        When active, click and drag on the plot to pan the view.
+        """
+        if self._zoom_mode:
+            # Deactivate zoom mode first
+            self.toolbar.zoom()
+            self._zoom_mode = False
+            self._update_mode_button_style(self.zoom_btn, False)
+        
+        # Toggle pan mode
+        self.toolbar.pan()
+        self._pan_mode = not self._pan_mode
+        self._update_mode_button_style(self.pan_btn, self._pan_mode)
+        return
+
+    def reset_view(self):
+        """
+        Reset the plot view to the original/home position.
+        """
+        self.toolbar.home()
+        self._zoom_mode = False
+        self._pan_mode = False
+        self._update_mode_button_style(self.zoom_btn, False)
+        self._update_mode_button_style(self.pan_btn, False)
+        return
+
+    def _update_mode_button_style(self, button, active):
+        """
+        Update button appearance to indicate active/inactive state.
+        
+        Args:
+            button: The button widget to update.
+            active (bool): Whether the mode is active.
+        """
+        try:
+            if active:
+                button.configure(style='Active.TButton')
+            else:
+                button.configure(style='TButton')
+        except:
+            # Fallback if style doesn't work
+            pass
+        return
+
+    def _connect_mouse_events(self):
+        """
+        Connect mouse events for Ctrl+scroll zoom and right-click pan.
+        """
+        # Ctrl+scroll to zoom
+        self._scroll_cid = self.canvas.mpl_connect('scroll_event', self._on_scroll)
+        
+        # Right-click drag to pan
+        self._right_press_cid = self.canvas.mpl_connect('button_press_event', self._on_right_press)
+        self._right_release_cid = self.canvas.mpl_connect('button_release_event', self._on_right_release)
+        self._right_motion_cid = self.canvas.mpl_connect('motion_notify_event', self._on_right_motion)
+        
+        # Track right-click pan state
+        self._right_pan_active = False
+        self._right_pan_start = None
+        self._right_pan_xlim = None
+        self._right_pan_ylim = None
+        return
+
+    def _on_scroll(self, event):
+        """
+        Handle Ctrl+scroll wheel for zooming.
+        
+        Args:
+            event: Matplotlib scroll event.
+        """
+        if event.inaxes is None:
+            return
+        
+        # Check if Ctrl key is pressed (key modifier)
+        # In matplotlib, we need to check the guiEvent for modifiers
+        ctrl_pressed = False
+        if hasattr(event, 'guiEvent') and event.guiEvent is not None:
+            try:
+                # For Tkinter, check state for Control key (bit 2 = 4)
+                ctrl_pressed = bool(event.guiEvent.state & 0x4)
+            except:
+                pass
+        
+        if not ctrl_pressed:
+            return
+        
+        ax = event.inaxes
+        
+        # Get current axis limits
+        xlim = ax.get_xlim()
+        ylim = ax.get_ylim()
+        
+        # Calculate zoom factor
+        base_scale = 1.2
+        if event.button == 'up':
+            scale_factor = 1 / base_scale  # Zoom in
+        elif event.button == 'down':
+            scale_factor = base_scale  # Zoom out
+        else:
+            return
+        
+        # Get mouse position in data coordinates
+        xdata = event.xdata
+        ydata = event.ydata
+        
+        # Calculate new limits centered on mouse position
+        new_width = (xlim[1] - xlim[0]) * scale_factor
+        new_height = (ylim[1] - ylim[0]) * scale_factor
+        
+        # Calculate relative position of mouse in current view
+        relx = (xdata - xlim[0]) / (xlim[1] - xlim[0])
+        rely = (ydata - ylim[0]) / (ylim[1] - ylim[0])
+        
+        # Set new limits
+        ax.set_xlim([xdata - new_width * relx, xdata + new_width * (1 - relx)])
+        ax.set_ylim([ydata - new_height * rely, ydata + new_height * (1 - rely)])
+        
+        self.canvas.draw_idle()
+        return
+
+    def _on_right_press(self, event):
+        """
+        Handle right mouse button press for pan start.
+        
+        Args:
+            event: Matplotlib button press event.
+        """
+        if event.button != 3 or event.inaxes is None:
+            return
+        
+        self._right_pan_active = True
+        self._right_pan_start = (event.xdata, event.ydata)
+        self._right_pan_xlim = event.inaxes.get_xlim()
+        self._right_pan_ylim = event.inaxes.get_ylim()
+        self._right_pan_ax = event.inaxes
+        return
+
+    def _on_right_release(self, event):
+        """
+        Handle right mouse button release for pan end.
+        
+        Args:
+            event: Matplotlib button release event.
+        """
+        if event.button != 3:
+            return
+        
+        self._right_pan_active = False
+        self._right_pan_start = None
+        return
+
+    def _on_right_motion(self, event):
+        """
+        Handle mouse motion during right-click pan.
+        
+        Args:
+            event: Matplotlib motion event.
+        """
+        if not self._right_pan_active or self._right_pan_start is None:
+            return
+        
+        if event.xdata is None or event.ydata is None:
+            return
+        
+        ax = self._right_pan_ax
+        
+        # Calculate pan offset
+        dx = self._right_pan_start[0] - event.xdata
+        dy = self._right_pan_start[1] - event.ydata
+        
+        # Apply pan
+        ax.set_xlim([self._right_pan_xlim[0] + dx, self._right_pan_xlim[1] + dx])
+        ax.set_ylim([self._right_pan_ylim[0] + dy, self._right_pan_ylim[1] + dy])
+        
+        self.canvas.draw_idle()
+        return
+
+    def toggle_fullscreen(self):
+        """
+        Toggle between expanded (full area) and normal plot view.
+        Hides/shows the control panel to maximize plot area.
+        """
+        if self._fullscreen_mode:
+            # Restore normal view - show control frame
+            self.m.add(self.ctrlfr, weight=1)
+            self._fullscreen_mode = False
+            try:
+                self.expand_btn.configure(text='Expand')
+            except:
+                pass
+        else:
+            # Expand plot - hide control frame
+            self.m.forget(self.ctrlfr)
+            self._fullscreen_mode = True
+            try:
+                self.expand_btn.configure(text='Collapse')
+            except:
+                pass
         return
 
     def clear(self):
