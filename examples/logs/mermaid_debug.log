@@ -1,644 +1,217 @@
-2025-11-15 18:03:38,806 - root - INFO - === Starting Image Browser with Mermaid Debugging ===
-2025-11-15 18:03:38,807 - root - INFO - Logging to: c:\Users\juesh\jules\pandastable0\examples\logs\mermaid_debug.log
-2025-11-15 18:03:38,807 - root - INFO - Python: 3.13.1 (tags/v3.13.1:0671451, Dec  3 2024, 19:06:28) [MSC v.1942 64 bit (AMD64)]
-2025-11-15 18:03:38,807 - root - INFO - Working directory: C:\Users\juesh\jules\pandastable0
-2025-11-15 18:03:38,807 - root - DEBUG - Env PATH: C:\Program Files\Python311\Scripts\;C:\Program Files\Python311\;c:\Users\juesh\AppData\Local\Programs\cursor\resources\app\bin;C:\Program Files (x86)\VMware\VMware Workstation\bin\;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\dotnet\;C:\Program Files\Git\cmd;C:\Users\juesh\AppData\Local\Programs\Python\Python313;C:\Users\juesh\AppData\Local\Programs\Python\Python313\Scripts;C:\Program Files\MATLAB\R2021b\runtime\win64;C:\Program Files\MATLAB\R2021b\bin;C:\Users\juesh\AppData\Local\Programs\Python\Python313;C:\Users\juesh\AppData\Local\Programs\Python\Launcher\;C:\Users\juesh\AppData\Local\Microsoft\WindowsApps;C:\Users\juesh\AppData\Local\Programs\Windsurf\bin;c:\Users\juesh\AppData\Local\Programs\cursor\resources\app\bin;C:\Program Files\Go\bin;C:\Program Files\nodejs\;C:\ProgramData\chocolatey\bin;C:\ProgramData\chocolatey\lib\ffmpeg\tools\ffmpeg\bin;c:\Users\juesh\AppData\Local\Programs\Trae\bin;C:\Users\juesh\AppData\Local\Programs\Python\Python313;C:\Users\juesh\AppData\Local\Programs\Python\Launcher\;C:\Users\juesh\AppData\Local\Microsoft\WindowsApps;C:\Users\juesh\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\juesh\AppData\Local\Programs\Windsurf\bin;C:\Program Files\Python311;C:\Users\juesh\.cache\lm-studio\bin;C:\Users\juesh\go\bin;C:\Users\juesh\AppData\Local\Programs\Ollama;C:\Users\juesh\AppData\Roaming\npm;C:\Users\juesh\AppData\Roaming\Python\Python311\Scripts;D:\snps\com\PyChOpMarg\swigwin-4.3.0;c:\users\juesh\appdata\roaming\python\python311\site-packages;C:\Users\juesh\AppData\Roaming\npm\mmdc;C:\Users\juesh\AppData\Local\Programs\cursor\resources\app\bin;c:\Users\juesh\.windsurf\extensions\ms-python.debugpy-2025.14.1-win32-x64\bundled\scripts\noConfigScripts
-2025-11-15 18:03:38,815 - root - DEBUG - Env APPDATA: C:\Users\juesh\AppData\Roaming
-2025-11-15 18:03:38,815 - root - INFO - Configuring Mermaid CLI discovery...
-2025-11-15 18:03:39,828 - mermaid.discover - DEBUG - Looking for mmdc in: ['mmdc', 'C:\\Program Files\\nodejs\\mmdc', 'C:\\Program Files\\nodejs\\mmdc.cmd', 'C:\\Program Files\\nodejs\\mmdc.ps1', 'C:\\Program Files\\nodejs\\mmdc.bat', 'C:\\Program Files\\nodejs/node_modules/npm/bin\\mmdc', 'C:\\Program Files\\nodejs/node_modules/npm/bin\\mmdc.cmd', 'C:\\Program Files\\nodejs/node_modules/npm/bin\\mmdc.ps1', 'C:\\Program Files\\nodejs/node_modules/npm/bin\\mmdc.bat', 'C:\\Users\\juesh\\AppData\\Roaming\\npm\\mmdc', 'C:\\Users\\juesh\\AppData\\Roaming\\npm\\mmdc.cmd', 'C:\\Users\\juesh\\AppData\\Roaming\\npm\\mmdc.ps1', 'C:\\Users\\juesh\\AppData\\Roaming\\npm\\mmdc.bat', 'C:\\Users\\juesh\\AppData\\Roaming\\npm\\node_modules/@mermaid-js/mermaid-cli\\mmdc', 'C:\\Users\\juesh\\AppData\\Roaming\\npm\\node_modules/@mermaid-js/mermaid-cli\\mmdc.cmd', 'C:\\Users\\juesh\\AppData\\Roaming\\npm\\node_modules/@mermaid-js/mermaid-cli\\mmdc.ps1', 'C:\\Users\\juesh\\AppData\\Roaming\\npm\\node_modules/@mermaid-js/mermaid-cli\\mmdc.bat', 'C:\\Users\\juesh\\AppData\\Roaming\\npm\\mmdc', 'C:\\Users\\juesh\\AppData\\Roaming\\npm\\mmdc.cmd', 'C:\\Users\\juesh\\AppData\\Roaming\\npm\\node_modules\\.bin\\mmdc', 'C:\\Users\\juesh\\AppData\\Roaming\\npm\\node_modules\\.bin\\mmdc.cmd']
-2025-11-15 18:03:39,828 - mermaid.discover - DEBUG - Testing mmdc candidate: mmdc
-2025-11-15 18:03:39,830 - mermaid.discover - DEBUG - Error checking mmdc at mmdc: [WinError 2] The system cannot find the file specified
-2025-11-15 18:03:39,830 - mermaid.discover - DEBUG - Testing mmdc candidate: C:\Users\juesh\AppData\Roaming\npm\mmdc
-2025-11-15 18:03:39,844 - mermaid.discover - DEBUG - Error checking mmdc at C:\Users\juesh\AppData\Roaming\npm\mmdc: [WinError 193] %1 is not a valid Win32 application
-2025-11-15 18:03:39,844 - mermaid.discover - DEBUG - Testing mmdc candidate: C:\Users\juesh\AppData\Roaming\npm\mmdc.cmd
-2025-11-15 18:03:40,209 - mermaid.discover - INFO - Found mmdc v11.9.0 at: C:\Users\juesh\AppData\Roaming\npm\mmdc.cmd
-2025-11-15 18:03:40,801 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:03:40,802 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:03:40,802 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:03:41,167 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:03:41,170 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:03:41,170 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:03:41,449 - root - INFO - ImageBrowser application started
-2025-11-15 18:05:08,063 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:05:08,064 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:05:08,064 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:05:08,064 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:05:08,064 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:05:08,064 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:05:10,749 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:05:10,749 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:05:10,749 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:05:10,749 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:05:10,749 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:05:10,749 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:05:33,911 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-2025-11-15 18:05:33,911 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
-2025-11-15 18:05:33,911 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
-2025-11-15 18:05:33,911 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
-2025-11-15 18:05:33,911 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 65445
-2025-11-15 18:05:33,952 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:05:33,952 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:05:33,952 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:05:33,952 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:05:33,952 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:05:33,952 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:05:36,484 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-2025-11-15 18:05:36,484 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
-2025-11-15 18:05:36,484 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
-2025-11-15 18:05:36,484 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
-2025-11-15 18:05:36,484 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 65445
-2025-11-15 18:05:36,522 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:05:36,522 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:05:36,522 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:05:36,522 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:05:36,522 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:05:36,522 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:05:38,883 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-2025-11-15 18:05:38,883 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
-2025-11-15 18:05:38,883 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
-2025-11-15 18:05:38,883 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
-2025-11-15 18:05:38,883 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 65445
-2025-11-15 18:05:38,903 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:05:38,903 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:05:38,903 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:05:38,903 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:05:38,903 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:05:38,903 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:05:39,647 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-2025-11-15 18:05:39,647 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
-2025-11-15 18:05:39,647 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
-2025-11-15 18:05:39,647 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
-2025-11-15 18:05:39,648 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 65445
-2025-11-15 18:05:39,694 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:05:39,694 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:05:39,694 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:05:39,694 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:05:39,694 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:05:39,694 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:05:40,299 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-2025-11-15 18:05:40,299 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
-2025-11-15 18:05:40,299 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
-2025-11-15 18:05:40,299 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
-2025-11-15 18:05:40,299 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 65445
-2025-11-15 18:05:40,347 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:05:40,347 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:05:40,347 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:05:40,347 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:05:40,347 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:05:40,347 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:05:42,571 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-2025-11-15 18:05:42,571 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
-2025-11-15 18:05:42,571 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
-2025-11-15 18:05:42,571 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
-2025-11-15 18:05:42,571 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 65445
-2025-11-15 18:05:42,622 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:05:42,622 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:05:42,622 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:05:42,622 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:05:42,622 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:05:42,622 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:05:44,225 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-2025-11-15 18:05:44,225 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
-2025-11-15 18:05:44,225 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
-2025-11-15 18:05:44,225 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
-2025-11-15 18:05:44,225 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 29032
-2025-11-15 18:05:44,245 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:05:44,245 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:05:44,245 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:05:44,245 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:05:44,245 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:05:44,245 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:05:46,396 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-2025-11-15 18:05:46,397 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
-2025-11-15 18:05:46,397 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
-2025-11-15 18:05:46,397 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
-2025-11-15 18:05:46,397 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 65445
-2025-11-15 18:05:46,443 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:05:46,443 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:05:46,443 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:05:46,444 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:05:46,444 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:05:46,444 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:05:47,506 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-2025-11-15 18:05:47,506 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
-2025-11-15 18:05:47,506 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
-2025-11-15 18:05:47,507 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
-2025-11-15 18:05:47,507 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 65445
-2025-11-15 18:05:47,554 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:05:47,554 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:05:47,554 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:05:47,554 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:05:47,554 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:05:47,554 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:05:58,585 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-2025-11-15 18:05:58,585 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
-2025-11-15 18:05:58,586 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
-2025-11-15 18:05:58,586 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
-2025-11-15 18:05:58,586 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 65445
-2025-11-15 18:05:58,649 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:05:58,649 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:05:58,649 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:05:58,649 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:05:58,649 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:05:58,649 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:06:02,007 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-2025-11-15 18:06:02,007 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
-2025-11-15 18:06:02,007 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
-2025-11-15 18:06:02,007 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
-2025-11-15 18:06:02,007 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 65445
-2025-11-15 18:06:02,045 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:06:02,045 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:06:02,045 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:06:02,045 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:06:02,045 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:06:02,045 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:06:02,941 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-2025-11-15 18:06:02,941 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
-2025-11-15 18:06:02,941 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
-2025-11-15 18:06:02,941 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
-2025-11-15 18:06:02,941 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 65445
-2025-11-15 18:06:02,986 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:06:02,986 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:06:02,986 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:06:02,986 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:06:02,986 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:06:02,986 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:06:03,591 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-2025-11-15 18:06:03,591 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
-2025-11-15 18:06:03,591 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
-2025-11-15 18:06:03,591 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
-2025-11-15 18:06:03,591 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 65445
-2025-11-15 18:06:03,632 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:06:03,632 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:06:03,632 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:06:03,633 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:06:03,633 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:06:03,633 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:06:04,088 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-2025-11-15 18:06:04,089 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
-2025-11-15 18:06:04,089 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
-2025-11-15 18:06:04,089 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
-2025-11-15 18:06:04,089 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 65445
-2025-11-15 18:06:04,133 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:06:04,133 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:06:04,133 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:06:04,133 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:06:04,133 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:06:04,133 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:06:04,662 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-2025-11-15 18:06:04,662 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
-2025-11-15 18:06:04,662 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
-2025-11-15 18:06:04,662 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
-2025-11-15 18:06:04,662 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 65445
-2025-11-15 18:06:04,708 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:06:04,708 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:06:04,708 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:06:04,708 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:06:04,708 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:06:04,708 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:06:06,100 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-2025-11-15 18:06:06,100 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
-2025-11-15 18:06:06,100 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
-2025-11-15 18:06:06,100 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
-2025-11-15 18:06:06,100 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 65445
-2025-11-15 18:06:06,132 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:06:06,132 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:06:06,132 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:06:06,132 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:06:06,132 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:06:06,132 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:06:07,720 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-2025-11-15 18:06:07,720 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
-2025-11-15 18:06:07,720 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
-2025-11-15 18:06:07,720 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
-2025-11-15 18:06:07,720 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 65445
-2025-11-15 18:06:07,766 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:06:07,766 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:06:07,766 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:06:07,767 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:06:07,767 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:06:07,767 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:06:08,772 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-2025-11-15 18:06:08,772 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
-2025-11-15 18:06:08,772 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
-2025-11-15 18:06:08,772 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
-2025-11-15 18:06:08,772 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 65445
-2025-11-15 18:06:08,794 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:06:08,794 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:06:08,794 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:06:08,794 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:06:08,795 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:06:08,795 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:06:09,573 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-2025-11-15 18:06:09,574 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
-2025-11-15 18:06:09,574 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
-2025-11-15 18:06:09,574 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
-2025-11-15 18:06:09,574 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 65445
-2025-11-15 18:06:09,601 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:06:09,601 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:06:09,601 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:06:09,601 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:06:09,601 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:06:09,601 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:06:10,243 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-2025-11-15 18:06:10,243 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
-2025-11-15 18:06:10,243 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
-2025-11-15 18:06:10,243 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
-2025-11-15 18:06:10,243 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 65445
-2025-11-15 18:06:10,289 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:06:10,289 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:06:10,289 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:06:10,289 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:06:10,289 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:06:10,289 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:06:13,324 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-2025-11-15 18:06:13,325 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
-2025-11-15 18:06:13,325 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
-2025-11-15 18:06:13,325 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
-2025-11-15 18:06:13,325 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 65445
-2025-11-15 18:06:13,355 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:06:13,355 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:06:13,355 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:06:13,356 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:06:13,356 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:06:13,356 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:06:14,089 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-2025-11-15 18:06:14,090 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
-2025-11-15 18:06:14,090 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
-2025-11-15 18:06:14,090 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
-2025-11-15 18:06:14,090 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 29032
-2025-11-15 18:06:14,105 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:06:14,105 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:06:14,105 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:06:14,105 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:06:14,105 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:06:14,105 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:06:18,873 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-2025-11-15 18:06:18,873 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
-2025-11-15 18:06:18,874 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
-2025-11-15 18:06:18,874 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
-2025-11-15 18:06:18,874 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 56832
-2025-11-15 18:06:18,891 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:06:18,891 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:06:18,891 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:06:18,891 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:06:18,891 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:06:18,891 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:06:20,829 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-2025-11-15 18:06:20,829 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
-2025-11-15 18:06:20,829 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
-2025-11-15 18:06:20,829 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
-2025-11-15 18:06:20,829 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 65445
-2025-11-15 18:06:20,865 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:06:20,865 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:06:20,865 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:06:20,865 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:06:20,865 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:06:20,865 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:06:21,765 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-2025-11-15 18:06:21,765 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
-2025-11-15 18:06:21,765 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
-2025-11-15 18:06:21,765 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
-2025-11-15 18:06:21,765 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 65445
-2025-11-15 18:06:21,813 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:06:21,814 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:06:21,814 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:06:21,814 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:06:21,814 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:06:21,814 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:06:22,310 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-2025-11-15 18:06:22,310 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
-2025-11-15 18:06:22,310 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
-2025-11-15 18:06:22,310 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
-2025-11-15 18:06:22,310 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 65445
-2025-11-15 18:06:22,365 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:06:22,365 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:06:22,365 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:06:22,365 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:06:22,365 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:06:22,365 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:06:23,290 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-2025-11-15 18:06:23,290 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
-2025-11-15 18:06:23,290 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
-2025-11-15 18:06:23,290 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
-2025-11-15 18:06:23,290 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 65445
-2025-11-15 18:06:23,327 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:06:23,327 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:06:23,327 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:06:23,327 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:06:23,328 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:06:23,328 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:06:24,883 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-2025-11-15 18:06:24,883 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
-2025-11-15 18:06:24,883 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
-2025-11-15 18:06:24,883 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
-2025-11-15 18:06:24,883 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 65445
-2025-11-15 18:06:24,929 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:06:24,929 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:06:24,929 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:06:24,929 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:06:24,929 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:06:24,929 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:06:25,727 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-2025-11-15 18:06:25,727 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
-2025-11-15 18:06:25,727 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
-2025-11-15 18:06:25,727 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
-2025-11-15 18:06:25,727 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 65445
-2025-11-15 18:06:25,773 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:06:25,773 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:06:25,773 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:06:25,774 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:06:25,774 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:06:25,774 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:06:26,377 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-2025-11-15 18:06:26,377 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
-2025-11-15 18:06:26,377 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
-2025-11-15 18:06:26,377 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
-2025-11-15 18:06:26,377 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 65445
-2025-11-15 18:06:26,415 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:06:26,415 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:06:26,415 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:06:26,415 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:06:26,415 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:06:26,415 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:06:28,109 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-2025-11-15 18:06:28,109 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
-2025-11-15 18:06:28,109 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
-2025-11-15 18:06:28,109 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
-2025-11-15 18:06:28,109 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 65445
-2025-11-15 18:06:28,146 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:06:28,147 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:06:28,147 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:06:28,147 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:06:28,147 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:06:28,147 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:06:29,272 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-2025-11-15 18:06:29,272 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
-2025-11-15 18:06:29,272 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
-2025-11-15 18:06:29,272 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
-2025-11-15 18:06:29,272 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 65445
-2025-11-15 18:06:29,312 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:06:29,312 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:06:29,312 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:06:29,312 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:06:29,312 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:06:29,313 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:06:30,456 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-2025-11-15 18:06:30,456 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
-2025-11-15 18:06:30,456 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
-2025-11-15 18:06:30,456 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
-2025-11-15 18:06:30,456 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 15927
-2025-11-15 18:06:30,481 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:06:30,481 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:06:30,481 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:06:30,481 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:06:30,481 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:06:30,482 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:06:31,193 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-2025-11-15 18:06:31,193 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
-2025-11-15 18:06:31,193 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
-2025-11-15 18:06:31,193 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
-2025-11-15 18:06:31,193 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 65445
-2025-11-15 18:06:31,220 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:06:31,220 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:06:31,220 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:06:31,220 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:06:31,220 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:06:31,220 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:06:32,370 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-2025-11-15 18:06:32,371 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
-2025-11-15 18:06:32,371 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
-2025-11-15 18:06:32,371 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
-2025-11-15 18:06:32,371 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 6598
-2025-11-15 18:06:32,391 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:06:32,391 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:06:32,391 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:06:32,391 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:06:32,391 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:06:32,391 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:06:35,910 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-2025-11-15 18:06:35,910 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
-2025-11-15 18:06:35,910 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
-2025-11-15 18:06:35,910 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
-2025-11-15 18:06:35,910 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 5490
-2025-11-15 18:06:35,935 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:06:35,935 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:06:35,935 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:06:35,935 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:06:35,935 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:06:35,935 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:06:37,108 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-2025-11-15 18:06:37,109 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
-2025-11-15 18:06:37,109 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
-2025-11-15 18:06:37,109 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
-2025-11-15 18:06:37,109 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 65445
-2025-11-15 18:06:37,137 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:06:37,137 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:06:37,137 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:06:37,137 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:06:37,137 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:06:37,137 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:06:38,167 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-2025-11-15 18:06:38,167 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
-2025-11-15 18:06:38,167 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
-2025-11-15 18:06:38,167 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
-2025-11-15 18:06:38,167 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 65445
-2025-11-15 18:06:38,197 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:06:38,197 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:06:38,197 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:06:38,198 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:06:38,198 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:06:38,198 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:06:39,047 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-2025-11-15 18:06:39,047 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
-2025-11-15 18:06:39,047 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
-2025-11-15 18:06:39,047 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
-2025-11-15 18:06:39,047 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 5490
-2025-11-15 18:06:39,065 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:06:39,066 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:06:39,066 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:06:39,066 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:06:39,066 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:06:39,066 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:06:39,943 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-2025-11-15 18:06:39,943 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
-2025-11-15 18:06:39,943 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
-2025-11-15 18:06:39,943 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
-2025-11-15 18:06:39,943 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 6598
-2025-11-15 18:06:39,961 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:06:39,961 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:06:39,961 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:06:39,961 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:06:39,961 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:06:39,961 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:06:40,516 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-2025-11-15 18:06:40,516 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
-2025-11-15 18:06:40,516 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
-2025-11-15 18:06:40,516 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
-2025-11-15 18:06:40,516 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 50525
-2025-11-15 18:06:40,528 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:06:40,528 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:06:40,528 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:06:40,528 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:06:40,528 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:06:40,528 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:06:41,300 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-2025-11-15 18:06:41,300 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
-2025-11-15 18:06:41,300 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
-2025-11-15 18:06:41,300 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
-2025-11-15 18:06:41,300 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 5200
-2025-11-15 18:06:41,309 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:06:41,309 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:06:41,309 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:06:41,310 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:06:41,310 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:06:41,310 - root - DEBUG - Generated HTML (first 500 chars):
-...
-2025-11-15 18:06:41,985 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-2025-11-15 18:06:41,985 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
-2025-11-15 18:06:41,985 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
-2025-11-15 18:06:41,985 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
-2025-11-15 18:06:41,985 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 50525
-2025-11-15 18:06:41,999 - root - DEBUG - Original markdown content (first 200 chars):
-...
-2025-11-15 18:06:41,999 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
-2025-11-15 18:06:41,999 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
-...
-2025-11-15 18:06:41,999 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
-2025-11-15 18:06:41,999 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
-2025-11-15 18:06:41,999 - root - DEBUG - Generated HTML (first 500 chars):
-...
+2025-11-30 13:20:53,524 - root - INFO - === Starting Image Browser with Mermaid Debugging ===
+2025-11-30 13:20:53,525 - root - INFO - Logging to: c:\Users\juesh\jules\pandastable0\examples\logs\mermaid_debug.log
+2025-11-30 13:20:53,525 - root - INFO - Python: 3.13.1 (tags/v3.13.1:0671451, Dec  3 2024, 19:06:28) [MSC v.1942 64 bit (AMD64)]
+2025-11-30 13:20:53,525 - root - INFO - Working directory: C:\Users\juesh\jules\pandastable0
+2025-11-30 13:20:53,525 - root - DEBUG - Env PATH: C:\Program Files\Python311\Scripts\;C:\Program Files\Python311\;c:\Users\juesh\AppData\Local\Programs\cursor\resources\app\bin;C:\Program Files (x86)\VMware\VMware Workstation\bin\;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\dotnet\;C:\Program Files\Git\cmd;C:\Users\juesh\AppData\Local\Programs\Python\Python313;C:\Users\juesh\AppData\Local\Programs\Python\Python313\Scripts;C:\Program Files\MATLAB\R2021b\runtime\win64;C:\Program Files\MATLAB\R2021b\bin;C:\Users\juesh\AppData\Local\Programs\Python\Python313;C:\Users\juesh\AppData\Local\Programs\Python\Launcher\;C:\Users\juesh\AppData\Local\Microsoft\WindowsApps;C:\Users\juesh\AppData\Local\Programs\Windsurf\bin;c:\Users\juesh\AppData\Local\Programs\cursor\resources\app\bin;C:\Program Files\Go\bin;C:\Program Files\nodejs\;C:\ProgramData\chocolatey\bin;C:\ProgramData\chocolatey\lib\ffmpeg\tools\ffmpeg\bin;C:\Users\juesh\AppData\Local\Programs\Python\Python312\Scripts\;C:\Users\juesh\AppData\Local\Programs\Python\Python312\;c:\Users\juesh\AppData\Local\Programs\Trae\bin;C:\Users\juesh\AppData\Local\Programs\Python\Python313;C:\Users\juesh\AppData\Local\Programs\Python\Launcher\;C:\Users\juesh\AppData\Local\Microsoft\WindowsApps;C:\Users\juesh\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\juesh\AppData\Local\Programs\Windsurf\bin;C:\Program Files\Python311;C:\Users\juesh\.cache\lm-studio\bin;C:\Users\juesh\go\bin;C:\Users\juesh\AppData\Local\Programs\Ollama;C:\Users\juesh\AppData\Roaming\npm;C:\Users\juesh\AppData\Roaming\Python\Python311\Scripts;D:\snps\com\PyChOpMarg\swigwin-4.3.0;c:\users\juesh\appdata\roaming\python\python311\site-packages;C:\Users\juesh\AppData\Roaming\npm\mmdc;C:\Users\juesh\AppData\Local\Programs\cursor\resources\app\bin;c:\Users\juesh\.windsurf\extensions\ms-python.debugpy-2025.14.1-win32-x64\bundled\scripts\noConfigScripts
+2025-11-30 13:20:53,525 - root - DEBUG - Env APPDATA: C:\Users\juesh\AppData\Roaming
+2025-11-30 13:20:53,525 - root - INFO - Configuring Mermaid CLI discovery...
+2025-11-30 13:20:53,871 - mermaid.discover - DEBUG - Looking for mmdc in: ['mmdc', 'C:\\Program Files\\nodejs/node_modules/npm/bin\\mmdc', 'C:\\Program Files\\nodejs/node_modules/npm/bin\\mmdc.cmd', 'C:\\Program Files\\nodejs/node_modules/npm/bin\\mmdc.ps1', 'C:\\Program Files\\nodejs/node_modules/npm/bin\\mmdc.bat', 'C:\\Program Files\\nodejs\\mmdc', 'C:\\Program Files\\nodejs\\mmdc.cmd', 'C:\\Program Files\\nodejs\\mmdc.ps1', 'C:\\Program Files\\nodejs\\mmdc.bat', 'C:\\Users\\juesh\\AppData\\Roaming\\npm\\mmdc', 'C:\\Users\\juesh\\AppData\\Roaming\\npm\\mmdc.cmd', 'C:\\Users\\juesh\\AppData\\Roaming\\npm\\mmdc.ps1', 'C:\\Users\\juesh\\AppData\\Roaming\\npm\\mmdc.bat', 'C:\\Users\\juesh\\AppData\\Roaming\\npm\\node_modules/@mermaid-js/mermaid-cli\\mmdc', 'C:\\Users\\juesh\\AppData\\Roaming\\npm\\node_modules/@mermaid-js/mermaid-cli\\mmdc.cmd', 'C:\\Users\\juesh\\AppData\\Roaming\\npm\\node_modules/@mermaid-js/mermaid-cli\\mmdc.ps1', 'C:\\Users\\juesh\\AppData\\Roaming\\npm\\node_modules/@mermaid-js/mermaid-cli\\mmdc.bat', 'C:\\Users\\juesh\\AppData\\Roaming\\npm\\mmdc', 'C:\\Users\\juesh\\AppData\\Roaming\\npm\\mmdc.cmd', 'C:\\Users\\juesh\\AppData\\Roaming\\npm\\node_modules\\.bin\\mmdc', 'C:\\Users\\juesh\\AppData\\Roaming\\npm\\node_modules\\.bin\\mmdc.cmd']
+2025-11-30 13:20:53,871 - mermaid.discover - DEBUG - Testing mmdc candidate: mmdc
+2025-11-30 13:20:53,874 - mermaid.discover - DEBUG - Error checking mmdc at mmdc: [WinError 2] The system cannot find the file specified
+2025-11-30 13:20:53,874 - mermaid.discover - DEBUG - Testing mmdc candidate: C:\Users\juesh\AppData\Roaming\npm\mmdc
+2025-11-30 13:20:53,887 - mermaid.discover - DEBUG - Error checking mmdc at C:\Users\juesh\AppData\Roaming\npm\mmdc: [WinError 193] %1 is not a valid Win32 application
+2025-11-30 13:20:53,887 - mermaid.discover - DEBUG - Testing mmdc candidate: C:\Users\juesh\AppData\Roaming\npm\mmdc.cmd
+2025-11-30 13:20:54,422 - mermaid.discover - INFO - Found mmdc v11.9.0 at: C:\Users\juesh\AppData\Roaming\npm\mmdc.cmd
+2025-11-30 13:20:55,012 - root - DEBUG - Original markdown content (first 200 chars):
+...
+2025-11-30 13:20:55,012 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
+2025-11-30 13:20:55,012 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
+...
+2025-11-30 13:20:55,382 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
+2025-11-30 13:20:55,384 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
+2025-11-30 13:20:55,385 - root - DEBUG - Generated HTML (first 500 chars):
+...
+2025-11-30 13:20:55,679 - root - INFO - ImageBrowser application started
+2025-11-30 13:22:34,243 - root - DEBUG - Original markdown content (first 200 chars):
+...
+2025-11-30 13:22:34,243 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
+2025-11-30 13:22:34,243 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
+...
+2025-11-30 13:22:34,244 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
+2025-11-30 13:22:34,244 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
+2025-11-30 13:22:34,244 - root - DEBUG - Generated HTML (first 500 chars):
+...
+2025-11-30 13:22:52,564 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2025-11-30 13:22:52,564 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
+2025-11-30 13:22:52,564 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
+2025-11-30 13:22:52,564 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
+2025-11-30 13:22:52,564 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 54482
+2025-11-30 13:22:52,578 - root - DEBUG - Original markdown content (first 200 chars):
+...
+2025-11-30 13:22:52,578 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
+2025-11-30 13:22:52,578 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
+...
+2025-11-30 13:22:52,578 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
+2025-11-30 13:22:52,578 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
+2025-11-30 13:22:52,579 - root - DEBUG - Generated HTML (first 500 chars):
+...
+2025-11-30 13:22:54,364 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2025-11-30 13:22:54,364 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
+2025-11-30 13:22:54,364 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
+2025-11-30 13:22:54,364 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
+2025-11-30 13:22:54,364 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 65445
+2025-11-30 13:22:54,377 - root - DEBUG - Original markdown content (first 200 chars):
+...
+2025-11-30 13:22:54,377 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
+2025-11-30 13:22:54,377 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
+...
+2025-11-30 13:22:54,377 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
+2025-11-30 13:22:54,377 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
+2025-11-30 13:22:54,377 - root - DEBUG - Generated HTML (first 500 chars):
+...
+2025-11-30 13:22:55,832 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2025-11-30 13:22:55,832 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
+2025-11-30 13:22:55,832 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
+2025-11-30 13:22:55,833 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
+2025-11-30 13:22:55,833 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 50045
+2025-11-30 13:22:55,853 - root - DEBUG - Original markdown content (first 200 chars):
+...
+2025-11-30 13:22:55,853 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
+2025-11-30 13:22:55,853 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
+...
+2025-11-30 13:22:55,854 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
+2025-11-30 13:22:55,854 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
+2025-11-30 13:22:55,854 - root - DEBUG - Generated HTML (first 500 chars):
+...
+2025-11-30 13:22:57,209 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2025-11-30 13:22:57,209 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
+2025-11-30 13:22:57,209 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
+2025-11-30 13:22:57,209 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
+2025-11-30 13:22:57,209 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 65445
+2025-11-30 13:22:57,255 - root - DEBUG - Original markdown content (first 200 chars):
+...
+2025-11-30 13:22:57,255 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
+2025-11-30 13:22:57,255 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
+...
+2025-11-30 13:22:57,255 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
+2025-11-30 13:22:57,255 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
+2025-11-30 13:22:57,255 - root - DEBUG - Generated HTML (first 500 chars):
+...
+2025-11-30 13:22:58,244 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2025-11-30 13:22:58,244 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
+2025-11-30 13:22:58,244 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
+2025-11-30 13:22:58,244 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
+2025-11-30 13:22:58,244 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 50045
+2025-11-30 13:22:58,258 - root - DEBUG - Original markdown content (first 200 chars):
+...
+2025-11-30 13:22:58,258 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
+2025-11-30 13:22:58,258 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
+...
+2025-11-30 13:22:58,258 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
+2025-11-30 13:22:58,258 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
+2025-11-30 13:22:58,258 - root - DEBUG - Generated HTML (first 500 chars):
+...
+2025-11-30 13:23:06,937 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2025-11-30 13:23:06,937 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
+2025-11-30 13:23:06,937 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
+2025-11-30 13:23:06,937 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
+2025-11-30 13:23:06,937 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 54482
+2025-11-30 13:23:06,956 - root - DEBUG - Original markdown content (first 200 chars):
+...
+2025-11-30 13:23:06,956 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
+2025-11-30 13:23:06,956 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
+...
+2025-11-30 13:23:06,956 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
+2025-11-30 13:23:06,956 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
+2025-11-30 13:23:06,957 - root - DEBUG - Generated HTML (first 500 chars):
+...
+2025-11-30 13:23:08,369 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2025-11-30 13:23:08,369 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
+2025-11-30 13:23:08,369 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
+2025-11-30 13:23:08,369 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
+2025-11-30 13:23:08,369 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 65445
+2025-11-30 13:23:08,384 - root - DEBUG - Original markdown content (first 200 chars):
+...
+2025-11-30 13:23:08,384 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
+2025-11-30 13:23:08,384 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
+...
+2025-11-30 13:23:08,384 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
+2025-11-30 13:23:08,384 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
+2025-11-30 13:23:08,384 - root - DEBUG - Generated HTML (first 500 chars):
+...
+2025-11-30 13:23:09,514 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2025-11-30 13:23:09,514 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
+2025-11-30 13:23:09,514 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
+2025-11-30 13:23:09,514 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
+2025-11-30 13:23:09,514 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 65445
+2025-11-30 13:23:09,553 - root - DEBUG - Original markdown content (first 200 chars):
+...
+2025-11-30 13:23:09,553 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
+2025-11-30 13:23:09,553 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
+...
+2025-11-30 13:23:09,553 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
+2025-11-30 13:23:09,553 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
+2025-11-30 13:23:09,553 - root - DEBUG - Generated HTML (first 500 chars):
+...
+2025-11-30 13:23:13,853 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2025-11-30 13:23:13,853 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
+2025-11-30 13:23:13,853 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
+2025-11-30 13:23:13,853 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
+2025-11-30 13:23:13,853 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 14312
+2025-11-30 13:23:13,864 - root - DEBUG - Original markdown content (first 200 chars):
+...
+2025-11-30 13:23:13,864 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
+2025-11-30 13:23:13,864 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
+...
+2025-11-30 13:23:13,864 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
+2025-11-30 13:23:13,864 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
+2025-11-30 13:23:13,864 - root - DEBUG - Generated HTML (first 500 chars):
+...
+2025-11-30 13:23:15,948 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2025-11-30 13:23:15,949 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
+2025-11-30 13:23:15,949 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
+2025-11-30 13:23:15,949 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
+2025-11-30 13:23:15,949 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 65445
+2025-11-30 13:23:15,990 - root - DEBUG - Original markdown content (first 200 chars):
+...
+2025-11-30 13:23:15,990 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
+2025-11-30 13:23:15,990 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
+...
+2025-11-30 13:23:15,991 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
+2025-11-30 13:23:15,991 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
+2025-11-30 13:23:15,991 - root - DEBUG - Generated HTML (first 500 chars):
+...
+2025-11-30 13:23:18,451 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2025-11-30 13:23:18,451 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
+2025-11-30 13:23:18,451 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
+2025-11-30 13:23:18,451 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
+2025-11-30 13:23:18,451 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 29229
+2025-11-30 13:23:18,481 - root - DEBUG - Original markdown content (first 200 chars):
+...
+2025-11-30 13:23:18,481 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
+2025-11-30 13:23:18,481 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
+...
+2025-11-30 13:23:18,481 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
+2025-11-30 13:23:18,481 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
+2025-11-30 13:23:18,481 - root - DEBUG - Generated HTML (first 500 chars):
+...
+2025-11-30 13:23:19,125 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2025-11-30 13:23:19,125 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
+2025-11-30 13:23:19,125 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
+2025-11-30 13:23:19,125 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
+2025-11-30 13:23:19,125 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 65445
+2025-11-30 13:23:19,145 - root - DEBUG - Original markdown content (first 200 chars):
+...
+2025-11-30 13:23:19,145 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
+2025-11-30 13:23:19,145 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
+...
+2025-11-30 13:23:19,145 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
+2025-11-30 13:23:19,145 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
+2025-11-30 13:23:19,145 - root - DEBUG - Generated HTML (first 500 chars):
+...
+2025-11-30 13:23:19,625 - PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+2025-11-30 13:23:19,625 - PIL.PngImagePlugin - DEBUG - STREAM b'sRGB' 41 1
+2025-11-30 13:23:19,625 - PIL.PngImagePlugin - DEBUG - STREAM b'gAMA' 54 4
+2025-11-30 13:23:19,626 - PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 70 9
+2025-11-30 13:23:19,626 - PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 91 13
+2025-11-30 13:23:19,633 - root - DEBUG - Original markdown content (first 200 chars):
+...
+2025-11-30 13:23:19,633 - mermaid - DEBUG - No text provided to _preprocess_mermaid_markdown
+2025-11-30 13:23:19,633 - root - DEBUG - Markdown after mermaid preprocessing (first 300 chars):
+...
+2025-11-30 13:23:19,634 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
+2025-11-30 13:23:19,634 - MARKDOWN - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
+2025-11-30 13:23:19,634 - root - DEBUG - Generated HTML (first 500 chars):
+...
+2025-11-30 13:23:21,216 - root - INFO - Application is closing
+2025-11-30 13:23:21,291 - root - INFO - ImageBrowser application terminated

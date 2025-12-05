@@ -3,8 +3,12 @@ import pandas as pd
 import numpy as np
 import os
 import shutil
+import tempfile
+from pathlib import Path
+from io import StringIO
 import utils
 import plotting_utils
+import file_ops
 
 class TestAppLogic(unittest.TestCase):
     def setUp(self):
@@ -69,6 +73,85 @@ class TestAppLogic(unittest.TestCase):
         self.assertIsNotNone(corr_df)
         self.assertEqual(corr_df.iloc[0]['Column'], 'B')
         self.assertAlmostEqual(corr_df.iloc[0]['Correlation'], 1.0)
+
+
+class TestFileOps(unittest.TestCase):
+    def setUp(self):
+        self.tmpdir = tempfile.TemporaryDirectory()
+        self.src_dir = Path(self.tmpdir.name) / "src"
+        self.dest_dir = Path(self.tmpdir.name) / "dest"
+        self.src_dir.mkdir(parents=True, exist_ok=True)
+        self.dest_dir.mkdir(parents=True, exist_ok=True)
+        self.sample_path = self.src_dir / "sample_data.csv"
+        self.sample_path.write_text("col\n1\n", encoding="utf-8")
+        self.record = {
+            "Name": "sample_data.csv",
+            "Directory": str(self.src_dir),
+            "Path": str(self.sample_path),
+        }
+
+    def tearDown(self):
+        self.tmpdir.cleanup()
+
+    def test_copy_or_move_files_copy_success(self):
+        kind, message, successes, mutated = file_ops.copy_or_move_files(
+            [self.record],
+            str(self.dest_dir),
+            overwrite=False,
+            operation='copy'
+        )
+        self.assertEqual(kind, "success")
+        self.assertTrue((self.dest_dir / "sample_data.csv").exists())
+        self.assertEqual(mutated, [])
+        self.assertTrue(successes)
+
+    def test_rename_files_updates_filename(self):
+        kind, message, successes, mutated = file_ops.rename_files(
+            [self.record],
+            "{stem}_v2",
+            overwrite=False
+        )
+        self.assertEqual(kind, "success")
+        self.assertIn("sample_data.csv → sample_data_v2.csv", successes)
+        self.assertTrue((self.src_dir / "sample_data_v2.csv").exists())
+        self.assertIn(str(self.sample_path), mutated)
+
+    def test_apply_rename_template_uses_parts(self):
+        record = dict(self.record)
+        record["Part 1"] = "LotA"
+        new_name = file_ops.apply_rename_template(record, "{Part_1}_{stem}")
+        self.assertEqual(new_name, "LotA_sample_data.csv")
+
+
+class TestTouchstoneAndSpecialPlots(unittest.TestCase):
+    def test_load_touchstone_parses_ports_and_matrix(self):
+        content = """# Hz S RI R 50\n100 1 0 0 0 0 0 1 0\n"""
+        data = plotting_utils.load_touchstone(StringIO(content))
+        self.assertEqual(data['ports'], 2)
+        self.assertEqual(data['matrix'].shape, (1, 2, 2))
+        self.assertTrue(np.isclose(data['matrix'][0, 0, 0], 1 + 0j))
+        labels = plotting_utils.get_sparameter_labels(data)
+        self.assertEqual(labels, ['S11', 'S12', 'S21', 'S22'])
+
+    def test_plot_s_parameters_returns_figure(self):
+        content = """# GHz S RI R 50\n1 1 0 0 0 0 0 1 0\n"""
+        data = plotting_utils.load_touchstone(StringIO(content))
+        fig = plotting_utils.plot_s_parameters(data, [(1, 1)], display_mode='mag_db', log_freq=True)
+        self.assertIsNotNone(fig)
+        self.assertEqual(fig.axes[0].get_xscale(), 'log')
+
+    def test_plot_jitter_produces_histogram(self):
+        df = pd.DataFrame({'jitter': np.linspace(-0.1, 0.1, 50)})
+        fig = plotting_utils.plot_jitter(df, 'jitter', bins=20, show_gaussian=True, show_stats=True)
+        self.assertEqual(fig.axes[0].get_title(), 'Jitter Histogram')
+
+    def test_plot_phase_noise_requires_numeric_columns(self):
+        df = pd.DataFrame({
+            'offset': np.logspace(3, 6, 10),
+            'noise': np.linspace(-90, -110, 10)
+        })
+        fig = plotting_utils.plot_phase_noise(df, 'offset', 'noise', carrier_hz=2e9)
+        self.assertEqual(fig.axes[0].get_xscale(), 'log')
 
 if __name__ == '__main__':
     unittest.main()

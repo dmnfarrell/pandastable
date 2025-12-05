@@ -1,9 +1,50 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from pandas import plotting as pd_plotting
+from matplotlib import patches
+from matplotlib import dates as mdates
+from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 - needed for 3D projection
 from scipy import stats, interpolate
 from scipy.optimize import curve_fit
 import matplotlib.patheffects as patheffects
+import re
+from pathlib import Path
+
+
+TOUCHSTONE_FREQ_MULTIPLIERS = {
+    "hz": 1.0,
+    "khz": 1e3,
+    "mhz": 1e6,
+    "ghz": 1e9,
+}
+
+TOUCHSTONE_DISPLAY_MODES = {
+    "mag_db": "Magnitude (dB)",
+    "mag_linear": "Magnitude (Linear)",
+    "phase_deg": "Phase (Degrees)",
+}
+
+
+AGG_MAP = {
+    "sum": pd.Series.sum,
+    "mean": pd.Series.mean,
+    "median": pd.Series.median,
+    "count": pd.Series.count,
+}
+
+
+def _aggregate_series(df, category_col, value_col, agg_method):
+    if category_col is None or value_col is None:
+        raise ValueError("Category and value columns are required")
+    if category_col not in df.columns or value_col not in df.columns:
+        raise ValueError("Selected columns are missing from the DataFrame")
+    grouped = df.groupby(category_col)[value_col]
+    func = AGG_MAP.get(agg_method.lower())
+    if func is None:
+        raise ValueError(f"Unsupported aggregation: {agg_method}")
+    result = func(grouped).sort_values(ascending=False)
+    return result.dropna()
 
 def get_numeric_varying_columns(data):
     """Get list of numeric columns with variation."""
@@ -63,6 +104,222 @@ def plot_correlation(data, target_col, corr_col, corr_val):
     ax.set_title(f'Correlation: {corr_val:.3f}')
     ax.grid(True, alpha=0.3, linestyle='--')
 
+    return fig
+
+
+def plot_jitter(df, column, bins=50, show_gaussian=True, show_stats=True):
+    series = pd.to_numeric(df[column], errors='coerce').dropna()
+    if series.empty:
+        raise ValueError("Selected column has no numeric data for jitter plot")
+
+    fig, ax = plt.subplots()
+    counts, edges, _ = ax.hist(series, bins=bins, alpha=0.6, label='Histogram')
+    ax.set_xlabel(column)
+    ax.set_ylabel('Count')
+    ax.set_title('Jitter Histogram')
+
+    if show_gaussian and len(series) > 1:
+        mean = series.mean()
+        std = series.std()
+        x = np.linspace(edges[0], edges[-1], 500)
+        gaussian = (1 / (std * np.sqrt(2 * np.pi))) * np.exp(-0.5 * ((x - mean) / std) ** 2)
+        gaussian *= series.size * (edges[1] - edges[0])
+        ax.plot(x, gaussian, 'r--', label='Gaussian Fit')
+    if show_stats:
+        stats_text = f"Mean: {series.mean():.3g}\nStd Dev: {series.std():.3g}\nMin/Max: {series.min():.3g} / {series.max():.3g}"
+        ax.text(0.98, 0.98, stats_text, transform=ax.transAxes, ha='right', va='top',
+                bbox=dict(facecolor='white', alpha=0.8))
+    ax.legend()
+    return fig
+
+
+def plot_phase_noise(df, freq_col, noise_col, carrier_hz=1e9):
+    freq = pd.to_numeric(df[freq_col], errors='coerce').dropna()
+    noise = pd.to_numeric(df[noise_col], errors='coerce').dropna()
+    min_len = min(len(freq), len(noise))
+    if min_len < 2:
+        raise ValueError("Not enough data for phase noise plot")
+    freq = freq.iloc[:min_len]
+    noise = noise.iloc[:min_len]
+
+    fig, ax = plt.subplots()
+    ax.plot(freq, noise, marker='o', linestyle='-')
+    ax.set_xscale('log')
+    ax.set_xlabel('Offset Frequency (Hz)')
+    ax.set_ylabel('Phase Noise (dBc/Hz)')
+    ax.set_title(f'Phase Noise @ {carrier_hz/1e9:.3g} GHz')
+    ax.grid(True, which='both', linestyle='--', alpha=0.3)
+    return fig
+
+
+def load_touchstone(source):
+    """Load a Touchstone .sNp file into a structured dictionary."""
+    if hasattr(source, 'read'):
+        raw = source.read()
+        try:
+            source.seek(0)
+        except Exception:
+            pass
+        filename = getattr(source, 'name', 'uploaded.s2p')
+    else:
+        path = Path(source)
+        filename = path.name
+        raw = path.read_bytes()
+    if isinstance(raw, str):
+        text = raw
+    else:
+        text = raw.decode('utf-8', errors='ignore')
+    return _parse_touchstone_text(text, filename)
+
+
+def _parse_touchstone_text(text, filename):
+    freq_unit = 'hz'
+    data_format = 'ma'
+    parameter = 's'
+    reference = 50.0
+    data_tokens = []
+
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        if line.startswith('!'):
+            continue
+        if line.startswith('#'):
+            tokens = line[1:].strip().split()
+            skip_next = False
+            for idx, token in enumerate(tokens):
+                if skip_next:
+                    skip_next = False
+                    continue
+                lower = token.lower()
+                if lower in TOUCHSTONE_FREQ_MULTIPLIERS:
+                    freq_unit = lower
+                elif lower in {'s', 'y', 'z', 'h', 'g'}:
+                    parameter = lower
+                elif lower in {'ma', 'db', 'ri'}:
+                    data_format = lower
+                elif lower == 'r' and idx + 1 < len(tokens):
+                    try:
+                        reference = float(tokens[idx + 1])
+                    except ValueError:
+                        pass
+                    skip_next = True
+            continue
+
+        if '!' in line:
+            line = line.split('!')[0].strip()
+        if not line:
+            continue
+        data_tokens.extend(line.split())
+
+    if parameter != 's':
+        raise ValueError("Touchstone file must contain S-parameters")
+    if not data_tokens:
+        raise ValueError("No numeric data found in Touchstone file")
+
+    float_values = []
+    for token in data_tokens:
+        normalized = token.replace('D', 'E').replace('d', 'e')
+        try:
+            float_values.append(float(normalized))
+        except ValueError:
+            raise ValueError(f"Invalid numeric token '{token}' in Touchstone file")
+
+    port_count = _infer_touchstone_ports(filename, len(float_values))
+    row_len = 1 + 2 * port_count * port_count
+    if len(float_values) % row_len != 0:
+        raise ValueError("Touchstone data length does not match expected row size")
+
+    freq_values = []
+    matrices = []
+    idx = 0
+    while idx < len(float_values):
+        freq_values.append(float_values[idx])
+        idx += 1
+        complex_entries = []
+        for _ in range(port_count * port_count):
+            v1 = float_values[idx]
+            v2 = float_values[idx + 1]
+            idx += 2
+            complex_entries.append(_touchstone_pair_to_complex(v1, v2, data_format))
+        matrices.append(np.array(complex_entries).reshape(port_count, port_count))
+
+    return {
+        "frequency": np.array(freq_values),
+        "freq_unit": freq_unit.upper(),
+        "format": data_format.upper(),
+        "matrix": np.array(matrices),
+        "ports": port_count,
+        "reference": reference,
+        "filename": filename,
+    }
+
+
+def _infer_touchstone_ports(filename, token_count):
+    match = re.search(r's(\d+)p$', filename.lower())
+    if match:
+        return int(match.group(1))
+    for candidate in range(1, 11):
+        row_len = 1 + 2 * candidate * candidate
+        if token_count % row_len == 0:
+            return candidate
+    raise ValueError("Unable to infer number of ports from Touchstone file")
+
+
+def _touchstone_pair_to_complex(value1, value2, data_format):
+    fmt = data_format.lower()
+    if fmt == 'ri':
+        return complex(value1, value2)
+    angle_rad = np.deg2rad(value2)
+    if fmt == 'ma':
+        magnitude = value1
+    elif fmt == 'db':
+        magnitude = 10 ** (value1 / 20.0)
+    else:
+        raise ValueError(f"Unsupported Touchstone data format: {data_format}")
+    return magnitude * (np.cos(angle_rad) + 1j * np.sin(angle_rad))
+
+
+def get_sparameter_labels(touchstone_data):
+    ports = touchstone_data.get('ports', 0)
+    return [f"S{i}{j}" for i in range(1, ports + 1) for j in range(1, ports + 1)]
+
+
+def plot_s_parameters(touchstone_data, selections, display_mode='mag_db', log_freq=False):
+    if not selections:
+        raise ValueError("Select at least one S-parameter to plot")
+    freq = touchstone_data['frequency']
+    freq_label = touchstone_data.get('freq_unit', 'Hz')
+    matrix = touchstone_data['matrix']
+    ports = touchstone_data['ports']
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+    for i, j in selections:
+        if not (1 <= i <= ports and 1 <= j <= ports):
+            raise ValueError(f"S-parameter S{i}{j} is out of range for a {ports}-port file")
+        trace = matrix[:, i - 1, j - 1]
+        if display_mode == 'mag_db':
+            ylabel = TOUCHSTONE_DISPLAY_MODES['mag_db']
+            magnitude = np.maximum(np.abs(trace), 1e-12)
+            y_values = 20 * np.log10(magnitude)
+        elif display_mode == 'mag_linear':
+            ylabel = TOUCHSTONE_DISPLAY_MODES['mag_linear']
+            y_values = np.abs(trace)
+        elif display_mode == 'phase_deg':
+            ylabel = TOUCHSTONE_DISPLAY_MODES['phase_deg']
+            y_values = np.angle(trace, deg=True)
+        else:
+            raise ValueError(f"Unsupported display mode: {display_mode}")
+        ax.plot(freq, y_values, label=f"S{i}{j}")
+
+    ax.set_xlabel(f"Frequency ({freq_label})")
+    if log_freq:
+        ax.set_xscale('log')
+    ax.set_ylabel(ylabel)
+    ax.grid(True, alpha=0.3, linestyle='--')
+    ax.legend()
+    ax.set_title('S-Parameter Plot')
     return fig
 
 # --- Ported Special Plots from pandastable/plotting.py ---
@@ -213,3 +470,390 @@ def plot_line(df, x_col, y_cols):
     ax.legend()
     ax.set_title('Line Plot')
     return fig
+
+
+def plot_barh(df, category_col, value_col, agg_method):
+    data = _aggregate_series(df, category_col, value_col, agg_method)
+    fig, ax = plt.subplots()
+    data.sort_values().plot.barh(ax=ax)
+    ax.set_xlabel(f"{value_col} ({agg_method})")
+    ax.set_ylabel(category_col)
+    ax.set_title('Horizontal Bar Plot')
+    return fig
+
+
+def plot_pie(df, category_col, value_col, agg_method):
+    data = _aggregate_series(df, category_col, value_col, agg_method)
+    if data.empty:
+        raise ValueError("No data available for pie chart")
+    fig, ax = plt.subplots()
+    ax.pie(data.values, labels=data.index, autopct='%1.1f%%', startangle=90)
+    ax.set_title('Pie Chart')
+    ax.axis('equal')
+    return fig
+
+
+def plot_box(df, columns):
+    numeric = df[columns].apply(pd.to_numeric, errors='coerce').dropna(how='all')
+    if numeric.empty:
+        raise ValueError("Selected columns have no numeric data")
+    fig, ax = plt.subplots()
+    numeric.plot.box(ax=ax)
+    ax.set_title('Box Plot')
+    return fig
+
+
+def plot_violin(df, columns):
+    numeric = df[columns].apply(pd.to_numeric, errors='coerce').dropna()
+    if numeric.empty:
+        raise ValueError("Selected columns have no numeric data")
+    fig, ax = plt.subplots()
+    ax.violinplot([numeric[col].dropna().values for col in numeric.columns], showmeans=True)
+    ax.set_xticks(range(1, len(numeric.columns) + 1))
+    ax.set_xticklabels(numeric.columns, rotation=45, ha='right')
+    ax.set_title('Violin Plot')
+    return fig
+
+
+def plot_density(df, columns, bw_method='scott', fill=False, show_rug=False):
+    numeric = df[columns].apply(pd.to_numeric, errors='coerce')
+    fig, ax = plt.subplots()
+    for col in numeric.columns:
+        series = numeric[col].dropna()
+        if series.empty:
+            continue
+        try:
+            bw = float(bw_method)
+        except (ValueError, TypeError):
+            bw = bw_method
+        kde = stats.gaussian_kde(series, bw_method=bw)
+        x_grid = np.linspace(series.min(), series.max(), 500)
+        y = kde(x_grid)
+        ax.plot(x_grid, y, label=col)
+        if fill:
+            ax.fill_between(x_grid, y, alpha=0.2)
+        if show_rug:
+            ax.plot(series, np.full_like(series, -0.005), '|', color=ax.lines[-1].get_color())
+    ax.set_title('Density Plot')
+    ax.legend()
+    return fig
+
+
+def _prepare_3d_numeric(df, x_col, y_col, z_col, log_z=False):
+    cols = [x_col, y_col, z_col]
+    numeric = df[cols].apply(pd.to_numeric, errors='coerce').dropna()
+    if numeric.empty:
+        raise ValueError("Selected columns do not contain enough numeric data")
+    x = numeric[x_col].values
+    y = numeric[y_col].values
+    z = numeric[z_col].values
+    if log_z:
+        positive_mask = z > 0
+        if not np.any(positive_mask):
+            raise ValueError("Log-scale requested but Z column has no positive values")
+        z = np.where(positive_mask, np.log10(z), np.nan)
+        z = np.nan_to_num(z, nan=np.nanmin(z[np.isfinite(z)]) if np.isfinite(z).any() else 0)
+        label = f"log10({z_col})"
+    else:
+        label = z_col
+    return x, y, z, label
+
+
+def _build_3d_grid(x, y, z, grid_resolution=40):
+    points = np.column_stack((x, y))
+    grid_x = np.linspace(np.nanmin(x), np.nanmax(x), grid_resolution)
+    grid_y = np.linspace(np.nanmin(y), np.nanmax(y), grid_resolution)
+    grid_xx, grid_yy = np.meshgrid(grid_x, grid_y)
+    grid_z = interpolate.griddata(points, z, (grid_xx, grid_yy), method='cubic')
+    if np.isnan(grid_z).all():
+        grid_z = interpolate.griddata(points, z, (grid_xx, grid_yy), method='linear')
+    if np.isnan(grid_z).all():
+        grid_z = interpolate.griddata(points, z, (grid_xx, grid_yy), method='nearest')
+    if np.isnan(grid_z).all():
+        raise ValueError("Unable to interpolate surface for given data")
+    return grid_xx, grid_yy, grid_z
+
+
+def plot_scatter3d(df, x_col, y_col, z_col, colormap='viridis', log_z=False):
+    x, y, z, label = _prepare_3d_numeric(df, x_col, y_col, z_col, log_z=log_z)
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    sc = ax.scatter(x, y, z, c=z, cmap=colormap, depthshade=True, alpha=0.8)
+    fig.colorbar(sc, ax=ax, label=label)
+    ax.set_xlabel(x_col)
+    ax.set_ylabel(y_col)
+    ax.set_zlabel(label)
+    ax.set_title('3D Scatter Plot')
+    return fig
+
+
+def plot_surface3d(df, x_col, y_col, z_col, colormap='viridis', log_z=False,
+                   stride=2, show_points=False, grid_resolution=50, alpha=0.9):
+    x, y, z, label = _prepare_3d_numeric(df, x_col, y_col, z_col, log_z=log_z)
+    X, Y, Z = _build_3d_grid(x, y, z, grid_resolution=grid_resolution)
+    stride = max(1, int(stride))
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    surf = ax.plot_surface(X[::stride, ::stride], Y[::stride, ::stride], Z[::stride, ::stride],
+                           cmap=colormap, linewidth=0, antialiased=True, alpha=alpha)
+    fig.colorbar(surf, ax=ax, shrink=0.5, aspect=12, label=label)
+    if show_points:
+        ax.scatter(x, y, z, c=z, cmap=colormap, s=15, alpha=0.6, depthshade=True)
+    ax.set_xlabel(x_col)
+    ax.set_ylabel(y_col)
+    ax.set_zlabel(label)
+    ax.set_title('3D Surface Plot')
+    return fig
+
+
+def plot_wireframe3d(df, x_col, y_col, z_col, colormap='viridis', log_z=False,
+                     stride=2, show_points=False, grid_resolution=50):
+    x, y, z, label = _prepare_3d_numeric(df, x_col, y_col, z_col, log_z=log_z)
+    X, Y, Z = _build_3d_grid(x, y, z, grid_resolution=grid_resolution)
+    stride = max(1, int(stride))
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.plot_wireframe(X, Y, Z, rstride=stride, cstride=stride, color='black')
+    if show_points:
+        ax.scatter(x, y, z, c=z, cmap=colormap, s=15, alpha=0.8, depthshade=True)
+    ax.set_xlabel(x_col)
+    ax.set_ylabel(y_col)
+    ax.set_zlabel(label)
+    ax.set_title('3D Wireframe Plot')
+    return fig
+
+
+def plot_gantt(df, task_col, start_col, end_col, group_col=None, progress_col=None):
+    required = [task_col, start_col, end_col]
+    if any(col not in df.columns for col in required):
+        raise ValueError("Selected columns are missing from the dataset")
+
+    subset_cols = required + ([group_col] if group_col else []) + ([progress_col] if progress_col else [])
+    gantt_df = df[subset_cols].dropna(subset=[task_col, start_col, end_col])
+    if gantt_df.empty:
+        raise ValueError("No rows contain task, start, and end values")
+
+    gantt_df[start_col] = pd.to_datetime(gantt_df[start_col], errors='coerce')
+    gantt_df[end_col] = pd.to_datetime(gantt_df[end_col], errors='coerce')
+    gantt_df = gantt_df.dropna(subset=[start_col, end_col])
+    if gantt_df.empty:
+        raise ValueError("Unable to parse start/end dates")
+
+    gantt_df = gantt_df.sort_values(start_col)
+    tasks = gantt_df[task_col].astype(str).tolist()
+    y_positions = np.arange(len(tasks))
+    start_nums = mdates.date2num(gantt_df[start_col].dt.to_pydatetime())
+    durations = (gantt_df[end_col] - gantt_df[start_col]).dt.total_seconds() / 86400.0
+    if np.any(durations <= 0):
+        raise ValueError("End date must be after start date for all tasks")
+
+    fig, ax = plt.subplots(figsize=(10, max(4, len(tasks) * 0.4)))
+    if group_col and group_col in gantt_df.columns:
+        groups = gantt_df[group_col].astype(str)
+        unique_groups = groups.unique()
+        cmap = plt.cm.get_cmap('tab20', len(unique_groups))
+        color_map = {grp: cmap(idx) for idx, grp in enumerate(unique_groups)}
+        bar_colors = [color_map[g] for g in groups]
+    else:
+        color_map = None
+        bar_colors = 'skyblue'
+
+    ax.barh(y_positions, durations, left=start_nums, color=bar_colors, align='center', edgecolor='black')
+
+    if progress_col and progress_col in gantt_df.columns:
+        progress_values = pd.to_numeric(gantt_df[progress_col], errors='coerce').fillna(0).clip(0, 1)
+        ax.barh(
+            y_positions,
+            durations * progress_values,
+            left=start_nums,
+            color='green',
+            alpha=0.5,
+            align='center',
+            height=0.4,
+            label='Progress'
+        )
+
+    ax.set_yticks(y_positions)
+    ax.set_yticklabels(tasks)
+    ax.invert_yaxis()
+    ax.xaxis_date()
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+    fig.autofmt_xdate()
+    ax.set_xlabel('Date')
+    ax.set_title('Gantt Chart')
+
+    if color_map:
+        handles = [patches.Patch(color=color_map[g], label=str(g)) for g in color_map]
+        ax.legend(handles=handles, title=group_col)
+    elif progress_col and progress_col in gantt_df.columns:
+        ax.legend()
+
+    return fig
+
+
+def plot_area(df, columns, stacked=True):
+    numeric = df[columns].apply(pd.to_numeric, errors='coerce').dropna(how='all')
+    if numeric.empty:
+        raise ValueError("Selected columns have no numeric data")
+    fig, ax = plt.subplots()
+    numeric.plot.area(ax=ax, stacked=stacked, alpha=0.8)
+    ax.set_title('Area Plot')
+    return fig
+
+
+def plot_dot(df, category_col, value_col, agg_method):
+    data = _aggregate_series(df, category_col, value_col, agg_method)
+    if data.empty:
+        raise ValueError("No data for dot plot")
+    fig, ax = plt.subplots()
+    y_positions = np.arange(len(data))
+    ax.scatter(data.values, y_positions)
+    ax.set_yticks(y_positions)
+    ax.set_yticklabels(data.index)
+    ax.set_xlabel(f"{value_col} ({agg_method})")
+    ax.set_title('Dot Plot')
+    return fig
+
+
+def plot_heatmap(df, columns):
+    numeric = df[columns].apply(pd.to_numeric, errors='coerce')
+    numeric = numeric.dropna(axis=1, how='all')
+    if numeric.empty:
+        raise ValueError("Selected columns have no numeric data")
+    fig, ax = plt.subplots()
+    cax = ax.imshow(numeric.T, aspect='auto', cmap='viridis')
+    ax.set_yticks(range(len(numeric.columns)))
+    ax.set_yticklabels(numeric.columns)
+    ax.set_xlabel('Row Index')
+    ax.set_title('Heatmap')
+    fig.colorbar(cax, ax=ax)
+    return fig
+
+
+def plot_hexbin(df, x_col, y_col, gridsize=30):
+    x = pd.to_numeric(df[x_col], errors='coerce')
+    y = pd.to_numeric(df[y_col], errors='coerce')
+    mask = ~(x.isna() | y.isna())
+    fig, ax = plt.subplots()
+    hb = ax.hexbin(x[mask], y[mask], gridsize=gridsize, cmap='viridis')
+    fig.colorbar(hb, ax=ax, label='Counts')
+    ax.set_xlabel(x_col)
+    ax.set_ylabel(y_col)
+    ax.set_title('Hexbin Plot')
+    return fig
+
+
+def plot_contour(df, x_col, y_col, z_col, levels=10):
+    x = pd.to_numeric(df[x_col], errors='coerce')
+    y = pd.to_numeric(df[y_col], errors='coerce')
+    z = pd.to_numeric(df[z_col], errors='coerce')
+    mask = ~(x.isna() | y.isna() | z.isna())
+    if mask.sum() < 3:
+        raise ValueError("Not enough data for contour plot")
+    fig, ax = plt.subplots()
+    contour = ax.tricontourf(x[mask], y[mask], z[mask], levels=levels, cmap='viridis')
+    fig.colorbar(contour, ax=ax)
+    ax.set_xlabel(x_col)
+    ax.set_ylabel(y_col)
+    ax.set_title('Contour Plot')
+    return fig
+
+
+def plot_imshow(df, columns):
+    numeric = df[columns].apply(pd.to_numeric, errors='coerce').dropna(axis=1, how='all')
+    if numeric.empty:
+        raise ValueError("Selected columns have no numeric data")
+    fig, ax = plt.subplots()
+    cax = ax.imshow(numeric.values, aspect='auto', cmap='viridis')
+    ax.set_xticks(range(len(numeric.columns)))
+    ax.set_xticklabels(numeric.columns, rotation=45, ha='right')
+    ax.set_ylabel('Row Index')
+    ax.set_title('Imshow Plot')
+    fig.colorbar(cax, ax=ax)
+    return fig
+
+
+def plot_scatter_matrix(df, columns):
+    numeric = df[columns].apply(pd.to_numeric, errors='coerce').dropna(axis=1, how='all')
+    if numeric.shape[1] < 2:
+        raise ValueError("Select at least two numeric columns for scatter matrix")
+    axes = pd_plotting.scatter_matrix(numeric, figsize=(8, 8), diagonal='hist')
+    fig = axes[0, 0].get_figure()
+    fig.suptitle('Scatter Matrix')
+    return fig
+
+
+def plot_radviz(df, columns, class_column):
+    if class_column not in df.columns:
+        raise ValueError("Class column is missing")
+    subset_cols = columns + [class_column]
+    numeric = df[subset_cols].copy()
+    numeric = numeric.dropna()
+    if numeric.empty:
+        raise ValueError("No data available for radviz")
+    fig = plt.figure(figsize=(7, 7))
+    ax = fig.add_subplot(111)
+    pd_plotting.radviz(numeric, class_column, ax=ax)
+    ax.set_title('Radviz Plot')
+    return fig
+
+
+def plot_venn(df, columns):
+    if not 2 <= len(columns) <= 3:
+        raise ValueError("Venn diagram supports 2 or 3 columns")
+    sets = []
+    for col in columns:
+        mask = df[col].astype(bool) if df[col].dtype == bool else df[col].notna()
+        sets.append(set(df.index[mask]))
+
+    fig, ax = plt.subplots()
+    ax.axis('off')
+    if len(sets) == 2:
+        _draw_venn2(ax, sets, columns)
+    else:
+        _draw_venn3(ax, sets, columns)
+    return fig
+
+
+def _draw_venn2(ax, sets, labels):
+    A, B = sets
+    only_a = len(A - B)
+    only_b = len(B - A)
+    both = len(A & B)
+    circle1 = patches.Circle((0.4, 0.5), 0.3, alpha=0.3, color='tab:blue')
+    circle2 = patches.Circle((0.6, 0.5), 0.3, alpha=0.3, color='tab:orange')
+    ax.add_patch(circle1)
+    ax.add_patch(circle2)
+    ax.text(0.3, 0.5, str(only_a), ha='center', va='center')
+    ax.text(0.7, 0.5, str(only_b), ha='center', va='center')
+    ax.text(0.5, 0.5, str(both), ha='center', va='center')
+    ax.text(0.25, 0.85, labels[0], ha='center')
+    ax.text(0.75, 0.85, labels[1], ha='center')
+    ax.set_title('Venn Diagram (2 Sets)')
+
+
+def _draw_venn3(ax, sets, labels):
+    A, B, C = sets
+    only_a = len(A - B - C)
+    only_b = len(B - A - C)
+    only_c = len(C - A - B)
+    ab = len((A & B) - C)
+    ac = len((A & C) - B)
+    bc = len((B & C) - A)
+    abc = len(A & B & C)
+    circle1 = patches.Circle((0.45, 0.6), 0.3, alpha=0.3, color='tab:blue')
+    circle2 = patches.Circle((0.55, 0.6), 0.3, alpha=0.3, color='tab:orange')
+    circle3 = patches.Circle((0.5, 0.35), 0.3, alpha=0.3, color='tab:green')
+    for circle in (circle1, circle2, circle3):
+        ax.add_patch(circle)
+    ax.text(0.32, 0.65, str(only_a), ha='center')
+    ax.text(0.68, 0.65, str(only_b), ha='center')
+    ax.text(0.5, 0.2, str(only_c), ha='center')
+    ax.text(0.5, 0.65, str(ab), ha='center')
+    ax.text(0.4, 0.45, str(ac), ha='center')
+    ax.text(0.6, 0.45, str(bc), ha='center')
+    ax.text(0.5, 0.45, str(abc), ha='center', fontweight='bold')
+    ax.text(0.2, 0.9, labels[0], ha='center')
+    ax.text(0.8, 0.9, labels[1], ha='center')
+    ax.text(0.5, 0.05, labels[2], ha='center')
+    ax.set_title('Venn Diagram (3 Sets)')
