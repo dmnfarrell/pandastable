@@ -822,6 +822,8 @@ def plot_histogram(
     subplots=False,
     sharex=False,
     sharey=False,
+    min_threshold=None,
+    max_threshold=None,
 ):
     if col not in df.columns:
         raise ValueError(f"Column {col} missing from DataFrame")
@@ -829,9 +831,18 @@ def plot_histogram(
     bins = int(bins)
     base_series = pd.to_numeric(df[col], errors='coerce')
 
+    def _filter_series(series):
+        filtered = series
+        if min_threshold is not None:
+            filtered = filtered[filtered >= min_threshold]
+        if max_threshold is not None:
+            filtered = filtered[filtered <= max_threshold]
+        return filtered
+
     group_columns = [c for c in [group_col, group_col2] if c]
     if not group_columns:
         data = base_series.dropna()
+        data = _filter_series(data)
         if data.empty:
             raise ValueError("No numeric data available for histogram")
         fig, ax = plt.subplots()
@@ -867,6 +878,7 @@ def plot_histogram(
         axes_flat = axes_array.flatten() if axes_array.ndim > 1 else axes_array.reshape(-1)
         for ax, (name, group) in zip(axes_flat, grouped):
             data = pd.to_numeric(group[col], errors='coerce').dropna()
+            data = _filter_series(data)
             if data.empty:
                 ax.set_visible(False)
                 continue
@@ -885,6 +897,7 @@ def plot_histogram(
     cmap = plt.cm.get_cmap('tab10', len(grouped))
     for idx, (name, group) in enumerate(grouped):
         data = pd.to_numeric(group[col], errors='coerce').dropna()
+        data = _filter_series(data)
         if data.empty:
             continue
         ax.hist(data, bins=bins, alpha=0.6, label=_label(name), color=cmap(idx))
@@ -1018,7 +1031,25 @@ def plot_scatter(
     ax.legend()
     return fig
 
-def plot_line(df, x_col, y_cols, group_col=None, group_col2=None, subplots=False, sharex=False, sharey=False):
+def _apply_axis_scales(ax, logx, logy):
+    if logx:
+        ax.set_xscale('log')
+    if logy:
+        ax.set_yscale('log')
+
+
+def plot_line(
+    df,
+    x_col,
+    y_cols,
+    group_col=None,
+    group_col2=None,
+    subplots=False,
+    sharex=False,
+    sharey=False,
+    logx=False,
+    logy=False,
+):
     if not y_cols:
         raise ValueError("Select at least one Y column for line plots")
 
@@ -1053,6 +1084,7 @@ def plot_line(df, x_col, y_cols, group_col=None, group_col2=None, subplots=False
         ax.set_xlabel(x_col)
         ax.legend()
         ax.set_title('Line Plot')
+        _apply_axis_scales(ax, logx, logy)
         return fig
 
     numeric_df = numeric_df.dropna(subset=group_columns)
@@ -1083,6 +1115,7 @@ def plot_line(df, x_col, y_cols, group_col=None, group_col2=None, subplots=False
             if y_cols:
                 ax.legend()
             ax.set_xlabel(x_col)
+            _apply_axis_scales(ax, logx, logy)
         for ax in axes_flat[len(grouped):]:
             ax.set_visible(False)
         fig.tight_layout()
@@ -1113,6 +1146,7 @@ def plot_line(df, x_col, y_cols, group_col=None, group_col2=None, subplots=False
     ax.set_xlabel(x_col)
     ax.legend()
     ax.set_title('Line Plot by Group')
+    _apply_axis_scales(ax, logx, logy)
     return fig
 
 

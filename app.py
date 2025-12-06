@@ -21,6 +21,7 @@ SAVED_FILTER_PLACEHOLDER = "-- Select Saved --"
 RECENT_DIR_PLACEHOLDER = "-- Select Recent Directory --"
 TOUCHSTONE_FILE_PLACEHOLDER = "-- Select Touchstone --"
 TOUCHSTONE_EXTENSIONS = {'.s1p', '.s2p', '.s3p', '.s4p'}
+STYLER_CELL_LIMIT = 262_144  # Streamlit/Pandas Styler safety limit
 
 st.set_page_config(layout="wide", page_title="dataPlot Studio")
 
@@ -457,12 +458,20 @@ def _save_current_plot_state():
         manager.update(file_key, state)
 
 
-def _display_plot(fig):
+def _display_plot(fig, *, logx=False, logy=False):
     if fig is None:
         return
     try:
         plotly_fig = mpl_to_plotly(fig)
+        if logx:
+            plotly_fig.update_xaxes(type='log')
+        if logy:
+            plotly_fig.update_yaxes(type='log')
         st.plotly_chart(plotly_fig, use_container_width=True)
+    except ValueError as err:
+        if "bargap" in str(err).lower():
+            st.warning("Plotly conversion hit an invalid bargap; displaying Matplotlib fallback instead.")
+        st.pyplot(fig)
     except Exception:
         st.pyplot(fig)
     finally:
@@ -509,11 +518,23 @@ def _reset_column_layout(file_key):
     return True
 
 
-def _parse_date_input(value: str):
+def _parse_date_input(value):
     if not value:
         return None
     try:
-        return datetime.fromisoformat(value)
+        return datetime.strptime(value, "%Y-%m-%d")
+    except ValueError:
+        return None
+
+
+def _parse_optional_float(value):
+    if value is None:
+        return None
+    text = str(value).strip()
+    if not text:
+        return None
+    try:
+        return float(text)
     except ValueError:
         return None
 
@@ -798,12 +819,28 @@ def _render_general_plots(filtered_df, numeric_cols, all_cols):
             default_selected = [numeric_cols[1]]
         y_cols = col2.multiselect("Y Axis", numeric_cols, default=default_selected)
 
+        log_col1, log_col2 = st.columns(2)
+        logx = log_col1.checkbox(
+            "Log X Axis",
+            value=line_state.get('logx', False),
+            key="line_logx_checkbox"
+        )
+        logy = log_col2.checkbox(
+            "Log Y Axis",
+            value=line_state.get('logy', False),
+            key="line_logy_checkbox"
+        )
+
         primary_group, secondary_group, subplot_toggle, sharex_toggle, sharey_toggle = _render_grouping_controls(all_cols, grouping_state, "general_line")
 
         if x_col != line_state.get('x'):
             _set_plot_state(['general', 'line', 'x'], x_col)
         if y_cols != line_state.get('ys'):
             _set_plot_state(['general', 'line', 'ys'], y_cols)
+        if logx != line_state.get('logx'):
+            _set_plot_state(['general', 'line', 'logx'], logx)
+        if logy != line_state.get('logy'):
+            _set_plot_state(['general', 'line', 'logy'], logy)
 
         if y_cols and st.button("Generate Line Plot"):
             primary_group_val = primary_group if primary_group else None
@@ -817,8 +854,10 @@ def _render_general_plots(filtered_df, numeric_cols, all_cols):
                 subplots=subplot_toggle,
                 sharex=sharex_toggle if subplot_toggle else False,
                 sharey=sharey_toggle if subplot_toggle else False,
+                logx=logx,
+                logy=logy,
             )
-            _display_plot(fig)
+            _display_plot(fig, logx=logx, logy=logy)
         elif not y_cols:
             st.info("Select at least one Y column for line plots.")
 
@@ -829,11 +868,28 @@ def _render_general_plots(filtered_df, numeric_cols, all_cols):
         bins_state = hist_state.get('bins', 20)
         col = st.selectbox("Column", numeric_cols, index=_option_index(numeric_cols, default_col, 0))
         bins = st.slider("Bins", 5, 100, int(bins_state))
+        thresh_col1, thresh_col2 = st.columns(2)
+        min_threshold_input = thresh_col1.text_input(
+            "Min Threshold",
+            value="" if hist_state.get('min_threshold') is None else str(hist_state.get('min_threshold')),
+            help="Optional lower bound; leave blank for no filter."
+        )
+        max_threshold_input = thresh_col2.text_input(
+            "Max Threshold",
+            value="" if hist_state.get('max_threshold') is None else str(hist_state.get('max_threshold')),
+            help="Optional upper bound; leave blank for no filter."
+        )
+        min_threshold = _parse_optional_float(min_threshold_input)
+        max_threshold = _parse_optional_float(max_threshold_input)
         primary_group, secondary_group, subplot_toggle, sharex_toggle, sharey_toggle = _render_grouping_controls(all_cols, grouping_state, "general_hist")
         if col != hist_state.get('column'):
             _set_plot_state(['general', 'histogram', 'column'], col)
         if bins != bins_state:
             _set_plot_state(['general', 'histogram', 'bins'], bins)
+        if min_threshold != hist_state.get('min_threshold'):
+            _set_plot_state(['general', 'histogram', 'min_threshold'], min_threshold)
+        if max_threshold != hist_state.get('max_threshold'):
+            _set_plot_state(['general', 'histogram', 'max_threshold'], max_threshold)
         if st.button("Generate Histogram"):
             primary_group_val = primary_group or None
             secondary_group_val = secondary_group if (secondary_group and primary_group_val) else None
@@ -846,9 +902,10 @@ def _render_general_plots(filtered_df, numeric_cols, all_cols):
                 subplots=subplot_toggle,
                 sharex=sharex_toggle if subplot_toggle else False,
                 sharey=sharey_toggle if subplot_toggle else False,
+                min_threshold=min_threshold,
+                max_threshold=max_threshold,
             )
-            plotly_fig = mpl_to_plotly(fig)
-            pio.show(plotly_fig)
+            _display_plot(fig)
 
     elif plot_type == "Bar":
         bar_state = general_state.get('bar', {})
@@ -2230,9 +2287,17 @@ if st.session_state.selected_file and st.session_state.df is not None:
                 ('z-index', '1'),
             ]
         })
-    styled_df = filtered_df.style.set_table_styles(base_styles)
+    total_cells = filtered_df.shape[0] * filtered_df.shape[1]
+    if total_cells > STYLER_CELL_LIMIT:
+        st.warning(
+            "Large dataset detected — displaying without styling to avoid Streamlit limits."
+        )
+        dataframe_payload = filtered_df
+    else:
+        dataframe_payload = filtered_df.style.set_table_styles(base_styles)
+
     st.dataframe(
-        styled_df,
+        dataframe_payload,
         use_container_width=True,
         height=int(st.session_state.data_viewer_height),
     )

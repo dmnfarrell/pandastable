@@ -320,6 +320,19 @@ class TestPlotLineRegression(unittest.TestCase):
         self.assertGreater(len(fig.axes), 0)
         plt.close(fig)
 
+    def test_plot_line_supports_log_axes(self):
+        fig = plotting_utils.plot_line(
+            self.df,
+            x_col='time',
+            y_cols=['voltage'],
+            logx=True,
+            logy=True,
+        )
+        ax = fig.axes[0]
+        self.assertEqual(ax.get_xscale(), 'log')
+        self.assertEqual(ax.get_yscale(), 'log')
+        plt.close(fig)
+
     def test_plot_line_handles_grouping_column_matching_axis(self):
         df = pd.DataFrame({
             'group_id': [0, 0, 1, 1],
