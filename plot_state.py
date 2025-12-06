@@ -6,6 +6,13 @@ from typing import Any, Dict
 DEFAULT_PLOT_STATE: Dict[str, Any] = {
     "general": {
         "plot_type": "Scatter",
+        "grouping": {
+            "primary": None,
+            "secondary": None,
+            "subplots": False,
+            "sharex": False,
+            "sharey": False,
+        },
         "scatter": {"x": None, "y": None, "color": None},
         "line": {"x": None, "ys": []},
         "histogram": {"column": None, "bins": 20},
@@ -32,7 +39,21 @@ DEFAULT_PLOT_STATE: Dict[str, Any] = {
             "progress": None,
         }
     },
-    "correlation": {"target": None, "top_n": 5},
+    "correlation": {
+        "target": None,
+        "top_n": 5,
+        "show_regression": True,
+        "show_stats": False,
+        "columns_per_row": 2,
+        "selected_columns": [],
+        "grouping": {
+            "primary": None,
+            "secondary": None,
+            "subplots": False,
+            "sharex": False,
+            "sharey": False,
+        },
+    },
     "special": {
         "plot_type": "Shmoo",
         "shmoo": {"x": None, "y": None, "z": None, "threshold_min": "", "threshold_max": ""},
@@ -59,6 +80,14 @@ DEFAULT_PLOT_STATE: Dict[str, Any] = {
             "freq_col": None,
             "noise_col": None,
             "carrier_hz": 1e9,
+        },
+        "tdr": {
+            "mode": "single_ended",
+            "parameter": None,
+            "velocity": 0.5,
+            "points": 2048,
+            "window": "hann",
+            "show_impedance": True,
         },
     },
 }

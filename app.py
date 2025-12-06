@@ -6,10 +6,14 @@ import re
 from copy import deepcopy
 from pathlib import Path
 from datetime import datetime
+from tkinter import Tk, filedialog
 import utils
 import plotting_utils
 import numpy as np
 import file_ops
+import plotly.io as pio
+from plotly.tools import mpl_to_plotly
+import matplotlib.pyplot as plt
 from plot_state import DEFAULT_PLOT_STATE, PlotStateManager
 from settings_store import SettingsManager
 
@@ -18,7 +22,7 @@ RECENT_DIR_PLACEHOLDER = "-- Select Recent Directory --"
 TOUCHSTONE_FILE_PLACEHOLDER = "-- Select Touchstone --"
 TOUCHSTONE_EXTENSIONS = {'.s1p', '.s2p', '.s3p', '.s4p'}
 
-st.set_page_config(layout="wide", page_title="CSV Browser")
+st.set_page_config(layout="wide", page_title="dataPlot Studio")
 
 # --- Session State Initialization ---
 if 'current_dir' not in st.session_state:
@@ -63,6 +67,32 @@ if 'file_modified_after' not in st.session_state:
     st.session_state.file_modified_after = ""
 if 'file_modified_before' not in st.session_state:
     st.session_state.file_modified_before = ""
+if 'file_merge_path' not in st.session_state:
+    st.session_state.file_merge_path = ""
+if 'file_merge_include_header' not in st.session_state:
+    st.session_state.file_merge_include_header = True
+if 'file_name_filter' not in st.session_state:
+    st.session_state.file_name_filter = ""
+if 'file_directory_filter' not in st.session_state:
+    st.session_state.file_directory_filter = ""
+if 'file_extension_filter' not in st.session_state:
+    st.session_state.file_extension_filter = []
+if 'file_sort_by' not in st.session_state:
+    st.session_state.file_sort_by = 'ModifiedDt'
+if 'file_sort_descending' not in st.session_state:
+    st.session_state.file_sort_descending = True
+if 'file_display_columns' not in st.session_state:
+    st.session_state.file_display_columns = []
+if 'column_layouts' not in st.session_state:
+    st.session_state.column_layouts = {}
+if 'original_columns' not in st.session_state:
+    st.session_state.original_columns = {}
+if 'data_viewer_height' not in st.session_state:
+    st.session_state.data_viewer_height = 600
+if 'data_viewer_font_scale' not in st.session_state:
+    st.session_state.data_viewer_font_scale = 1.0
+if 'data_viewer_freeze_header' not in st.session_state:
+    st.session_state.data_viewer_freeze_header = True
 if 'filename_parse_mode' not in st.session_state:
     st.session_state.filename_parse_mode = 'split'
 if 'filename_delimiter' not in st.session_state:
@@ -101,6 +131,15 @@ if 'sparam_display_mode' not in st.session_state:
     st.session_state.sparam_display_mode = 'mag_db'
 if 'sparam_file_option' not in st.session_state:
     st.session_state.sparam_file_option = TOUCHSTONE_FILE_PLACEHOLDER
+if 'sparam_mode' not in st.session_state:
+    st.session_state.sparam_mode = 'single_ended'
+if 'sparam_smith_enabled' not in st.session_state:
+    st.session_state.sparam_smith_enabled = False
+
+
+@st.cache_data(show_spinner=False)
+def _cached_touchstone(path, mtime):
+    return plotting_utils.load_touchstone(path)
 
 
 def _settings_manager():
@@ -163,6 +202,13 @@ def _apply_file_filters(file_df):
             mask = df['Name'].str.contains(needle, case=False, na=False) | df['Directory'].str.contains(needle, case=False, na=False)
             df = df[~mask] if invert else df[mask]
 
+    df = _apply_column_text_filter(df, 'Name', st.session_state.get('file_name_filter', ''))
+    df = _apply_column_text_filter(df, 'Directory', st.session_state.get('file_directory_filter', ''))
+
+    ext_filters = st.session_state.get('file_extension_filter') or []
+    if ext_filters:
+        df = df[df['Extension'].isin(ext_filters)]
+
     min_kb = st.session_state.get('file_min_size_kb', 0) or 0
     max_kb = st.session_state.get('file_max_size_kb', 0) or 0
     if min_kb:
@@ -178,6 +224,37 @@ def _apply_file_filters(file_df):
         df = df[df['ModifiedDt'] <= modified_before]
 
     return df.reset_index(drop=True)
+
+
+def _apply_column_text_filter(df, column, filter_text):
+    if not filter_text or column not in df.columns:
+        return df
+    terms = [term.strip() for term in filter_text.replace(',', ' ').split() if term.strip()]
+    if not terms:
+        return df
+    result = df
+    for term in terms:
+        invert = term.startswith('!')
+        needle = term[1:] if invert else term
+        if not needle:
+            continue
+        mask = result[column].astype(str).str.contains(needle, case=False, na=False)
+        result = result[~mask] if invert else result[mask]
+    return result
+
+
+def _browse_for_directory(initial_dir):
+    try:
+        root = Tk()
+        root.withdraw()
+        root.attributes('-topmost', True)
+        selected = filedialog.askdirectory(initialdir=initial_dir or os.getcwd())
+        root.destroy()
+        if selected:
+            return selected
+    except Exception:
+        pass
+    return None
 
 
 def _parse_filename_parts(name, mode, delimiter, max_parts):
@@ -298,6 +375,38 @@ def _render_file_operations():
             _set_file_op_feedback(kind, message)
 
         st.divider()
+        merge_cols = st.columns([3, 1])
+        merge_cols[0].text_input(
+            "Merge Destination CSV",
+            key="file_merge_path",
+            placeholder=str(Path.cwd() / "merged_output.csv")
+        )
+        st.session_state.file_merge_include_header = merge_cols[1].checkbox(
+            "Include Header",
+            value=st.session_state.file_merge_include_header,
+            key="file_merge_include_header_checkbox"
+        )
+        if st.button("Merge Selected Files"):
+            kind, message, _, _ = file_ops.merge_csv_files(
+                selected_records,
+                st.session_state.file_merge_path,
+                include_header=st.session_state.file_merge_include_header,
+            )
+            _set_file_op_feedback(kind, message)
+
+        st.caption("Open selected files in external apps:")
+        open_cols = st.columns(3)
+        if open_cols[0].button("Open Default"):
+            kind, message, _, _ = file_ops.open_in_app(selected_records, mode='default')
+            _set_file_op_feedback(kind, message)
+        if open_cols[1].button("Open in Excel"):
+            kind, message, _, _ = file_ops.open_in_app(selected_records, mode='excel')
+            _set_file_op_feedback(kind, message)
+        if open_cols[2].button("Open in Spotfire"):
+            kind, message, _, _ = file_ops.open_in_app(selected_records, mode='spotfire')
+            _set_file_op_feedback(kind, message)
+
+        st.divider()
         st.session_state.file_op_delete_confirm = st.text_input(
             "Type DELETE to confirm",
             st.session_state.file_op_delete_confirm
@@ -348,6 +457,58 @@ def _save_current_plot_state():
         manager.update(file_key, state)
 
 
+def _display_plot(fig):
+    if fig is None:
+        return
+    try:
+        plotly_fig = mpl_to_plotly(fig)
+        st.plotly_chart(plotly_fig, use_container_width=True)
+    except Exception:
+        st.pyplot(fig)
+    finally:
+        plt.close(fig)
+
+
+def _apply_column_layout(file_key):
+    if not file_key or 'df' not in st.session_state or st.session_state.df is None:
+        return
+    df = st.session_state.df
+    current_cols = df.columns.tolist()
+    st.session_state.original_columns.setdefault(file_key, current_cols)
+    layouts = st.session_state.get('column_layouts', {})
+    saved_order = layouts.get(file_key)
+    if not saved_order:
+        layouts[file_key] = current_cols
+        return
+    ordered = [col for col in saved_order if col in df.columns]
+    ordered += [col for col in df.columns if col not in ordered]
+    if ordered and ordered != current_cols:
+        st.session_state.df = df[ordered]
+
+
+def _update_column_layout(file_key, columns):
+    if not file_key or not columns:
+        return
+    st.session_state.column_layouts[file_key] = columns
+
+
+def _reset_column_layout(file_key):
+    if not file_key:
+        return False
+    original = st.session_state.original_columns.get(file_key)
+    if not original:
+        return False
+    df = st.session_state.df
+    if df is None:
+        return False
+    ordered = [col for col in original if col in df.columns]
+    if not ordered:
+        return False
+    st.session_state.df = df[ordered]
+    _update_column_layout(file_key, ordered)
+    return True
+
+
 def _parse_date_input(value: str):
     if not value:
         return None
@@ -370,7 +531,11 @@ def _touchstone_files_in_df(file_df):
 
 def _load_touchstone_file(path):
     try:
-        data = plotting_utils.load_touchstone(path)
+        if isinstance(path, (str, Path)) and os.path.isfile(path):
+            mtime = os.path.getmtime(path)
+            data = _cached_touchstone(str(path), mtime)
+        else:
+            data = plotting_utils.load_touchstone(path)
         st.session_state.sparam_data = data
         st.session_state.sparam_source = path
         st.session_state.sparam_selection = []
@@ -381,11 +546,27 @@ def _load_touchstone_file(path):
         return False, str(exc)
 
 
-def _touchstone_selection_options(data):
+def _touchstone_selection_options(data, mode='single_ended'):
     if not data:
         return []
-    labels = plotting_utils.get_sparameter_labels(data)
+    labels = plotting_utils.get_sparameter_labels(data, mode=mode)
     return labels
+
+
+def _touchstone_metadata(data):
+    if not data:
+        return {}
+    freq = data.get('frequency')
+    if freq is None or len(freq) == 0:
+        return {}
+    return {
+        "ports": data.get('ports'),
+        "reference": data.get('reference'),
+        "freq_min": float(np.min(freq)),
+        "freq_max": float(np.max(freq)),
+        "freq_unit": data.get('freq_unit', 'Hz'),
+        "filename": data.get('filename'),
+    }
 
 
 def _saved_filter_options(category):
@@ -463,6 +644,62 @@ def _set_plot_state(path, value, persist=True):
         _save_current_plot_state()
 
 
+def _render_grouping_controls(all_cols, grouping_state, key_prefix):
+    group_options = [None] + all_cols if all_cols else [None]
+    primary_default = grouping_state.get('primary') if grouping_state else None
+    secondary_default = grouping_state.get('secondary') if grouping_state else None
+
+    grp_col1, grp_col2 = st.columns(2)
+    primary_group = grp_col1.selectbox(
+        "Group By (primary)",
+        group_options,
+        index=_option_index(group_options, primary_default, 0),
+        format_func=lambda v: "None" if v is None else v,
+        key=f"{key_prefix}_primary"
+    )
+
+    secondary_choices = [None] + [col for col in all_cols if col != primary_group]
+    secondary_group = grp_col2.selectbox(
+        "Group By (secondary)",
+        secondary_choices,
+        index=_option_index(secondary_choices, secondary_default, 0),
+        format_func=lambda v: "None" if v is None else v,
+        key=f"{key_prefix}_secondary"
+    )
+
+    subplot_toggle = st.checkbox(
+        "Arrange groups as subplots",
+        value=grouping_state.get('subplots', False),
+        key=f"{key_prefix}_subplots"
+    )
+    share_col1, share_col2 = st.columns(2)
+    sharex_toggle = share_col1.checkbox(
+        "Share X axis",
+        value=grouping_state.get('sharex', False),
+        disabled=not subplot_toggle,
+        key=f"{key_prefix}_sharex"
+    )
+    sharey_toggle = share_col2.checkbox(
+        "Share Y axis",
+        value=grouping_state.get('sharey', False),
+        disabled=not subplot_toggle,
+        key=f"{key_prefix}_sharey"
+    )
+
+    if grouping_state.get('primary') != primary_group:
+        _set_plot_state(['general', 'grouping', 'primary'], primary_group, persist=False)
+    if grouping_state.get('secondary') != secondary_group:
+        _set_plot_state(['general', 'grouping', 'secondary'], secondary_group, persist=False)
+    if grouping_state.get('subplots') != subplot_toggle:
+        _set_plot_state(['general', 'grouping', 'subplots'], subplot_toggle, persist=False)
+    if grouping_state.get('sharex') != sharex_toggle:
+        _set_plot_state(['general', 'grouping', 'sharex'], sharex_toggle, persist=False)
+    if grouping_state.get('sharey') != sharey_toggle:
+        _set_plot_state(['general', 'grouping', 'sharey'], sharey_toggle, persist=False)
+
+    return primary_group, secondary_group, subplot_toggle, sharex_toggle, sharey_toggle
+
+
 def _render_general_plots(filtered_df, numeric_cols, all_cols):
     general_state = _get_plot_state(['general'], {}) or {}
     plot_options = [
@@ -505,6 +742,7 @@ def _render_general_plots(filtered_df, numeric_cols, all_cols):
             st.info("Select at least two numeric columns for scatter plots.")
             return
         scatter_state = general_state.get('scatter', {})
+        grouping_state = general_state.get('grouping', {})
         col1, col2, col3 = st.columns(3)
         x_default = scatter_state.get('x') or numeric_cols[0]
         y_default = scatter_state.get('y') or (numeric_cols[1] if len(numeric_cols) > 1 else numeric_cols[0])
@@ -512,8 +750,18 @@ def _render_general_plots(filtered_df, numeric_cols, all_cols):
         c_default = scatter_state.get('color')
         x_col = col1.selectbox("X Axis", numeric_cols, index=_option_index(numeric_cols, x_default, 0))
         y_col = col2.selectbox("Y Axis", numeric_cols, index=_option_index(numeric_cols, y_default, 0))
+        primary_group, secondary_group, subplot_toggle, sharex_toggle, sharey_toggle = _render_grouping_controls(all_cols, grouping_state, "general_scatter")
         c_idx = _option_index(c_options, c_default, 0)
-        color_col = col3.selectbox("Color", c_options, index=c_idx)
+        color_disabled = primary_group is not None
+        color_col = col3.selectbox(
+            "Color",
+            c_options,
+            index=c_idx,
+            disabled=color_disabled,
+            help="Disabled when grouping is enabled" if color_disabled else None
+        )
+        if color_disabled:
+            color_col = None
 
         if x_col != scatter_state.get('x'):
             _set_plot_state(['general', 'scatter', 'x'], x_col)
@@ -523,11 +771,24 @@ def _render_general_plots(filtered_df, numeric_cols, all_cols):
             _set_plot_state(['general', 'scatter', 'color'], color_col)
 
         if st.button("Generate Scatter Plot"):
-            fig = plotting_utils.plot_scatter(filtered_df, x_col, y_col, color_col)
-            st.pyplot(fig)
+            primary_group_val = primary_group or None
+            secondary_group_val = secondary_group if (secondary_group and primary_group_val) else None
+            fig = plotting_utils.plot_scatter(
+                filtered_df,
+                x_col,
+                y_col,
+                color_col=color_col,
+                group_col=primary_group_val,
+                group_col2=secondary_group_val,
+                subplots=subplot_toggle,
+                sharex=sharex_toggle if subplot_toggle else False,
+                sharey=sharey_toggle if subplot_toggle else False,
+            )
+            _display_plot(fig)
 
     elif plot_type == "Line":
         line_state = general_state.get('line', {})
+        grouping_state = general_state.get('grouping', {})
         default_x = line_state.get('x') or numeric_cols[0]
         stored_ys = line_state.get('ys', []) or ([numeric_cols[1]] if len(numeric_cols) > 1 else [])
         col1, col2 = st.columns(2)
@@ -537,33 +798,61 @@ def _render_general_plots(filtered_df, numeric_cols, all_cols):
             default_selected = [numeric_cols[1]]
         y_cols = col2.multiselect("Y Axis", numeric_cols, default=default_selected)
 
+        primary_group, secondary_group, subplot_toggle, sharex_toggle, sharey_toggle = _render_grouping_controls(all_cols, grouping_state, "general_line")
+
         if x_col != line_state.get('x'):
             _set_plot_state(['general', 'line', 'x'], x_col)
         if y_cols != line_state.get('ys'):
             _set_plot_state(['general', 'line', 'ys'], y_cols)
 
         if y_cols and st.button("Generate Line Plot"):
-            fig = plotting_utils.plot_line(filtered_df, x_col, y_cols)
-            st.pyplot(fig)
+            primary_group_val = primary_group if primary_group else None
+            secondary_group_val = secondary_group if (secondary_group and primary_group) else None
+            fig = plotting_utils.plot_line(
+                filtered_df,
+                x_col,
+                y_cols,
+                group_col=primary_group_val,
+                group_col2=secondary_group_val,
+                subplots=subplot_toggle,
+                sharex=sharex_toggle if subplot_toggle else False,
+                sharey=sharey_toggle if subplot_toggle else False,
+            )
+            _display_plot(fig)
         elif not y_cols:
             st.info("Select at least one Y column for line plots.")
 
     elif plot_type == "Histogram":
         hist_state = general_state.get('histogram', {})
+        grouping_state = general_state.get('grouping', {})
         default_col = hist_state.get('column') or numeric_cols[0]
         bins_state = hist_state.get('bins', 20)
         col = st.selectbox("Column", numeric_cols, index=_option_index(numeric_cols, default_col, 0))
         bins = st.slider("Bins", 5, 100, int(bins_state))
+        primary_group, secondary_group, subplot_toggle, sharex_toggle, sharey_toggle = _render_grouping_controls(all_cols, grouping_state, "general_hist")
         if col != hist_state.get('column'):
             _set_plot_state(['general', 'histogram', 'column'], col)
         if bins != bins_state:
             _set_plot_state(['general', 'histogram', 'bins'], bins)
         if st.button("Generate Histogram"):
-            fig = plotting_utils.plot_histogram(filtered_df, col, bins)
-            st.pyplot(fig)
+            primary_group_val = primary_group or None
+            secondary_group_val = secondary_group if (secondary_group and primary_group_val) else None
+            fig = plotting_utils.plot_histogram(
+                filtered_df,
+                col,
+                bins,
+                group_col=primary_group_val,
+                group_col2=secondary_group_val,
+                subplots=subplot_toggle,
+                sharex=sharex_toggle if subplot_toggle else False,
+                sharey=sharey_toggle if subplot_toggle else False,
+            )
+            plotly_fig = mpl_to_plotly(fig)
+            pio.show(plotly_fig)
 
     elif plot_type == "Bar":
         bar_state = general_state.get('bar', {})
+        grouping_state = general_state.get('grouping', {})
         category_cols = all_cols
         if not category_cols:
             st.info("No columns available for bar charts.")
@@ -581,6 +870,7 @@ def _render_general_plots(filtered_df, numeric_cols, all_cols):
         category = col1.selectbox("Category", category_cols, index=_option_index(category_cols, default_category, 0))
         value = col2.selectbox("Value", numeric_for_value, index=_option_index(numeric_for_value, default_value, 0))
         agg_choice = col3.selectbox("Aggregation", agg_options, index=_option_index(agg_options, default_agg, 0))
+        primary_group, secondary_group, subplot_toggle, sharex_toggle, sharey_toggle = _render_grouping_controls(all_cols, grouping_state)
 
         if category != bar_state.get('category'):
             _set_plot_state(['general', 'bar', 'category'], category)
@@ -590,11 +880,25 @@ def _render_general_plots(filtered_df, numeric_cols, all_cols):
             _set_plot_state(['general', 'bar', 'agg'], agg_choice)
 
         if st.button("Generate Bar Plot"):
-            fig = plotting_utils.plot_bar(filtered_df, category, value, agg_choice)
-            st.pyplot(fig)
+            primary_group_val = primary_group or None
+            secondary_group_val = secondary_group if (secondary_group and primary_group_val) else None
+            fig = plotting_utils.plot_bar(
+                filtered_df,
+                category,
+                value,
+                agg_choice,
+                group_col=primary_group_val,
+                group_col2=secondary_group_val,
+                subplots=subplot_toggle,
+                sharex=sharex_toggle if subplot_toggle else False,
+                sharey=sharey_toggle if subplot_toggle else False,
+            )
+            plotly_fig = mpl_to_plotly(fig)
+            pio.show(plotly_fig)
 
     elif plot_type == "BarH":
         barh_state = general_state.get('barh', {})
+        grouping_state = general_state.get('grouping', {})
         category_cols = all_cols
         numeric_for_value = numeric_cols
         if not category_cols or not numeric_for_value:
@@ -616,13 +920,27 @@ def _render_general_plots(filtered_df, numeric_cols, all_cols):
             agg_options,
             index=_option_index(agg_options, barh_state.get('agg', 'Sum'), 0)
         )
+        primary_group, secondary_group, subplot_toggle, sharex_toggle, sharey_toggle = _render_grouping_controls(all_cols, grouping_state, "general_barh")
         _set_plot_state(['general', 'barh'], {"category": category, "value": value, "agg": agg_choice}, persist=False)
         if st.button("Generate Horizontal Bar Plot"):
-            fig = plotting_utils.plot_barh(filtered_df, category, value, agg_choice)
-            st.pyplot(fig)
+            primary_group_val = primary_group or None
+            secondary_group_val = secondary_group if (secondary_group and primary_group_val) else None
+            fig = plotting_utils.plot_barh(
+                filtered_df,
+                category,
+                value,
+                agg_choice,
+                group_col=primary_group_val,
+                group_col2=secondary_group_val,
+                subplots=subplot_toggle,
+                sharex=sharex_toggle if subplot_toggle else False,
+                sharey=sharey_toggle if subplot_toggle else False,
+            )
+            _display_plot(fig)
 
     elif plot_type == "Pie":
         pie_state = general_state.get('pie', {})
+        grouping_state = general_state.get('grouping', {})
         category_cols = all_cols
         numeric_for_value = numeric_cols
         if not category_cols or not numeric_for_value:
@@ -644,18 +962,42 @@ def _render_general_plots(filtered_df, numeric_cols, all_cols):
             agg_options,
             index=_option_index(agg_options, pie_state.get('agg', 'Sum'), 0)
         )
+        primary_group, secondary_group, subplot_toggle, _, _ = _render_grouping_controls(all_cols, grouping_state, "general_pie")
         _set_plot_state(['general', 'pie'], {"category": category, "value": value, "agg": agg_choice}, persist=False)
         if st.button("Generate Pie Chart"):
-            fig = plotting_utils.plot_pie(filtered_df, category, value, agg_choice)
+            primary_group_val = primary_group or None
+            secondary_group_val = secondary_group if (secondary_group and primary_group_val) else None
+            fig = plotting_utils.plot_pie(
+                filtered_df,
+                category,
+                value,
+                agg_choice,
+                group_col=primary_group_val,
+                group_col2=secondary_group_val,
+                subplots=subplot_toggle,
+            )
             st.pyplot(fig)
 
     elif plot_type == "Area":
         area_state = general_state.get('area', {})
+        grouping_state = general_state.get('grouping', {})
         columns = st.multiselect("Columns", numeric_cols, default=area_state.get('columns') or numeric_cols[:2])
         stacked = st.checkbox("Stacked", value=area_state.get('stacked', True))
+        primary_group, secondary_group, subplot_toggle, sharex_toggle, sharey_toggle = _render_grouping_controls(all_cols, grouping_state)
         _set_plot_state(['general', 'area'], {"columns": columns, "stacked": stacked}, persist=False)
         if columns and st.button("Generate Area Plot"):
-            fig = plotting_utils.plot_area(filtered_df, columns, stacked)
+            primary_group_val = primary_group or None
+            secondary_group_val = secondary_group if (secondary_group and primary_group_val) else None
+            fig = plotting_utils.plot_area(
+                filtered_df,
+                columns,
+                stacked=stacked,
+                group_col=primary_group_val,
+                group_col2=secondary_group_val,
+                subplots=subplot_toggle,
+                sharex=sharex_toggle if subplot_toggle else False,
+                sharey=sharey_toggle if subplot_toggle else False,
+            )
             st.pyplot(fig)
         elif not columns:
             st.info("Select at least one column.")
@@ -663,38 +1005,79 @@ def _render_general_plots(filtered_df, numeric_cols, all_cols):
     elif plot_type == "Density":
         density_state = general_state.get('density', {})
         columns = st.multiselect("Columns", numeric_cols, default=density_state.get('columns') or numeric_cols[:1])
-        bw_method = st.selectbox("Bandwidth", ["scott", "silverman", "0.2", "0.5", "1.0"], index=_option_index(["scott", "silverman", "0.2", "0.5", "1.0"], density_state.get('bw_method', 'scott'), 0))
+        bw_choices = ["scott", "silverman", "0.2", "0.5", "1.0"]
+        bw_method = st.selectbox("Bandwidth", bw_choices, index=_option_index(bw_choices, density_state.get('bw_method', 'scott'), 0))
         fill = st.checkbox("Fill", value=density_state.get('fill', False))
         show_rug = st.checkbox("Rug", value=density_state.get('show_rug', False))
+        grouping_state = general_state.get('grouping', {})
+        primary_group, secondary_group, subplot_toggle, sharex_toggle, sharey_toggle = _render_grouping_controls(all_cols, grouping_state)
         _set_plot_state(['general', 'density'], {"columns": columns, "bw_method": bw_method, "fill": fill, "show_rug": show_rug}, persist=False)
         if columns and st.button("Generate Density Plot"):
-            fig = plotting_utils.plot_density(filtered_df, columns, bw_method=bw_method, fill=fill, show_rug=show_rug)
+            primary_group_val = primary_group or None
+            secondary_group_val = secondary_group if (secondary_group and primary_group_val) else None
+            fig = plotting_utils.plot_density(
+                filtered_df,
+                columns,
+                bw_method=bw_method,
+                fill=fill,
+                show_rug=show_rug,
+                group_col=primary_group_val,
+                group_col2=secondary_group_val,
+                subplots=subplot_toggle,
+                sharex=sharex_toggle if subplot_toggle else False,
+                sharey=sharey_toggle if subplot_toggle else False,
+            )
             st.pyplot(fig)
         elif not columns:
             st.info("Select at least one column.")
 
     elif plot_type == "Box":
         box_state = general_state.get('box', {})
+        grouping_state = general_state.get('grouping', {})
         columns = st.multiselect("Columns", numeric_cols, default=box_state.get('columns') or numeric_cols[:2])
         _set_plot_state(['general', 'box'], {"columns": columns}, persist=False)
         if columns and st.button("Generate Box Plot"):
-            fig = plotting_utils.plot_box(filtered_df, columns)
+            primary_group, secondary_group, subplot_toggle, sharex_toggle, sharey_toggle = _render_grouping_controls(all_cols, grouping_state, "general_box")
+            primary_group_val = primary_group or None
+            secondary_group_val = secondary_group if (secondary_group and primary_group_val) else None
+            fig = plotting_utils.plot_box(
+                filtered_df,
+                columns,
+                group_col=primary_group_val,
+                group_col2=secondary_group_val,
+                subplots=subplot_toggle,
+                sharex=sharex_toggle if subplot_toggle else False,
+                sharey=sharey_toggle if subplot_toggle else False,
+            )
             st.pyplot(fig)
         elif not columns:
             st.info("Select at least one column.")
 
     elif plot_type == "Violin":
         violin_state = general_state.get('violin', {})
+        grouping_state = general_state.get('grouping', {})
         columns = st.multiselect("Columns", numeric_cols, default=violin_state.get('columns') or numeric_cols[:2])
         _set_plot_state(['general', 'violin'], {"columns": columns}, persist=False)
         if columns and st.button("Generate Violin Plot"):
-            fig = plotting_utils.plot_violin(filtered_df, columns)
+            primary_group, secondary_group, subplot_toggle, sharex_toggle, sharey_toggle = _render_grouping_controls(all_cols, grouping_state, "general_box")
+            primary_group_val = primary_group or None
+            secondary_group_val = secondary_group if (secondary_group and primary_group_val) else None
+            fig = plotting_utils.plot_violin(
+                filtered_df,
+                columns,
+                group_col=primary_group_val,
+                group_col2=secondary_group_val,
+                subplots=subplot_toggle,
+                sharex=sharex_toggle if subplot_toggle else False,
+                sharey=sharey_toggle if subplot_toggle else False,
+            )
             st.pyplot(fig)
         elif not columns:
             st.info("Select at least one column.")
 
     elif plot_type == "Dot":
         dot_state = general_state.get('dot', {})
+        grouping_state = general_state.get('grouping', {})
         category_cols = all_cols
         value_cols = numeric_cols
         if not category_cols or not value_cols:
@@ -716,23 +1099,49 @@ def _render_general_plots(filtered_df, numeric_cols, all_cols):
             agg_options,
             index=_option_index(agg_options, dot_state.get('agg', 'Sum'), 0)
         )
+        primary_group, secondary_group, subplot_toggle, sharex_toggle, sharey_toggle = _render_grouping_controls(all_cols, grouping_state)
         _set_plot_state(['general', 'dot'], {"category": category, "value": value, "agg": agg_choice}, persist=False)
         if st.button("Generate Dot Plot"):
-            fig = plotting_utils.plot_dot(filtered_df, category, value, agg_choice)
+            primary_group_val = primary_group or None
+            secondary_group_val = secondary_group if (secondary_group and primary_group_val) else None
+            fig = plotting_utils.plot_dot(
+                filtered_df,
+                category,
+                value,
+                agg_choice,
+                group_col=primary_group_val,
+                group_col2=secondary_group_val,
+                subplots=subplot_toggle,
+                sharex=sharex_toggle if subplot_toggle else False,
+                sharey=sharey_toggle if subplot_toggle else False,
+            )
             st.pyplot(fig)
 
     elif plot_type == "Heatmap":
         heatmap_state = general_state.get('heatmap', {})
+        grouping_state = general_state.get('grouping', {})
         columns = st.multiselect("Columns", numeric_cols, default=heatmap_state.get('columns') or numeric_cols[:3])
+        primary_group, secondary_group, subplot_toggle, sharex_toggle, sharey_toggle = _render_grouping_controls(all_cols, grouping_state)
         _set_plot_state(['general', 'heatmap'], {"columns": columns}, persist=False)
         if columns and st.button("Generate Heatmap"):
-            fig = plotting_utils.plot_heatmap(filtered_df, columns)
+            primary_group_val = primary_group or None
+            secondary_group_val = secondary_group if (secondary_group and primary_group_val) else None
+            fig = plotting_utils.plot_heatmap(
+                filtered_df,
+                columns,
+                group_col=primary_group_val,
+                group_col2=secondary_group_val,
+                subplots=subplot_toggle,
+                sharex=sharex_toggle if subplot_toggle else False,
+                sharey=sharey_toggle if subplot_toggle else False,
+            )
             st.pyplot(fig)
         elif not columns:
             st.info("Select at least one column.")
 
     elif plot_type == "Hexbin":
         hex_state = general_state.get('hexbin', {})
+        grouping_state = general_state.get('grouping', {})
         if len(numeric_cols) < 2:
             st.info("Select at least two numeric columns for hexbin.")
             return
@@ -740,13 +1149,27 @@ def _render_general_plots(filtered_df, numeric_cols, all_cols):
         x_col = col1.selectbox("X", numeric_cols, index=_option_index(numeric_cols, hex_state.get('x') or numeric_cols[0], 0))
         y_col = col2.selectbox("Y", numeric_cols, index=_option_index(numeric_cols, hex_state.get('y') or numeric_cols[1], 0))
         gridsize = st.slider("Grid Size", 10, 100, int(hex_state.get('gridsize', 30)))
+        primary_group, secondary_group, subplot_toggle, sharex_toggle, sharey_toggle = _render_grouping_controls(all_cols, grouping_state)
         _set_plot_state(['general', 'hexbin'], {"x": x_col, "y": y_col, "gridsize": gridsize}, persist=False)
         if st.button("Generate Hexbin Plot"):
-            fig = plotting_utils.plot_hexbin(filtered_df, x_col, y_col, gridsize)
+            primary_group_val = primary_group or None
+            secondary_group_val = secondary_group if (secondary_group and primary_group_val) else None
+            fig = plotting_utils.plot_hexbin(
+                filtered_df,
+                x_col,
+                y_col,
+                gridsize,
+                group_col=primary_group_val,
+                group_col2=secondary_group_val,
+                subplots=subplot_toggle,
+                sharex=sharex_toggle if subplot_toggle else False,
+                sharey=sharey_toggle if subplot_toggle else False,
+            )
             st.pyplot(fig)
 
     elif plot_type == "Contour":
         contour_state = general_state.get('contour', {})
+        grouping_state = general_state.get('grouping', {})
         if len(numeric_cols) < 3:
             st.info("Select at least three numeric columns for contour plots.")
             return
@@ -755,17 +1178,43 @@ def _render_general_plots(filtered_df, numeric_cols, all_cols):
         y_col = col2.selectbox("Y", numeric_cols, index=_option_index(numeric_cols, contour_state.get('y') or numeric_cols[1], 0))
         z_col = col3.selectbox("Z", numeric_cols, index=_option_index(numeric_cols, contour_state.get('z') or numeric_cols[2], 0))
         levels = st.slider("Levels", 5, 30, int(contour_state.get('levels', 10)))
+        primary_group, secondary_group, subplot_toggle, sharex_toggle, sharey_toggle = _render_grouping_controls(all_cols, grouping_state)
         _set_plot_state(['general', 'contour'], {"x": x_col, "y": y_col, "z": z_col, "levels": levels}, persist=False)
         if st.button("Generate Contour Plot"):
-            fig = plotting_utils.plot_contour(filtered_df, x_col, y_col, z_col, levels)
+            primary_group_val = primary_group or None
+            secondary_group_val = secondary_group if (secondary_group and primary_group_val) else None
+            fig = plotting_utils.plot_contour(
+                filtered_df,
+                x_col,
+                y_col,
+                z_col,
+                levels=levels,
+                group_col=primary_group_val,
+                group_col2=secondary_group_val,
+                subplots=subplot_toggle,
+                sharex=sharex_toggle if subplot_toggle else False,
+                sharey=sharey_toggle if subplot_toggle else False,
+            )
             st.pyplot(fig)
 
     elif plot_type == "Imshow":
         im_state = general_state.get('imshow', {})
+        grouping_state = general_state.get('grouping', {})
         columns = st.multiselect("Columns", numeric_cols, default=im_state.get('columns') or numeric_cols[:3])
+        primary_group, secondary_group, subplot_toggle, sharex_toggle, sharey_toggle = _render_grouping_controls(all_cols, grouping_state)
         _set_plot_state(['general', 'imshow'], {"columns": columns}, persist=False)
         if columns and st.button("Generate Imshow Plot"):
-            fig = plotting_utils.plot_imshow(filtered_df, columns)
+            primary_group_val = primary_group or None
+            secondary_group_val = secondary_group if (secondary_group and primary_group_val) else None
+            fig = plotting_utils.plot_imshow(
+                filtered_df,
+                columns,
+                group_col=primary_group_val,
+                group_col2=secondary_group_val,
+                subplots=subplot_toggle,
+                sharex=sharex_toggle if subplot_toggle else False,
+                sharey=sharey_toggle if subplot_toggle else False,
+            )
             st.pyplot(fig)
         elif not columns:
             st.info("Select at least one column.")
@@ -888,42 +1337,158 @@ def _render_general_plots(filtered_df, numeric_cols, all_cols):
             st.info("Upload or select a Touchstone file to enable S-parameter plotting.")
             return
 
-        labels = _touchstone_selection_options(sparam_data)
+        metadata = _touchstone_metadata(sparam_data)
+        if metadata:
+            st.caption(
+                f"{metadata.get('filename', 'Touchstone')} · Ports: {metadata.get('ports')} · "
+                f"Freq: {metadata.get('freq_min'):.3g}-{metadata.get('freq_max'):.3g} {metadata.get('freq_unit')} · "
+                f"Z₀: {metadata.get('reference', 50.0):.2f} Ω"
+            )
+
+        mode_map = {
+            "Single-Ended": "single_ended",
+            "Differential (SDD)": "differential",
+        }
+        mode_labels = list(mode_map.keys())
+        current_mode_value = st.session_state.get('sparam_mode', 'single_ended')
+        current_mode_label = next((label for label, value in mode_map.items() if value == current_mode_value), mode_labels[0])
+        mode_label = st.radio(
+            "S-Parameter Mode",
+            mode_labels,
+            index=_option_index(mode_labels, current_mode_label, 0),
+            key="special_sparam_mode_radio",
+        )
+        mode_value = mode_map[mode_label]
+        if mode_value != current_mode_value:
+            st.session_state.sparam_mode = mode_value
+
+        try:
+            labels = _touchstone_selection_options(sparam_data, mode=mode_value)
+        except ValueError as exc:
+            st.warning(str(exc))
+            st.session_state.sparam_mode = 'single_ended'
+            mode_value = 'single_ended'
+            labels = _touchstone_selection_options(sparam_data, mode='single_ended')
+
         default_selection = st.session_state.get('sparam_selection') or labels[:1]
         selection = st.multiselect("S-Parameters", labels, default=default_selection, key="special_sparam_selection")
         parsed_selection = []
         for label in selection:
-            match = re.match(r"S(\d)(\d)", label)
-            if match:
-                parsed_selection.append((int(match.group(1)), int(match.group(2))))
+            digits = re.findall(r"(\d+)", label)
+            if len(digits) == 2:
+                parsed_selection.append((int(digits[0]), int(digits[1])))
         st.session_state.sparam_selection = selection
 
         mode_display = plotting_utils.TOUCHSTONE_DISPLAY_MODES
-        display_options = [(value, key) for key, value in mode_display.items()]
+        display_options = [(label, key) for key, label in mode_display.items()]
         display_labels = [label for label, _ in display_options]
-        current_mode = st.session_state.get('sparam_display_mode', 'mag_db')
-        mode_index = next((idx for idx, (_, key) in enumerate(display_options) if key == current_mode), 0)
-        selected_label = st.selectbox("Display Mode", display_labels, index=mode_index, key="special_sparam_display_mode")
-        selected_mode = display_options[display_labels.index(selected_label)][1]
-        if selected_mode != current_mode:
-            st.session_state.sparam_display_mode = selected_mode
+        current_display_mode = st.session_state.get('sparam_display_mode', 'mag_db')
+        display_index = next((idx for idx, (_, key) in enumerate(display_options) if key == current_display_mode), 0)
+        selected_display_label = st.selectbox("Display Mode", display_labels, index=display_index, key="special_sparam_display_mode")
+        selected_display_mode = display_options[display_labels.index(selected_display_label)][1]
+        if selected_display_mode != current_display_mode:
+            st.session_state.sparam_display_mode = selected_display_mode
 
         log_freq = st.checkbox("Log Frequency Axis", value=bool(special_state.get('sparam_log_freq', True)))
         _set_plot_state(['special', 'sparam_log_freq'], log_freq, persist=False)
+
+        smith_enabled = st.checkbox("Show Smith Chart (reflection terms)", value=st.session_state.get('sparam_smith_enabled', False), key="special_sparam_smith")
+        st.session_state.sparam_smith_enabled = smith_enabled
 
         if selection and st.button("Plot S-Parameters"):
             try:
                 fig = plotting_utils.plot_s_parameters(
                     sparam_data,
                     parsed_selection,
-                    display_mode=selected_mode,
+                    display_mode=selected_display_mode,
                     log_freq=log_freq,
+                    mode=st.session_state.get('sparam_mode', 'single_ended'),
                 )
                 st.pyplot(fig)
             except ValueError as exc:
                 st.error(str(exc))
         elif not selection:
             st.info("Select at least one S-parameter trace.")
+
+        if smith_enabled and parsed_selection and st.button("Plot Smith Chart"):
+            try:
+                fig = plotting_utils.plot_smith_chart(
+                    sparam_data,
+                    parsed_selection,
+                    mode=st.session_state.get('sparam_mode', 'single_ended'),
+                )
+                st.pyplot(fig)
+            except ValueError as exc:
+                st.error(str(exc))
+
+        # --- TDR Controls ---
+        tdr_capable_labels = [label for label in labels if re.match(r".*(\d+)\1$", label.replace('SDD', '').replace('S', ''))]
+        tdr_state = special_state.get('tdr', {})
+        if tdr_capable_labels:
+            tdr_col1, tdr_col2 = st.columns(2)
+            tdr_param = tdr_col1.selectbox(
+                "TDR Reflection Parameter",
+                tdr_capable_labels,
+                index=_option_index(tdr_capable_labels, tdr_state.get('parameter') or tdr_capable_labels[0], 0),
+                key="special_tdr_parameter",
+            )
+            velocity = tdr_col2.slider(
+                "Velocity Factor",
+                min_value=0.1,
+                max_value=0.99,
+                value=float(tdr_state.get('velocity', 0.5)),
+                step=0.01,
+            )
+            points = st.number_input(
+                "TDR Points",
+                min_value=512,
+                max_value=8192,
+                value=int(tdr_state.get('points', 2048)),
+                step=256,
+            )
+            window_options = ["hann", "blackman", "none"]
+            window_choice = st.selectbox(
+                "Window",
+                window_options,
+                index=_option_index(window_options, tdr_state.get('window', 'hann'), 0),
+                key="special_tdr_window",
+            )
+            show_impedance = st.checkbox(
+                "Overlay Impedance Profile",
+                value=tdr_state.get('show_impedance', True),
+                key="special_tdr_impedance",
+            )
+
+            _set_plot_state(['special', 'tdr'], {
+                "mode": mode_value,
+                "parameter": tdr_param,
+                "velocity": velocity,
+                "points": int(points),
+                "window": window_choice,
+                "show_impedance": show_impedance,
+            }, persist=False)
+
+            if st.button("Generate TDR Plot"):
+                digits = re.findall(r"(\d+)", tdr_param)
+                if len(digits) >= 2:
+                    pair = (int(digits[0]), int(digits[1]))
+                    try:
+                        tdr_data = plotting_utils.compute_tdr_trace(
+                            sparam_data,
+                            parameter=pair,
+                            mode=mode_value,
+                            velocity=velocity,
+                            points=int(points),
+                            window=window_choice,
+                        )
+                        fig = plotting_utils.plot_tdr(tdr_data, show_impedance=show_impedance)
+                        st.pyplot(fig)
+                    except ValueError as exc:
+                        st.error(str(exc))
+                else:
+                    st.warning("Select a valid reflection parameter for TDR.")
+        else:
+            st.caption("Select a reflection term (e.g., S11/SDD11) to enable TDR analysis.")
 
     elif plot_type == "Jitter":
         if not numeric_cols:
@@ -1024,16 +1589,88 @@ def _render_correlation_tab(filtered_df, numeric_cols):
     if top_n != corr_state.get('top_n'):
         _set_plot_state(['correlation', 'top_n'], int(top_n))
 
+    show_regression = st.checkbox("Show regression line", value=corr_state.get('show_regression', True))
+    show_stats = st.checkbox("Show regression stats (slope/intercept/R²)", value=corr_state.get('show_stats', False))
+    columns_per_row = st.slider("Plots per row", 1, 4, int(corr_state.get('columns_per_row', 2)))
+    _set_plot_state(['correlation', 'show_regression'], show_regression, persist=False)
+    _set_plot_state(['correlation', 'show_stats'], show_stats, persist=False)
+    _set_plot_state(['correlation', 'columns_per_row'], columns_per_row, persist=False)
+
+    grouping_state = corr_state.get('grouping', {})
+    primary_group, secondary_group, subplot_toggle, sharex_toggle, sharey_toggle = _render_grouping_controls(
+        filtered_df.columns.tolist(),
+        grouping_state,
+        "correlation"
+    )
+    grouping_updates = {
+        'primary': primary_group,
+        'secondary': secondary_group,
+        'subplots': subplot_toggle,
+        'sharex': sharex_toggle,
+        'sharey': sharey_toggle,
+    }
+    for key, value in grouping_updates.items():
+        if grouping_state.get(key) != value:
+            _set_plot_state(['correlation', 'grouping', key], value, persist=False)
+
     if st.button("Analyze Correlations"):
-        corr_df, _ = plotting_utils.get_top_correlated_columns(filtered_df, target_col, int(top_n))
+        corr_df, data_used = plotting_utils.get_top_correlated_columns(filtered_df, target_col, int(top_n))
         if corr_df is not None:
             st.dataframe(corr_df)
             if not corr_df.empty:
+                selected_columns = st.multiselect(
+                    "Columns to plot",
+                    corr_df['Column'].tolist(),
+                    default=corr_df['Column'].tolist(),
+                    key="correlation_columns_select"
+                )
+                _set_plot_state(['correlation', 'selected_columns'], selected_columns, persist=False)
+                group_kwargs = {
+                    'group_col': primary_group or None,
+                    'group_col2': secondary_group if (secondary_group and primary_group) else None,
+                    'subplots': subplot_toggle,
+                    'sharex': sharex_toggle if subplot_toggle else False,
+                    'sharey': sharey_toggle if subplot_toggle else False,
+                }
+                if selected_columns:
+                    try:
+                        fig = plotting_utils.plot_correlation_grid(
+                            data_used,
+                            target_col,
+                            corr_df,
+                            columns=selected_columns,
+                            columns_per_row=columns_per_row,
+                            show_regression=show_regression,
+                            show_stats=show_stats,
+                            **group_kwargs,
+                        )
+                        st.pyplot(fig)
+                        csv_bytes = plotting_utils.export_correlations_csv(
+                            data_used,
+                            target_col,
+                            corr_df,
+                            selected_columns
+                        )
+                        st.download_button(
+                            "Download correlation CSV",
+                            data=csv_bytes,
+                            file_name=f"correlations_{target_col}.csv",
+                            mime="text/csv",
+                        )
+                        img_bytes = plotting_utils.export_correlation_figure(fig)
+                        st.download_button(
+                            "Download correlation plots",
+                            data=img_bytes,
+                            file_name=f"correlations_{target_col}.png",
+                            mime="image/png",
+                        )
+                    except ValueError as exc:
+                        st.error(str(exc))
+                else:
+                    st.info("Select at least one correlated column to visualize.")
                 top_corr_col = corr_df.iloc[0]['Column']
                 top_corr_val = corr_df.iloc[0]['Correlation']
                 st.write(f"Top correlation: {top_corr_col} ({top_corr_val:.3f})")
-                fig = plotting_utils.plot_correlation(filtered_df, target_col, top_corr_col, top_corr_val)
-                st.pyplot(fig)
 
 
 def _render_special_plots(filtered_df, numeric_cols):
@@ -1293,6 +1930,14 @@ if os.path.isdir(new_dir):
 else:
     st.sidebar.error("Invalid directory")
 
+if st.sidebar.button("Browse Local Folder", key="browse_local_folder"):
+    chosen_dir = _browse_for_directory(st.session_state.current_dir)
+    if chosen_dir and os.path.isdir(chosen_dir):
+        st.session_state.current_dir = chosen_dir
+        _remember_directory(chosen_dir)
+    elif chosen_dir:
+        st.sidebar.warning("Selected path is not a directory")
+
 with st.sidebar.expander("File Filter", expanded=True):
     st.session_state.file_filter = st.text_input("Filter Files", st.session_state.file_filter)
     filter_col1, filter_col2 = st.columns([3, 1])
@@ -1313,6 +1958,8 @@ with st.sidebar.expander("Advanced File Filters", expanded=False):
     date_col1, date_col2 = st.columns(2)
     date_col1.text_input("Modified After (YYYY-MM-DD)", key="file_modified_after")
     date_col2.text_input("Modified Before (YYYY-MM-DD)", key="file_modified_before")
+    st.text_input("Name Filter (! to exclude)", key="file_name_filter")
+    st.text_input("Directory Filter (! to exclude)", key="file_directory_filter")
 
 with st.sidebar.expander("Filename Parsing", expanded=False):
     parse_mode = st.selectbox("Mode", ["split", "dash", "none"], key="filename_parse_mode")
@@ -1327,10 +1974,16 @@ st.session_state.file_browser_df = file_df.copy()
 st.session_state.file_browser_selection = []
 st.session_state.selected_files = []
 
-if not file_df.empty:
+st.subheader("File List")
+
+if file_df.empty:
+    st.info("No CSV/TSV files found in this directory.")
+else:
     file_df = _apply_file_filters(file_df)
 
-    if not file_df.empty:
+    if file_df.empty:
+        st.info("No files match the current filters.")
+    else:
         parse_mode = st.session_state.filename_parse_mode
         delimiter = st.session_state.filename_delimiter if parse_mode == 'split' else None
         max_parts = st.session_state.filename_max_parts
@@ -1338,15 +1991,81 @@ if not file_df.empty:
         parts_df = pd.DataFrame(parsed_parts.tolist()).fillna("") if not parsed_parts.empty else pd.DataFrame()
         if not parts_df.empty:
             file_df = pd.concat([file_df, parts_df], axis=1)
-        display_columns = ["Name", "SizeDisplay", "Modified", "Directory", "Extension"]
+
+        extension_options = sorted(file_df['Extension'].dropna().unique())
+        st.session_state.file_extension_filter = st.multiselect(
+            "Extensions",
+            extension_options,
+            default=[ext for ext in st.session_state.file_extension_filter if ext in extension_options]
+        )
+
+        sort_options = {
+            "Modified": "ModifiedDt",
+            "Name": "Name",
+            "Size": "SizeBytes",
+            "Directory": "Directory",
+        }
+        sort_cols = list(sort_options.keys())
+        sort_labels = st.columns([3, 1])
+        selected_sort_label = sort_labels[0].selectbox(
+            "Sort by",
+            sort_cols,
+            index=_option_index(sort_cols, next((label for label, col in sort_options.items() if col == st.session_state.file_sort_by), "Modified"), 0)
+        )
+        st.session_state.file_sort_by = sort_options[selected_sort_label]
+        st.session_state.file_sort_descending = sort_labels[1].checkbox(
+            "Descending",
+            value=st.session_state.file_sort_descending
+        )
+        file_df = file_df.sort_values(
+            st.session_state.file_sort_by,
+            ascending=not st.session_state.file_sort_descending
+        )
+
+        display_columns = [
+            "Name",
+            "SizeDisplay",
+            "Modified",
+            "Directory",
+            "Extension",
+            "SizeBytes",
+            "ModifiedDt",
+        ]
         part_columns = [col for col in file_df.columns if col.startswith('Part ')]
         display_columns.extend(part_columns)
-        display_df = file_df[display_columns]
-        file_widget = st.sidebar.dataframe(
+        available_columns = [col for col in display_columns if col in file_df.columns]
+        default_display = st.session_state.file_display_columns or display_columns
+        default_display = [col for col in default_display if col in available_columns]
+        if not default_display:
+            default_display = available_columns
+        col_display_cols = st.columns([3, 1])
+        selected_display_cols = col_display_cols[0].multiselect(
+            "Visible columns",
+            available_columns,
+            default=default_display,
+            key="file_visible_columns_multiselect"
+        )
+        _render_saved_filter_selector(
+            "Saved Column Sets",
+            "column_display",
+            "saved_column_display_select",
+            "file_display_columns",
+            col_display_cols[0]
+        )
+        if col_display_cols[1].button("Save", key="save_column_display"):
+            if _save_filter_preset("column_display", "|".join(selected_display_cols)):
+                st.success("Column set saved")
+            else:
+                st.warning("Nothing to save")
+        st.session_state.file_display_columns = selected_display_cols or available_columns
+        display_df = file_df[st.session_state.file_display_columns]
+
+        file_widget = st.dataframe(
             display_df,
             selection_mode="multi-row",
             on_select="rerun",
-            hide_index=True
+            hide_index=True,
+            key="file_browser_table"
         )
 
         selected_indices = []
@@ -1368,15 +2087,12 @@ if not file_df.empty:
                     st.session_state.df = utils.load_csv_file(filepath)
                     if st.session_state.df is not None:
                         _ensure_plot_state(filepath)
+                        _apply_column_layout(filepath)
                 except Exception as e:
                     st.error(f"Error loading file: {e}")
                     st.session_state.df = None
         else:
             st.session_state.selected_files = []
-    else:
-        st.sidebar.info("No files match the current filters.")
-else:
-    st.sidebar.info("No CSV/TSV files found in this directory.")
 
 _render_file_operations()
 
@@ -1456,18 +2172,79 @@ if st.session_state.selected_file and st.session_state.df is not None:
                     if target_col in columns_for_move:
                         ordered = [target_col] + [c for c in columns_for_move if c != target_col]
                         st.session_state.df = st.session_state.df[ordered]
+                        _update_column_layout(st.session_state.selected_file, ordered)
                         st.success(f"Moved {target_col} to start")
+                if st.button("Reset column layout", key="reset_column_layout_button"):
+                    if _reset_column_layout(st.session_state.selected_file):
+                        st.success("Column layout reset to original file order")
+                    else:
+                        st.info("No column layout changes to reset")
 
         filtered_df = st.session_state.df.copy()
+        if st.session_state.row_filter_text:
+            try:
+                filtered_df = utils.apply_row_filter(filtered_df, st.session_state.row_filter_text)
+            except Exception as e:
+                st.error(f"Row filter error: {e}")
         if st.session_state.column_filter_text:
             try:
                 filtered_df = utils.apply_column_filter(filtered_df, st.session_state.column_filter_text)
             except Exception as e:
                 st.error(f"Column filter error: {e}")
 
+    # --- Data Viewer Controls ---
+    viewer_cols = st.columns([2, 1, 1])
+    st.session_state.data_viewer_height = viewer_cols[0].slider(
+        "Grid height (px)",
+        min_value=300,
+        max_value=1200,
+        value=int(st.session_state.data_viewer_height),
+        step=50
+    )
+    st.session_state.data_viewer_font_scale = viewer_cols[1].slider(
+        "Font scale",
+        min_value=0.8,
+        max_value=1.5,
+        value=float(st.session_state.data_viewer_font_scale),
+        step=0.05
+    )
+    st.session_state.data_viewer_freeze_header = viewer_cols[2].checkbox(
+        "Sticky header",
+        value=st.session_state.data_viewer_freeze_header
+    )
+
     # --- Data Viewer ---
-    st.dataframe(filtered_df, use_container_width=True)
-    st.caption(f"Showing {len(filtered_df)} rows, {len(filtered_df.columns)} columns")
+    base_styles = [
+        {
+            'selector': '*',
+            'props': [('font-size', f"{st.session_state.data_viewer_font_scale}em")]
+        }
+    ]
+    if st.session_state.data_viewer_freeze_header:
+        base_styles.append({
+            'selector': 'th',
+            'props': [
+                ('position', 'sticky'),
+                ('top', '0'),
+                ('background-color', '#f7f7f7'),
+                ('z-index', '1'),
+            ]
+        })
+    styled_df = filtered_df.style.set_table_styles(base_styles)
+    st.dataframe(
+        styled_df,
+        use_container_width=True,
+        height=int(st.session_state.data_viewer_height),
+    )
+    active_filters = []
+    if st.session_state.row_filter_text:
+        active_filters.append("Row filter")
+    if st.session_state.column_filter_text:
+        active_filters.append("Column filter")
+    summary = f"Showing {len(filtered_df)} rows, {len(filtered_df.columns)} columns"
+    if active_filters:
+        summary += " | Active: " + ", ".join(active_filters)
+    st.caption(summary)
     csv_data = filtered_df.to_csv(index=False).encode('utf-8')
     st.download_button(
         label="Export Filtered CSV",

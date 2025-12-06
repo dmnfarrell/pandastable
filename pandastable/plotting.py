@@ -1346,7 +1346,7 @@ class PlotViewer(Frame):
                 elif kind == 'scatter':
                     #we plot multiple groups and series in different colors
                     #this logic could be placed in the scatter method?
-                    d = data.drop(by,1)
+                    d = data.drop(columns=by, errors='ignore')
                     d = d._get_numeric_data()
                     d = self._sanitize_dataframe_for_logy(d, kind)
                     xcol = d.columns[0]

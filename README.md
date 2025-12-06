@@ -1,122 +1,79 @@
-# pandastable
+# dataPlot Studio
 
-[![PyPI version shields.io](https://img.shields.io/pypi/v/pandastable.svg)](https://pypi.python.org/pypi/pandastable/)
-[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Build: status](https://img.shields.io/travis/dmnfarrell/pandastable.svg)](https://travis-ci.org/dmnfarrell/pandastable)
+**dataPlot Studio** is a Streamlit-based web application that brings the full CSV Browser desktop workflow to the browser. It combines high-volume file browsing, column-aware CSV viewing, and PlotViewer-grade visualization (including RF/TDR tooling) in a single workspace with persistent settings.
 
-## Introduction
+## Why dataPlot Studio?
 
-The pandastable library provides a table widget for Tkinter with plotting and data manipulation functionality. It uses the pandas DataFrame class to store table data. Pandas is an open source Python library providing high-performance data structures and data analysis tools. Tkinter is the standard GUI toolkit for python. It is intended for the following uses:
+- **Desktop parity in the browser** – Move/copy/rename/delete/merge files, apply saved filters, and launch external apps directly from the UI.
+- **Column-aware CSV viewer** – Per-file column layouts, move-to-front controls, saved presets, row/column filters, frozen headers, and zoom controls.
+- **Plotting power** – Scatter/line/density/bar/box/violin/dot/heatmap and specialty plots (3D, Gantt, jitter, phase-noise, S-parameters, TDR) with grouping, subplots, and Plotly interactivity (zoom/pan/hover).
+- **RF & Touchstone workflows** – Upload `.s2p/.s4p` files, compute derived metrics, run ICZT-based TDR, view Smith charts, and export traces.
+- **Persistent state** – Plot settings, filters, column layouts, and saved presets are stored per file/session via `plot_state.py` and `settings_store.py`.
 
-* For Python/Tkinter GUI developers who want to include a table in their application that can store and process large amounts of data.
-* For non-programmers who are not familiar with Python or the pandas API and want to use the included DataExplore application to manipulate/view their data.
-* It may also be useful for data analysts and programmers who want to get an initial interactive look at their tabular data without coding.
-
-The DataExplore application using these classes is included in the distribution and is a self-contained application for educational and research use. Currently this focuses on providing a spreadsheet-like interface for table manipulation with configurable 2D/3D plotting.
-
-**Documentation** is available at http://pandastable.readthedocs.io/.
-
-**Note:** The dataexplore application has been re-implemented in the Qt toolkit as [Tablexplore](https://github.com/dmnfarrell/tablexplore). If you're only interested in the application and not the Tkinter widget, the new app is recommended.
-
-## Installation
-
-### Requirements
-* Python >= 3.6
-* numpy
-* matplotlib
-* pandas
-
-### Install via pip
+## Quick Start
 
 ```bash
-pip install pandastable
+git clone <repo-url> dataplot-studio
+cd dataplot-studio
+python -m venv .venv && .venv\Scripts\activate  # PowerShell on Windows
+pip install -r requirements.txt
+streamlit run app.py
 ```
 
-### Install from Source
+1. Use the sidebar to pick a working directory (recent + saved filters are restored).
+2. Select files from the file browser table and open them in the CSV viewer.
+3. Configure filters, column layouts, and plotting state; settings persist automatically.
+4. Use “General Plots” or “Special Plots” tabs to generate interactive Plotly views, grouped subplots, and RF-focused charts.
 
-```bash
-pip install -e git+https://github.com/dmnfarrell/pandastable.git#egg=pandastable
-```
+## Repository Layout
 
-### Linux Snap
+| Path | Description |
+|------|-------------|
+| `app.py` | Main Streamlit app: layout, file browser, CSV viewer, plotting UI, and file operations. |
+| `plotting_utils.py` | Matplotlib-based plotting helpers reused by the web app (converted to Plotly at render time). |
+| `plot_state.py` | Default plot state schema + persistence helper. |
+| `settings_store.py` | Saved filters, recent directories, column presets, and other user settings. |
+| `file_ops.py` | Copy/move/rename/delete/merge/open-in helpers with Windows/macOS support. |
+| `test_app_logic.py` | Regression tests for filters, correlation plots, file ops, and Plotly conversion fallbacks. |
+| `examples/` | Legacy desktop CSV Browser code and reference scripts for migration parity. |
 
-You can also install the dataexplore snap package on any linux distribution that supports snaps:
+## Feature Highlights
 
-```bash
-sudo snap install dataexplore
-```
+### File Browser & Operations
 
-See the [installation docs](https://pandastable.readthedocs.io/en/latest/description.html#installation) for more details.
+- Multi-select copy/move/delete/rename with templates, merge CSVs, and “Open in” Excel/Spotfire.
+- Include/exclude filters, size/date ranges, saved presets, and per-user recent directories.
 
-## Usage
+### Column-Aware CSV Viewer
 
-### As a Library
+- Preserve column order per file, move columns to front, reset to original, and save named presets.
+- Apply column filters with wildcards/exclusions and desktop-style row filter syntax (`query`, free text, wildcards, `@`).
+- Frozen header toggle, adjustable font scale/height, and export filtered data.
 
-To use `pandastable` in your own Tkinter application:
+### Plotting & Analysis
 
-```python
-from tkinter import *
-from pandastable import Table, TableModel
-import pandas as pd
+- Scatter/line/density/bar/histogram/box/violin/dot/heatmap/hexbin/contour/imshow plus scatter-matrix, radviz, venn, and Gantt plots.
+- Primary/secondary grouping with subplot grids, shared axes, and Plotly zoom/pan/hover.
+- Correlation tab with grouping, regression overlays, CSV/PNG exports, and saved state.
 
-# Create a frame
-root = Tk()
-frame = Frame(root)
-frame.pack(fill='both', expand=True)
+### RF, Touchstone, and TDR Tooling
 
-# Create a DataFrame
-df = pd.DataFrame({'A': [1, 2, 3], 'B': [4, 5, 6]})
+- Load `.s2p/.s4p` files, visualize Smith charts, compute derived metrics, and export traces.
+- ICZT-based TDR plots with windowing, distance scaling, impedance overlays, and save-to-file actions.
 
-# Create and show the table
-pt = Table(frame, dataframe=df, showtoolbar=True, showstatusbar=True)
-pt.show()
+## Documentation & Guides
 
-root.mainloop()
-```
+- [CSV Browser → dataPlot Studio Migration PRD](CSV_BROWSER_WEB_MIGRATION_PRD.md)
+- [Touchstone & S-Parameter Guide](TOUCHSTONE_SUPPORT.md)
+- [Plotting Guides (3D, Shmoo, Density, Gantt, etc.)](./)
 
-### As an Application
+## Contributing
 
-Installing the package creates a command `dataexplore` in your path. Just run this to open the program.
+1. Fork + clone the repository.
+2. Install dev dependencies: `pip install -r requirements-dev.txt` (if available).
+3. Run tests: `python -m pytest test_app_logic.py -v`.
+4. Use the configured formatters/linters before submitting PRs.
 
-```bash
-dataexplore
-```
+## Legacy Notes
 
-This is a standalone application for data manipulation and plotting meant for education and basic data analysis.
-
-## Features
-
-* **Data Manipulation**: Add/remove rows and columns, edit cells, sort, and rename columns.
-* **Selection**: Spreadsheet-like drag, shift-click, and ctrl-click selection.
-* **Formatting**: Basic formatting including font, text size, and column width.
-* **I/O**: Import/export supported text files and save DataFrames to pandas formats.
-* **Performance**: Rendering of very large tables is generally memory-limited.
-* **Plotting**: Interactive plots with matplotlib (2D/3D), including scatter, line, bar, histogram, boxplot, density, and more.
-* **Analysis**: Basic manipulations like aggregate, pivot, melt, merge/concat, and filtering.
-* **Split-Apply-Combine**: Graphical interface for split-apply-combine operations.
-
-## FAQ
-
-**What version of Python?**
-Python 3.6+ is recommended.
-
-**Why use Tkinter?**
-Tkinter is the standard GUI toolkit for Python. While sometimes considered outdated, it is stable and part of the standard library. This project builds upon previous work (`tkintertable`) using Tkinter.
-
-**Is this a spreadsheet replacement?**
-No. While it shares some basic functionality, the goal is to leverage pandas for data analysis tasks that go beyond typical spreadsheet capabilities, accessible to non-programmers.
-
-**Are there alternatives?**
-Yes. Jupyter Notebooks are excellent for interactive analysis. Tools like Bokeh provide advanced web-based plotting. `pandastable` specifically targets desktop applications using Tkinter.
-
-## Links
-
-* [Documentation](https://pandastable.readthedocs.io/en/latest/)
-* [Journal Article](http://openresearchsoftware.metajnl.com/articles/10.5334/jors.94/)
-* [Video Demo](https://youtu.be/Ss0QIFywt74)
-
-## Citation
-
-If you use this software in your work, please cite:
-
-Farrell, D. (2016). DataExplore: An Application for General Data Analysis in Research and Education. *Journal of Open Research Software*, 4: e9. DOI: http://dx.doi.org/10.5334/jors.94
+This repository previously hosted the `pandastable` Tkinter widget and the desktop CSV Browser app. The legacy sources remain under `examples/` for reference while the active development target is the **dataPlot Studio** Streamlit experience.

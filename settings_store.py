@@ -10,7 +10,8 @@ DEFAULT_SETTINGS: Dict[str, Any] = {
         "row": [],
         "column": [],
         "file_op_dest": [],
-        "file_op_template": []
+        "file_op_template": [],
+        "column_display": [],
     }
 }
 

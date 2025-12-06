@@ -1,4 +1,4 @@
-# Product Requirements Document: Desktop → Web CSV Browser Migration
+# Product Requirements Document: Desktop → Web dataPlot Studio Migration
 
 **Version:** 0.1  
 **Date:** 2025-12-04  
@@ -8,7 +8,7 @@
 
 ## 1. Executive Summary
 
-The desktop CSV Browser (Tkinter + pandastable) delivers a power-user workflow with advanced file management, filtering, and plotting capabilities. The Streamlit-based web prototype offers easier distribution but lacks most of the desktop feature set. This PRD describes how to migrate the complete desktop functionality to a modern web experience while maintaining the performance, workflow depth, and reliability that existing users depend on.
+The desktop CSV Browser (Tkinter + pandastable) delivers a power-user workflow with advanced file management, filtering, and plotting capabilities. The Streamlit-based web prototype—now branded as **dataPlot Studio**—offers easier distribution but lacks most of the desktop feature set. This PRD describes how to migrate the complete desktop functionality to a modern web experience while maintaining the performance, workflow depth, and reliability that existing users depend on.
 
 ### Recent Progress (2025-12-04)
 
@@ -16,6 +16,27 @@ The desktop CSV Browser (Tkinter + pandastable) delivers a power-user workflow w
 - ✅ File operation destinations and rename templates reuse the shared `saved_filters` store, giving users persistent presets (parity with desktop quick-pick menus).
 - ✅ Automated tests cover rename-template formatting and copy/move flows to guard against regressions.
 - ✅ Plot parity workstream unlocked: 3D scatter/surface/wireframe, Gantt timelines, Touchstone-based S-parameter plots, jitter histograms, and phase-noise charts are live in the Streamlit UI with persisted settings.
+- ✅ ICZT-based TDR workflow landed: cached Touchstone metadata, differential/SE toggles, Smith overlays, and TDR plots (reflection + impedance) with velocity/window controls and regression tests.
+- ✅ Line plots now include desktop-grade grouping controls (primary/secondary group-by, subplot grids, shared axes) with persisted state so multi-site traces mirror the PlotViewer workflow.
+- ✅ Correlation analysis tab reached PlotViewer parity: grouping/subplot selectors, per-column plot selection, regression overlays, and CSV/PNG exports now persist via plot state.
+- ✅ CSV viewer now mirrors desktop column management: per-file column layouts, move-to-front controls, reset-to-original, saved column sets, and row/column filters with active-state summaries.
+- ✅ General plot tab now renders via Plotly, unlocking PlotViewer-grade zoom/pan/hover interactions across scatter/line/density/bar/etc. without altering existing Matplotlib helpers.
+
+### Upcoming Focus Areas
+
+1. **RF Derived Metrics & Export (Target: Week 13)**
+   - Extend S-parameter tooling with insertion/return loss presets, Smith-chart markers, and CSV export of selected traces and computed TDR impedance.
+   - Add “Save TDR Trace” action to download reflection/impedance arrays.
+2. **S-Parameter Quality-of-Life Enhancements**
+   - Cached Touchstone parsing (`st.cache_data`) with metadata preview (port count, frequency span, reference impedance).
+   - Smith chart overlays and differential/SE conversion controls (parity with desktop browser) ✅
+   - Pre-compute derived metrics (IL, RL, phase delay) for quick toggles in the Streamlit special-plots panel.
+3. **Documentation & Guided Examples**
+   - Port `examples/s4p_browser_v4.x2to1conversion.py` workflow into `/examples/csv_browser/TDR_PLOTS.md` with step-by-step Streamlit instructions (pending).
+   - Update Quick Start to highlight RF/TDR capabilities and ICZT controls.
+4. **Plot Viewer Grouping & Correlation Enhancements (New)**
+   - Extend general plots with primary/secondary grouping selectors, subplot toggles, and shared-axis controls to match the desktop PlotViewer (Plotly interactivity shipped; scatter matrix/radviz grouping still pending).
+   - Correlation analysis parity follow-ups: add export presets to file-ops menu, integrate derived metrics, and document workflows.
 
 ---
 
@@ -23,7 +44,7 @@ The desktop CSV Browser (Tkinter + pandastable) delivers a power-user workflow w
 
 ### 2.1 Goals
 
-1. **Feature Parity:** Deliver all high-value desktop features (file browser, filters, plotting, file ops, settings persistence) in the web UI.
+1. **Feature Parity:** Deliver all high-value desktop features (file browser, filters, plotting, file ops, settings persistence) in the dataPlot Studio web UI.
 2. **Unified Codebase:** Share business logic for filtering, plotting, and settings where possible to reduce duplication.
 3. **Improved Collaboration:** Enable browser-based access with shareable URLs and optional authentication.
 4. **Progressive Rollout:** Allow staged rollout so teams can validate workflows before sunsetting the desktop app.
@@ -38,7 +59,7 @@ The desktop CSV Browser (Tkinter + pandastable) delivers a power-user workflow w
 
 ## 3. Current State Overview
 
-| Area | Desktop (Tkinter) | Web (Streamlit) | Gap Impact |
+| Area | Desktop (Tkinter) | Web (dataPlot Studio) | Gap Impact |
 |------|-------------------|-----------------|------------|
 | File Browser | Rich table (sorting, filters, filename fields) | Simple list filter | Loss of discovery efficiency |
 | File Ops | Move/Copy/Delete/Merge/Rename, open in Excel/Spotfire | None | Missing core workflow |
@@ -53,18 +74,18 @@ The desktop CSV Browser (Tkinter + pandastable) delivers a power-user workflow w
 
 ### 4.1 Functional Requirements
 
-1. **File Browser & Management**
+1. **File Browser & Management (dataPlot Studio)**
    - FR1.1: Render directory tree + tabular file list with sortable columns and multi-select actions.
    - FR1.2: Support include/exclude filters, saved filters, and recent directories.
    - FR1.3: Provide Move, Copy, Delete (Recycle Bin if Windows), Merge CSV, Rename from field pattern, and Open-in (Excel/Spotfire) equivalents where possible.
    - FR1.4: Surface file metadata (size, modified) and parsed filename fields.
 
-2. **CSV Viewing & Filtering**
-   - FR2.1: Provide a column-aware grid (fixed header, horizontal scroll) with row filtering syntax identical to desktop (`query`, text, `@`, wildcard).
-   - FR2.2: Implement column search, column filter (`!`, quotes, `*`), save/load filter presets, and “Move column to start”.
-   - FR2.3: Allow saving filtered data to CSV.
+2. **CSV Viewing & Filtering (dataPlot Studio)**
+   - FR2.1: Provide a column-aware grid (fixed header, horizontal scroll) with row filtering syntax identical to desktop (`query`, text, `@`, wildcard). ✅ Filtering logic + presets done; remaining: frozen headers & zoom controls.
+   - FR2.2: Implement column search, column filter (`!`, quotes, `*`), save/load filter presets, and “Move column to start”. ✅ Completed with per-file layout persistence and reset controls.
+   - FR2.3: Allow saving filtered data to CSV. ✅ Export button wired to filtered grid.
 
-3. **Plotting & Analysis**
+3. **Plotting & Analysis (dataPlot Studio)**
    - FR3.1: Reuse plotting utilities (scatter, line, histogram, shmoo, bathtub, eye) with parameter UI parity.
    - FR3.2: Persist plot settings per user/session (global options, matplotlib opts, layout) and auto-restore on plot open.
    - FR3.3: Provide correlation analysis workflow (Top N, plots, export).
@@ -73,6 +94,8 @@ The desktop CSV Browser (Tkinter + pandastable) delivers a power-user workflow w
    - FR3.6: Expose the desktop 3D plot suite—scatter3D, surface, wireframe—with data-mode controls (grid vs parametric), stride settings, color maps, and optional point overlays.
    - FR3.7: Provide jitter analysis via histogram plots with Gaussian overlays, configurable bins, and stats panel (mean/σ/min/max) matching desktop tooling.
    - FR3.8: Provide phase-noise plots with log-scaled offset frequency, selectable noise columns, carrier-frequency annotations, and export parity with the desktop viewer.
+   - FR3.9: Add time-domain reflectometry (TDR) and pulse/impedance plots derived from Touchstone files, including ICZT/backward FFT, velocity-factor controls, and distance/time windowing.
+   - FR3.10: Deliver PlotViewer-grade grouping/subplot controls (primary + secondary group-by, subplot grid layout, shared axes) across general plot types starting with scatter, line, and density workflows.
 
 4. **Settings & Persistence**
    - FR4.1: Store recent directories, saved filters, plot/table settings in a backend (filesystem, DB, or user config file) with user scoping.
@@ -137,6 +160,8 @@ The desktop CSV Browser (Tkinter + pandastable) delivers a power-user workflow w
 | P3.C – Gantt View | Provide task/group aggregations against datetime columns, progress bars, “today” marker, milestone overlay, sort/group options | ✅ Completed – Matplotlib Gantt helper + Streamlit controls with saved state |
 | P3.D – 3D Plot Suite | Bring scatter3D, surface, wireframe modes with parametric/grid modes, stride sliders, point overlays, and camera controls (azimuth/elevation/dist) | ✅ Completed – 3D plotting helpers wired into special plots tab with stride/log controls |
 | P3.E – Integration & Persistence | Extend plot-state schema to capture new controls (Touchstone port selection, 3D view angles, jitter options) and ensure import/export paths cover them | ✅ Completed – `DEFAULT_PLOT_STATE` expanded for 3D, Gantt, S-parameters, jitter, and phase-noise settings |
+| P3.F – TDR & Time-Domain RF Views | Implement ICZT utilities for TDR/impedance/pulse plots, Streamlit controls for velocity factor, padding, windowing, and add export tools | ✅ Completed – ICZT helpers, velocity/window UI, Smith overlays, and TDR regression tests now live in Streamlit |
+| P3.G – Plot Grouping & Subplots | Bring desktop group-by + subplot toggles to general plots (scatter, line, density first; then bar/area, hist/box/violin, dot/heatmap/etc.) with persisted state and regression coverage | 🚧 In Progress – Line plots completed; scatter/density next per roadmap |
 
 Each milestone is scoped to ~1 week of dev/test effort and can be executed sequentially within Phase 3 or pulled earlier if bandwidth allows.
 

@@ -2,7 +2,12 @@ from __future__ import annotations
 
 from pathlib import Path
 import shutil
-from typing import Dict, List, Sequence, Tuple
+import os
+import platform
+import subprocess
+from typing import Callable, Dict, List, Sequence, Tuple
+
+import pandas as pd
 
 Record = Dict[str, str]
 
@@ -196,3 +201,99 @@ def preview_rename(records: Sequence[Record], template: str, limit: int = 3) -> 
             'preview': Path(new_name).name,
         })
     return previews
+
+
+def merge_csv_files(
+    records: Sequence[Record],
+    output_path: str,
+    include_header: bool = True,
+) -> Tuple[str, str, List[str], List[str]]:
+    if not records:
+        return "warning", "Select one or more files in the sidebar.", [], []
+    if not output_path or not output_path.strip():
+        return "error", "Enter a destination file path for the merged CSV.", [], []
+
+    dest = Path(output_path).expanduser()
+    try:
+        dest.parent.mkdir(parents=True, exist_ok=True)
+    except Exception as exc:
+        return "error", f"Unable to create destination directory: {exc}", [], []
+
+    frames: List[pd.DataFrame] = []
+    failures: List[str] = []
+    for record in records:
+        path = Path(record['Path'])
+        if not path.exists():
+            failures.append(f"{path.name}: missing source")
+            continue
+        try:
+            df = pd.read_csv(path)
+        except Exception as exc:
+            failures.append(f"{path.name}: {exc}")
+            continue
+        frames.append(df)
+
+    if not frames:
+        failure_msg = "; ".join(failures[:3]) if failures else "No CSV data to merge."
+        return "error", failure_msg, [], []
+
+    merged = pd.concat(frames, ignore_index=True, sort=False)
+    try:
+        merged.to_csv(dest, index=False, header=include_header)
+    except Exception as exc:
+        return "error", f"Failed to write merge output: {exc}", [], []
+
+    summary = f"Merged {len(frames)} file(s) into {dest} ({len(merged)} rows)."
+    if failures:
+        return "warning", summary + " Issues: " + "; ".join(failures[:3]), [str(dest)], []
+    return "success", summary, [str(dest)], []
+
+
+def open_in_app(
+    records: Sequence[Record],
+    mode: str = 'default',
+    launcher: Callable[[Path, str], None] | None = None,
+) -> Tuple[str, str, List[str], List[str]]:
+    if not records:
+        return "warning", "Select one or more files in the sidebar.", [], []
+    if launcher is None:
+        launcher = _default_launcher
+
+    successes: List[str] = []
+    failures: List[str] = []
+    for record in records:
+        path = Path(record['Path'])
+        if not path.exists():
+            failures.append(f"{path.name}: missing source")
+            continue
+        try:
+            launcher(path, mode)
+        except Exception as exc:
+            failures.append(f"{path.name}: {exc}")
+        else:
+            successes.append(path.name)
+
+    if successes and not failures:
+        return "success", f"Opened {len(successes)} file(s) via system handler.", successes, []
+    if successes and failures:
+        return "warning", f"Opened {len(successes)} file(s) with issues: " + "; ".join(failures[:3]), successes, []
+    failure_msg = "; ".join(failures[:3]) if failures else "No files opened."
+    return "error", failure_msg, successes, []
+
+
+def _default_launcher(path: Path, mode: str) -> None:
+    system = platform.system().lower()
+    if system == 'windows':
+        os.startfile(str(path))  # type: ignore[attr-defined]
+        return
+
+    if system == 'darwin':
+        if mode == 'excel':
+            cmd = ['open', '-a', 'Microsoft Excel', str(path)]
+        elif mode == 'spotfire':
+            cmd = ['open', '-a', 'Spotfire', str(path)]
+        else:
+            cmd = ['open', str(path)]
+    else:
+        cmd = ['xdg-open', str(path)]
+    subprocess.Popen(cmd)
