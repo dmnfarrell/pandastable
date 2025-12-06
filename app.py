@@ -16,6 +16,7 @@ from plotly.tools import mpl_to_plotly
 import matplotlib.pyplot as plt
 from plot_state import DEFAULT_PLOT_STATE, PlotStateManager
 from settings_store import SettingsManager
+import forum
 
 SAVED_FILTER_PLACEHOLDER = "-- Select Saved --"
 RECENT_DIR_PLACEHOLDER = "-- Select Recent Directory --"
@@ -1965,6 +1966,14 @@ def _render_plot_state_controls():
             st.success("Plot settings imported.")
         except Exception as exc:
             st.error(f"Failed to import settings: {exc}")
+
+# --- Sidebar Navigation ---
+st.sidebar.title("Navigation")
+app_mode = st.sidebar.radio("Go to", ["Studio", "Forum"])
+
+if app_mode == "Forum":
+    forum.render_forum()
+    st.stop()
 
 # --- Sidebar: File Browser ---
 st.sidebar.title("File Browser")
