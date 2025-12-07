@@ -570,7 +570,8 @@ class ImageBrowser(tk.Tk):
                 raise RuntimeError("Gemini API key not provided")
             self.gemini_api_key = api_key
         genai.configure(api_key=api_key)
-        return genai.GenerativeModel("gemini-1.5-flash")
+        model_name = os.environ.get('GEMINI_MODEL', 'gemini-2.5-flash')
+        return genai.GenerativeModel(model_name)
 
     def send_md_chat(self):
         """Send a follow-up prompt to Gemini and append response to the markdown file."""
@@ -1935,7 +1936,8 @@ class ImageBrowser(tk.Tk):
             try:
                 genai.configure(api_key=api_key)
                 # Use a multimodal model capable of image understanding
-                model = genai.GenerativeModel("gemini-1.5-flash")
+                model_name = os.environ.get('GEMINI_MODEL', 'gemini-2.5-flash')
+                model = genai.GenerativeModel(model_name)
             except Exception as e:
                 messagebox.showerror("Gemini Error", f"Failed to configure Gemini client: {e}")
                 return
