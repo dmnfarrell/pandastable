@@ -2348,6 +2348,7 @@ class ImageBrowser(tk.Tk):
             )
             if not dest_dir:
                 return
+            dest_dir = os.path.normpath(os.path.abspath(dest_dir))
 
             moved = 0
             errors = []
@@ -2356,7 +2357,12 @@ class ImageBrowser(tk.Tk):
                     if not os.path.isfile(src):
                         continue
                     fname = os.path.basename(src)
+                    src_abs = os.path.normpath(os.path.abspath(src))
                     dst = os.path.join(dest_dir, fname)
+                    dst_abs = os.path.normpath(os.path.abspath(dst))
+                    if os.path.normcase(src_abs) == os.path.normcase(dst_abs):
+                        errors.append((src, "Source and destination are the same."))
+                        continue
                     if os.path.exists(dst):
                         overwrite = messagebox.askyesno("Overwrite?", f"{fname} exists. Overwrite?")
                         if not overwrite:
