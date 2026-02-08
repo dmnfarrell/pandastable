@@ -1,12 +1,6 @@
-﻿# Environment files
-.env
-
-# Python bytecode
-__pycache__/
-**/__pycache__/
-*.py[cod]
-
-# Logs
-*.log
-logs/
-examples/logs/
+pandastable.egg-info/
+pandastable/__pycache__/
+examples.egg-info/
+examples/__pycache__/
+.vscode/
+.idea/

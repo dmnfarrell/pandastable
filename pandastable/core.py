@@ -66,12 +66,7 @@ if not os.path.exists(config_path):
     os.mkdir(config_path)
 
 def git_version() -> str:
-    """
-    Get git version.
-
-    Returns:
-        str: The git version string.
-    """
+    """Get git version"""
     return subprocess.check_output(['git','describe','--tags']).decode('ascii').strip()
 
 class Table(Canvas):
@@ -953,12 +948,7 @@ class Table(Canvas):
         return
 
     def zoomIn(self, event=None):
-        """
-        Zoom in by increasing font size and row height.
-
-        Args:
-            event: The triggering event (optional).
-        """
+        """Zoom in, increases font and row heights."""
 
         self.fontsize = self.fontsize+1
         self.rowheight += 2
@@ -969,12 +959,7 @@ class Table(Canvas):
         return
 
     def zoomOut(self, event=None):
-        """
-        Zoom out by decreasing font size and row height.
-
-        Args:
-            event: The triggering event (optional).
-        """
+        """Zoom out, decreases font and row heights."""
 
         self.fontsize = self.fontsize-1
         self.rowheight -= 2
@@ -2421,10 +2406,6 @@ class Table(Canvas):
         """
         Show the evaluation bar for applying pandas/numpy expressions or functions.
 
-        Args:
-            evt: The triggering event (optional).
-        """
-
         if self.filtered == 1:
             messagebox.showwarning("Not available",
                                    "You cannot add arithmetic columns when filtered.",
@@ -2948,12 +2929,7 @@ class Table(Canvas):
         return
 
     def handle_arrow_keys(self, event):
-        """
-        Handle keyboard navigation with arrow keys.
-
-        Args:
-            event: The tkinter event.
-        """
+        """Handle arrow keys press"""
 
         row = self.get_row_clicked(event)
         col = self.get_col_clicked(event)
@@ -3011,21 +2987,13 @@ class Table(Canvas):
         return
 
     def handle_page_up(self, event=None):
-        """
-        Handle Page Up key press.
-        """
         self.page_up()
 
     def handle_page_down(self, event=None):
-        """
-        Handle Page Down key press.
-        """
         self.page_down()
 
     def page_up(self):
-        """
-        Scroll up by one page.
-        """
+        """Scroll up by one page"""
 
         first_visible_row = int(self.rows * self.yview()[0])
         visible_rows = int(self.rows * (self.yview()[1] - self.yview()[0]))
@@ -3034,9 +3002,7 @@ class Table(Canvas):
         return
 
     def page_down(self):
-        """
-        Scroll down by one page.
-        """
+        """Scroll down by one page"""
 
         first_visible_row = int(self.rows * self.yview()[0])
         visible_rows = int(self.rows * (self.yview()[1] - self.yview()[0]))
@@ -3873,26 +3839,17 @@ class Table(Canvas):
         """
 
         df = self.model.df
-        nrows = len(df)
-        ncols = len(df.columns)
         cols, rows = self.multiplecollist, self.multiplerowlist
-        if not isinstance(rows, list):
+        if not type(rows) is list:  # or self.allcols == True:
             rows = list(rows)
         if self.__last_left_click_src == "row":
             if len(cols) < 1:
-                cols = list(range(ncols))
-                r = self.currentrow if 0 <= self.currentrow < nrows else (0 if nrows > 0 else -1)
-                rows = [r] if r != -1 else []
+                cols = list(range(self.cols))
+                rows = [self.currentrow]
         else:
             if len(rows) < 1 or self.allrows == True:
-                rows = list(range(nrows))
-            if len(cols) < 1:
-                cc = self.currentcol if 0 <= self.currentcol < ncols else (0 if ncols > 0 else -1)
-                cols = [cc] if cc != -1 else []
-        rows = [r for r in rows if 0 <= r < nrows]
-        cols = [c for c in cols if 0 <= c < ncols]
-        if len(rows) == 0 or len(cols) == 0:
-            return pd.DataFrame()
+                rows = list(range(self.rows))
+                cols = [self.currentcol]
         try:
             data = df.iloc[rows,cols]
         except Exception as e:
@@ -4688,12 +4645,6 @@ class Table(Canvas):
         return
 
     def setLeftClickSrc(self, src):
-        """
-        Set the source of the last left click (e.g., 'row', 'column').
-
-        Args:
-            src (str): The source identifier.
-        """
         self.__last_left_click_src = src
 
 class ToolBar(Frame):

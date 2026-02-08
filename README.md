@@ -1,6 +1,7 @@
 # dataPlot Studio
 
-**dataPlot Studio** is a Streamlit-based web application that brings the full CSV Browser desktop workflow to the browser. It combines high-volume file browsing, column-aware CSV viewing, and PlotViewer-grade visualization (including RF/TDR tooling) in a single workspace with persistent settings.
+[![PyPI version shields.io](https://img.shields.io/pypi/v/pandastable.svg)](https://pypi.python.org/pypi/pandastable/)
+[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 ## Why dataPlot Studio?
 
@@ -52,16 +53,23 @@ streamlit run app.py
 
 ### Plotting & Analysis
 
-- Scatter/line/density/bar/histogram/box/violin/dot/heatmap/hexbin/contour/imshow plus scatter-matrix, radviz, venn, and Gantt plots.
-- Primary/secondary grouping with subplot grids, shared axes, and Plotly zoom/pan/hover.
-- Correlation tab with grouping, regression overlays, CSV/PNG exports, and saved state.
+see the [docs](https://pandastable.readthedocs.io/en/latest/description.html#installation) for more details on installing.
 
-### RF, Touchstone, and TDR Tooling
+## Current features
 
-- Load `.s2p/.s4p` files, visualize Smith charts, compute derived metrics, and export traces.
-- ICZT-based TDR plots with windowing, distance scaling, impedance overlays, and save-to-file actions.
-
-## Documentation & Guides
+* add, remove rows and columns
+* spreadsheet-like drag, shift-click, ctrl-click selection
+* edit individual cells
+* sort by column, rename columns
+* reorder columns dynamically by mouse drags
+* set some basic formatting such as font, text size and column width
+* save the DataFrame to supported pandas formats
+* import/export of supported text files
+* rendering of very large tables is only memory limited
+* interactive plots with matplotlib, mostly using the pandas plot functions
+* basic table manipulations like aggregate and pivot
+* filter table using built in dataframe functionality
+* graphical way to perform split-apply-combine operations
 
 - [CSV Browser → dataPlot Studio Migration PRD](CSV_BROWSER_WEB_MIGRATION_PRD.md)
 - [Touchstone & S-Parameter Guide](TOUCHSTONE_SUPPORT.md)

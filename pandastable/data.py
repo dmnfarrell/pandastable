@@ -415,15 +415,7 @@ class TableModel(object):
         return grps
 
     def getColumnType(self, columnIndex):
-        """
-        Get the data type of a column.
-
-        Args:
-            columnIndex (int): The column index.
-
-        Returns:
-            dtype: The data type of the column.
-        """
+        """Get the column type"""
 
         coltype = self.df.dtypes.iloc[columnIndex]
         return coltype

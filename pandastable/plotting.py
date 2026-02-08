@@ -1018,13 +1018,8 @@ class PlotViewer(Frame):
         """
 
         #x = df.convert_objects()._get_numeric_data()
-        try:
-            x = df.apply(lambda s: pd.to_numeric(s, errors='coerce', downcast='float'))
-            # consider there is numeric data only if we have at least one numeric column
-            num_cols = x.select_dtypes(include=[np.number])
-            if num_cols.shape[1] == 0:
-                return False
-        except Exception:
+        x = df.apply( lambda x: pd.to_numeric(x,errors='coerce',downcast='float') )
+        if x.empty==True:
             return False
 
     def _initFigure(self):

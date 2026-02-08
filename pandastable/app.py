@@ -1417,13 +1417,10 @@ class DataExplore(Frame):
         style = Style()
         style.configure("BW.TLabel", font='arial 11')
         try:
-            # git_version and __version__ already imported at module level
-            if git_version is not None:
-                VERSION = git_version()
-            else:
-                VERSION = __version__
+            from .core import git_version
+            VERSION = git_version()
         except:
-            VERSION = __version__
+            from . import __version__ as VERSION
 
         pandasver = pd.__version__
         pythonver = platform.python_version()

@@ -1716,12 +1716,8 @@ class FindReplaceDialog(Frame):
         return
 
     def find(self, event=None):
-        """
-        Execute the search. Highlights matching cells.
-
-        Args:
-            event: Optional triggering event.
-        """
+        """Do string search. Creates a masked dataframe for results and then stores each cell
+        coordinate in a list."""
 
         table = self.table
         df = table.model.df
@@ -1928,15 +1924,7 @@ class QueryDialog(Frame):
         return fb
 
     def addFilterRow(self, column=None, operator=None, value=None, booleanop='AND'):
-        """
-        Add a filter row with predefined settings.
-
-        Args:
-            column (str): Column name.
-            operator (str): Operator.
-            value: Value to compare.
-            booleanop (str): Boolean operator ('AND', 'OR', 'NOT').
-        """
+        """Add filter with predefined values"""
 
         filter_bar = self.addFilter()
 
