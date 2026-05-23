@@ -2811,9 +2811,9 @@ class Table(Canvas):
             if fillempty == 1:
                 x = x.fillna(0)
             if currency == 1:
-                x = x.replace( '[\$\£\€,)]','', regex=True ).replace( '[(]','-', regex=True )
+                x = x.replace( r'[\$\£\€,)]','', regex=True ).replace( '[(]','-', regex=True )
             if removetext == 1:
-                x = x.replace( '[^\d.]+', '', regex=True)
+                x = x.replace( r'[^\d.]+', '', regex=True)
             self.model.df[c] = pd.to_numeric(x, errors='coerce').astype(convtype)
 
         self.redraw()
