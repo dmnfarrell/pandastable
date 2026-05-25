@@ -496,7 +496,7 @@ class Table(Canvas):
 
             #convert column data to object for display
             #coldata = coldata.astype(object).fillna('')
-            coldata = coldata.infer_objects(copy=False).fillna('')
+            coldata = coldata.infer_objects().fillna('')
 
             offset = rows[0]
             for row in self.visiblerows:
