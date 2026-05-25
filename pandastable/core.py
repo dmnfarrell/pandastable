@@ -809,7 +809,7 @@ class Table(Canvas):
             else:
                 w = self.cellwidth
             l = self.model.getlongestEntry(col)
-            txt = ''.join(['X' for i in range(l+1)])
+            txt = ''.join(['X' for i in range(int(l)+1)])
             tw,tl = util.getTextLength(txt, self.maxcellwidth,
                                        font=self.thefont)
             #print (col,txt,l,tw)
