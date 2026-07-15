@@ -158,7 +158,7 @@ class TableModel(object):
                 c = df[col][:n]
         except:
             return 1
-        longest = c.astype('object').astype('str').str.len().max()
+        longest = int(c.astype('object').astype('str').str.len().max())
         if np.isnan(longest):
             return 1
         return longest
